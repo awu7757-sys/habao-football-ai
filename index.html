@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>哈寶足球 AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans TC",
+        sans-serif;
+
+      color: #ffffff;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(45, 255, 153, .13), transparent 32%),
+        radial-gradient(circle at 80% 80%, rgba(30, 122, 255, .16), transparent 35%),
+        linear-gradient(135deg, #050b12 0%, #091522 48%, #05090f 100%);
+
+      overflow: hidden;
+    }
+
+    /* 背景足球場線條 */
+    .field {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .08;
+    }
+
+    .field::before {
+      content: "";
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      border: 1px solid #75ffb8;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .field::after {
+      content: "";
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: #75ffb8;
+      left: 50%;
+    }
+
+    .glow {
+      position: fixed;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: rgba(33, 255, 138, .11);
+      filter: blur(100px);
+      top: -100px;
+      right: -80px;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: fadeUp .8s ease;
+    }
+
+    .logo {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 24px;
+
+      background:
+        linear-gradient(145deg, rgba(45,255,153,.22), rgba(45,255,153,.05));
+
+      border: 1px solid rgba(96,255,176,.28);
+
+      box-shadow:
+        0 0 35px rgba(34,255,137,.12),
+        inset 0 0 25px rgba(255,255,255,.03);
+
+      font-size: 36px;
+    }
+
+    .brand-small {
+      color: #5dffab;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 8px;
+    }
+
+    .brand h1 {
+      font-size: 34px;
+      letter-spacing: 1px;
+      font-weight: 800;
+    }
+
+    .brand p {
+      color: #8997a8;
+      font-size: 14px;
+      margin-top: 9px;
+    }
+
+    .card {
+      position: relative;
+
+      background:
+        linear-gradient(
+          160deg,
+          rgba(17, 31, 44, .88),
+          rgba(8, 18, 27, .88)
+        );
+
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 26px;
+
+      padding: 34px 30px 30px;
+
+      backdrop-filter: blur(22px);
+
+      box-shadow:
+        0 30px 80px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.04);
+
+      animation: fadeUp 1s ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 22%;
+      right: 22%;
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          #48ffa1,
+          transparent
+        );
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card-subtitle {
+      color: #718092;
+      font-size: 13px;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .label {
+      display: block;
+      color: #aab5c1;
+      font-size: 12px;
+      margin: 0 0 8px 3px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input {
+      width: 100%;
+      height: 56px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,.09);
+
+      background: rgba(0,0,0,.22);
+      color: #ffffff;
+
+      padding: 0 17px;
+
+      outline: none;
+      font-size: 16px;
+
+      transition: .25s ease;
+    }
+
+    input::placeholder {
+      color: #536172;
+    }
+
+    input:focus {
+      border-color: rgba(66,255,160,.55);
+
+      box-shadow:
+        0 0 0 3px rgba(41,255,144,.07);
+    }
+
+    button {
+      width: 100%;
+      height: 56px;
+
+      margin-top: 18px;
+
+      border: none;
+      border-radius: 15px;
+
+      cursor: pointer;
+
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1px;
+
+      color: #03130b;
+
+      background:
+        linear-gradient(
+          90deg,
+          #35ed8a,
+          #66ffb0
+        );
+
+      box-shadow:
+        0 12px 30px rgba(45,255,145,.15);
+
+      transition: .25s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 16px 35px rgba(45,255,145,.22);
+    }
+
+    button:active {
+      transform: scale(.99);
+    }
+
+    .message {
+      display: none;
+      margin-top: 16px;
+      padding: 13px 15px;
+      border-radius: 13px;
+
+      font-size: 13px;
+      line-height: 1.6;
+
+      text-align: center;
+    }
+
+    .message.error {
+      display: block;
+
+      color: #ff9c9c;
+
+      border: 1px solid rgba(255,94,94,.16);
+      background: rgba(255,63,63,.06);
+    }
+
+    .security {
+      margin-top: 23px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+
+      color: #526171;
+      font-size: 11px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+
+      background: #42f999;
+
+      box-shadow:
+        0 0 10px rgba(66,249,153,.8);
+    }
+
+    .footer {
+      margin-top: 25px;
+      text-align: center;
+
+      color: #3f4d5a;
+      font-size: 11px;
+      letter-spacing: .7px;
+    }
+
+    .ai-line {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+
+      margin-top: 12px;
+
+      color: #3e5363;
+      font-size: 10px;
+      letter-spacing: 1.3px;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .app {
+        align-items: center;
+        padding: 20px;
+      }
+
+      .brand h1 {
+        font-size: 29px;
+      }
+
+      .card {
+        padding: 29px 22px 25px;
+        border-radius: 22px;
+      }
+
+      .logo {
+        width: 68px;
+        height: 68px;
+        border-radius: 21px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="field"></div>
+  <div class="glow"></div>
+
+  <main class="app">
+
+    <div class="login-wrap">
+
+      <div class="brand">
+
+        <div class="logo">⚽</div>
+
+        <div class="brand-small">
+          HABAO FOOTBALL AI
+        </div>
+
+        <h1>哈寶足球 AI</h1>
+
+        <p>
+          AI 智能賽事數據分析平台
+        </p>
+
+      </div>
+
+
+      <section class="card">
+
+        <div class="card-title">
+          會員登入
+        </div>
+
+        <div class="card-subtitle">
+          請輸入哈寶提供的授權帳號進入分析系統
+        </div>
+
+
+        <label class="label">
+          使用帳號
+        </label>
+
+        <div class="input-wrap">
+
+          <input
+            id="account"
+            type="text"
+            placeholder="請輸入會員帳號"
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <button
+          id="loginButton"
+          onclick="login()"
+        >
+          進入分析系統 →
+        </button>
+
+
+        <div
+          id="message"
+          class="message"
+        ></div>
+
+
+        <div class="security">
+
+          <span class="dot"></span>
+
+          僅限授權會員使用
+
+        </div>
+
+      </section>
+
+
+      <div class="ai-line">
+
+        <span>AI DATA</span>
+        <span>•</span>
+        <span>MATCH</span>
+        <span>•</span>
+        <span>ANALYSIS</span>
+
+      </div>
+
+
+      <div class="footer">
+
+        HABA0 FOOTBALL AI SYSTEM
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <script>
+
+    function login() {
+
+      const account =
+        document
+          .getElementById("account")
+          .value
+          .trim();
+
+      const message =
+        document
+          .getElementById("message");
+
+      if (!account) {
+
+        message.className =
+          "message error";
+
+        message.innerHTML =
+          "請先輸入您的會員帳號";
+
+        return;
+
+      }
+
+      /*
+        下一步：
+        這裡會連接 Supabase Edge Function。
+
+        不會直接把會員資料庫
+        或敏感 API Key 放在 GitHub。
+      */
+
+      message.className =
+        "message error";
+
+      message.innerHTML =
+        "會員驗證系統正在連接中";
+
+    }
+
+    document
+      .getElementById("account")
+      .addEventListener(
+        "keydown",
+        function(event) {
+
+          if (event.key === "Enter") {
+            login();
+          }
+
+        }
+      );
+
+  </script>
+
+</body>
+</html>
