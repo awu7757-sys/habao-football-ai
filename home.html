@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>哈寶足球 AI｜分析中心</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      min-height:100vh;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+      color:#fff;
+
+      background:
+        radial-gradient(circle at 10% 10%,rgba(45,255,153,.12),transparent 30%),
+        radial-gradient(circle at 90% 90%,rgba(46,113,255,.15),transparent 35%),
+        linear-gradient(135deg,#050b12,#091522 48%,#05090f);
+
+      padding-bottom:60px;
+    }
+
+    .topbar{
+      width:100%;
+      padding:22px 32px;
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(5,11,18,.65);
+      backdrop-filter:blur(18px);
+
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand-icon{
+      width:42px;
+      height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      border-radius:14px;
+
+      background:linear-gradient(
+        145deg,
+        rgba(45,255,153,.22),
+        rgba(45,255,153,.06)
+      );
+
+      border:1px solid rgba(82,255,169,.22);
+
+      font-size:21px;
+    }
+
+    .brand-name{
+      font-size:16px;
+      font-weight:800;
+    }
+
+    .brand-small{
+      margin-top:2px;
+      color:#58ffa9;
+      font-size:9px;
+      letter-spacing:2px;
+    }
+
+    .user{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .user-info{
+      text-align:right;
+    }
+
+    .user-account{
+      font-size:12px;
+      color:#d9e2eb;
+    }
+
+    .user-expire{
+      margin-top:3px;
+      font-size:10px;
+      color:#647586;
+    }
+
+    .logout{
+      padding:9px 13px;
+
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+
+      color:#8fa0b1;
+      background:rgba(255,255,255,.03);
+
+      cursor:pointer;
+      font-size:11px;
+    }
+
+    .container{
+      width:100%;
+      max-width:1150px;
+      margin:auto;
+      padding:65px 28px;
+    }
+
+    .hero{
+      margin-bottom:45px;
+    }
+
+    .eyebrow{
+      color:#55ffa8;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:3px;
+      margin-bottom:12px;
+    }
+
+    h1{
+      font-size:38px;
+      line-height:1.25;
+    }
+
+    .hero p{
+      margin-top:12px;
+      color:#738395;
+      font-size:14px;
+      line-height:1.8;
+    }
+
+    .section-title{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+    }
+
+    .section-title h2{
+      font-size:16px;
+    }
+
+    .section-title span{
+      font-size:10px;
+      color:#586879;
+    }
+
+    .sports-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .sport-card{
+      min-height:245px;
+      padding:25px;
+
+      border-radius:22px;
+
+      position:relative;
+      overflow:hidden;
+
+      border:1px solid rgba(255,255,255,.07);
+
+      background:
+        linear-gradient(
+          155deg,
+          rgba(19,34,47,.92),
+          rgba(8,17,25,.92)
+        );
+
+      transition:.28s ease;
+    }
+
+    .sport-card.active{
+      cursor:pointer;
+    }
+
+    .sport-card.active:hover{
+      transform:translateY(-5px);
+
+      border-color:rgba(71,255,159,.35);
+
+      box-shadow:
+        0 22px 55px rgba(0,0,0,.32),
+        0 0 35px rgba(50,255,151,.07);
+    }
+
+    .sport-card::after{
+      content:"";
+      position:absolute;
+
+      width:150px;
+      height:150px;
+
+      border-radius:50%;
+
+      right:-50px;
+      top:-50px;
+
+      background:rgba(49,255,153,.05);
+      filter:blur(15px);
+    }
+
+    .sport-card.disabled{
+      opacity:.48;
+      cursor:not-allowed;
+    }
+
+    .sport-icon{
+      width:58px;
+      height:58px;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+
+      border-radius:17px;
+
+      font-size:29px;
+
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+
+      margin-bottom:28px;
+    }
+
+    .sport-name{
+      font-size:21px;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .sport-desc{
+      color:#6e7e8e;
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    .status{
+      position:absolute;
+      left:25px;
+      bottom:22px;
+
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:1px;
+    }
+
+    .online{
+      color:#52ffa7;
+    }
+
+    .coming{
+      color:#687786;
+    }
+
+    .arrow{
+      position:absolute;
+      right:25px;
+      bottom:20px;
+
+      width:35px;
+      height:35px;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+
+      border-radius:50%;
+
+      background:rgba(60,255,158,.08);
+      color:#55ffa8;
+    }
+
+    .notice{
+      margin-top:35px;
+
+      padding:18px 20px;
+
+      border-radius:16px;
+
+      background:rgba(255,255,255,.025);
+      border:1px solid rgba(255,255,255,.05);
+
+      color:#637383;
+
+      font-size:11px;
+      line-height:1.8;
+    }
+
+    .loading{
+      position:fixed;
+      inset:0;
+
+      z-index:999;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      background:#050b12;
+
+      color:#55ffa8;
+
+      font-size:13px;
+      letter-spacing:2px;
+    }
+
+    @media(max-width:800px){
+
+      .sports-grid{
+        grid-template-columns:1fr;
+      }
+
+      .container{
+        padding:45px 20px;
+      }
+
+      h1{
+        font-size:30px;
+      }
+
+      .topbar{
+        padding:16px 18px;
+      }
+
+      .user-expire{
+        display:none;
+      }
+
+      .brand-small{
+        display:none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading" class="loading">
+    VERIFYING MEMBER...
+  </div>
+
+
+  <header class="topbar">
+
+    <div class="brand">
+
+      <div class="brand-icon">
+        ⚽
+      </div>
+
+      <div>
+
+        <div class="brand-name">
+          哈寶足球 AI
+        </div>
+
+        <div class="brand-small">
+          HABAO FOOTBALL AI
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="user">
+
+      <div class="user-info">
+
+        <div
+          id="userAccount"
+          class="user-account"
+        >
+          --
+        </div>
+
+        <div
+          id="userExpire"
+          class="user-expire"
+        >
+          --
+        </div>
+
+      </div>
+
+      <button
+        class="logout"
+        onclick="logout()"
+      >
+        登出
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <main class="container">
+
+    <section class="hero">
+
+      <div class="eyebrow">
+        AI SPORTS CENTER
+      </div>
+
+      <h1>
+        今天想分析什麼？
+      </h1>
+
+      <p>
+        AI 數據整理 × 賽事資訊 × 專業分析師
+        <br>
+        選擇運動項目開始分析。
+      </p>
+
+    </section>
+
+
+    <section>
+
+      <div class="section-title">
+
+        <h2>
+          運動分析
+        </h2>
+
+        <span>
+          SPORTS ANALYSIS
+        </span>
+
+      </div>
+
+
+      <div class="sports-grid">
+
+
+        <!-- 足球 -->
+
+        <div
+          class="sport-card active"
+          onclick="goFootball()"
+        >
+
+          <div class="sport-icon">
+            ⚽
+          </div>
+
+          <div class="sport-name">
+            足球
+          </div>
+
+          <div class="sport-desc">
+            五大聯賽賽程、近期戰績、
+            <br>
+            主客場與 AI 數據分析
+          </div>
+
+          <div class="status online">
+            ● AI ONLINE
+          </div>
+
+          <div class="arrow">
+            →
+          </div>
+
+        </div>
+
+
+        <!-- 籃球 -->
+
+        <div class="sport-card disabled">
+
+          <div class="sport-icon">
+            🏀
+          </div>
+
+          <div class="sport-name">
+            籃球
+          </div>
+
+          <div class="sport-desc">
+            NBA 與國際籃球賽事
+            <br>
+            分析功能開發中
+          </div>
+
+          <div class="status coming">
+            敬請期待
+          </div>
+
+        </div>
+
+
+        <!-- 棒球 -->
+
+        <div class="sport-card disabled">
+
+          <div class="sport-icon">
+            ⚾
+          </div>
+
+          <div class="sport-name">
+            棒球
+          </div>
+
+          <div class="sport-desc">
+            MLB 與國際棒球賽事
+            <br>
+            分析功能開發中
+          </div>
+
+          <div class="status coming">
+            敬請期待
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <div class="notice">
+
+      AI 提供賽事數據與基礎分析。
+      大小分、獨贏與進階投注方向，
+      建議搭配專業分析師進一步判斷。
+
+    </div>
+
+  </main>
+
+
+<script>
+
+  /*
+    ↓↓↓
+    把 index.html 裡相同的
+    FUNCTION_URL 與 PUBLISHABLE_KEY
+    複製到這裡
+  */
+
+    // ① 等一下貼 Supabase Function 網址
+    const FUNCTION_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
+
+    // ② 等一下貼剛才複製的 Publishable Key
+    const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+
+  async function verifyMember(){
+
+    const saved =
+      sessionStorage.getItem(
+        "habao_member"
+      );
+
+    if(!saved){
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    let member;
+
+    try{
+
+      member =
+        JSON.parse(saved);
+
+    }catch{
+
+      sessionStorage.clear();
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    if(!member.account){
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    try{
+
+      const response =
+        await fetch(
+          FUNCTION_URL,
+          {
+
+            method:"POST",
+
+            headers:{
+
+              "Content-Type":
+                "application/json",
+
+              "apikey":
+                PUBLISHABLE_KEY,
+
+              "Authorization":
+                "Bearer " +
+                PUBLISHABLE_KEY
+
+            },
+
+            body:
+              JSON.stringify({
+                account:
+                  member.account
+              })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if(!data.success){
+
+        sessionStorage.clear();
+
+        window.location.href =
+          "index.html";
+
+        return;
+      }
+
+
+      document
+        .getElementById(
+          "userAccount"
+        )
+        .innerText =
+          data.member.account;
+
+
+      const expire =
+        new Date(
+          data.member.expire_at
+        );
+
+
+      document
+        .getElementById(
+          "userExpire"
+        )
+        .innerText =
+          "使用期限：" +
+          expire.toLocaleString(
+            "zh-TW",
+            {
+              timeZone:
+                "Asia/Taipei"
+            }
+          );
+
+
+      document
+        .getElementById(
+          "loading"
+        )
+        .style.display =
+          "none";
+
+
+    }catch(error){
+
+      console.error(error);
+
+      sessionStorage.clear();
+
+      window.location.href =
+        "index.html";
+
+    }
+
+  }
+
+
+  function goFootball(){
+
+    /*
+      下一步建立：
+      football.html
+    */
+
+    window.location.href =
+      "football.html";
+
+  }
+
+
+  function logout(){
+
+    sessionStorage.clear();
+
+    window.location.href =
+      "index.html";
+
+  }
+
+
+  verifyMember();
+
+</script>
+
+</body>
+</html>
