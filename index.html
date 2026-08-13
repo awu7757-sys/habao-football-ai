@@ -14,23 +14,15 @@
 
     body {
       min-height: 100vh;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        "Noto Sans TC",
-        sans-serif;
-
-      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      color: #fff;
       background:
-        radial-gradient(circle at 20% 20%, rgba(45, 255, 153, .13), transparent 32%),
-        radial-gradient(circle at 80% 80%, rgba(30, 122, 255, .16), transparent 35%),
+        radial-gradient(circle at 20% 20%, rgba(45,255,153,.13), transparent 32%),
+        radial-gradient(circle at 80% 80%, rgba(30,122,255,.16), transparent 35%),
         linear-gradient(135deg, #050b12 0%, #091522 48%, #05090f 100%);
-
       overflow: hidden;
     }
 
-    /* 背景足球場線條 */
     .field {
       position: fixed;
       inset: 0;
@@ -59,17 +51,6 @@
       left: 50%;
     }
 
-    .glow {
-      position: fixed;
-      width: 340px;
-      height: 340px;
-      border-radius: 50%;
-      background: rgba(33, 255, 138, .11);
-      filter: blur(100px);
-      top: -100px;
-      right: -80px;
-    }
-
     .app {
       min-height: 100vh;
       display: flex;
@@ -88,7 +69,6 @@
     .brand {
       text-align: center;
       margin-bottom: 28px;
-      animation: fadeUp .8s ease;
     }
 
     .logo {
@@ -99,16 +79,9 @@
       align-items: center;
       justify-content: center;
       border-radius: 24px;
-
-      background:
-        linear-gradient(145deg, rgba(45,255,153,.22), rgba(45,255,153,.05));
-
+      background: linear-gradient(145deg, rgba(45,255,153,.22), rgba(45,255,153,.05));
       border: 1px solid rgba(96,255,176,.28);
-
-      box-shadow:
-        0 0 35px rgba(34,255,137,.12),
-        inset 0 0 25px rgba(255,255,255,.03);
-
+      box-shadow: 0 0 35px rgba(34,255,137,.12);
       font-size: 36px;
     }
 
@@ -122,7 +95,6 @@
 
     .brand h1 {
       font-size: 34px;
-      letter-spacing: 1px;
       font-weight: 800;
     }
 
@@ -133,44 +105,12 @@
     }
 
     .card {
-      position: relative;
-
-      background:
-        linear-gradient(
-          160deg,
-          rgba(17, 31, 44, .88),
-          rgba(8, 18, 27, .88)
-        );
-
+      background: linear-gradient(160deg, rgba(17,31,44,.9), rgba(8,18,27,.9));
       border: 1px solid rgba(255,255,255,.08);
       border-radius: 26px;
-
       padding: 34px 30px 30px;
-
       backdrop-filter: blur(22px);
-
-      box-shadow:
-        0 30px 80px rgba(0,0,0,.45),
-        inset 0 1px 0 rgba(255,255,255,.04);
-
-      animation: fadeUp 1s ease;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 22%;
-      right: 22%;
-      height: 1px;
-
-      background:
-        linear-gradient(
-          90deg,
-          transparent,
-          #48ffa1,
-          transparent
-        );
+      box-shadow: 0 30px 80px rgba(0,0,0,.45);
     }
 
     .card-title {
@@ -183,18 +123,13 @@
       color: #718092;
       font-size: 13px;
       margin-bottom: 25px;
-      line-height: 1.6;
     }
 
     .label {
       display: block;
       color: #aab5c1;
       font-size: 12px;
-      margin: 0 0 8px 3px;
-    }
-
-    .input-wrap {
-      position: relative;
+      margin-bottom: 8px;
     }
 
     input {
@@ -202,166 +137,82 @@
       height: 56px;
       border-radius: 15px;
       border: 1px solid rgba(255,255,255,.09);
-
       background: rgba(0,0,0,.22);
-      color: #ffffff;
-
+      color: #fff;
       padding: 0 17px;
-
       outline: none;
       font-size: 16px;
-
-      transition: .25s ease;
-    }
-
-    input::placeholder {
-      color: #536172;
     }
 
     input:focus {
       border-color: rgba(66,255,160,.55);
-
-      box-shadow:
-        0 0 0 3px rgba(41,255,144,.07);
+      box-shadow: 0 0 0 3px rgba(41,255,144,.07);
     }
 
     button {
       width: 100%;
       height: 56px;
-
       margin-top: 18px;
-
       border: none;
       border-radius: 15px;
-
       cursor: pointer;
-
       font-size: 15px;
       font-weight: 800;
-      letter-spacing: 1px;
-
       color: #03130b;
-
-      background:
-        linear-gradient(
-          90deg,
-          #35ed8a,
-          #66ffb0
-        );
-
-      box-shadow:
-        0 12px 30px rgba(45,255,145,.15);
-
-      transition: .25s;
+      background: linear-gradient(90deg, #35ed8a, #66ffb0);
     }
 
-    button:hover {
-      transform: translateY(-2px);
-
-      box-shadow:
-        0 16px 35px rgba(45,255,145,.22);
-    }
-
-    button:active {
-      transform: scale(.99);
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
     }
 
     .message {
       display: none;
       margin-top: 16px;
-      padding: 13px 15px;
+      padding: 13px;
       border-radius: 13px;
-
       font-size: 13px;
-      line-height: 1.6;
-
       text-align: center;
+      line-height: 1.6;
     }
 
-    .message.error {
+    .error {
       display: block;
-
       color: #ff9c9c;
-
       border: 1px solid rgba(255,94,94,.16);
       background: rgba(255,63,63,.06);
     }
 
+    .success {
+      display: block;
+      color: #6dffb5;
+      border: 1px solid rgba(66,255,160,.18);
+      background: rgba(66,255,160,.06);
+    }
+
     .security {
       margin-top: 23px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-
+      text-align: center;
       color: #526171;
       font-size: 11px;
     }
 
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-
-      background: #42f999;
-
-      box-shadow:
-        0 0 10px rgba(66,249,153,.8);
-    }
-
     .footer {
-      margin-top: 25px;
+      margin-top: 24px;
       text-align: center;
-
       color: #3f4d5a;
-      font-size: 11px;
-      letter-spacing: .7px;
-    }
-
-    .ai-line {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-
-      margin-top: 12px;
-
-      color: #3e5363;
       font-size: 10px;
-      letter-spacing: 1.3px;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      letter-spacing: 1px;
     }
 
     @media (max-width: 520px) {
-      .app {
-        align-items: center;
-        padding: 20px;
+      .card {
+        padding: 29px 22px;
       }
 
       .brand h1 {
         font-size: 29px;
-      }
-
-      .card {
-        padding: 29px 22px 25px;
-        border-radius: 22px;
-      }
-
-      .logo {
-        width: 68px;
-        height: 68px;
-        border-radius: 21px;
       }
     }
   </style>
@@ -370,144 +221,179 @@
 <body>
 
   <div class="field"></div>
-  <div class="glow"></div>
 
   <main class="app">
 
     <div class="login-wrap">
 
       <div class="brand">
-
         <div class="logo">⚽</div>
-
-        <div class="brand-small">
-          HABAO FOOTBALL AI
-        </div>
-
+        <div class="brand-small">HABAO FOOTBALL AI</div>
         <h1>哈寶足球 AI</h1>
-
-        <p>
-          AI 智能賽事數據分析平台
-        </p>
-
+        <p>AI 智能賽事數據分析平台</p>
       </div>
-
 
       <section class="card">
 
-        <div class="card-title">
-          會員登入
-        </div>
+        <div class="card-title">會員登入</div>
 
         <div class="card-subtitle">
           請輸入哈寶提供的授權帳號進入分析系統
         </div>
 
+        <label class="label">使用帳號</label>
 
-        <label class="label">
-          使用帳號
-        </label>
-
-        <div class="input-wrap">
-
-          <input
-            id="account"
-            type="text"
-            placeholder="請輸入會員帳號"
-            autocomplete="off"
-          >
-
-        </div>
-
-
-        <button
-          id="loginButton"
-          onclick="login()"
+        <input
+          id="account"
+          type="text"
+          placeholder="請輸入會員帳號"
+          autocomplete="off"
         >
+
+        <button id="loginBtn" onclick="login()">
           進入分析系統 →
         </button>
 
-
-        <div
-          id="message"
-          class="message"
-        ></div>
-
+        <div id="message" class="message"></div>
 
         <div class="security">
-
-          <span class="dot"></span>
-
-          僅限授權會員使用
-
+          ● 僅限授權會員使用
         </div>
 
       </section>
 
-
-      <div class="ai-line">
-
-        <span>AI DATA</span>
-        <span>•</span>
-        <span>MATCH</span>
-        <span>•</span>
-        <span>ANALYSIS</span>
-
-      </div>
-
-
       <div class="footer">
-
-        HABA0 FOOTBALL AI SYSTEM
-
+        AI DATA · MATCH · ANALYSIS
       </div>
 
     </div>
 
   </main>
 
-
   <script>
 
-    function login() {
+    // ① 等一下貼 Supabase Function 網址
+    const FUNCTION_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
 
-      const account =
-        document
-          .getElementById("account")
-          .value
-          .trim();
+    // ② 等一下貼剛才複製的 Publishable Key
+    const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
-      const message =
-        document
-          .getElementById("message");
+
+    async function login() {
+
+      const input = document.getElementById("account");
+      const button = document.getElementById("loginBtn");
+      const message = document.getElementById("message");
+
+      const account = input.value.trim();
 
       if (!account) {
-
-        message.className =
-          "message error";
-
-        message.innerHTML =
-          "請先輸入您的會員帳號";
-
+        showError("請先輸入會員帳號");
         return;
+      }
+
+      button.disabled = true;
+      button.innerText = "正在驗證會員資格...";
+
+      message.style.display = "none";
+
+      try {
+
+        const response = await fetch(FUNCTION_URL, {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": PUBLISHABLE_KEY,
+            "Authorization": "Bearer " + PUBLISHABLE_KEY
+          },
+
+          body: JSON.stringify({
+            account: account
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+          message.className = "message success";
+          message.innerHTML = "✓ 驗證成功，正在進入系統...";
+          message.style.display = "block";
+
+          sessionStorage.setItem(
+            "habao_member",
+            JSON.stringify(data.member)
+          );
+
+          setTimeout(() => {
+            window.location.href = "home.html";
+          }, 800);
+
+          return;
+        }
+
+        if (data.code === "ACCOUNT_EXPIRED") {
+          showError(
+            "您的使用權限已到期<br>請聯絡哈寶"
+          );
+        }
+
+        else if (data.code === "ACCOUNT_DISABLED") {
+          showError(
+            "此帳號目前無法使用<br>請聯絡哈寶"
+          );
+        }
+
+        else if (data.code === "ACCOUNT_NOT_FOUND") {
+          showError(
+            "查無此授權帳號"
+          );
+        }
+
+        else {
+          showError(
+            data.message || "登入失敗，請稍後再試"
+          );
+        }
 
       }
 
-      /*
-        下一步：
-        這裡會連接 Supabase Edge Function。
+      catch (error) {
 
-        不會直接把會員資料庫
-        或敏感 API Key 放在 GitHub。
-      */
+        console.error(error);
+
+        showError(
+          "系統連線失敗，請稍後再試"
+        );
+
+      }
+
+      finally {
+
+        button.disabled = false;
+        button.innerText = "進入分析系統 →";
+
+      }
+
+    }
+
+
+    function showError(text) {
+
+      const message =
+        document.getElementById("message");
 
       message.className =
         "message error";
 
-      message.innerHTML =
-        "會員驗證系統正在連接中";
+      message.innerHTML = text;
+
+      message.style.display =
+        "block";
 
     }
+
 
     document
       .getElementById("account")
