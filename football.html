@@ -458,10 +458,8 @@ async function openMatch(fixtureId){
       method: "POST",
 
       headers: {
-        "Content-Type": "application/json",
-        "apikey": FIXTURES_PUBLISHABLE_KEY,
-        "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
-      },
+  "Content-Type": "application/json"
+},
 
       body: JSON.stringify({
         fixture_id: fixtureId
