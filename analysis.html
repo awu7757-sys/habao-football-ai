@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI 賽事分析｜哈寶足球 AI</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  color:#fff;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(0,255,170,.08),transparent 30%),
+    linear-gradient(135deg,#041116 0%,#071522 55%,#08182b 100%);
+}
+
+.header{
+  height:76px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:rgba(2,12,15,.78);
+  backdrop-filter:blur(12px);
+}
+
+.header-inner{
+  max-width:1120px;
+  height:100%;
+  margin:auto;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#0b402e,#0a261f);
+  border:1px solid rgba(48,255,173,.18);
+  font-size:22px;
+}
+
+.brand-title{
+  font-weight:800;
+  font-size:17px;
+}
+
+.brand-sub{
+  margin-top:3px;
+  color:#26eaa5;
+  letter-spacing:2px;
+  font-size:9px;
+}
+
+.back{
+  color:#2ce9a5;
+  text-decoration:none;
+  font-size:13px;
+}
+
+main{
+  width:min(1120px,calc(100% - 32px));
+  margin:42px auto 80px;
+}
+
+.eyebrow{
+  color:#24e7a2;
+  font-size:11px;
+  letter-spacing:3px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+h1{
+  font-size:32px;
+  margin-bottom:8px;
+}
+
+.sub{
+  color:#668391;
+  font-size:13px;
+  margin-bottom:30px;
+}
+
+.match-card{
+  border:1px solid rgba(50,239,169,.16);
+  background:rgba(8,29,40,.82);
+  border-radius:20px;
+  padding:28px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:28px;
+  box-shadow:0 18px 50px rgba(0,0,0,.18);
+}
+
+.team{
+  text-align:center;
+}
+
+.team img{
+  width:78px;
+  height:78px;
+  object-fit:contain;
+  margin-bottom:14px;
+}
+
+.team-name{
+  font-size:21px;
+  font-weight:800;
+}
+
+.vs{
+  text-align:center;
+  color:#68838f;
+  font-size:15px;
+  font-weight:800;
+}
+
+.meta{
+  text-align:center;
+  margin:18px 0 30px;
+  color:#6d8995;
+  font-size:13px;
+  line-height:1.8;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:24px;
+}
+
+.pick-card{
+  background:rgba(9,31,42,.9);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:20px;
+}
+
+.pick-label{
+  color:#64838f;
+  font-size:11px;
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+
+.pick-value{
+  font-size:22px;
+  font-weight:900;
+  color:#2ceaa6;
+  margin-bottom:12px;
+}
+
+.confidence{
+  font-size:12px;
+  color:#a6bbc4;
+  margin-bottom:10px;
+}
+
+.bar{
+  height:7px;
+  border-radius:999px;
+  background:#122d38;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+.bar > div{
+  height:100%;
+  background:linear-gradient(90deg,#15bf82,#38f1b1);
+}
+
+.reason{
+  color:#92a8b1;
+  font-size:13px;
+  line-height:1.7;
+}
+
+.section{
+  margin-top:18px;
+  padding:22px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(7,25,35,.88);
+}
+
+.section-title{
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+.section p{
+  color:#98adb6;
+  font-size:14px;
+  line-height:1.9;
+  white-space:pre-line;
+}
+
+.score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.score{
+  text-align:center;
+  padding:20px;
+  border-radius:14px;
+  background:#0a2330;
+  border:1px solid rgba(51,233,168,.09);
+}
+
+.score-num{
+  font-size:28px;
+  font-weight:900;
+  color:#fff;
+}
+
+.score-confidence{
+  margin-top:7px;
+  font-size:12px;
+  color:#2ce9a5;
+}
+
+.risk{
+  display:inline-block;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,190,70,.1);
+  border:1px solid rgba(255,190,70,.2);
+  color:#ffc65d;
+  font-size:12px;
+  font-weight:700;
+}
+
+.empty{
+  text-align:center;
+  padding:80px 20px;
+  color:#8ba0a9;
+}
+
+.empty a{
+  display:inline-block;
+  margin-top:18px;
+  color:#2ce9a5;
+}
+
+@media(max-width:800px){
+  .match-card{
+    grid-template-columns:1fr auto 1fr;
+    padding:20px 12px;
+    gap:10px;
+  }
+
+  .team img{
+    width:58px;
+    height:58px;
+  }
+
+  .team-name{
+    font-size:16px;
+  }
+
+  .grid,
+  .score-grid{
+    grid-template-columns:1fr;
+  }
+
+  h1{
+    font-size:26px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">⚽</div>
+      <div>
+        <div class="brand-title">哈寶足球 AI</div>
+        <div class="brand-sub">HABAO FOOTBALL AI</div>
+      </div>
+    </div>
+
+    <a class="back" href="football.html">← 返回賽事列表</a>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<script>
+const raw = sessionStorage.getItem("matchAnalysis");
+const app = document.getElementById("app");
+
+if (!raw) {
+
+  app.innerHTML = `
+    <div class="empty">
+      <h2>找不到賽事分析資料</h2>
+      <p>請先從足球賽事列表選擇一場比賽進行分析。</p>
+      <a href="football.html">返回足球賽事分析</a>
+    </div>
+  `;
+
+} else {
+
+  try {
+
+    const data = JSON.parse(raw);
+
+    const fixture = data.fixture || {};
+    const analysis = data.analysis || {};
+    const rec = analysis.recommendations || {};
+
+    const moneyline = rec.moneyline || {};
+    const overUnder = rec.over_under || {};
+    const btts = rec.btts || {};
+    const scores = analysis.predicted_scores || [];
+
+    const gameDate = fixture.date
+      ? new Date(fixture.date)
+      : null;
+
+    const timeText = gameDate
+      ? gameDate.toLocaleString("zh-TW", {
+          timeZone: "Asia/Taipei",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        })
+      : "時間未提供";
+
+    const confidenceBar = value =>
+      Math.max(0, Math.min(100, Number(value || 0)));
+
+    app.innerHTML = `
+
+      <div class="eyebrow">AI MATCH ANALYSIS</div>
+      <h1>賽事 AI 深度分析</h1>
+      <div class="sub">數據整理 × 市場資訊 × AI 綜合判斷</div>
+
+      <div class="match-card">
+
+        <div class="team">
+          <img src="${fixture.home?.logo || ""}" alt="">
+          <div class="team-name">
+            ${fixture.home?.name || fixture.home?.api_name || "主隊"}
+          </div>
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="team">
+          <img src="${fixture.away?.logo || ""}" alt="">
+          <div class="team-name">
+            ${fixture.away?.name || fixture.away?.api_name || "客隊"}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="meta">
+        ${fixture.league || ""}<br>
+        ${timeText}<br>
+        ${fixture.venue?.name || ""}${fixture.venue?.city ? "・" + fixture.venue.city : ""}
+      </div>
+
+      <div class="grid">
+
+        <div class="pick-card">
+          <div class="pick-label">獨贏 MONEYLINE</div>
+          <div class="pick-value">${moneyline.pick || "暫不推薦"}</div>
+
+          <div class="confidence">
+            AI 信心 ${moneyline.confidence || 0}%
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(moneyline.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            ${moneyline.reason || "資料不足"}
+          </div>
+        </div>
+
+        <div class="pick-card">
+          <div class="pick-label">大小球 OVER / UNDER</div>
+          <div class="pick-value">${overUnder.pick || "暫不推薦"}</div>
+
+          <div class="confidence">
+            AI 信心 ${overUnder.confidence || 0}%
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(overUnder.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            ${overUnder.reason || "資料不足"}
+          </div>
+        </div>
+
+        <div class="pick-card">
+          <div class="pick-label">雙方進球 BTTS</div>
+          <div class="pick-value">${btts.pick || "暫不推薦"}</div>
+
+          <div class="confidence">
+            AI 信心 ${btts.confidence || 0}%
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(btts.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            ${btts.reason || "資料不足"}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section">
+        <div class="section-title">AI 綜合摘要</div>
+        <p>${analysis.summary || "目前沒有摘要資料。"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">近期狀態</div>
+        <p>
+主隊：${analysis.home_form || "資料不足"}
+
+客隊：${analysis.away_form || "資料不足"}
+        </p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">進球趨勢</div>
+        <p>${analysis.goal_analysis || "資料不足"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">歷史交鋒 H2H</div>
+        <p>${analysis.h2h_analysis || "資料不足"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">市場與賠率分析</div>
+        <p>${analysis.market_analysis || "資料不足"}</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">AI 預測比分</div>
+
+        <div class="score-grid">
+          ${scores.slice(0,3).map(item => `
+            <div class="score">
+              <div class="score-num">${item.score || "-"}</div>
+              <div class="score-confidence">
+                信心 ${item.confidence || 0}%
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">本場風險</div>
+        <span class="risk">${analysis.risk_level || "未評估"}</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">AI 最終提醒</div>
+        <p>${analysis.final_note || "請綜合即時資訊判斷。"}</p>
+      </div>
+
+    `;
+
+  } catch (error) {
+
+    console.error(error);
+
+    app.innerHTML = `
+      <div class="empty">
+        <h2>分析資料讀取失敗</h2>
+        <p>請返回賽事列表重新進行分析。</p>
+        <a href="football.html">返回足球賽事分析</a>
+      </div>
+    `;
+
+  }
+}
+</script>
+
+</body>
+</html>
