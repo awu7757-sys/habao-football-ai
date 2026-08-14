@@ -460,7 +460,77 @@ const FIXTURES_URL =
 // 這裡要放「Supabase Publishable Key」
 // 不是 API-FOOTBALL Key、也不是 Supabase Secret Key
 const FIXTURES_PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+// ==============================
+// 中文名稱對照
+// ==============================
 
+const leagueNameZH = {
+  "Premier League": "英格蘭超級聯賽",
+  "La Liga": "西班牙甲級聯賽",
+  "Bundesliga": "德國甲級聯賽",
+  "Serie A": "義大利甲級聯賽",
+  "Ligue 1": "法國甲級聯賽",
+
+  "UEFA Champions League": "歐洲冠軍聯賽",
+  "UEFA Europa League": "歐霸盃",
+  "UEFA Europa Conference League": "歐洲協會聯賽",
+
+  "Eredivisie": "荷蘭甲級聯賽",
+  "Primeira Liga": "葡萄牙超級聯賽",
+  "Jupiler Pro League": "比利時甲級聯賽",
+  "Süper Lig": "土耳其超級聯賽",
+
+  "J1 League": "日本職業足球甲級聯賽",
+  "K League 1": "韓國職業足球甲級聯賽",
+  "A-League": "澳洲職業足球聯賽",
+  "Pro League": "沙烏地阿拉伯職業聯賽",
+
+  "Major League Soccer": "美國職業足球大聯盟",
+  "Serie A Brazil": "巴西甲級聯賽",
+  "Liga Profesional Argentina": "阿根廷甲級聯賽"
+};
+
+function getLeagueNameZH(name) {
+  return leagueNameZH[name] || name;
+}
+  // ==============================
+// 球隊中文名稱對照
+// ==============================
+
+const teamNameZH = {
+  "Al-Hilal Saudi FC": "希拉爾",
+  "Al-Fayha": "費哈",
+  "Al-Ettifaq": "伊蒂法克",
+  "Al Riyadh": "利雅德體育",
+
+  "Galatasaray": "加拉塔薩雷",
+  "Sparta Rotterdam": "鹿特丹斯巴達",
+  "Telstar": "泰爾斯達",
+
+  "Manchester City": "曼城",
+  "Manchester United": "曼聯",
+  "Liverpool": "利物浦",
+  "Arsenal": "阿森納",
+  "Chelsea": "切爾西",
+  "Tottenham": "熱刺",
+
+  "Real Madrid": "皇家馬德里",
+  "Barcelona": "巴塞隆納",
+  "Atletico Madrid": "馬德里競技",
+
+  "Bayern Munich": "拜仁慕尼黑",
+  "Borussia Dortmund": "多特蒙德",
+
+  "Inter": "國際米蘭",
+  "AC Milan": "AC米蘭",
+  "Juventus": "尤文圖斯",
+
+  "Paris Saint Germain": "巴黎聖日耳曼"
+};
+
+function getTeamNameZH(name) {
+  return teamNameZH[name] || name;
+}
 async function loadTomorrowFixtures() {
   const container = document.getElementById("matchesContainer");
 
@@ -514,8 +584,7 @@ async function loadTomorrowFixtures() {
         }
       );
 
-      const leagueText =
-        `${match.league.country || ""} · ${match.league.name || ""}`;
+const leagueText = getLeagueNameZH(match.league.name || "");
 
       return `
         <div class="match-card">
@@ -534,7 +603,7 @@ async function loadTomorrowFixtures() {
                 alt="${match.home.name}"
               >
               <div class="team-name">
-                ${match.home.name}
+                ${getTeamNameZH(match.home.name)}
               </div>
             </div>
 
@@ -547,7 +616,7 @@ async function loadTomorrowFixtures() {
                 alt="${match.away.name}"
               >
               <div class="team-name">
-                ${match.away.name}
+                ${getTeamNameZH(match.away.name)}
               </div>
             </div>
 
