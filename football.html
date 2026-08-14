@@ -442,13 +442,57 @@ if(!savedMember){
    賽事分析
 ========================= */
 
-function openMatch(){
+const MATCH_ANALYSIS_URL =
+  "https://oqtbsbohcfegghgnykwxy.supabase.co/functions/v1/match-analysis";
 
-  alert(
-    "足球 AI 分析功能下一步接上。\n\n" +
-    "我們接下來會讓這裡顯示真正的足球賽事。"
-  );
+async function openMatch(fixtureId){
 
+  if (!fixtureId) {
+    alert("找不到這場比賽的 fixtureId");
+    return;
+  }
+
+  try {
+
+    const response = await fetch(MATCH_ANALYSIS_URL, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": FIXTURES_PUBLISHABLE_KEY,
+        "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+      },
+
+      body: JSON.stringify({
+        fixture_id: fixtureId
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.error || "AI 賽事分析失敗"
+      );
+    }
+
+    console.log("AI 分析結果：", data);
+
+   sessionStorage.setItem(
+  "matchAnalysis",
+  JSON.stringify(data)
+);
+
+window.location.href = "analysis.html";
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "AI 分析失敗：\n" +
+      error.message
+    );
+  }
 }
 // ================================
 // 自動載入明日真實足球賽事
