@@ -389,113 +389,7 @@ h1{
     <h2>⚽ 明日焦點賽事</h2>
     <span>AI MATCH CENTER</span>
   </div>
-
-
-  <!-- 比賽 1 -->
-
-  <div class="match-card">
-
-    <div class="match-info">
-      <div class="time">20:30</div>
-      <div class="league">英格蘭・英超</div>
-    </div>
-
-    <div class="teams">
-
-      <div class="team">
-        <div class="team-logo">🔵</div>
-        <div class="team-name">主隊</div>
-      </div>
-
-      <div class="vs">VS</div>
-
-      <div class="team">
-        <div class="team-logo">🔴</div>
-        <div class="team-name">客隊</div>
-      </div>
-
-    </div>
-
-    <div class="analysis">
-      <div class="ai-status">● AI READY</div>
-      <button class="analysis-btn" onclick="openMatch()">
-        開始分析 →
-      </button>
-    </div>
-
-  </div>
-
-
-  <!-- 比賽 2 -->
-
-  <div class="match-card">
-
-    <div class="match-info">
-      <div class="time">23:00</div>
-      <div class="league">西班牙・西甲</div>
-    </div>
-
-    <div class="teams">
-
-      <div class="team">
-        <div class="team-logo">⚪</div>
-        <div class="team-name">主隊</div>
-      </div>
-
-      <div class="vs">VS</div>
-
-      <div class="team">
-        <div class="team-logo">🔵</div>
-        <div class="team-name">客隊</div>
-      </div>
-
-    </div>
-
-    <div class="analysis">
-      <div class="ai-status">● AI READY</div>
-      <button class="analysis-btn" onclick="openMatch()">
-        開始分析 →
-      </button>
-    </div>
-
-  </div>
-
-
-  <!-- 比賽 3 -->
-
-  <div class="match-card">
-
-    <div class="match-info">
-      <div class="time">02:45</div>
-      <div class="league">義大利・義甲</div>
-    </div>
-
-    <div class="teams">
-
-      <div class="team">
-        <div class="team-logo">⚫</div>
-        <div class="team-name">主隊</div>
-      </div>
-
-      <div class="vs">VS</div>
-
-      <div class="team">
-        <div class="team-logo">🔴</div>
-        <div class="team-name">客隊</div>
-      </div>
-
-    </div>
-
-    <div class="analysis">
-      <div class="ai-status">● AI READY</div>
-      <button class="analysis-btn" onclick="openMatch()">
-        開始分析 →
-      </button>
-    </div>
-
-  </div>
-
-
+<div id="matchesContainer"></div>
   <div class="ai-note">
     AI 將整合球隊近期狀態、攻防數據與賽事資訊進行分析。
     下一階段我們會把這裡改成「自動抓取真實足球賽事」。
@@ -556,7 +450,141 @@ function openMatch(){
   );
 
 }
+// ================================
+// 自動載入明日真實足球賽事
+// ================================
 
+const FIXTURES_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/tomorrow-fixtures";
+
+// 這裡要放「Supabase Publishable Key」
+// 不是 API-FOOTBALL Key、也不是 Supabase Secret Key
+const FIXTURES_PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+async function loadTomorrowFixtures() {
+  const container = document.getElementById("matchesContainer");
+
+  container.innerHTML = `
+    <div class="ai-note">
+      正在取得明日真實賽事...
+    </div>
+  `;
+
+  try {
+    const response = await fetch(FIXTURES_URL, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": FIXTURES_PUBLISHABLE_KEY,
+        "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+      },
+
+      body: JSON.stringify({})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "賽事讀取失敗");
+    }
+
+    const fixtures = data.fixtures || [];
+
+    if (fixtures.length === 0) {
+      container.innerHTML = `
+        <div class="ai-note">
+          明日暫無符合條件的主要賽事。
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = fixtures.map(match => {
+
+      const gameTime = new Date(match.time);
+
+      const time = gameTime.toLocaleTimeString(
+        "zh-TW",
+        {
+          timeZone: "Asia/Taipei",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }
+      );
+
+      const leagueText =
+        `${match.league.country || ""} · ${match.league.name || ""}`;
+
+      return `
+        <div class="match-card">
+
+          <div class="match-info">
+            <div class="time">${time}</div>
+            <div class="league">${leagueText}</div>
+          </div>
+
+          <div class="teams">
+
+            <div class="team">
+              <img
+                class="team-logo"
+                src="${match.home.logo || ""}"
+                alt="${match.home.name}"
+              >
+              <div class="team-name">
+                ${match.home.name}
+              </div>
+            </div>
+
+            <div class="vs">VS</div>
+
+            <div class="team">
+              <img
+                class="team-logo"
+                src="${match.away.logo || ""}"
+                alt="${match.away.name}"
+              >
+              <div class="team-name">
+                ${match.away.name}
+              </div>
+            </div>
+
+          </div>
+
+          <div class="analysis">
+            <div class="ai-status">
+              ● AI READY
+            </div>
+
+            <button
+              class="analysis-btn"
+              onclick="openMatch(${match.fixtureId})"
+            >
+              開始分析 →
+            </button>
+          </div>
+
+        </div>
+      `;
+    }).join("");
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="ai-note">
+        ⚠️ 賽事資料讀取失敗，請稍後再試。
+      </div>
+    `;
+  }
+}
+
+
+// 頁面開啟後自動取得賽事
+loadTomorrowFixtures();
 </script>
 
 </body>
