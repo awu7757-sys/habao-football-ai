@@ -343,164 +343,33 @@
       letter-spacing:2px;
     }
 
- @media(max-width:800px){
+@media(max-width:800px){
 
-  body{
-    padding-bottom:30px;
+  .sports-grid{
+    grid-template-columns:1fr;
+  }
+
+  .container{
+    padding:45px 20px;
+  }
+
+  h1{
+    font-size:30px;
   }
 
   .topbar{
-    padding:14px 16px;
-    flex-wrap:wrap;
-    gap:12px;
-  }
-
-  .brand{
-    width:auto;
-    flex:1;
-  }
-
-  .brand-icon{
-    width:44px;
-    height:44px;
-    font-size:22px;
-  }
-
-  .brand-name{
-    font-size:18px;
-  }
-
-  .brand-small{
-    display:none;
-  }
-
-  .user{
-    width:100%;
-    display:grid;
-    grid-template-columns:1fr auto;
-    gap:10px 12px;
-    align-items:center;
-  }
-
-  .user-count{
-    grid-column:1 / -1;
-    width:max-content;
-    max-width:100%;
-    padding:8px 13px;
-    font-size:12px;
-  }
-
-  .user-count strong{
-    font-size:15px;
-  }
-
-  .user-info{
-    min-width:0;
-  }
-
-  .user-account{
-    font-size:14px;
-  }
-
-  .logout{
-    padding:8px 14px;
+    padding:16px 18px;
   }
 
   .user-expire{
     display:none;
   }
 
-  .container{
-    padding:28px 18px 20px;
+  .brand-small{
+    display:none;
   }
 
-  .hero{
-    margin-bottom:30px;
-  }
-
-  .eyebrow{
-    font-size:12px;
-    letter-spacing:3px;
-    margin-bottom:12px;
-  }
-
-  h1{
-    font-size:32px;
-    line-height:1.2;
-    margin-bottom:14px;
-  }
-
-  .hero p{
-    font-size:14px;
-    line-height:1.7;
-  }
-
-  .section-title{
-    margin-bottom:14px;
-  }
-
-  .sports-grid{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
-
-  .sport-card{
-    min-height:auto;
-    padding:18px;
-    display:grid;
-    grid-template-columns:62px 1fr 42px;
-    grid-template-rows:auto auto auto;
-    column-gap:14px;
-    row-gap:3px;
-    align-items:center;
-  }
-
-  .sport-icon{
-    grid-column:1;
-    grid-row:1 / 4;
-    width:62px;
-    height:62px;
-    margin:0;
-    font-size:28px;
-  }
-
-  .sport-name{
-    grid-column:2;
-    grid-row:1;
-    font-size:20px;
-    margin:0;
-  }
-
-  .sport-desc{
-    grid-column:2;
-    grid-row:2;
-    margin:0;
-    font-size:12px;
-    line-height:1.5;
-  }
-
-  .status{
-    grid-column:2;
-    grid-row:3;
-    margin-top:6px;
-    font-size:10px;
-  }
-
-  .arrow{
-    grid-column:3;
-    grid-row:1 / 4;
-    justify-self:end;
-    align-self:center;
-    width:40px;
-    height:40px;
-  }
-
-  .notice{
-    margin-top:20px;
-    font-size:11px;
-    line-height:1.7;
-  }
+}
 }
   </style>
 </head>
