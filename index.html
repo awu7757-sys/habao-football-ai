@@ -703,22 +703,25 @@
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
-    async function loadOnlineCount() {
+   async function loadOnlineCount() {
+  const countEl = document.getElementById("onlineCount");
+
   try {
-    const response = await fetch(STATS_URL, {
-      method: "GET",
-      headers: {
-        "apikey": PUBLISHABLE_KEY
+    const response = await fetch(
+      STATS_URL + "?t=" + Date.now(),
+      {
+        method: "GET",
+        cache: "no-store"
       }
-    });
+    );
 
     if (!response.ok) {
-      throw new Error("讀取使用人數失敗");
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
 
-    const countEl = document.getElementById("onlineCount");
+    console.log("public-stats 回傳：", data);
 
     if (countEl && typeof data.user_count === "number") {
       countEl.textContent = data.user_count;
@@ -726,6 +729,10 @@
 
   } catch (error) {
     console.error("使用人數載入失敗：", error);
+
+    if (countEl) {
+      countEl.textContent = "--";
+    }
   }
 }
 
