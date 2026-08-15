@@ -147,7 +147,43 @@ h1{
   gap:16px;
   margin-bottom:24px;
 }
+/* ===== 立即投注按鈕 ===== */
+.bet-action{
+  display:flex;
+  justify-content:center;
+  margin:6px 0 28px;
+}
 
+.bet-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  max-width:420px;
+  padding:16px 24px;
+  border-radius:14px;
+
+  background:linear-gradient(135deg,#22c768,#16a34a);
+  color:#ffffff;
+  text-decoration:none;
+
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:1px;
+
+  box-shadow:0 8px 24px rgba(34,199,104,.25);
+  transition:.2s ease;
+}
+
+.bet-btn:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.08);
+  box-shadow:0 10px 28px rgba(34,199,104,.35);
+}
+
+.bet-btn:active{
+  transform:scale(.98);
+}
 .pick-card{
   background:rgba(9,31,42,.9);
   border:1px solid rgba(255,255,255,.07);
@@ -443,7 +479,16 @@ if (!raw) {
         </div>
 
       </div>
-
+      <div class="bet-action">
+  <a
+    href="https://www.hd5957.com/"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="bet-btn"
+  >
+    ⚡ 立即投注
+  </a>
+</div>
       <div class="section">
         <div class="section-title">AI 分析重點</div>
         <p>${analysis.summary || "目前沒有摘要資料。"}</p>
