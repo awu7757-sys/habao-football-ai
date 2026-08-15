@@ -445,13 +445,18 @@ if(!savedMember){
 const MATCH_ANALYSIS_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis";
 
-async function openMatch(fixtureId){
+async function openMatch(fixtureId, button){
 
   if (!fixtureId) {
     alert("找不到這場比賽的 fixtureId");
     return;
   }
 
+  if (button) {
+  button.disabled = true;
+  button.dataset.originalText = button.textContent;
+  button.textContent = "AI 分析中...";
+}
   try {
 
     const response = await fetch(MATCH_ANALYSIS_URL, {
@@ -477,18 +482,36 @@ body: JSON.stringify({
       "每日可分析 3 場賽事\n" +
       "明日將自動恢復分析次數"
     );
+    
+    if (button) {
+  button.disabled = false;
+  button.textContent = button.dataset.originalText || "開始分析 →";
+}
+    
     return;
   }
 
-  if (data.error === "member_expired") {
-    alert("使用權限已到期，請聯絡哈寶");
-    return;
+ if (data.error === "member_expired") {
+  alert("使用權限已到期，請聯絡哈寶");
+
+  if (button) {
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || "開始分析 →";
   }
 
-  if (data.error === "member_inactive") {
-    alert("AI 分析權限目前已停用，請聯絡哈寶");
-    return;
+  return;
+}
+     
+if (data.error === "member_inactive") {
+  alert("AI 分析權限目前已停用，請聯絡哈寶");
+
+  if (button) {
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || "開始分析 →";
   }
+
+  return;
+}
 
   throw new Error(
     data.message || data.error || "AI 賽事分析失敗"
@@ -511,6 +534,11 @@ window.location.href = "analysis.html";
       "AI 分析失敗：\n" +
       error.message
     );
+
+    if (button) {
+  button.disabled = false;
+  button.textContent = button.dataset.originalText || "開始分析 →";
+}
   }
 }
 // ================================
@@ -705,7 +733,7 @@ const leagueText = getLeagueNameZH(match.league.name || "");
 
             <button
               class="analysis-btn"
-              onclick="openMatch(${match.fixtureId})"
+              onclick="openMatch(${match.id}, this)"
             >
               開始分析 →
             </button>
