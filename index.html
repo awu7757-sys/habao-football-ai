@@ -519,6 +519,45 @@
   color:#8290a0;
   font-size:14px;
 }
+
+/* ===== 目前使用人數 ===== */
+
+.online-users{
+  width:max-content;
+  max-width:100%;
+  margin:18px auto 20px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  padding:10px 16px;
+  border-radius:999px;
+
+  background:rgba(53,237,138,.08);
+  border:1px solid rgba(53,237,138,.32);
+
+  color:#a7b3c2;
+  font-size:14px;
+  font-weight:700;
+}
+
+.online-users strong{
+  color:#35ed8a;
+  font-size:17px;
+  font-weight:900;
+}
+
+.online-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#35ed8a;
+  box-shadow:0 0 12px rgba(53,237,138,.7);
+  flex:0 0 8px;
+}
+    
   </style>
 </head>
 
@@ -536,7 +575,12 @@
         <h1>哈寶足球 AI</h1>
         <p>AI 智能賽事數據分析平台</p>
       </div>
-
+      
+      <div class="online-users">
+    <span class="online-dot"></span>
+    目前 <strong id="onlineCount">128</strong> 人正在使用
+</div>
+      
       <section class="card">
 
         <div class="card-title">會員登入</div>
@@ -655,11 +699,38 @@
 
     // ① 等一下貼 Supabase Function 網址
     const FUNCTION_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
-
+    const STATS_URL = "https://oqtbsboefcghgnykwxy.supabase.co/functions/v1/public-stats";
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
+    async function loadOnlineCount() {
+  try {
+    const response = await fetch(STATS_URL, {
+      method: "GET",
+      headers: {
+        "apikey": PUBLISHABLE_KEY
+      }
+    });
 
+    if (!response.ok) {
+      throw new Error("讀取使用人數失敗");
+    }
+
+    const data = await response.json();
+
+    const countEl = document.getElementById("onlineCount");
+
+    if (countEl && typeof data.user_count === "number") {
+      countEl.textContent = data.user_count;
+    }
+
+  } catch (error) {
+    console.error("使用人數載入失敗：", error);
+  }
+}
+
+loadOnlineCount();
+    
     async function login() {
 
       const input = document.getElementById("account");
