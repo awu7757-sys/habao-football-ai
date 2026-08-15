@@ -755,7 +755,13 @@ const leagueText = getLeagueNameZH(match.league.name || "");
   }
 }
 
-
+window.addEventListener("pageshow", () => {
+  document.querySelectorAll(".analysis-btn").forEach(button => {
+    button.disabled = false;
+    button.textContent = "開始分析 →";
+  });
+});
+  
 // 頁面開啟後自動取得賽事
 loadTomorrowFixtures();
 </script>
