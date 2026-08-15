@@ -602,15 +602,18 @@ async function loadTomorrowFixtures() {
     }
 
     const allowedLeagues = [
-  "Premier League",
-  "La Liga",
-  "Bundesliga",
-  "Serie A",
-  "Ligue 1"
+  { name: "Premier League", country: "England" },
+  { name: "La Liga", country: "Spain" },
+  { name: "Bundesliga", country: "Germany" },
+  { name: "Serie A", country: "Italy" },
+  { name: "Ligue 1", country: "France" }
 ];
 
 const fixtures = (data.fixtures || []).filter(match =>
-  allowedLeagues.includes(match.league?.name)
+  allowedLeagues.some(league =>
+    league.name === match.league?.name &&
+    league.country === match.league?.country
+  )
 );
 
     if (fixtures.length === 0) {
