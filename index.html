@@ -411,6 +411,96 @@
   object-fit:contain;
   border-radius:18px;
 }
+
+    /* ===== 福利活動輪播 ===== */
+
+.benefits-slider{
+  position:relative;
+  width:100%;
+  margin-top:16px;
+  overflow:hidden;
+  border-radius:18px;
+}
+
+.benefits-slide{
+  display:none;
+  width:100%;
+}
+
+.benefits-slide.active{
+  display:block;
+}
+
+.benefits-slide .benefits-image{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:460px;
+  object-fit:contain;
+  border-radius:18px;
+}
+
+/* 左右切換按鈕 */
+.benefits-prev,
+.benefits-next{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+
+  width:42px;
+  height:42px;
+  margin:0;
+  padding:0;
+
+  border:none;
+  border-radius:50%;
+
+  background:rgba(0,0,0,.55);
+  color:#fff;
+
+  font-size:30px;
+  font-weight:700;
+  line-height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:5;
+  cursor:pointer;
+}
+
+.benefits-prev{
+  left:10px;
+}
+
+.benefits-next{
+  right:10px;
+}
+
+/* 下方頁數圓點 */
+.benefits-dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+}
+
+.benefits-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:rgba(255,255,255,.28);
+  cursor:pointer;
+  transition:.2s;
+}
+
+.benefits-dot.active{
+  width:22px;
+  border-radius:10px;
+  background:#35ed8a;
+}
     
 .benefits-placeholder{
   min-height:220px;
@@ -530,8 +620,29 @@
     <div class="benefits-title">本站福利</div>
     <div class="benefits-subtitle">最新活動</div>
 
-<div class="benefits-image-wrap">
+<div class="benefits-slider">
+
+  <div class="benefits-slide active">
     <img src="new-member-500.png" alt="新人加碼500紅包" class="benefits-image">
+  </div>
+
+  <div class="benefits-slide">
+    <img src="newcomer-cashback-70.png" alt="玩一單返70現金" class="benefits-image">
+  </div>
+
+  <div class="benefits-slide">
+    <img src="series-bonus-5888.png" alt="串關助攻最高領5888" class="benefits-image">
+  </div>
+
+  <button type="button" class="benefits-prev" onclick="changeBenefit(-1)">‹</button>
+  <button type="button" class="benefits-next" onclick="changeBenefit(1)">›</button>
+
+  <div class="benefits-dots">
+    <span class="benefits-dot active" onclick="showBenefit(0)"></span>
+    <span class="benefits-dot" onclick="showBenefit(1)"></span>
+    <span class="benefits-dot" onclick="showBenefit(2)"></span>
+  </div>
+
 </div>
 
   </div>
@@ -678,10 +789,81 @@
         }
       );
 
-  function openBenefits() {
+  let currentBenefit = 0;
+
+function showBenefit(index) {
+  const slides = document.querySelectorAll(".benefits-slide");
+  const dots = document.querySelectorAll(".benefits-dot");
+
+  if (!slides.length) return;
+
+  if (index < 0) {
+    index = slides.length - 1;
+  }
+
+  if (index >= slides.length) {
+    index = 0;
+  }
+
+  slides.forEach((slide) => {
+    slide.classList.remove("active");
+  });
+
+  dots.forEach((dot) => {
+    dot.classList.remove("active");
+  });
+
+  slides[index].classList.add("active");
+
+  if (dots[index]) {
+    dots[index].classList.add("active");
+  }
+
+  currentBenefit = index;
+}
+
+function changeBenefit(direction) {
+  showBenefit(currentBenefit + direction);
+}
+
+
+/* ===== 手機左右滑動切換福利 ===== */
+
+let benefitTouchStartX = 0;
+let benefitTouchEndX = 0;
+
+document.addEventListener("touchstart", function(event) {
+  const slider = event.target.closest(".benefits-slider");
+
+  if (!slider) return;
+
+  benefitTouchStartX = event.changedTouches[0].screenX;
+}, { passive: true });
+
+document.addEventListener("touchend", function(event) {
+  const slider = event.target.closest(".benefits-slider");
+
+  if (!slider) return;
+
+  benefitTouchEndX = event.changedTouches[0].screenX;
+
+  const distance = benefitTouchEndX - benefitTouchStartX;
+
+  if (Math.abs(distance) < 50) return;
+
+  if (distance < 0) {
+    changeBenefit(1);
+  } else {
+    changeBenefit(-1);
+  }
+}, { passive: true });
+    
+function openBenefits() {
   const modal = document.getElementById("benefitsModal");
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
+
+  showBenefit(currentBenefit);
 }
 
 function closeBenefits(event) {
