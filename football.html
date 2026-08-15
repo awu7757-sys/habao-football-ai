@@ -284,6 +284,56 @@ h1{
   filter:brightness(1.08);
 }
 
+  /* ===== AI 分析 Loading ===== */
+
+.analysis-btn.loading{
+    position:relative;
+    overflow:hidden;
+    min-width:120px;
+    cursor:wait;
+}
+
+.analysis-btn.loading::before{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:4px;
+    width:0%;
+    background:rgba(255,255,255,.9);
+    border-radius:0 0 10px 10px;
+    animation:aiLoadingBar 8s ease-out forwards;
+}
+
+.analysis-btn.loading::after{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-60%;
+    width:40%;
+    height:100%;
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.22),
+        transparent
+    );
+    animation:aiLoadingShine 1.4s linear infinite;
+}
+
+@keyframes aiLoadingBar{
+    0%{width:3%;}
+    20%{width:28%;}
+    45%{width:52%;}
+    70%{width:72%;}
+    100%{width:90%;}
+}
+
+@keyframes aiLoadingShine{
+    0%{left:-60%;}
+    100%{left:120%;}
+}
+
 /* ===== AI 提示 ===== */
 
 .ai-note{
@@ -452,10 +502,11 @@ async function openMatch(fixtureId, button){
     return;
   }
 
-  if (button) {
+if (button) {
   button.disabled = true;
   button.dataset.originalText = button.textContent;
   button.textContent = "AI 分析中...";
+  button.classList.add("loading");
 }
   try {
 
@@ -483,9 +534,10 @@ body: JSON.stringify({
       "明日將自動恢復分析次數"
     );
     
-    if (button) {
+if (button) {
   button.disabled = false;
   button.textContent = button.dataset.originalText || "開始分析 →";
+  button.classList.remove("loading");
 }
     
     return;
@@ -497,6 +549,7 @@ body: JSON.stringify({
   if (button) {
     button.disabled = false;
     button.textContent = button.dataset.originalText || "開始分析 →";
+    button.classList.remove("loading");
   }
 
   return;
@@ -508,6 +561,7 @@ if (data.error === "member_inactive") {
   if (button) {
     button.disabled = false;
     button.textContent = button.dataset.originalText || "開始分析 →";
+    button.classList.remove("loading");
   }
 
   return;
@@ -538,6 +592,7 @@ window.location.href = "analysis.html";
     if (button) {
   button.disabled = false;
   button.textContent = button.dataset.originalText || "開始分析 →";
+  button.classList.remove("loading");
 }
   }
 }
@@ -759,6 +814,7 @@ function resetAnalysisButtons() {
   document.querySelectorAll(".analysis-btn").forEach(button => {
     button.disabled = false;
     button.textContent = "開始分析 →";
+    button.classList.remove("loading");
     delete button.dataset.originalText;
   });
 }
