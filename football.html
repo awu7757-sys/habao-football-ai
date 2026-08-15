@@ -755,11 +755,20 @@ const leagueText = getLeagueNameZH(match.league.name || "");
   }
 }
 
-window.addEventListener("pageshow", () => {
+function resetAnalysisButtons() {
   document.querySelectorAll(".analysis-btn").forEach(button => {
     button.disabled = false;
     button.textContent = "開始分析 →";
+    delete button.dataset.originalText;
   });
+}
+
+window.addEventListener("pageshow", () => {
+  resetAnalysisButtons();
+
+  setTimeout(() => {
+    resetAnalysisButtons();
+  }, 300);
 });
   
 // 頁面開啟後自動取得賽事
