@@ -392,7 +392,7 @@ if (!raw) {
       <div class="grid">
 
         <div class="pick-card">
-          <div class="pick-label">獨贏 MONEYLINE</div>
+          <div class="pick-label">獨贏</div>
           <div class="pick-value">${moneyline.pick || "暫不推薦"}</div>
 
           <div class="confidence">
@@ -409,7 +409,7 @@ if (!raw) {
         </div>
 
         <div class="pick-card">
-          <div class="pick-label">大小球 OVER / UNDER</div>
+          <div class="pick-label">大小球</div>
           <div class="pick-value">${overUnder.pick || "暫不推薦"}</div>
 
           <div class="confidence">
@@ -426,7 +426,7 @@ if (!raw) {
         </div>
 
         <div class="pick-card">
-          <div class="pick-label">雙方進球 BTTS</div>
+          <div class="pick-label">BTTS</div>
           <div class="pick-value">${btts.pick || "暫不推薦"}</div>
 
           <div class="confidence">
@@ -445,27 +445,8 @@ if (!raw) {
       </div>
 
       <div class="section">
-        <div class="section-title">AI 綜合摘要</div>
+        <div class="section-title">AI 分析重點</div>
         <p>${analysis.summary || "目前沒有摘要資料。"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">近期狀態</div>
-        <p>
-主隊：${analysis.home_form || "資料不足"}
-
-客隊：${analysis.away_form || "資料不足"}
-        </p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">進球趨勢</div>
-        <p>${analysis.goal_analysis || "資料不足"}</p>
-      </div>
-
-      <div class="section">
-        <div class="section-title">歷史交鋒 H2H</div>
-        <p>${analysis.h2h_analysis || "資料不足"}</p>
       </div>
 
       <div class="section">
