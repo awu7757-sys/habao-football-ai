@@ -215,6 +215,126 @@
         font-size: 29px;
       }
     }
+  /* ===== 登入頁下方快捷按鈕 ===== */
+
+.login-shortcuts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+  width:100%;
+}
+
+.shortcut-card{
+  min-width:0;
+  min-height:92px;
+  padding:16px 14px;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  cursor:pointer;
+  box-sizing:border-box;
+  background:rgba(8,22,32,.88);
+  font-family:inherit;
+}
+
+.line-card{
+  border:1px solid #20e98a;
+  box-shadow:0 0 20px rgba(32,233,138,.10);
+}
+
+.benefit-card{
+  border:1px solid #d9a928;
+  color:inherit;
+  appearance:none;
+  text-align:left;
+}
+
+.shortcut-icon{
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#20e98a;
+  color:#07140f;
+  font-size:11px;
+  font-weight:900;
+}
+
+.gift-icon{
+  background:transparent;
+  font-size:30px;
+}
+
+.shortcut-content{
+  flex:1;
+  min-width:0;
+}
+
+.shortcut-title{
+  color:#35f2a0;
+  font-size:16px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.benefit-card .shortcut-title{
+  color:#f4c542;
+}
+
+.shortcut-sub{
+  color:#a5b1bd;
+  font-size:12px;
+  margin-top:5px;
+  white-space:nowrap;
+}
+
+.shortcut-arrow{
+  color:#fff;
+  font-size:28px;
+  line-height:1;
+}
+
+@media(max-width:480px){
+  .login-shortcuts{
+    gap:8px;
+  }
+
+  .shortcut-card{
+    min-height:82px;
+    padding:12px 10px;
+    gap:8px;
+    border-radius:17px;
+  }
+
+  .shortcut-icon{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+    font-size:9px;
+  }
+
+  .gift-icon{
+    font-size:25px;
+  }
+
+  .shortcut-title{
+    font-size:14px;
+  }
+
+  .shortcut-sub{
+    font-size:10px;
+  }
+
+  .shortcut-arrow{
+    font-size:22px;
+  }
+}
   </style>
 </head>
 
@@ -262,9 +382,41 @@
 
       </section>
 
-      <div class="footer">
-        AI DATA · MATCH · ANALYSIS
-      </div>
+<div class="login-shortcuts">
+
+  <a
+    class="shortcut-card line-card"
+    href="https://lin.ee/ppRvZLM"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <div class="shortcut-icon">LINE</div>
+
+    <div class="shortcut-content">
+      <div class="shortcut-title">領取AI帳號</div>
+      <div class="shortcut-sub">加入官方 LINE</div>
+    </div>
+
+    <div class="shortcut-arrow">›</div>
+  </a>
+
+
+  <button
+    type="button"
+    class="shortcut-card benefit-card"
+    onclick="openBenefits()"
+  >
+    <div class="shortcut-icon gift-icon">🎁</div>
+
+    <div class="shortcut-content">
+      <div class="shortcut-title">本站福利</div>
+      <div class="shortcut-sub">查看最新活動</div>
+    </div>
+
+    <div class="shortcut-arrow">›</div>
+  </button>
+
+</div>
 
     </div>
 
