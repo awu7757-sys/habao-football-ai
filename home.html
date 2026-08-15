@@ -357,23 +357,18 @@
     font-size:30px;
   }
 
-  .topbar{
+ .topbar{
+  position:relative;
+  min-height:118px;
   padding:14px 16px;
-  display:grid;
-  grid-template-columns:1fr auto;
-  grid-template-rows:auto auto;
-  row-gap:12px;
-  column-gap:12px;
-  align-items:center;
 }
 
 .brand{
-  grid-column:1;
-  grid-row:1;
-  width:auto;
+  position:absolute;
+  left:16px;
+  top:14px;
   display:flex;
   align-items:center;
-  justify-self:start;
 }
 
 .brand-icon{
@@ -391,13 +386,13 @@
 }
 
 .user{
-  display:contents;
+  position:static;
 }
 
 .user-info{
-  grid-column:2;
-  grid-row:1;
-  justify-self:end;
+  position:absolute;
+  right:16px;
+  top:25px;
 }
 
 .user-account{
@@ -410,9 +405,9 @@
 }
 
 .user-count{
-  grid-column:1;
-  grid-row:2;
-  justify-self:start;
+  position:absolute;
+  left:16px;
+  bottom:14px;
   padding:7px 11px;
   font-size:11px;
   white-space:nowrap;
@@ -423,10 +418,9 @@
 }
 
 .logout{
-  grid-column:2;
-  grid-row:2;
-  justify-self:end;
-  position:static;
+  position:absolute;
+  right:16px;
+  bottom:14px;
   padding:8px 12px;
 }
   
