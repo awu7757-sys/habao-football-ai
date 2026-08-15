@@ -461,18 +461,39 @@ async function openMatch(fixtureId){
   "Content-Type": "application/json"
 },
 
-      body: JSON.stringify({
-        fixture_id: fixtureId
-      })
+body: JSON.stringify({
+    fixture_id: fixtureId,
+    account: JSON.parse(sessionStorage.getItem("habao_member"))?.account || ""
+})
     });
 
     const data = await response.json();
 
-    if (!response.ok || !data.success) {
-      throw new Error(
-        data.error || "AI 賽事分析失敗"
-      );
-    }
+   if (!response.ok || !data.success) {
+
+  if (data.error === "daily_limit_reached") {
+    alert(
+      "🤖 今日 AI 分析額度已用完\n\n" +
+      "每日可分析 3 場賽事\n" +
+      "明日將自動恢復分析次數"
+    );
+    return;
+  }
+
+  if (data.error === "member_expired") {
+    alert("使用權限已到期，請聯絡哈寶");
+    return;
+  }
+
+  if (data.error === "member_inactive") {
+    alert("AI 分析權限目前已停用，請聯絡哈寶");
+    return;
+  }
+
+  throw new Error(
+    data.message || data.error || "AI 賽事分析失敗"
+  );
+}
 
     console.log("AI 分析結果：", data);
 
