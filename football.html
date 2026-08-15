@@ -601,7 +601,17 @@ async function loadTomorrowFixtures() {
       throw new Error(data.error || "賽事讀取失敗");
     }
 
-    const fixtures = data.fixtures || [];
+    const allowedLeagues = [
+  "Premier League",
+  "La Liga",
+  "Bundesliga",
+  "Serie A",
+  "Ligue 1"
+];
+
+const fixtures = (data.fixtures || []).filter(match =>
+  allowedLeagues.includes(match.league?.name)
+);
 
     if (fixtures.length === 0) {
       container.innerHTML = `
