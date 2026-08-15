@@ -341,6 +341,85 @@
     font-size:22px;
   }
 }
+  /* ===== 本站福利彈窗 ===== */
+
+.benefits-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(5px);
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+}
+
+.benefits-modal.show{
+  display:flex;
+}
+
+.benefits-box{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  background:#0b1825;
+  border:1px solid rgba(53,237,138,.45);
+  border-radius:24px;
+  padding:28px 22px 22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+
+.benefits-close{
+  position:absolute;
+  top:12px;
+  right:14px;
+  width:38px;
+  height:38px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:25px;
+  line-height:38px;
+}
+
+.benefits-title{
+  color:#fff;
+  font-size:24px;
+  font-weight:900;
+  text-align:center;
+}
+
+.benefits-subtitle{
+  margin-top:6px;
+  color:#718096;
+  font-size:13px;
+  text-align:center;
+}
+
+.benefits-image-wrap{
+  margin-top:20px;
+}
+
+.benefits-placeholder{
+  min-height:220px;
+  border:1px dashed rgba(53,237,138,.5);
+  border-radius:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:#35ed8a;
+  font-size:38px;
+}
+
+.benefits-placeholder span{
+  color:#8290a0;
+  font-size:14px;
+}
   </style>
 </head>
 
@@ -426,6 +505,33 @@
 
     </div>
 
+  <div id="benefitsModal" class="benefits-modal" onclick="closeBenefits(event)">
+
+  <div class="benefits-box">
+
+    <button
+      type="button"
+      class="benefits-close"
+      onclick="closeBenefits()"
+      aria-label="關閉"
+    >
+      ×
+    </button>
+
+    <div class="benefits-title">本站福利</div>
+    <div class="benefits-subtitle">最新活動</div>
+
+    <div class="benefits-image-wrap">
+      <div class="benefits-placeholder">
+        🎁
+        <span>活動圖片放置區</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+    
   </main>
 
   <script>
@@ -566,7 +672,23 @@
         }
       );
 
-  </script>
+  function openBenefits() {
+  const modal = document.getElementById("benefitsModal");
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
 
+function closeBenefits(event) {
+  const modal = document.getElementById("benefitsModal");
+
+  if (event && event.target !== modal) {
+    return;
+  }
+
+  modal.classList.remove("show");
+  document.body.style.overflow = "";
+}
+    
+</script>
 </body>
 </html>
