@@ -721,20 +721,16 @@
 
     const data = await response.json();
 
-    console.log("public-stats 回傳：", data);
-
     if (countEl && typeof data.user_count === "number") {
       countEl.textContent = data.user_count;
     }
 
- } catch (error) {
+} catch (error) {
   console.error("使用人數載入失敗：", error);
 
   if (countEl) {
-    countEl.textContent = "ERR";
+    countEl.textContent = "--";
   }
-
-  alert("使用人數錯誤：" + error.message);
 }
 }
 
