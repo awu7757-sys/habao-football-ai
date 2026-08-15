@@ -49,6 +49,25 @@
       gap:12px;
     }
 
+.user-count{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(34,197,94,.10);
+  border:1px solid rgba(74,222,128,.18);
+  color:#a7f3d0;
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.user-count strong{
+  color:#34d399;
+  font-size:15px;
+}
+    
     .brand-icon{
       width:42px;
       height:42px;
@@ -360,9 +379,7 @@
   </div>
 
 
-  <header class="topbar">
-
-    <div class="brand">
+ <div class="brand" onclick="window.location.href='home.html'" style="cursor:pointer;">
 
       <div class="brand-icon">
         ⚽
@@ -385,6 +402,10 @@
 
     <div class="user">
 
+      <div class="user-count">
+    👥 目前使用人數 <strong id="currentUserCount">174</strong>
+</div>
+      
       <div class="user-info">
 
         <div
@@ -565,6 +586,38 @@
 
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+  const PUBLIC_STATS_URL =
+  "https://oqtbsbohcfegghgnykwxy.supabase.co/functions/v1/public-stats";
+
+async function loadCurrentUserCount() {
+  try {
+    const response = await fetch(PUBLIC_STATS_URL, {
+      method: "GET",
+      headers: {
+        "apikey": PUBLISHABLE_KEY
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("讀取使用人數失敗");
+    }
+
+    const data = await response.json();
+
+    const countEl = document.getElementById("currentUserCount");
+
+    if (countEl && typeof data.user_count === "number") {
+      countEl.textContent = data.user_count;
+    }
+
+  } catch (error) {
+    console.error("使用人數讀取失敗：", error);
+    // 失敗時保留 HTML 預設的 174
+  }
+}
+
+loadCurrentUserCount();
 
 
   async function verifyMember(){
