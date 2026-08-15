@@ -342,7 +342,7 @@
       font-size:13px;
       letter-spacing:2px;
     }
-
+    
 @media(max-width:800px){
 
   .sports-grid{
@@ -358,73 +358,60 @@
   }
 
  .topbar{
-  position:relative;
-  min-height:118px;
-  padding:14px 16px;
-}
-
-.brand{
-  position:absolute;
-  left:16px;
-  top:14px;
-  display:flex;
-  align-items:center;
-}
-
-.brand-icon{
-  width:44px;
-  height:44px;
-  font-size:22px;
-}
-
-.brand-name{
-  font-size:18px;
-}
-
-.brand-small{
-  display:none;
-}
-
-.user{
-  position:static;
-}
-
-.user-info{
-  position:absolute;
-  right:16px;
-  top:25px;
-}
-
-.user-account{
-  font-size:14px;
-  text-align:right;
+  padding:16px 18px;
 }
 
 .user-expire{
   display:none;
 }
 
-.user-count{
-  position:absolute;
-  left:16px;
-  bottom:14px;
-  padding:7px 11px;
-  font-size:11px;
+.brand-small{
+  display:none;
+}
+.header-grid{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;
+  align-items:center;
+  column-gap:16px;
+  row-gap:12px;
+}
+
+.header-grid .brand{
+  grid-column:1;
+  grid-row:1;
+  justify-self:start;
+}
+
+.header-account{
+  grid-column:2;
+  grid-row:1;
+  justify-self:end;
+}
+
+.header-grid .user-count{
+  grid-column:1;
+  grid-row:2;
+  justify-self:start;
   white-space:nowrap;
 }
 
-.user-count strong{
-  font-size:13px;
+.header-grid .logout{
+  grid-column:2;
+  grid-row:2;
+  justify-self:end;
+  position:static;
+  margin:0;
 }
 
-.logout{
-  position:absolute;
-  right:16px;
-  bottom:14px;
-  padding:8px 12px;
+.header-grid .user-expire{
+  display:none;
+}  
 }
-  
 }
+.header-grid{
+  width:100%;
 }
   </style>
 </head>
@@ -435,63 +422,42 @@
     VERIFYING MEMBER...
   </div>
 
+<div class="header-grid">
 
- <div class="brand" onclick="window.location.href='home.html'" style="cursor:pointer;">
+  <div
+    class="brand"
+    onclick="window.location.href='home.html'"
+    style="cursor:pointer;"
+  >
+    <div class="brand-icon">⚽</div>
 
-      <div class="brand-icon">
-        ⚽
-      </div>
-
-      <div>
-
-        <div class="brand-name">
-          哈寶足球 AI
-        </div>
-
-        <div class="brand-small">
-          HABAO FOOTBALL AI
-        </div>
-
-      </div>
-
+    <div>
+      <div class="brand-name">哈寶足球 AI</div>
+      <div class="brand-small">HABAO FOOTBALL AI</div>
     </div>
+  </div>
 
+  <div class="header-account">
+    <div id="userAccount" class="user-account">--</div>
+  </div>
 
-    <div class="user">
+  <div class="user-count">
+    👥 目前使用人數
+    <strong id="currentUserCount">174</strong>
+  </div>
 
-      <div class="user-count">
-    👥 目前使用人數 <strong id="currentUserCount">174</strong>
+  <button
+    class="logout"
+    onclick="logout()"
+  >
+    登出
+  </button>
+
+  <div id="userExpire" class="user-expire">--</div>
+
 </div>
-      
-      <div class="user-info">
-
-        <div
-          id="userAccount"
-          class="user-account"
-        >
-          --
-        </div>
-
-        <div
-          id="userExpire"
-          class="user-expire"
-        >
-          --
-        </div>
-
-      </div>
-
-      <button
-        class="logout"
-        onclick="logout()"
-      >
-        登出
-      </button>
-
-    </div>
 
   </header>
-
 
   <main class="container">
 
