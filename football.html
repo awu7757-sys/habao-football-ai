@@ -474,11 +474,13 @@ async function loadCurrentUserCount() {
       countEl.textContent = data.user_count;
     }
 
-  } catch (error) {
-    if (countEl) {
-      countEl.textContent = "--";
-    }
+} catch (error) {
+  if (countEl) {
+    countEl.textContent = "ERR";
   }
+
+  alert("football 使用人數錯誤：" + error.message);
+}
 }
 
 loadCurrentUserCount();
