@@ -325,6 +325,32 @@ h1{
     font-size:26px;
   }
 }
+
+.confidence-fire{
+  display:inline-block;
+  margin-left:6px;
+  transform-origin:center bottom;
+  animation:firePulse 1.05s ease-in-out infinite;
+  filter:drop-shadow(0 0 5px rgba(255,120,30,.65));
+}
+
+@keyframes firePulse{
+  0%{
+    transform:translateY(1px) scale(.94);
+    filter:drop-shadow(0 0 3px rgba(255,120,30,.45));
+  }
+
+  50%{
+    transform:translateY(-2px) scale(1.10);
+    filter:drop-shadow(0 0 9px rgba(255,150,40,.9));
+  }
+
+  100%{
+    transform:translateY(1px) scale(.94);
+    filter:drop-shadow(0 0 3px rgba(255,120,30,.45));
+  }
+}
+  
 </style>
 </head>
 
@@ -391,7 +417,19 @@ if (!raw) {
 
     const confidenceBar = value =>
       Math.max(0, Math.min(100, Number(value || 0)));
+    
+    const confidenceFire = (value, pick) => {
+  if (!pick || pick === "暫不推薦") return "";
 
+  const confidence = Number(value || 0);
+
+  if (confidence >= 90) return '<span class="confidence-fire">🔥🔥🔥</span>';
+  if (confidence >= 80) return '<span class="confidence-fire">🔥🔥</span>';
+  if (confidence >= 70) return '<span class="confidence-fire">🔥</span>';
+
+  return "";
+};
+    
     app.innerHTML = `
 
       <div class="eyebrow">AI MATCH ANALYSIS</div>
@@ -432,6 +470,7 @@ if (!raw) {
 
           <div class="confidence">
             AI 信心 ${moneyline.confidence || 0}%
+${confidenceFire(moneyline.confidence, moneyline.pick)}
           </div>
 
           <div class="bar">
@@ -449,6 +488,7 @@ if (!raw) {
 
           <div class="confidence">
             AI 信心 ${overUnder.confidence || 0}%
+${confidenceFire(overUnder.confidence, overUnder.pick)}
           </div>
 
           <div class="bar">
@@ -466,6 +506,7 @@ if (!raw) {
 
           <div class="confidence">
             AI 信心 ${btts.confidence || 0}%
+${confidenceFire(btts.confidence, btts.pick)}
           </div>
 
           <div class="bar">
