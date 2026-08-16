@@ -610,9 +610,8 @@
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
-  const PUBLIC_STATS_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
-
+const PUBLIC_STATS_URL =
+"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
 async function loadCurrentUserCount() {
   try {
     const response = await fetch(PUBLIC_STATS_URL, {
