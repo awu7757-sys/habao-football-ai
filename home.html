@@ -431,32 +431,36 @@
 .account-trigger{
   appearance:none;
   -webkit-appearance:none;
-  border:0;
+  border:1px solid rgba(53,245,165,.48);
   outline:0;
-  background:transparent;
-  padding:6px 4px;
+  background:rgba(18,55,52,.55);
+  padding:0 14px;
   margin:0;
   color:inherit;
   font:inherit;
   cursor:pointer;
 
   display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:7px;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  min-height:46px;
+  border-radius:11px;
 }
 
 .user-account{
   color:#f5f7fb;
-  font-size:17px;
+  font-size:15px;
   font-weight:800;
-  line-height:1.1;
-  letter-spacing:.2px;
+  line-height:1;
+  white-space:nowrap;
 }
-
+    
 .user-count{
   color:#75869a;
-  font-size:12px;
+  font-size:11px;
   font-weight:700;
   white-space:nowrap;
 }
@@ -563,6 +567,25 @@
     font-size:14px;
   }
 
+  .account-user-wrap{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.account-user-icon{
+  font-size:16px;
+  line-height:1;
+}
+  
+  .account-arrow{
+    color:#35f5a5;
+    font-size:18px;
+    font-weight:900;
+    line-height:1;
+    transform:translateY(-2px);
+}
+
   .user-count{
     font-size:10px;
   }
@@ -609,12 +632,12 @@
       id="accountTrigger"
       onclick="toggleAccountMenu(event)"
     >
-      <div id="userAccount" class="user-account">--</div>
+     <div class="account-user-wrap">
+  <span class="account-user-icon">👤</span>
+  <div id="userAccount" class="user-account">--</div>
+</div>
 
-      <div class="user-count">
-        👥 目前使用人數
-        <strong id="currentUserCount">--</strong>
-      </div>
+      <span class="account-arrow">⌄</span>
     </button>
 
 
