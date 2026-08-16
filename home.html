@@ -431,11 +431,15 @@
 .account-trigger{
   appearance:none;
   -webkit-appearance:none;
-  border:1px solid rgba(53,245,165,.48);
+
+  border:1px solid rgba(53,245,165,.22);
   outline:0;
-  background:rgba(18,55,52,.55);
-  padding:0 14px;
+
+  background:rgba(18,55,52,.28);
+
+  padding:0 10px;
   margin:0;
+
   color:inherit;
   font:inherit;
   cursor:pointer;
@@ -444,10 +448,10 @@
   flex-direction:row;
   align-items:center;
   justify-content:center;
-  gap:8px;
+  gap:7px;
 
-  min-height:46px;
-  border-radius:11px;
+  min-height:38px;
+  border-radius:10px;
 }
 
 .user-account{
@@ -510,15 +514,19 @@
 }
 
 .account-menu-label{
-  color:#718497;
+  color:#8fa4b7;
   font-size:11px;
-  margin-bottom:6px;
+  font-weight:600;
+  letter-spacing:.5px;
+  margin-bottom:7px;
 }
 
 .user-expire{
-  color:#f4f7fa;
+  color:#35f5a5;
   font-size:14px;
-  font-weight:700;
+  font-weight:800;
+  line-height:1.4;
+  white-space:nowrap;
 }
 
 .logout-item{
@@ -560,12 +568,20 @@
   }
 
   .account-trigger{
-    gap:5px;
-  }
+  gap:6px;
+  min-height:36px;
+  padding:0 9px;
+}
 
   .user-account{
-    font-size:14px;
-  }
+  font-size:14px;
+  font-weight:800;
+
+  max-width:110px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 
   .account-user-wrap{
   display:flex;
@@ -595,8 +611,9 @@
   }
 
   .account-menu{
-    width:190px;
-  }
+  width:240px;
+  max-width:calc(100vw - 24px);
+}
 }
     
   </style>
@@ -958,13 +975,17 @@ loadCurrentUserCount();
           "userExpire"
         )
         .innerText =
-          "使用期限：" +
           expire.toLocaleString(
             "zh-TW",
             {
-              timeZone:
-                "Asia/Taipei"
-            }
+  timeZone: "Asia/Taipei",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+}
           );
 
 
