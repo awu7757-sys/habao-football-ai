@@ -449,23 +449,23 @@ h1{
 
 <script>
 
-const PUBLIC_STATS_URL =
+const STATS_URL =
 "https://oqtbsbohcfegghgnykwxy.supabase.co/functions/v1/public-stats";
 
-async function loadCurrentUserCount() {
+async function loadOnlineCount() {
   const countEl = document.getElementById("currentUserCount");
 
   try {
     const response = await fetch(
-      PUBLIC_STATS_URL + "?t=" + Date.now(),
+      STATS_URL + "?t=" + Date.now(),
       {
-  method: "GET",
-  cache: "no-store"
-}
+        method: "GET",
+        cache: "no-store"
+      }
     );
 
     if (!response.ok) {
-      throw new Error("讀取使用人數失敗");
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
@@ -474,16 +474,16 @@ async function loadCurrentUserCount() {
       countEl.textContent = data.user_count;
     }
 
-} catch (error) {
-  if (countEl) {
-    countEl.textContent = "ERR";
+  } catch (error) {
+    console.error("使用人數載入失敗：", error);
+
+    if (countEl) {
+      countEl.textContent = "--";
+    }
   }
-
-  alert("football 使用人數錯誤：" + error.message);
-}
 }
 
-loadCurrentUserCount();
+loadOnlineCount();
   
 /* =========================
    會員登入保護
