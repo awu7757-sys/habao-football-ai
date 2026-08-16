@@ -848,8 +848,6 @@ async function loadCurrentUserCount() {
 
     const data = await response.json();
 
-    alert(JSON.stringify(data));
-
     const countEl = document.getElementById("currentUserCount");
 
     if (countEl && typeof data.user_count === "number") {
@@ -946,6 +944,7 @@ loadCurrentUserCount();
       const data =
         await response.json();
 
+      alert(JSON.stringify(data));
 
       if(!data.success){
 
