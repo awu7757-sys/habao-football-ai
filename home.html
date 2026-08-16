@@ -443,7 +443,7 @@
 
   <div class="user-count">
     👥 目前使用人數
-    <strong id="currentUserCount">174</strong>
+    <strong id="currentUserCount">--</strong>
   </div>
 
   <button
@@ -634,10 +634,12 @@ async function loadCurrentUserCount() {
       countEl.textContent = data.user_count;
     }
 
-  } catch (error) {
-    console.error("使用人數讀取失敗：", error);
-    // 失敗時保留 HTML 預設的 174
-  }
+} catch (error) {
+    const countEl = document.getElementById("currentUserCount");
+    if (countEl) {
+        countEl.textContent = "--";
+    }
+}
 }
 
 loadCurrentUserCount();
