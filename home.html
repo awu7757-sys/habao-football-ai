@@ -413,6 +413,169 @@
 .header-grid{
   width:100%;
 }
+
+/* ===== Header 帳號區 ===== */
+
+.header-grid{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.account-area{
+  position:relative;
+  margin-left:auto;
+}
+
+.account-trigger{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  outline:0;
+  background:transparent;
+  padding:6px 4px;
+  margin:0;
+  color:inherit;
+  font:inherit;
+  cursor:pointer;
+
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:7px;
+}
+
+.user-account{
+  color:#f5f7fb;
+  font-size:17px;
+  font-weight:800;
+  line-height:1.1;
+  letter-spacing:.2px;
+}
+
+.user-count{
+  color:#75869a;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.user-count strong{
+  color:#35f5a5;
+  font-size:14px;
+  margin-left:5px;
+}
+
+/* 下拉選單 */
+
+.account-menu{
+  display:none;
+  position:absolute;
+  right:0;
+  top:calc(100% + 12px);
+  width:210px;
+  z-index:9999;
+
+  background:#0b1b28;
+  border:1px solid rgba(80,255,180,.18);
+  border-radius:16px;
+  overflow:hidden;
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.45),
+    0 0 25px rgba(40,240,160,.05);
+}
+
+.account-menu.show{
+  display:block;
+}
+
+.account-menu-item{
+  width:100%;
+  box-sizing:border-box;
+  padding:15px 17px;
+  background:transparent;
+  border:0;
+  color:#dce7ef;
+  text-align:left;
+}
+
+.expire-item{
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.account-menu-label{
+  color:#718497;
+  font-size:11px;
+  margin-bottom:6px;
+}
+
+.user-expire{
+  color:#f4f7fa;
+  font-size:14px;
+  font-weight:700;
+}
+
+.logout-item{
+  cursor:pointer;
+  font-size:14px;
+  font-weight:700;
+}
+
+.logout-item:active{
+  background:rgba(255,255,255,.05);
+}
+
+
+/* ===== 手機 Header ===== */
+
+@media(max-width:760px){
+
+  .header-grid{
+    gap:10px;
+  }
+
+  .brand{
+    min-width:0;
+  }
+
+  .brand-name{
+    font-size:16px;
+    white-space:nowrap;
+  }
+
+  .brand-small{
+    font-size:9px;
+    letter-spacing:2px;
+    white-space:nowrap;
+  }
+
+  .brand-icon{
+    flex:0 0 auto;
+  }
+
+  .account-trigger{
+    gap:5px;
+  }
+
+  .user-account{
+    font-size:14px;
+  }
+
+  .user-count{
+    font-size:10px;
+  }
+
+  .user-count strong{
+    font-size:12px;
+  }
+
+  .account-menu{
+    width:190px;
+  }
+}
+    
   </style>
 </head>
 
@@ -437,26 +600,44 @@
     </div>
   </div>
 
-  <div class="header-account">
-    <div id="userAccount" class="user-account">--</div>
+
+  <div class="account-area">
+
+    <button
+      type="button"
+      class="account-trigger"
+      id="accountTrigger"
+      onclick="toggleAccountMenu(event)"
+    >
+      <div id="userAccount" class="user-account">--</div>
+
+      <div class="user-count">
+        👥 目前使用人數
+        <strong id="currentUserCount">--</strong>
+      </div>
+    </button>
+
+
+    <div class="account-menu" id="accountMenu">
+
+      <div class="account-menu-item expire-item">
+        <div class="account-menu-label">帳號使用期限</div>
+        <div id="userExpire" class="user-expire">--</div>
+      </div>
+
+      <button
+        type="button"
+        class="account-menu-item logout-item"
+        onclick="logout()"
+      >
+        登出
+      </button>
+
+    </div>
+
   </div>
-
-  <div class="user-count">
-    👥 目前使用人數
-    <strong id="currentUserCount">--</strong>
-  </div>
-
-  <button
-    class="logout"
-    onclick="logout()"
-  >
-    登出
-  </button>
-
-  <div id="userExpire" class="user-expire">--</div>
 
 </div>
-
   </header>
 
   <main class="container">
@@ -811,6 +992,29 @@ loadCurrentUserCount();
 
   verifyMember();
 
+function toggleAccountMenu(event) {
+  event.stopPropagation();
+
+  const menu = document.getElementById("accountMenu");
+
+  if (menu) {
+    menu.classList.toggle("show");
+  }
+}
+
+document.addEventListener("click", function(event) {
+  const menu = document.getElementById("accountMenu");
+  const accountArea = document.querySelector(".account-area");
+
+  if (
+    menu &&
+    accountArea &&
+    !accountArea.contains(event.target)
+  ) {
+    menu.classList.remove("show");
+  }
+});
+  
 </script>
 
 </body>
