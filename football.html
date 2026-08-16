@@ -78,7 +78,19 @@ body{
   font-size:12px;
   font-weight:700;
 }
+.member-user-count{
+  margin-top:4px;
+  font-size:10px;
+  color:#94a3b8;
+  white-space:nowrap;
+}
 
+.member-user-count strong{
+  margin-left:4px;
+  color:#3ff5a5;
+  font-size:11px;
+  font-weight:800;
+}
 .member-expire{
   margin-top:4px;
   font-size:10px;
@@ -374,10 +386,16 @@ h1{
       </div>
     </div>
 
-    <div class="member">
-      <div class="member-account" id="memberAccount">會員</div>
-      <div class="member-expire" id="memberExpire"></div>
-    </div>
+   <div class="member">
+  <div class="member-account" id="memberAccount">會員</div>
+
+  <div class="member-user-count">
+    👥 目前使用人數
+    <strong id="currentUserCount">--</strong>
+  </div>
+
+  <div class="member-expire" id="memberExpire"></div>
+</div>
 
   </div>
 </header>
@@ -431,6 +449,40 @@ h1{
 
 <script>
 
+const PUBLIC_STATS_URL =
+"https://oqtbsbohcfegghgnykwxy.supabase.co/functions/v1/public-stats";
+
+async function loadCurrentUserCount() {
+  const countEl = document.getElementById("currentUserCount");
+
+  try {
+    const response = await fetch(
+      PUBLIC_STATS_URL + "?t=" + Date.now(),
+      {
+        method: "GET",
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("讀取使用人數失敗");
+    }
+
+    const data = await response.json();
+
+    if (countEl && typeof data.user_count === "number") {
+      countEl.textContent = data.user_count;
+    }
+
+  } catch (error) {
+    if (countEl) {
+      countEl.textContent = "--";
+    }
+  }
+}
+
+loadCurrentUserCount();
+  
 /* =========================
    會員登入保護
 ========================= */
