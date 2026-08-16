@@ -340,6 +340,49 @@ h1{
   line-height:1.7;
 }
 
+.line-group-card{
+  margin-top:28px;
+  padding:22px 20px;
+  border:1px solid rgba(63,245,165,.25);
+  border-radius:18px;
+  background:
+    linear-gradient(135deg, rgba(63,245,165,.08), rgba(10,24,38,.92));
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+
+.line-group-title{
+  color:#ffffff;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.4;
+}
+
+.line-group-text{
+  margin-top:8px;
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.7;
+}
+
+.line-group-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:16px;
+  padding:12px 18px;
+  border-radius:999px;
+  background:#3ff5a5;
+  color:#06141d;
+  font-size:14px;
+  font-weight:800;
+  text-decoration:none;
+  transition:.2s ease;
+}
+
+.line-group-btn:active{
+  transform:scale(.97);
+}
+
 /* ===== 手機 ===== */
 
 @media(max-width:760px){
@@ -439,10 +482,24 @@ h1{
     <span>AI MATCH CENTER</span>
   </div>
 <div id="matchesContainer"></div>
-  <div class="ai-note">
-    AI 將整合球隊近期狀態、攻防數據與賽事資訊進行分析。
-    下一階段我們會把這裡改成「自動抓取真實足球賽事」。
+  <div class="ai-note line-group-card">
+  <div class="line-group-title">
+    ⚽ 一場球，不只看 AI 怎麼分析
   </div>
+
+  <div class="line-group-text">
+    群內老玩家每天分享賽事看法與推薦
+  </div>
+
+  <a
+    class="line-group-btn"
+    href="https://lin.ee/v35S1chW"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    看看老玩家怎麼選 →
+  </a>
+</div>
 
 </main>
 
