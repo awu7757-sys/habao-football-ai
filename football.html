@@ -543,6 +543,7 @@ async function loadOnlineCount() {
 const FUNCTION_URL =
 "https://oqtbsbohcfegbgnykwxy.supabase.co/functions/v1/member-login";
   
+const FIXTURES_PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";  
 loadOnlineCount();
 verifyMember();
   
@@ -607,11 +608,11 @@ async function verifyMember(){
                 "application/json",
 
               "apikey":
-                PUBLISHABLE_KEY,
+                FIXTURES_PUBLISHABLE_KEY,
 
               "Authorization":
                 "Bearer " +
-                PUBLISHABLE_KEY
+                FIXTURES_PUBLISHABLE_KEY
 
             },
 
@@ -639,12 +640,9 @@ async function verifyMember(){
       }
 
 
-      document
-        .getElementById(
-          "userAccount"
-        )
-        .innerText =
-          data.member.account;
+  document
+  .getElementById("memberAccount")
+  .innerText = data.member.account;
 
 
       const expire =
@@ -654,9 +652,8 @@ async function verifyMember(){
 
 
       document
-        .getElementById(
-          "userExpire"
-        )
+.getElementById("memberExpire")
+        
         .innerText =
           expire.toLocaleString(
             "zh-TW",
@@ -670,15 +667,6 @@ async function verifyMember(){
   hour12: false
 }
           );
-
-
-      document
-        .getElementById(
-          "loading"
-        )
-        .style.display =
-          "none";
-
 
     }catch(error){
 
@@ -840,7 +828,6 @@ const FIXTURES_URL =
 
 // 這裡要放「Supabase Publishable Key」
 // 不是 API-FOOTBALL Key、也不是 Supabase Secret Key
-const FIXTURES_PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 // ==============================
 // 中文名稱對照
 // ==============================
