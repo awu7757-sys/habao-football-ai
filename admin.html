@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會員管理後台｜哈寶足球 AI</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --bg:#06141f;
+  --bg2:#081b29;
+  --card:#0c1e2b;
+  --card2:#0a1824;
+  --line:rgba(80,255,190,.14);
+  --green:#39f0a0;
+  --green2:#58f5b5;
+  --text:#f4f8fb;
+  --muted:#7890a3;
+  --red:#ff6f7d;
+  --yellow:#ffc857;
+}
+
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 15% 10%,rgba(0,255,170,.08),transparent 28%),
+    linear-gradient(135deg,#041116 0%,#071522 52%,#08192d 100%);
+}
+
+button,input{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.header{
+  height:76px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:rgba(2,12,18,.78);
+  backdrop-filter:blur(14px);
+}
+
+.header-inner{
+  max-width:1180px;
+  height:100%;
+  margin:auto;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:44px;
+  height:44px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  font-size:23px;
+  background:linear-gradient(135deg,#0b493b,#103025);
+  border:1px solid rgba(70,255,180,.25);
+}
+
+.brand-title{
+  font-size:17px;
+  font-weight:900;
+}
+
+.brand-sub{
+  margin-top:2px;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--green);
+}
+
+.header-tag{
+  font-size:12px;
+  color:var(--green);
+  letter-spacing:2px;
+}
+
+.container{
+  max-width:1180px;
+  margin:auto;
+  padding:48px 24px 80px;
+}
+
+.eyebrow{
+  color:var(--green);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:4px;
+  margin-bottom:14px;
+}
+
+h1{
+  font-size:34px;
+  margin-bottom:8px;
+}
+
+.subtitle{
+  color:var(--muted);
+  line-height:1.7;
+  margin-bottom:30px;
+}
+
+/* 登入 */
+
+.login-wrap{
+  max-width:480px;
+  margin:80px auto;
+}
+
+.panel{
+  background:rgba(11,29,42,.9);
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:30px;
+  box-shadow:0 25px 80px rgba(0,0,0,.18);
+}
+
+.panel h2{
+  font-size:25px;
+  margin-bottom:8px;
+}
+
+.panel-desc{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+  margin-bottom:24px;
+}
+
+.label{
+  font-size:13px;
+  font-weight:800;
+  color:#b9cad5;
+  display:block;
+  margin-bottom:8px;
+}
+
+.input{
+  width:100%;
+  height:52px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.11);
+  background:#07141f;
+  color:white;
+  outline:none;
+  padding:0 16px;
+  transition:.2s;
+}
+
+.input:focus{
+  border-color:rgba(57,240,160,.55);
+  box-shadow:0 0 0 3px rgba(57,240,160,.06);
+}
+
+.btn{
+  border:0;
+  border-radius:14px;
+  height:50px;
+  padding:0 20px;
+  font-weight:900;
+}
+
+.btn-primary{
+  width:100%;
+  margin-top:16px;
+  background:linear-gradient(90deg,#25e68d,#60f4b2);
+  color:#04150f;
+}
+
+.error{
+  color:#ff8b96;
+  margin-top:14px;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.success{
+  color:var(--green);
+  margin-top:14px;
+  font-size:13px;
+}
+
+/* dashboard */
+
+.toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.stats{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.stat{
+  min-width:150px;
+  padding:16px 18px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:11px;
+  margin-bottom:6px;
+}
+
+.stat-value{
+  font-size:25px;
+  font-weight:900;
+  color:var(--green);
+}
+
+.toolbar-actions{
+  display:flex;
+  gap:10px;
+}
+
+.small-btn{
+  height:44px;
+  border-radius:12px;
+  padding:0 17px;
+  border:1px solid rgba(255,255,255,.1);
+  background:#0c1c29;
+  color:white;
+  font-weight:800;
+}
+
+.green-btn{
+  background:var(--green);
+  color:#04140e;
+  border-color:transparent;
+}
+
+/* 新增會員 */
+
+.create-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:22px;
+  margin-bottom:22px;
+}
+
+.create-title{
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:18px;
+}
+
+.create-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 180px;
+  gap:12px;
+  align-items:end;
+}
+
+.create-grid .btn{
+  margin:0;
+}
+
+/* 搜尋 */
+
+.search-row{
+  margin-bottom:16px;
+}
+
+.search-input{
+  max-width:420px;
+}
+
+/* table */
+
+.table-wrap{
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+  background:rgba(10,27,39,.86);
+}
+
+.table-scroll{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+
+th{
+  text-align:left;
+  padding:15px 16px;
+  background:#0c202d;
+  color:#8097a8;
+  font-size:11px;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
+
+td{
+  padding:16px;
+  border-top:1px solid rgba(255,255,255,.055);
+  vertical-align:middle;
+}
+
+.account{
+  font-weight:900;
+  font-size:15px;
+}
+
+.id-text{
+  color:#5f788a;
+  font-size:11px;
+  margin-top:4px;
+}
+
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border-radius:99px;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:900;
+}
+
+.status-active{
+  background:rgba(57,240,160,.1);
+  color:var(--green);
+}
+
+.status-off{
+  background:rgba(255,111,125,.1);
+  color:#ff8b96;
+}
+
+.dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:currentColor;
+}
+
+.expire{
+  font-size:13px;
+  color:#c2d0da;
+  white-space:nowrap;
+}
+
+.row-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.action-btn{
+  border-radius:9px;
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.09);
+  background:#102432;
+  color:white;
+  font-size:11px;
+  font-weight:800;
+}
+
+.action-btn:hover{
+  border-color:rgba(57,240,160,.35);
+}
+
+.danger-btn{
+  color:#ff8994;
+}
+
+.enable-btn{
+  color:var(--green);
+}
+
+/* modal */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(8px);
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal-card{
+  width:min(460px,100%);
+  padding:26px;
+  border-radius:20px;
+  background:#0b1d2a;
+  border:1px solid rgba(57,240,160,.18);
+}
+
+.modal-title{
+  font-size:21px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.modal-account{
+  color:var(--green);
+  margin-bottom:20px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.modal-actions button{
+  flex:1;
+}
+
+.empty{
+  padding:60px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.loading{
+  padding:50px;
+  text-align:center;
+  color:var(--green);
+}
+
+@media(max-width:720px){
+
+  .header-inner{
+    padding:0 16px;
+  }
+
+  .header-tag{
+    display:none;
+  }
+
+  .container{
+    padding:32px 16px 70px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+  .toolbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .toolbar-actions{
+    width:100%;
+  }
+
+  .toolbar-actions button{
+    flex:1;
+  }
+
+  .stat{
+    min-width:120px;
+    flex:1;
+  }
+
+  .create-grid{
+    grid-template-columns:1fr;
+  }
+
+  .login-wrap{
+    margin:45px auto;
+  }
+
+  .panel{
+    padding:24px 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">⚽</div>
+      <div>
+        <div class="brand-title">哈寶足球 AI</div>
+        <div class="brand-sub">HABAO FOOTBALL AI</div>
+      </div>
+    </div>
+
+    <div class="header-tag">ADMIN CENTER</div>
+  </div>
+</header>
+
+<!-- 管理登入 -->
+<div id="loginPage" class="container">
+  <div class="login-wrap">
+
+    <div class="eyebrow">ADMIN CENTER</div>
+
+    <div class="panel">
+      <h2>管理後台</h2>
+
+      <div class="panel-desc">
+        請輸入管理密碼進入會員管理系統
+      </div>
+
+      <label class="label">管理密碼</label>
+
+      <input
+        id="adminPassword"
+        class="input"
+        type="password"
+        placeholder="請輸入管理密碼"
+        autocomplete="current-password"
+      >
+
+      <button
+        id="loginBtn"
+        class="btn btn-primary"
+        onclick="adminLogin()"
+      >
+        進入管理後台 →
+      </button>
+
+      <div id="loginMessage"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 後台 -->
+<main id="dashboard" class="container hidden">
+
+  <div class="eyebrow">HABAO ADMIN CENTER</div>
+
+  <h1>會員管理後台</h1>
+
+  <div class="subtitle">
+    新增會員、修改使用期限與管理會員使用狀態。
+  </div>
+
+  <div class="toolbar">
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">會員總數</div>
+        <div id="totalCount" class="stat-value">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">正常使用</div>
+        <div id="activeCount" class="stat-value">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">已停權</div>
+        <div id="inactiveCount" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar-actions">
+      <button class="small-btn" onclick="loadMembers()">
+        ↻ 重新整理
+      </button>
+
+      <button class="small-btn" onclick="logoutAdmin()">
+        登出
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 新增會員 -->
+  <div class="create-card">
+
+    <div class="create-title">
+      ＋ 新增會員
+    </div>
+
+    <div class="create-grid">
+
+      <div>
+        <label class="label">會員帳號</label>
+        <input
+          id="newAccount"
+          class="input"
+          placeholder="例如：habao001"
+        >
+      </div>
+
+      <div>
+        <label class="label">使用期限</label>
+        <input
+          id="newExpire"
+          class="input"
+          type="datetime-local"
+        >
+      </div>
+
+      <button
+        id="createBtn"
+        class="btn green-btn"
+        onclick="createMember()"
+      >
+        新增會員
+      </button>
+
+    </div>
+
+    <div id="createMessage"></div>
+
+  </div>
+
+  <!-- 搜尋 -->
+  <div class="search-row">
+    <input
+      id="searchInput"
+      class="input search-input"
+      placeholder="搜尋會員帳號..."
+      oninput="renderMembers()"
+    >
+  </div>
+
+  <!-- 會員列表 -->
+  <div class="table-wrap">
+
+    <div id="loading" class="loading hidden">
+      正在載入會員資料...
+    </div>
+
+    <div class="table-scroll">
+      <table id="memberTable">
+
+        <thead>
+          <tr>
+            <th>會員帳號</th>
+            <th>使用狀態</th>
+            <th>使用期限</th>
+            <th>建立時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+
+        <tbody id="memberBody"></tbody>
+
+      </table>
+    </div>
+
+    <div id="emptyState" class="empty hidden">
+      尚無會員資料
+    </div>
+
+  </div>
+
+</main>
+
+<!-- 修改期限 Modal -->
+<div id="expireModal" class="modal hidden">
+
+  <div class="modal-card">
+
+    <div class="modal-title">
+      修改使用期限
+    </div>
+
+    <div id="modalAccount" class="modal-account"></div>
+
+    <label class="label">新的使用期限</label>
+
+    <input
+      id="editExpire"
+      class="input"
+      type="datetime-local"
+    >
+
+    <div class="modal-actions">
+
+      <button
+        class="btn small-btn"
+        onclick="closeExpireModal()"
+      >
+        取消
+      </button>
+
+      <button
+        class="btn green-btn"
+        onclick="saveExpire()"
+      >
+        儲存修改
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+/*
+=================================================
+請把下面網址換成你自己的 admin-members Function URL
+=================================================
+*/
+
+const API_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-members";
+
+let adminPassword = "";
+let members = [];
+let editingMemberId = null;
+
+
+/* =========================
+   API
+========================= */
+
+async function apiRequest(payload){
+
+  const response = await fetch(API_URL,{
+    method:"POST",
+
+    headers:{
+      "Content-Type":"application/json"
+    },
+
+    body:JSON.stringify({
+      ...payload,
+      admin_password:adminPassword
+    })
+  });
+
+  const data = await response.json();
+
+  if(!response.ok || !data.success){
+
+    throw new Error(
+      data.message ||
+      data.error ||
+      "操作失敗"
+    );
+  }
+
+  return data;
+}
+
+
+/* =========================
+   管理員登入
+========================= */
+
+async function adminLogin(){
+
+  const passwordInput =
+    document.getElementById("adminPassword");
+
+  const message =
+    document.getElementById("loginMessage");
+
+  const button =
+    document.getElementById("loginBtn");
+
+  const password =
+    passwordInput.value.trim();
+
+  if(!password){
+
+    message.className="error";
+    message.textContent="請輸入管理密碼。";
+    return;
+  }
+
+  adminPassword = password;
+
+  button.disabled=true;
+  button.textContent="驗證中...";
+
+  message.textContent="";
+
+  try{
+
+    const data =
+      await apiRequest({
+        action:"list"
+      });
+
+    members=data.members || [];
+
+    document
+      .getElementById("loginPage")
+      .classList.add("hidden");
+
+    document
+      .getElementById("dashboard")
+      .classList.remove("hidden");
+
+    renderMembers();
+
+  }catch(error){
+
+    adminPassword="";
+
+    message.className="error";
+    message.textContent=error.message;
+
+  }finally{
+
+    button.disabled=false;
+    button.textContent="進入管理後台 →";
+
+  }
+
+}
+
+
+/* Enter 登入 */
+
+document
+  .getElementById("adminPassword")
+  .addEventListener("keydown",event=>{
+
+    if(event.key==="Enter"){
+      adminLogin();
+    }
+
+  });
+
+
+/* =========================
+   讀取會員
+========================= */
+
+async function loadMembers(){
+
+  const loading=
+    document.getElementById("loading");
+
+  loading.classList.remove("hidden");
+
+  try{
+
+    const data=
+      await apiRequest({
+        action:"list"
+      });
+
+    members=data.members || [];
+
+    renderMembers();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }finally{
+
+    loading.classList.add("hidden");
+
+  }
+
+}
+
+
+/* =========================
+   顯示會員
+========================= */
+
+function renderMembers(){
+
+  const tbody=
+    document.getElementById("memberBody");
+
+  const empty=
+    document.getElementById("emptyState");
+
+  const search=
+    document
+      .getElementById("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+  const filtered=
+    members.filter(member=>
+      String(member.account || "")
+        .toLowerCase()
+        .includes(search)
+    );
+
+  tbody.innerHTML="";
+
+  if(filtered.length===0){
+
+    empty.classList.remove("hidden");
+
+  }else{
+
+    empty.classList.add("hidden");
+
+  }
+
+  filtered.forEach(member=>{
+
+    const tr=document.createElement("tr");
+
+    const active=
+      member.is_active === true;
+
+    tr.innerHTML=`
+
+      <td>
+        <div class="account">
+          ${escapeHtml(member.account || "")}
+        </div>
+
+        <div class="id-text">
+          ID ${member.id}
+        </div>
+      </td>
+
+      <td>
+
+        <span class="
+          status
+          ${active
+            ? "status-active"
+            : "status-off"
+          }
+        ">
+
+          <span class="dot"></span>
+
+          ${active
+            ? "正常使用"
+            : "已停權"
+          }
+
+        </span>
+
+      </td>
+
+      <td class="expire">
+
+        ${formatDate(member.expire_at)}
+
+      </td>
+
+      <td class="expire">
+
+        ${formatDate(member.created_at)}
+
+      </td>
+
+      <td>
+
+        <div class="row-actions">
+
+          <button
+            class="action-btn"
+            onclick="openExpireModal(${member.id})"
+          >
+            修改期限
+          </button>
+
+          <button
+            class="
+              action-btn
+              ${active
+                ? "danger-btn"
+                : "enable-btn"
+              }
+            "
+            onclick="
+              changeActive(
+                ${member.id},
+                ${!active}
+              )
+            "
+          >
+
+            ${active
+              ? "停權"
+              : "恢復"
+            }
+
+          </button>
+
+        </div>
+
+      </td>
+
+    `;
+
+    tbody.appendChild(tr);
+
+  });
+
+  document
+    .getElementById("totalCount")
+    .textContent=members.length;
+
+  document
+    .getElementById("activeCount")
+    .textContent=
+      members.filter(m=>m.is_active===true).length;
+
+  document
+    .getElementById("inactiveCount")
+    .textContent=
+      members.filter(m=>m.is_active!==true).length;
+
+}
+
+
+/* =========================
+   新增會員
+========================= */
+
+async function createMember(){
+
+  const account=
+    document
+      .getElementById("newAccount")
+      .value
+      .trim();
+
+  const expireValue=
+    document
+      .getElementById("newExpire")
+      .value;
+
+  const message=
+    document.getElementById("createMessage");
+
+  const button=
+    document.getElementById("createBtn");
+
+  if(!account){
+
+    message.className="error";
+    message.textContent="請輸入會員帳號。";
+    return;
+
+  }
+
+  if(!expireValue){
+
+    message.className="error";
+    message.textContent="請設定使用期限。";
+    return;
+
+  }
+
+  button.disabled=true;
+  button.textContent="新增中...";
+
+  try{
+
+    await apiRequest({
+
+      action:"create",
+
+      account,
+
+      expire_at:
+        new Date(expireValue).toISOString()
+
+    });
+
+    message.className="success";
+    message.textContent="會員新增成功。";
+
+    document
+      .getElementById("newAccount")
+      .value="";
+
+    document
+      .getElementById("newExpire")
+      .value="";
+
+    await loadMembers();
+
+  }catch(error){
+
+    message.className="error";
+    message.textContent=error.message;
+
+  }finally{
+
+    button.disabled=false;
+    button.textContent="新增會員";
+
+  }
+
+}
+
+
+/* =========================
+   修改期限
+========================= */
+
+function openExpireModal(id){
+
+  const member=
+    members.find(
+      item=>Number(item.id)===Number(id)
+    );
+
+  if(!member)return;
+
+  editingMemberId=id;
+
+  document
+    .getElementById("modalAccount")
+    .textContent=member.account;
+
+  document
+    .getElementById("editExpire")
+    .value=
+      toDateTimeLocal(member.expire_at);
+
+  document
+    .getElementById("expireModal")
+    .classList.remove("hidden");
+
+}
+
+
+function closeExpireModal(){
+
+  editingMemberId=null;
+
+  document
+    .getElementById("expireModal")
+    .classList.add("hidden");
+
+}
+
+
+async function saveExpire(){
+
+  if(!editingMemberId)return;
+
+  const value=
+    document
+      .getElementById("editExpire")
+      .value;
+
+  if(!value){
+
+    alert("請設定使用期限。");
+    return;
+
+  }
+
+  try{
+
+    await apiRequest({
+
+      action:"update_expire",
+
+      id:editingMemberId,
+
+      expire_at:
+        new Date(value).toISOString()
+
+    });
+
+    closeExpireModal();
+
+    await loadMembers();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+}
+
+
+/* =========================
+   停權 / 恢復
+========================= */
+
+async function changeActive(
+  id,
+  newState
+){
+
+  const member=
+    members.find(
+      item=>Number(item.id)===Number(id)
+    );
+
+  if(!member)return;
+
+  const text=
+    newState
+      ? `確定恢復「${member.account}」使用權限？`
+      : `確定停權「${member.account}」？`;
+
+  if(!confirm(text))return;
+
+  try{
+
+    await apiRequest({
+
+      action:"set_active",
+
+      id,
+
+      is_active:newState
+
+    });
+
+    await loadMembers();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+}
+
+
+/* =========================
+   登出
+========================= */
+
+function logoutAdmin(){
+
+  adminPassword="";
+
+  members=[];
+
+  document
+    .getElementById("adminPassword")
+    .value="";
+
+  document
+    .getElementById("dashboard")
+    .classList.add("hidden");
+
+  document
+    .getElementById("loginPage")
+    .classList.remove("hidden");
+
+}
+
+
+/* =========================
+   日期
+========================= */
+
+function formatDate(value){
+
+  if(!value)return "—";
+
+  const date=
+    new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return value;
+  }
+
+  return date.toLocaleString(
+    "zh-TW",
+    {
+      timeZone:"Asia/Taipei",
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    }
+  );
+
+}
+
+
+function toDateTimeLocal(value){
+
+  if(!value)return "";
+
+  const date=
+    new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return "";
+  }
+
+  const parts=
+    new Intl.DateTimeFormat(
+      "sv-SE",
+      {
+        timeZone:"Asia/Taipei",
+        year:"numeric",
+        month:"2-digit",
+        day:"2-digit",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+      }
+    )
+    .format(date)
+    .replace(" ","T");
+
+  return parts;
+
+}
+
+
+/* =========================
+   HTML 安全
+========================= */
+
+function escapeHtml(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* 關閉 Modal */
+
+document
+  .getElementById("expireModal")
+  .addEventListener(
+    "click",
+    event=>{
+
+      if(
+        event.target.id ===
+        "expireModal"
+      ){
+        closeExpireModal();
+      }
+
+    }
+  );
+
+</script>
+
+</body>
+</html>
