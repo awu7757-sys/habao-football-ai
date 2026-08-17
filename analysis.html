@@ -457,7 +457,13 @@ if (!raw) {
       </div>
 
       <div class="meta">
-        ${fixture.league || ""}<br>
+        ${({
+  "Premier League": "英超",
+  "La Liga": "西甲",
+  "Bundesliga": "德甲",
+  "Serie A": "義甲",
+  "Ligue 1": "法甲"
+})[fixture.league] || fixture.league || ""}<br>
         ${timeText}<br>
         ${fixture.venue?.name || ""}${fixture.venue?.city ? "・" + fixture.venue.city : ""}
       </div>
