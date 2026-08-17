@@ -545,7 +545,149 @@ loadOnlineCount();
 /* =========================
    會員登入保護
 ========================= */
+async function verifyMember(){
 
+    const saved =
+      sessionStorage.getItem(
+        "habao_member"
+      );
+
+    if(!saved){
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    let member;
+
+    try{
+
+      member =
+        JSON.parse(saved);
+
+    }catch{
+
+      sessionStorage.clear();
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    if(!member.account){
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    try{
+
+      const response =
+        await fetch(
+          FUNCTION_URL,
+          {
+
+            method:"POST",
+
+            headers:{
+
+              "Content-Type":
+                "application/json",
+
+              "apikey":
+                PUBLISHABLE_KEY,
+
+              "Authorization":
+                "Bearer " +
+                PUBLISHABLE_KEY
+
+            },
+
+            body:
+              JSON.stringify({
+                account:
+                  member.account
+              })
+
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+      if(!data.success){
+
+        sessionStorage.clear();
+
+        window.location.href =
+          "index.html";
+
+        return;
+      }
+
+
+      document
+        .getElementById(
+          "userAccount"
+        )
+        .innerText =
+          data.member.account;
+
+
+      const expire =
+        new Date(
+          data.member.expire_at
+        );
+
+
+      document
+        .getElementById(
+          "userExpire"
+        )
+        .innerText =
+          expire.toLocaleString(
+            "zh-TW",
+            {
+  timeZone: "Asia/Taipei",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+}
+          );
+
+
+      document
+        .getElementById(
+          "loading"
+        )
+        .style.display =
+          "none";
+
+
+    }catch(error){
+
+      console.error(error);
+
+      sessionStorage.clear();
+
+      window.location.href =
+        "index.html";
+
+    }
+
+  }
 /* =========================
    賽事分析
 ========================= */
