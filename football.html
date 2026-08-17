@@ -546,40 +546,6 @@ loadOnlineCount();
    會員登入保護
 ========================= */
 
-const savedMember = sessionStorage.getItem("habao_member");
-
-if(!savedMember){
-
-  window.location.href = "index.html";
-
-}else{
-
-  try{
-
-    const member = JSON.parse(savedMember);
-
-    document.getElementById("memberAccount").textContent =
-      member.account || "會員";
-
-    if(member.expire_at){
-
-      const expire = new Date(member.expire_at);
-
-      document.getElementById("memberExpire").textContent =
-        "使用期限：" + expire.toLocaleString("zh-TW");
-
-    }
-
-  }catch(error){
-
-    sessionStorage.clear();
-    window.location.href = "index.html";
-
-  }
-
-}
-
-
 /* =========================
    賽事分析
 ========================= */
