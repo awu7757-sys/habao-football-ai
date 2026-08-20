@@ -477,10 +477,10 @@ h1{
   </div>
 
 
-  <div class="section-title">
-    <h2>⚽ 明日焦點賽事</h2>
-    <span>AI MATCH CENTER</span>
-  </div>
+ <div class="section-title">
+  <h2 id="fixtureSectionTitle">⚽ 明日焦點賽事</h2>
+  <span>AI MATCH CENTER</span>
+</div>
 <div id="matchesContainer"></div>
   <div class="ai-note line-group-card">
   <div class="line-group-title">
@@ -910,6 +910,17 @@ function switchDate(element, offset) {
   element.classList.add("active");
 
   currentFixtureOffset = offset;
+
+  const sectionTitle = document.getElementById("fixtureSectionTitle");
+
+if (sectionTitle) {
+  sectionTitle.textContent =
+    offset === 0
+      ? "⚽ 今日焦點賽事"
+      : offset === 1
+        ? "⚽ 明日焦點賽事"
+        : "⚽ 焦點賽事";
+}
 
   loadTomorrowFixtures(offset);
 }  
