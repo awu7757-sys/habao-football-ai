@@ -459,20 +459,20 @@ h1{
 
   <div class="date-bar">
 
-    <div class="date">
-      <div class="date-day">今天</div>
-      <div class="date-num">TODAY</div>
-    </div>
+  <div class="date" onclick="switchDate(this, 0)">
+  <div class="date-day">今天</div>
+  <div class="date-num">TODAY</div>
+</div>
 
-    <div class="date active">
-      <div class="date-day">明天</div>
-      <div class="date-num">NEXT DAY</div>
-    </div>
+<div class="date active" onclick="switchDate(this, 1)">
+  <div class="date-day">明天</div>
+  <div class="date-num">NEXT DAY</div>
+</div>
 
-    <div class="date">
-      <div class="date-day">後天</div>
-      <div class="date-num">+2 DAY</div>
-    </div>
+<div class="date" onclick="switchDate(this, 2)">
+  <div class="date-day">後天</div>
+  <div class="date-num">+2 DAY</div>
+</div>
 
   </div>
 
@@ -899,7 +899,21 @@ const teamNameZH = {
 function getTeamNameZH(name) {
   return teamNameZH[name] || name;
 }
-async function loadTomorrowFixtures() {
+
+let currentFixtureOffset = 1;
+
+function switchDate(element, offset) {
+  document.querySelectorAll(".date").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  element.classList.add("active");
+
+  currentFixtureOffset = offset;
+
+  loadTomorrowFixtures(offset);
+}  
+async function loadTomorrowFixtures(offset = 1) {
   const container = document.getElementById("matchesContainer");
 
   container.innerHTML = `
@@ -918,8 +932,9 @@ async function loadTomorrowFixtures() {
         "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
       },
 
-      body: JSON.stringify({})
-    });
+      body: JSON.stringify({
+  offset: offset
+})
 
     const data = await response.json();
 
@@ -1003,18 +1018,38 @@ const leagueText = getLeagueNameZH(match.league.name || "");
 
           </div>
 
-          <div class="analysis">
-            <div class="ai-status">
-              ● AI READY
-            </div>
+         <div class="analysis">
 
-            <button
-              class="analysis-btn"
-              onclick="openMatch(${match.fixtureId}, this)"
-            >
-              開始分析 →
-            </button>
-          </div>
+  ${
+    currentFixtureOffset === 2
+      ? `
+        <div class="ai-status">
+          🔒 AI ANALYSIS LOCKED
+        </div>
+
+        <button
+          class="analysis-btn"
+          disabled
+          style="opacity:0.45; cursor:not-allowed;"
+        >
+          明日開放分析
+        </button>
+      `
+      : `
+        <div class="ai-status">
+          ● AI READY
+        </div>
+
+        <button
+          class="analysis-btn"
+          onclick="openMatch(${match.fixtureId}, this)"
+        >
+          開始分析 →
+        </button>
+      `
+  }
+
+</div>
 
         </div>
       `;
@@ -1035,10 +1070,26 @@ const leagueText = getLeagueNameZH(match.league.name || "");
 function resetAnalysisButtons() {
   document.querySelectorAll(".analysis-btn").forEach(button => {
     clearInterval(button._progressTimer);
+
+    // 後天保持鎖定
+    if (currentFixtureOffset === 2) {
+      button.disabled = true;
+      button.textContent = "明日開放分析";
+      button.classList.remove("loading");
+      button.style.removeProperty("--progress");
+      button.style.opacity = "0.45";
+      button.style.cursor = "not-allowed";
+      delete button.dataset.originalText;
+      return;
+    }
+
+    // 今天、明天正常恢復
     button.disabled = false;
     button.textContent = "開始分析 →";
     button.classList.remove("loading");
     button.style.removeProperty("--progress");
+    button.style.opacity = "";
+    button.style.cursor = "";
     delete button.dataset.originalText;
   });
 }
