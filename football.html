@@ -469,7 +469,7 @@ h1{
   <div class="date-num">NEXT DAY</div>
 </div>
 
-<div class="date" onclick="switchDate(this, 2)">
+<div class="date" style="display:none;" onclick="switchDate(this, 2)">
   <div class="date-day">後天</div>
   <div class="date-num">+2 DAY</div>
 </div>
@@ -916,11 +916,18 @@ function switchDate(element, offset) {
 async function loadTomorrowFixtures(offset = 1) {
   const container = document.getElementById("matchesContainer");
 
-  container.innerHTML = `
-    <div class="ai-note">
-      正在取得明日真實賽事...
-    </div>
-  `;
+  const loadingText =
+  offset === 0
+    ? "正在取得今日真實賽事..."
+    : offset === 1
+      ? "正在取得明日真實賽事..."
+      : "正在取得賽事資料...";
+
+container.innerHTML = `
+  <div class="ai-note">
+    ${loadingText}
+  </div>
+`;
 
   try {
     const response = await fetch(FIXTURES_URL, {
