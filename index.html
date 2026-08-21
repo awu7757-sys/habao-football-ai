@@ -557,12 +557,229 @@
   box-shadow:0 0 12px rgba(53,237,138,.7);
   flex:0 0 8px;
 }
+
+/* ===== 哈寶足球 AI 啟動畫面 ===== */
+.splash-screen{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:
+    radial-gradient(circle at center, rgba(34,197,94,.14), transparent 42%),
+    linear-gradient(180deg, #06131a 0%, #071624 100%);
+
+  cursor:pointer;
+  overflow:hidden;
+
+  opacity:1;
+  visibility:visible;
+  transition:opacity .5s ease, visibility .5s ease;
+}
+
+.splash-screen::before{
+  content:"";
+  position:absolute;
+  width:520px;
+  height:520px;
+  border:1px solid rgba(53,237,138,.14);
+  border-radius:50%;
+  animation:splashRing 3.2s ease-in-out infinite;
+}
+
+.splash-content{
+  position:relative;
+  z-index:2;
+  text-align:center;
+  padding:24px;
+
+  animation:splashContentIn 1s ease both;
+}
+
+.splash-logo{
+  width:88px;
+  height:88px;
+  margin:0 auto 24px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:24px;
+  font-size:42px;
+
+  background:linear-gradient(145deg, rgba(34,197,94,.28), rgba(16,185,129,.08));
+  border:1px solid rgba(53,237,138,.45);
+
+  box-shadow:
+    0 0 40px rgba(53,237,138,.22),
+    inset 0 0 25px rgba(53,237,138,.08);
+
+  animation:splashLogo 2.2s ease-in-out infinite;
+}
+
+.splash-en{
+  margin-bottom:12px;
+
+  color:#35ed8a;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:5px;
+
+  opacity:0;
+  animation:splashFadeUp .7s ease .65s forwards;
+}
+
+.splash-title{
+  color:#ffffff;
+  font-size:34px;
+  font-weight:900;
+  letter-spacing:2px;
+
+  opacity:0;
+  animation:splashFadeUp .7s ease 1.05s forwards;
+}
+
+.splash-subtitle{
+  margin-top:12px;
+
+  color:#8290a0;
+  font-size:14px;
+  letter-spacing:1px;
+
+  opacity:0;
+  animation:splashFadeUp .7s ease 1.45s forwards;
+}
+
+.splash-skip{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:38px;
+
+  text-align:center;
+  color:rgba(255,255,255,.38);
+  font-size:12px;
+  letter-spacing:1px;
+
+  animation:splashSkip 1.4s ease-in-out infinite;
+}
+
+.splash-screen.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+@keyframes splashContentIn{
+  from{
+    opacity:0;
+    transform:scale(.92);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+@keyframes splashFadeUp{
+  from{
+    opacity:0;
+    transform:translateY(14px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes splashLogo{
+  0%,100%{
+    transform:scale(1);
+    box-shadow:0 0 35px rgba(53,237,138,.18);
+  }
+  50%{
+    transform:scale(1.06);
+    box-shadow:0 0 55px rgba(53,237,138,.38);
+  }
+}
+
+@keyframes splashRing{
+  0%,100%{
+    transform:scale(.92);
+    opacity:.35;
+  }
+  50%{
+    transform:scale(1.08);
+    opacity:.7;
+  }
+}
+
+@keyframes splashSkip{
+  0%,100%{
+    opacity:.35;
+  }
+  50%{
+    opacity:.7;
+  }
+}
+
+@media(max-width:600px){
+  .splash-logo{
+    width:78px;
+    height:78px;
+    font-size:36px;
+    border-radius:22px;
+  }
+
+  .splash-en{
+    font-size:12px;
+    letter-spacing:4px;
+  }
+
+  .splash-title{
+    font-size:28px;
+  }
+
+  .splash-subtitle{
+    font-size:13px;
+  }
+}
     
   </style>
 </head>
 
 <body>
 
+<!-- ===== 哈寶足球 AI 啟動畫面 ===== -->
+<div id="splashScreen" class="splash-screen">
+  <div class="splash-content">
+
+    <div class="splash-logo">⚽</div>
+
+    <div class="splash-en">
+      HABAO FOOTBALL AI
+    </div>
+
+    <div class="splash-title">
+      哈寶足球 AI
+    </div>
+
+    <div class="splash-subtitle">
+      AI 智能賽事數據分析平台
+    </div>
+
+  </div>
+
+  <div class="splash-skip">
+    點擊畫面跳過
+  </div>
+</div>
+<!-- ===== 啟動畫面結束 ===== -->
+  
   <div class="field"></div>
 
   <main class="app">
@@ -954,5 +1171,35 @@ function closeBenefits(event) {
 }
     
 </script>
+<script>
+  (() => {
+    const splash = document.getElementById("splashScreen");
+
+    if (!splash) return;
+
+    let closed = false;
+
+    function closeSplash() {
+      if (closed) return;
+      closed = true;
+
+      splash.classList.add("hide");
+
+      setTimeout(() => {
+        splash.remove();
+      }, 550);
+    }
+
+    // 4 秒後自動進入登入頁
+    const splashTimer = setTimeout(closeSplash, 4000);
+
+    // 點擊 / 手機觸碰畫面即可跳過
+    splash.addEventListener("click", () => {
+      clearTimeout(splashTimer);
+      closeSplash();
+    });
+  })();
+</script>
+  
 </body>
 </html>
