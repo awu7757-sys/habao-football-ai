@@ -151,6 +151,7 @@ h1{
 .bet-action{
   display:flex;
   justify-content:center;
+  gap:16px;
   margin:6px 0 28px;
 }
 
@@ -182,6 +183,37 @@ h1{
 }
 
 .bet-btn:active{
+  transform:scale(.98);
+}
+.expert-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  max-width:420px;
+  padding:16px 24px;
+  border-radius:14px;
+
+  background:#0b1f2a;
+  border:1.5px solid #f4b942;
+  color:#f4c95d;
+  text-decoration:none;
+
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:1px;
+
+  box-shadow:0 8px 24px rgba(244,185,66,.18);
+  transition:.2s ease;
+}
+
+.expert-btn:hover{
+  transform:translateY(-2px);
+  background:#122936;
+  box-shadow:0 10px 28px rgba(244,185,66,.30);
+}
+
+.expert-btn:active{
   transform:scale(.98);
 }
 .pick-card{
@@ -323,6 +355,16 @@ h1{
 
   h1{
     font-size:26px;
+  }
+  .bet-action{
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    max-width:none;
+    width:100%;
   }
 }
 
@@ -533,6 +575,13 @@ ${confidenceFire(btts.confidence, btts.pick)}
     class="bet-btn"
   >
     ⚡ 立即投注
+  </a>
+
+  <a
+    href="#"
+    class="expert-btn"
+  >
+    👤 專人分析
   </a>
 </div>
       <div class="section">
