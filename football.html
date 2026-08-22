@@ -1141,33 +1141,48 @@ const leagueText = getLeagueNameZH(match.league.name || "");
          <div class="analysis">
 
   ${
-    currentFixtureOffset === 2
-      ? `
-        <div class="ai-status">
-          🔒 AI ANALYSIS LOCKED
-        </div>
+  currentFixtureOffset === 0 &&
+  ["FT", "AET", "PEN", "AWD", "WO"].includes(match.status)
+    ? `
+      <div class="ai-status" style="color:#8b98a5;">
+        ● MATCH FINISHED
+      </div>
 
-        <button
-          class="analysis-btn"
-          disabled
-          style="opacity:0.45; cursor:not-allowed;"
-        >
-          明日開放分析
-        </button>
-      `
-      : `
-        <div class="ai-status">
-          ● AI READY
-        </div>
+      <button
+        class="analysis-btn"
+        disabled
+        style="opacity:0.55; cursor:not-allowed; color:#aab4bd; background:#25313b;"
+      >
+        ✓ 已完賽
+      </button>
+    `
+    : currentFixtureOffset === 2
+    ? `
+      <div class="ai-status">
+        🔒 AI ANALYSIS LOCKED
+      </div>
 
-        <button
-          class="analysis-btn"
-          onclick="openMatch(${match.fixtureId}, this)"
-        >
-          開始分析 →
-        </button>
-      `
-  }
+      <button
+        class="analysis-btn"
+        disabled
+        style="opacity:0.45; cursor:not-allowed;"
+      >
+        明日開放分析
+      </button>
+    `
+    : `
+      <div class="ai-status">
+        ● AI READY
+      </div>
+
+      <button
+        class="analysis-btn"
+        onclick="openMatch(${match.fixtureId}, this)"
+      >
+        開始分析 →
+      </button>
+    `
+}
 
 </div>
 
