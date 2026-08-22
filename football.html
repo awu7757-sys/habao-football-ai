@@ -458,6 +458,128 @@ h1{
     font-size:14px;
   }
 }  
+/* ===== 已分析賽事專屬卡片 ===== */
+
+.history-match-card{
+  margin:16px 0;
+  padding:18px 16px;
+  border-radius:18px;
+
+  border:1px solid rgba(153,120,255,.45);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(90,72,180,.18),
+      rgba(40,52,120,.14)
+    );
+
+  box-shadow:
+    0 10px 28px rgba(86,67,180,.10),
+    inset 0 0 0 1px rgba(255,255,255,.02);
+}
+
+.history-match-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.history-league{
+  font-size:12px;
+  font-weight:800;
+  color:#b7a6ff;
+  letter-spacing:.5px;
+}
+
+.history-time{
+  font-size:12px;
+  font-weight:700;
+  color:#8f9bb3;
+}
+
+.history-teams{
+  display:grid;
+  grid-template-columns:1fr 42px 1fr;
+  align-items:center;
+  gap:12px;
+  margin-bottom:22px;
+}
+
+.history-team{
+  text-align:center;
+  font-size:15px;
+  font-weight:800;
+  color:#ffffff;
+}
+
+.history-team img{
+  width:52px;
+  height:52px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 8px;
+}
+
+.history-vs{
+  text-align:center;
+  font-size:11px;
+  font-weight:900;
+  color:#71809c;
+}
+
+.history-view-btn{
+  width:100%;
+  border:1px solid rgba(167,139,250,.55);
+  border-radius:12px;
+  padding:13px 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(124,91,240,.95),
+      rgba(92,72,190,.95)
+    );
+
+  color:#ffffff;
+  font-size:14px;
+  font-weight:900;
+
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.history-view-btn:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.08);
+}
+
+.history-view-btn:active{
+  transform:scale(.98);
+}
+
+@media(max-width:600px){
+
+  .history-match-card{
+    padding:17px 14px;
+  }
+
+  .history-teams{
+    grid-template-columns:1fr 34px 1fr;
+    gap:8px;
+  }
+
+  .history-team img{
+    width:48px;
+    height:48px;
+  }
+
+  .history-team{
+    font-size:14px;
+  }
+}  
 </style>
 </head>
 
@@ -1372,19 +1494,109 @@ const response = await fetch(
       throw new Error(data.error || "讀取失敗");
     }
 
-    console.log("已分析賽事：", data.matches);
-
-    alert(
-      data.matches.length > 0
-        ? "成功讀取 " + data.matches.length + " 場已分析賽事"
-        : "目前還沒有已分析賽事"
-    );
+  renderAnalysisHistory(data.matches || []);
 
   } catch (error) {
     console.error(error);
     alert("已分析賽事讀取失敗：" + error.message);
   }
 }
+function renderAnalysisHistory(matches) {
+  const container = document.getElementById("matchesContainer");
+  const title = document.getElementById("fixtureSectionTitle");
+
+  if (title) {
+    title.textContent = "📋 我的分析紀錄";
+  }
+
+  if (!matches.length) {
+    container.innerHTML = `
+      <div class="ai-note">
+        目前還沒有已分析賽事
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = matches.map(match => {
+    const gameTime = match.fixture_time
+      ? new Date(match.fixture_time).toLocaleString("zh-TW", {
+          timeZone: "Asia/Taipei",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        })
+      : "--";
+
+    return `
+      <div class="history-match-card">
+
+        <div class="history-match-top">
+          <span class="history-league">
+            ${match.league_name || "足球賽事"}
+          </span>
+
+          <span class="history-time">
+            ${gameTime}
+          </span>
+        </div>
+
+        <div class="history-teams">
+
+          <div class="history-team">
+            <img
+              src="${match.home_logo || ""}"
+              alt="${match.home_team || ""}"
+            >
+            <div>${match.home_team || "--"}</div>
+          </div>
+
+          <div class="history-vs">VS</div>
+
+          <div class="history-team">
+            <img
+              src="${match.away_logo || ""}"
+              alt="${match.away_team || ""}"
+            >
+            <div>${match.away_team || "--"}</div>
+          </div>
+
+        </div>
+
+        <button
+          class="history-view-btn"
+          onclick="viewAnalysisHistory(${match.id})"
+        >
+          查看分析 →
+        </button>
+
+      </div>
+    `;
+  }).join("");
+
+  window.habaoAnalysisHistory = Object.fromEntries(
+    matches.map(match => [String(match.id), match])
+  );
+}
+
+function viewAnalysisHistory(historyId) {
+  const history =
+    window.habaoAnalysisHistory?.[String(historyId)];
+
+  if (!history || !history.result_data) {
+    alert("找不到這場分析結果");
+    return;
+  }
+
+  sessionStorage.setItem(
+    "matchAnalysis",
+    JSON.stringify(history.result_data)
+  );
+
+  window.location.href = "analysis.html";
+}  
 </script>
 </body>
 </html>
