@@ -1307,11 +1307,18 @@ async function openAnalysisHistory() {
       return;
     }
 
-    const response = await fetch(
-      ANALYSIS_HISTORY_URL +
-      "?account=" +
-      encodeURIComponent(member.account)
-    );
+const response = await fetch(
+  ANALYSIS_HISTORY_URL +
+  "?account=" +
+  encodeURIComponent(member.account),
+  {
+    method: "GET",
+    headers: {
+      "apikey": FIXTURES_PUBLISHABLE_KEY,
+      "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+    }
+  }
+);
 
     if (!response.ok) {
       throw new Error("HTTP " + response.status);
