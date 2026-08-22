@@ -1291,6 +1291,51 @@ window.addEventListener("pageshow", () => {
 // 頁面開啟後自動取得賽事
 loadTomorrowFixtures();
 </script>
+<script>
+const ANALYSIS_HISTORY_URL =
+  "https://oqtbsbohcfegngykwxy.supabase.co/functions/v1/member-analysis-history";
 
+async function openAnalysisHistory() {
+  try {
+    const member = JSON.parse(
+      sessionStorage.getItem("habao_member") || "null"
+    );
+
+    if (!member || !member.account) {
+      alert("找不到會員登入資料，請重新登入");
+      window.location.href = "index.html";
+      return;
+    }
+
+    const response = await fetch(
+      ANALYSIS_HISTORY_URL +
+      "?account=" +
+      encodeURIComponent(member.account)
+    );
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "讀取失敗");
+    }
+
+    console.log("已分析賽事：", data.matches);
+
+    alert(
+      data.matches.length > 0
+        ? "成功讀取 " + data.matches.length + " 場已分析賽事"
+        : "目前還沒有已分析賽事"
+    );
+
+  } catch (error) {
+    console.error(error);
+    alert("已分析賽事讀取失敗：" + error.message);
+  }
+}
+</script>
 </body>
 </html>
