@@ -744,7 +744,9 @@ async function openMatch(fixtureId, button){
     alert("找不到這場比賽的 fixtureId");
     return;
   }
-
+  const match =
+  window.habaoFixtureMap?.[String(fixtureId)] || null;
+  
 if (button) {
     button.disabled = true;
     button.dataset.originalText = button.textContent;
@@ -841,6 +843,42 @@ if (data.error === "member_inactive") {
   "matchAnalysis",
   JSON.stringify(data)
 );
+
+try {
+  const member = JSON.parse(
+    sessionStorage.getItem("habao_member") || "null"
+  );
+
+  if (member?.account && match) {
+    await fetch(
+      "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": FIXTURES_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+        },
+        body: JSON.stringify({
+          account: member.account,
+          fixture_id: fixtureId,
+          analysis_id: data.analysis_id || fixtureId,
+          fixture_time: match.time || null,
+          home_team: match.home?.name || "",
+          away_team: match.away?.name || "",
+          home_logo: match.home?.logo || "",
+          away_logo: match.away?.logo || "",
+          league_name: match.league?.name || "",
+          league_logo: match.league?.logo || "",
+          match_status: match.status || "",
+          result_data: data
+        })
+      }
+    );
+  }
+} catch (historyError) {
+  console.error("分析紀錄寫入失敗：", historyError);
+}    
 
 if (button) {
   clearInterval(button._progressTimer);
@@ -1137,6 +1175,10 @@ const fixtures = (data.fixtures || []).filter(match =>
       return;
     }
 
+    window.habaoFixtureMap = Object.fromEntries(
+  fixtures.map(match => [String(match.fixtureId), match])
+);
+    
     container.innerHTML = fixtures.map(match => {
 
       const gameTime = new Date(match.time);
