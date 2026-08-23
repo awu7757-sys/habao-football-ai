@@ -591,6 +591,10 @@ td{
         <div class="stat-label">已停權</div>
         <div id="inactiveCount" class="stat-value">0</div>
       </div>
+      <div class="stat">
+  <div class="stat-label">今日 AI 分析次數</div>
+  <div id="todayAnalysisCount" class="stat-value">0</div>
+</div> 
     </div>
 
     <div class="toolbar-actions">
@@ -819,7 +823,10 @@ async function adminLogin(){
       });
 
     members=data.members || [];
-
+    document
+  .getElementById("todayAnalysisCount")
+  .textContent = data.today_analysis_count ?? 0;
+    
     document
       .getElementById("loginPage")
       .classList.add("hidden");
@@ -879,6 +886,9 @@ async function loadMembers(){
       });
 
     members=data.members || [];
+    document
+  .getElementById("todayAnalysisCount")
+  .textContent = data.today_analysis_count ?? 0;
 
     renderMembers();
 
