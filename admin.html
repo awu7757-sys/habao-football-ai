@@ -727,6 +727,14 @@ td{
       placeholder="例如：哈寶足球 AI 系統已更新，祝大家使用愉快！"
       style="width:100%;resize:vertical;"
     ></textarea>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+  <input
+    type="checkbox"
+    id="normalAnnouncementEnabled"
+  >
+  啟用一般公告
+</label>
+    
   </div>
 
   <div style="margin-top:16px;">
@@ -739,6 +747,14 @@ td{
       placeholder="例如：系統維護中，部分功能暫時無法使用。"
       style="width:100%;resize:vertical;"
     ></textarea>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+  <input
+    type="checkbox"
+    id="maintenanceAnnouncementEnabled"
+  >
+  啟用緊急維護公告
+</label>
+    
   </div>
 
   <div style="margin-top:16px;">
@@ -970,6 +986,20 @@ const BENEFITS_ADMIN_URL =
       maintenanceEl.value = settings.maintenance_announcement || "";
     }
 
+    const normalEnabledEl =
+  document.getElementById("normalAnnouncementEnabled");
+
+const maintenanceEnabledEl =
+  document.getElementById("maintenanceAnnouncementEnabled");
+
+if (normalEnabledEl) {
+  normalEnabledEl.checked = settings.normal_enabled === true;
+}
+
+if (maintenanceEnabledEl) {
+  maintenanceEnabledEl.checked = settings.maintenance_enabled === true;
+}
+
   } catch (error) {
     console.error("LOAD ANNOUNCEMENT SETTINGS ERROR:", error);
   }
@@ -978,6 +1008,12 @@ const BENEFITS_ADMIN_URL =
 async function saveAnnouncementSettings() {
   const normalEl = document.getElementById("normalAnnouncement");
   const maintenanceEl = document.getElementById("maintenanceAnnouncement");
+
+  const normalEnabledEl =
+  document.getElementById("normalAnnouncementEnabled");
+
+const maintenanceEnabledEl =
+  document.getElementById("maintenanceAnnouncementEnabled");
 
   const normalAnnouncement = normalEl?.value.trim() || "";
   const maintenanceAnnouncement = maintenanceEl?.value.trim() || "";
@@ -993,8 +1029,8 @@ async function saveAnnouncementSettings() {
         admin_password: adminPassword,
         normal_announcement: normalAnnouncement,
         maintenance_announcement: maintenanceAnnouncement,
-        normal_enabled: false,
-        maintenance_enabled: false
+        normal_enabled: normalEnabledEl?.checked === true,
+        maintenance_enabled: maintenanceEnabledEl?.checked === true
       })
     });
 
