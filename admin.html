@@ -597,7 +597,7 @@ td{
 </div> 
       <div class="stat">
   <div class="stat-label">今日 API 使用量</div>
-  <div id="todayApiCount" class="stat-value">0</div>
+  <div id="todayApiCount" class="stat-value">0 / 100</div>
 </div>
     </div>
 
@@ -831,9 +831,23 @@ async function adminLogin(){
   .getElementById("todayAnalysisCount")
   .textContent = data.today_analysis_count ?? 0;
     
-  document
+  const apiUsed = data.today_api_count ?? 0;
+const apiLimit = 100;
+
+document
   .getElementById("todayApiCount")
-  .textContent = data.today_api_count ?? 0;
+  .textContent = `${apiUsed} / ${apiLimit}`;
+
+  const apiCountEl = document.getElementById("todayApiCount");
+const apiPercent = (apiUsed / apiLimit) * 100;
+
+if (apiPercent >= 90) {
+  apiCountEl.style.color = "#ff4d6d";
+} else if (apiPercent >= 70) {
+  apiCountEl.style.color = "#f5b942";
+} else {
+  apiCountEl.style.color = "#32e6a1";
+}  
     
     document
       .getElementById("loginPage")
