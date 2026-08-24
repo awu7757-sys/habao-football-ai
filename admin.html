@@ -679,6 +679,7 @@ td{
             <th>會員帳號</th>
             <th>使用狀態</th>
             <th>使用期限</th>
+            <th>剩餘 AI 次數</th>
             <th>建立時間</th>
             <th>操作</th>
           </tr>
@@ -737,6 +738,49 @@ td{
   </div>
 </div>
 
+<!-- 修改 AI 次數 Modal -->
+<div id="creditsModal" class="modal hidden">
+
+  <div class="modal-card">
+
+    <div class="modal-title">
+      修改 AI 分析次數
+    </div>
+
+    <div id="creditsModalAccount" class="modal-account"></div>
+
+    <label class="label">剩餘分析次數</label>
+
+    <input
+      id="editCredits"
+      class="input"
+      type="number"
+      min="0"
+      step="1"
+      placeholder="例如：3"
+    >
+
+    <div class="modal-actions">
+
+      <button
+        class="btn small-btn"
+        onclick="closeCreditsModal()"
+      >
+        取消
+      </button>
+
+      <button
+        class="btn green-btn"
+        onclick="saveCredits()"
+      >
+        儲存修改
+      </button>
+
+    </div>
+
+  </div>
+</div>
+  
 <script>
 
 /*
@@ -1015,6 +1059,10 @@ function renderMembers(){
 
       </td>
 
+      <td>
+  <strong>${member.analysis_credits ?? 0} 次</strong>
+</td>
+
       <td class="expire">
 
         ${formatDate(member.created_at)}
@@ -1031,6 +1079,13 @@ function renderMembers(){
           >
             修改期限
           </button>
+          
+          <button
+  class="action-btn"
+  onclick="openCreditsModal(${member.id})"
+>
+  修改次數
+</button>
 
           <button
             class="
@@ -1248,7 +1303,76 @@ async function saveExpire(){
 
 }
 
+function openCreditsModal(id){
 
+  const member =
+    members.find(
+      item => Number(item.id) === Number(id)
+    );
+
+  if(!member) return;
+
+  editingMemberId = id;
+
+  document
+    .getElementById("creditsModalAccount")
+    .textContent = member.account;
+
+  document
+    .getElementById("editCredits")
+    .value = member.analysis_credits ?? 0;
+
+  document
+    .getElementById("creditsModal")
+    .classList.remove("hidden");
+}
+
+
+function closeCreditsModal(){
+
+  editingMemberId = null;
+
+  document
+    .getElementById("creditsModal")
+    .classList.add("hidden");
+}
+
+
+async function saveCredits(){
+
+  if(!editingMemberId) return;
+
+  const value = Number(
+    document
+      .getElementById("editCredits")
+      .value
+  );
+
+  if(!Number.isInteger(value) || value < 0){
+    alert("請輸入 0 以上的整數。");
+    return;
+  }
+
+  try{
+
+    await apiRequest({
+      action: "update_credits",
+      id: editingMemberId,
+      analysis_credits: value
+    });
+
+    closeCreditsModal();
+
+    await loadMembers();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+}
+  
 /* =========================
    停權 / 恢復
 ========================= */
