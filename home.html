@@ -1035,6 +1035,7 @@ loadCurrentUserCount();
 
 
   verifyMember();
+loadPublicAnnouncements();
 
 function toggleAccountMenu(event) {
   event.stopPropagation();
@@ -1058,8 +1059,148 @@ document.addEventListener("click", function(event) {
     menu.classList.remove("show");
   }
 });
+
+const ANNOUNCEMENT_API_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-announcements";
+async function loadPublicAnnouncements() {
+  try {
+    const response = await fetch(ANNOUNCEMENT_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !data.settings) {
+      return;
+    }
+
+    const settings = data.settings;
+
+    if (settings.maintenance_enabled && settings.maintenance_announcement) {
+      showAnnouncementModal(
+        "緊急維護公告",
+        settings.maintenance_announcement
+      );
+      return;
+    }
+
+    if (settings.normal_enabled && settings.normal_announcement) {
+      showAnnouncementModal(
+        "系統公告",
+        settings.normal_announcement
+      );
+    }
+
+  } catch (error) {
+    console.error("LOAD PUBLIC ANNOUNCEMENTS ERROR:", error);
+  }
+}
+function showAnnouncementModal(title, text) {
+  const modal = document.getElementById("announcementModal");
+  const titleEl = document.getElementById("announcementModalTitle");
+  const textEl = document.getElementById("announcementModalText");
+
+  if (!modal || !titleEl || !textEl) return;
+
+  titleEl.textContent = title;
+  textEl.textContent = text;
+  modal.style.display = "flex";
+}
+
+function closeAnnouncementModal() {
+  const modal = document.getElementById("announcementModal");
+
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
   
 </script>
+<!-- 公告彈窗 -->
+<div id="announcementModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.72);
+  z-index:99999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+">
+  <div style="
+    width:100%;
+    max-width:460px;
+    background:#0b1c2a;
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    color:white;
+    position:relative;
+  ">
+
+    <button
+      type="button"
+      onclick="closeAnnouncementModal()"
+      style="
+        position:absolute;
+        top:12px;
+        right:14px;
+        border:0;
+        background:transparent;
+        color:white;
+        font-size:26px;
+        cursor:pointer;
+      "
+    >×</button>
+
+    <div
+      id="announcementModalTitle"
+      style="
+        font-size:22px;
+        font-weight:800;
+        margin-bottom:14px;
+        padding-right:30px;
+      "
+    >
+      系統公告
+    </div>
+
+    <div
+      id="announcementModalText"
+      style="
+        font-size:16px;
+        line-height:1.8;
+        white-space:pre-wrap;
+        word-break:break-word;
+      "
+    ></div>
+
+    <button
+      type="button"
+      onclick="closeAnnouncementModal()"
+      style="
+        width:100%;
+        margin-top:22px;
+        padding:12px;
+        border:0;
+        border-radius:10px;
+        background:#31e6a1;
+        color:#04131d;
+        font-size:16px;
+        font-weight:800;
+        cursor:pointer;
+      "
+    >
+      我知道了
+    </button>
+
+  </div>
+</div>
   
 </body>
 </html>
