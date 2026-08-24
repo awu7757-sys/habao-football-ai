@@ -894,6 +894,82 @@ function closeBenefitModal() {
   modal.classList.add("hidden");
 }
 
+const BENEFITS_ADMIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
+
+async function saveBenefit() {
+  const titleEl = document.getElementById("benefitTitle");
+  const imageEl = document.getElementById("benefitImage");
+  const linkEl = document.getElementById("benefitLink");
+  const sortEl = document.getElementById("benefitSortOrder");
+
+  const title = titleEl?.value.trim() || "";
+  const file = imageEl?.files?.[0];
+  const linkUrl = linkEl?.value.trim() || "";
+  const sortOrder = Number(sortEl?.value || 0);
+
+  if (!title) {
+    alert("請輸入活動名稱");
+    return;
+  }
+
+  if (!file) {
+    alert("請選擇活動圖片");
+    return;
+  }
+
+  try {
+    const imageBase64 = await fileToBase64(file);
+
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "create",
+        admin_password: adminPassword,
+        title: title,
+        image_base64: imageBase64,
+        image_type: file.type,
+        image_name: file.name,
+        link_url: linkUrl,
+        sort_order: sortOrder
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "新增福利失敗");
+    }
+
+    alert("福利活動新增成功");
+
+    titleEl.value = "";
+    imageEl.value = "";
+    linkEl.value = "";
+    sortEl.value = "0";
+
+    closeBenefitModal();
+
+  } catch (error) {
+    console.error("SAVE BENEFIT ERROR:", error);
+    alert(error.message || "新增福利失敗");
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("圖片讀取失敗"));
+
+    reader.readAsDataURL(file);
+  });
+}
+  
 /* =========================
    API
 ========================= */
