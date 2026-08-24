@@ -700,9 +700,13 @@ td{
       <h2>本站福利管理</h2>
 
       <div class="benefits-admin-actions">
-        <button type="button" class="btn green-btn">
-          ＋ 新增福利活動
-        </button>
+        <button
+  type="button"
+  class="btn green-btn"
+  onclick="openBenefitModal()"
+>
+  ＋ 新增福利活動
+</button>
       </div>
 
       <div id="benefitsAdminList">
@@ -712,6 +716,68 @@ td{
 
 </main>
 
+<!-- 新增福利活動 Modal -->
+<div id="benefitModal" class="modal hidden">
+  <div class="modal-card">
+
+    <div class="modal-title">
+      新增福利活動
+    </div>
+
+    <label class="label">活動名稱</label>
+    <input
+      id="benefitTitle"
+      class="input"
+      type="text"
+      placeholder="例如：新人加碼500紅包"
+    >
+
+    <label class="label">活動圖片</label>
+    <input
+      id="benefitImage"
+      class="input"
+      type="file"
+      accept="image/*"
+    >
+
+    <label class="label">跳轉連結（選填）</label>
+    <input
+      id="benefitLink"
+      class="input"
+      type="url"
+      placeholder="https://..."
+    >
+
+    <label class="label">排序</label>
+    <input
+      id="benefitSortOrder"
+      class="input"
+      type="number"
+      value="0"
+      min="0"
+    >
+
+    <div class="modal-actions">
+      <button
+        class="btn small-btn"
+        type="button"
+        onclick="closeBenefitModal()"
+      >
+        取消
+      </button>
+
+      <button
+        class="btn green-btn"
+        type="button"
+        onclick="saveBenefit()"
+      >
+        新增活動
+      </button>
+    </div>
+
+  </div>
+</div>
+  
 <!-- 修改期限 Modal -->
 <div id="expireModal" class="modal hidden">
 
@@ -810,6 +876,23 @@ let adminPassword = "";
 let members = [];
 let editingMemberId = null;
 
+// ==============================
+// 福利管理 Modal
+// ==============================
+
+function openBenefitModal() {
+  const modal = document.getElementById("benefitModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+}
+
+function closeBenefitModal() {
+  const modal = document.getElementById("benefitModal");
+  if (!modal) return;
+
+  modal.classList.add("hidden");
+}
 
 /* =========================
    API
