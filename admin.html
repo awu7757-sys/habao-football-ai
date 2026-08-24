@@ -958,7 +958,62 @@ async function saveBenefit() {
     alert(error.message || "新增福利失敗");
   }
 }
+  
+async function loadBenefitsAdmin() {
+  const listEl = document.getElementById("benefitsAdminList");
+  if (!listEl) return;
 
+  listEl.innerHTML = "載入福利資料中...";
+
+  try {
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "list",
+        admin_password: adminPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "讀取福利資料失敗");
+    }
+
+    const benefits = data.benefits || [];
+
+    if (benefits.length === 0) {
+      listEl.innerHTML = "尚無福利資料";
+      return;
+    }
+
+    listEl.innerHTML = benefits.map(item => `
+      <div class="benefit-admin-item">
+        <img
+          src="${item.image_url}"
+          alt="${item.title || "福利活動"}"
+          style="width:120px;height:80px;object-fit:cover;border-radius:10px;"
+        >
+
+        <div>
+          <strong>${item.title || "未命名活動"}</strong>
+          <div>排序：${item.sort_order ?? 0}</div>
+          <div>
+            狀態：${item.is_active ? "啟用中" : "已停用"}
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (error) {
+    console.error("LOAD ADMIN BENEFITS ERROR:", error);
+    listEl.innerHTML = "福利資料載入失敗";
+  }
+}
+  
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1075,6 +1130,7 @@ if (apiPercent >= 90) {
       .classList.remove("hidden");
 
     renderMembers();
+loadBenefitsAdmin();
 
   }catch(error){
 
