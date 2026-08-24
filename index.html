@@ -920,7 +920,111 @@
     const STATS_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+    // ===== 本站福利 Supabase 資料 =====
+const BENEFITS_URL =
+  "https://oqtbsbohcfegghnykwxy.supabase.co/rest/v1/benefits" +
+  "?is_active=eq.true" +
+  "&image_url=not.is.null" +
+  "&select=id,title,image_url,link_url,sort_order" +
+  "&order=sort_order.asc";
 
+  let benefitsLoaded = false;
+
+async function loadBenefitsFromSupabase() {
+  if (benefitsLoaded) return;
+
+  try {
+    const response = await fetch(BENEFITS_URL, {
+      method: "GET",
+      headers: {
+        "apikey": PUBLISHABLE_KEY,
+        "Authorization": `Bearer ${PUBLISHABLE_KEY}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("福利資料讀取失敗");
+    }
+
+    const benefits = await response.json();
+
+    const slider = document.querySelector(".benefits-slider");
+    const dotsBox = document.querySelector(".benefits-dots");
+    const prevBtn = document.querySelector(".benefits-prev");
+    const nextBtn = document.querySelector(".benefits-next");
+
+    if (!slider || !dotsBox || !prevBtn || !nextBtn) return;
+
+    if (!Array.isArray(benefits) || benefits.length === 0) {
+      return;
+    }
+
+    // 先移除原本寫死的活動圖片
+    slider
+      .querySelectorAll(".benefits-slide")
+      .forEach(slide => slide.remove());
+
+    dotsBox.innerHTML = "";
+
+    benefits.forEach((item, index) => {
+      const slide = document.createElement("div");
+
+      slide.className =
+        index === 0
+          ? "benefits-slide active"
+          : "benefits-slide";
+
+      const img = document.createElement("img");
+      img.src = item.image_url;
+      img.alt = item.title || "本站福利";
+      img.className = "benefits-image";
+
+      if (item.link_url) {
+        const link = document.createElement("a");
+        link.href = item.link_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.appendChild(img);
+        slide.appendChild(link);
+      } else {
+        slide.appendChild(img);
+      }
+
+      slider.insertBefore(slide, prevBtn);
+
+      const dot = document.createElement("span");
+
+      dot.className =
+        index === 0
+          ? "benefits-dot active"
+          : "benefits-dot";
+
+      dot.addEventListener("click", () => {
+        showBenefit(index);
+      });
+
+      dotsBox.appendChild(dot);
+    });
+
+    const hasMultipleBenefits = benefits.length > 1;
+
+    prevBtn.style.display =
+      hasMultipleBenefits ? "" : "none";
+
+    nextBtn.style.display =
+      hasMultipleBenefits ? "" : "none";
+
+    dotsBox.style.display =
+      hasMultipleBenefits ? "" : "none";
+
+    currentBenefit = 0;
+    benefitsLoaded = true;
+
+  } catch (error) {
+    console.error("LOAD BENEFITS ERROR:", error);
+  }
+}
+    
    async function loadOnlineCount() {
   const countEl = document.getElementById("onlineCount");
 
@@ -1152,10 +1256,13 @@ document.addEventListener("touchend", function(event) {
   }
 }, { passive: true });
     
-function openBenefits() {
+async function openBenefits() {
   const modal = document.getElementById("benefitsModal");
+
   modal.classList.add("show");
   document.body.style.overflow = "hidden";
+
+  await loadBenefitsFromSupabase();
 
   showBenefit(currentBenefit);
 }
