@@ -713,7 +713,46 @@ td{
         尚無福利資料
       </div>
     </section>
+<!-- 公告管理 -->
+<section class="benefits-admin-section">
+  <h2>公告管理</h2>
 
+  <div style="margin-top:16px;">
+    <label class="label">一般公告</label>
+
+    <textarea
+      id="normalAnnouncement"
+      class="input"
+      rows="4"
+      placeholder="例如：哈寶足球 AI 系統已更新，祝大家使用愉快！"
+      style="width:100%;resize:vertical;"
+    ></textarea>
+  </div>
+
+  <div style="margin-top:16px;">
+    <label class="label">緊急維護公告</label>
+
+    <textarea
+      id="maintenanceAnnouncement"
+      class="input"
+      rows="4"
+      placeholder="例如：系統維護中，部分功能暫時無法使用。"
+      style="width:100%;resize:vertical;"
+    ></textarea>
+  </div>
+
+  <div style="margin-top:16px;">
+    <button
+  type="button"
+  class="btn green-btn"
+  id="saveAnnouncementBtn"
+  onclick="saveAnnouncementSettings()"
+>
+  儲存公告
+</button>
+  </div>
+</section>
+  
 </main>
 
 <!-- 新增福利活動 Modal -->
@@ -897,6 +936,82 @@ function closeBenefitModal() {
 const BENEFITS_ADMIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
 
+  async function loadAnnouncementSettings() {
+  try {
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "get_settings",
+        admin_password: adminPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "讀取公告設定失敗");
+    }
+
+    const settings = data.settings;
+
+    if (!settings) return;
+
+    const normalEl = document.getElementById("normalAnnouncement");
+    const maintenanceEl = document.getElementById("maintenanceAnnouncement");
+
+    if (normalEl) {
+      normalEl.value = settings.normal_announcement || "";
+    }
+
+    if (maintenanceEl) {
+      maintenanceEl.value = settings.maintenance_announcement || "";
+    }
+
+  } catch (error) {
+    console.error("LOAD ANNOUNCEMENT SETTINGS ERROR:", error);
+  }
+}
+  
+async function saveAnnouncementSettings() {
+  const normalEl = document.getElementById("normalAnnouncement");
+  const maintenanceEl = document.getElementById("maintenanceAnnouncement");
+
+  const normalAnnouncement = normalEl?.value.trim() || "";
+  const maintenanceAnnouncement = maintenanceEl?.value.trim() || "";
+
+  try {
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "save_settings",
+        admin_password: adminPassword,
+        normal_announcement: normalAnnouncement,
+        maintenance_announcement: maintenanceAnnouncement,
+        normal_enabled: false,
+        maintenance_enabled: false
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "儲存公告失敗");
+    }
+
+    alert("公告已儲存");
+
+  } catch (error) {
+    console.error("SAVE ANNOUNCEMENT SETTINGS ERROR:", error);
+    alert(error.message || "儲存公告失敗");
+  }
+}
+  
 async function saveBenefit() {
   const titleEl = document.getElementById("benefitTitle");
   const imageEl = document.getElementById("benefitImage");
@@ -1211,6 +1326,7 @@ if (apiPercent >= 90) {
 
     renderMembers();
 loadBenefitsAdmin();
+loadAnnouncementSettings();
 
   }catch(error){
 
