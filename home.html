@@ -1035,7 +1035,6 @@ loadCurrentUserCount();
 
 
   verifyMember();
-loadPublicAnnouncements();
 
 function toggleAccountMenu(event) {
   event.stopPropagation();
@@ -1118,6 +1117,8 @@ function closeAnnouncementModal() {
     modal.style.display = "none";
   }
 }
+
+loadPublicAnnouncements();  
   
 </script>
 <!-- 公告彈窗 -->
