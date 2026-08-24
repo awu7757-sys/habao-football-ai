@@ -999,18 +999,54 @@ async function loadBenefitsAdmin() {
         >
 
         <div>
-          <strong>${item.title || "未命名活動"}</strong>
-          <div>排序：${item.sort_order ?? 0}</div>
-          <div>
-            狀態：${item.is_active ? "啟用中" : "已停用"}
-          </div>
-        </div>
+  <strong>${item.title || "未命名活動"}</strong>
+  <div>排序：${item.sort_order ?? 0}</div>
+  <div>
+    狀態：${item.is_active ? "啟用中" : "已停用"}
+  </div>
+
+  <button
+    type="button"
+    onclick="toggleBenefit(${item.id}, ${!item.is_active})"
+    style="margin-top:8px;padding:6px 12px;cursor:pointer;"
+  >
+    ${item.is_active ? "停用" : "啟用"}
+  </button>
+</div>
       </div>
     `).join("");
 
   } catch (error) {
     console.error("LOAD ADMIN BENEFITS ERROR:", error);
     listEl.innerHTML = "福利資料載入失敗";
+  }
+}
+async function toggleBenefit(id, nextStatus) {
+  try {
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "toggle",
+        admin_password: adminPassword,
+        id: id,
+        is_active: nextStatus
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "更新福利狀態失敗");
+    }
+
+    await loadBenefitsAdmin();
+
+  } catch (error) {
+    console.error("TOGGLE BENEFIT ERROR:", error);
+    alert(error.message || "更新福利狀態失敗");
   }
 }
   
