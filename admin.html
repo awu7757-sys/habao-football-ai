@@ -1006,12 +1006,21 @@ async function loadBenefitsAdmin() {
   </div>
 
   <button
-    type="button"
-    onclick="toggleBenefit(${item.id}, ${!item.is_active})"
-    style="margin-top:8px;padding:6px 12px;cursor:pointer;"
-  >
-    ${item.is_active ? "停用" : "啟用"}
-  </button>
+  type="button"
+  onclick="toggleBenefit(${item.id}, ${!item.is_active})"
+  style="margin-top:8px;padding:6px 12px;cursor:pointer;"
+>
+  ${item.is_active ? "停用" : "啟用"}
+</button>
+
+<button
+  type="button"
+  onclick="deleteBenefit(${item.id})"
+  style="margin-top:8px;margin-left:6px;padding:6px 12px;cursor:pointer;color:#ff4d6d;"
+>
+  刪除
+</button>
+  
 </div>
       </div>
     `).join("");
@@ -1047,6 +1056,41 @@ async function toggleBenefit(id, nextStatus) {
   } catch (error) {
     console.error("TOGGLE BENEFIT ERROR:", error);
     alert(error.message || "更新福利狀態失敗");
+  }
+}
+async function deleteBenefit(id) {
+  const confirmed = confirm("確定要刪除這筆福利嗎？此操作無法復原。");
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(BENEFITS_ADMIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "delete",
+        admin_password: adminPassword,
+        id: id
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "刪除福利失敗");
+    }
+
+    await loadBenefitsAdmin();
+
+    alert("福利已刪除");
+
+  } catch (error) {
+    console.error("DELETE BENEFIT ERROR:", error);
+    alert(error.message || "刪除福利失敗");
   }
 }
   
