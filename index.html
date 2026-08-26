@@ -829,6 +829,92 @@
     0 1px 3px rgba(0, 0, 0, 0.95),
     0 0 6px rgba(0, 0, 0, 0.75);
 }    
+
+/* 加入主畫面｜教學彈窗 */
+.add-home-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 27, 0.98),
+      rgba(3, 15, 14, 0.98)
+    );
+
+  border: 1px solid rgba(94, 255, 139, 0.35);
+  border-radius: 22px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(60, 255, 126, 0.12);
+
+  color: #ffffff;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: #79ff98;
+}
+
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
     
   </style>
 </head>
@@ -1389,6 +1475,26 @@ function closeBenefits(event) {
   })();
 </script>
 
+<!-- 加入主畫面｜教學彈窗 -->
+<div id="addHomeModal" class="add-home-modal" aria-hidden="true">
+  <div class="add-home-modal-card">
+
+    <button id="closeAddHomeModal"
+            class="add-home-close"
+            type="button"
+            aria-label="關閉">
+      ×
+    </button>
+
+    <h2>加入主畫面</h2>
+
+    <div class="add-home-modal-content">
+      教學內容即將加入
+    </div>
+
+  </div>
+</div>
+  
 <!-- 加入主畫面｜浮動按鈕 -->
 <div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
   <img src="./add-home-icon.png" alt="">
@@ -1458,13 +1564,40 @@ function closeBenefits(event) {
     }
 
     if (!moved) {
-      console.log("加入主畫面按鈕被點擊");
-    }
+  const modal = document.getElementById("addHomeModal");
+
+  if (modal) {
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
   });
 
   btn.addEventListener("pointercancel", () => {
     dragging = false;
   });
+  const modal = document.getElementById("addHomeModal");
+const closeBtn = document.getElementById("closeAddHomeModal");
+
+function closeAddHomeModal() {
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener("click", closeAddHomeModal);
+}
+
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeAddHomeModal();
+    }
+  });
+}
+  
 })();
 </script>
   
