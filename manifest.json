@@ -1,0 +1,9 @@
+{
+  "name": "哈寶足球 AI",
+  "short_name": "哈寶足球AI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#061923",
+  "theme_color": "#061923",
+  "description": "哈寶足球 AI 智能賽事分析平台"
+}
