@@ -769,6 +769,7 @@
     font-size:13px;
   }
 }
+
 /* 加入主畫面｜浮動按鈕 */
 #addHomeFloatBtn {
   position: fixed;
@@ -777,23 +778,22 @@
   z-index: 99999;
 
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
+  gap: 4px;
 
-  padding: 6px 12px 6px 6px;
-  border: 1px solid rgba(84, 255, 143, 0.45);
-  border-radius: 18px;
+  width: 76px;
+  padding: 0;
 
-  background: rgba(5, 25, 20, 0.94);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
   color: #ffffff;
-
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  text-align: center;
   white-space: nowrap;
-
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.38),
-    0 0 12px rgba(62, 255, 130, 0.18);
 
   cursor: grab;
   touch-action: none;
@@ -806,16 +806,29 @@
 }
 
 #addHomeFloatBtn img {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  object-fit: cover;
+  width: 60px;
+  height: 60px;
+
+  display: block;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
   pointer-events: none;
 }
 
 #addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
   pointer-events: none;
-}
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.75);
+}    
     
   </style>
 </head>
@@ -1377,10 +1390,10 @@ function closeBenefits(event) {
 </script>
 
 <!-- 加入主畫面｜浮動按鈕 -->
-<button id="addHomeFloatBtn" type="button" aria-label="加入主畫面">
-  <img src="./football_icon_192x192.png" alt="">
+<div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
+  <img src="./add-home-icon.png" alt="">
   <span>加入主畫面</span>
-</button>  
+</div>
 <script>
 (() => {
   const btn = document.getElementById("addHomeFloatBtn");
