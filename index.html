@@ -915,6 +915,71 @@
   font-size: 14px;
   line-height: 1.7;
 }
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #65ff8b;
+  color: #062016;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+  background: rgba(101, 255, 139, 0.08);
+  border: 1px solid rgba(101, 255, 139, 0.20);
+
+  color: #8cff9f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}    
     
   </style>
 </head>
@@ -1489,8 +1554,39 @@ function closeBenefits(event) {
     <h2>加入主畫面</h2>
 
     <div class="add-home-modal-content">
-      教學內容即將加入
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Safari 下方的「分享」按鈕
     </div>
+
+    <img
+      src="./add-home-step-1.png"
+      alt="Safari 分享按鈕教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-step-2.png"
+      alt="加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 確認名稱後點擊「加入」<br>
+    即可從手機主畫面快速開啟哈寶足球AI
+  </div>
+
+</div>
 
   </div>
 </div>
