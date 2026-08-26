@@ -769,6 +769,53 @@
     font-size:13px;
   }
 }
+/* 加入主畫面｜浮動按鈕 */
+#addHomeFloatBtn {
+  position: fixed;
+  right: 16px;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 12px 6px 6px;
+  border: 1px solid rgba(84, 255, 143, 0.45);
+  border-radius: 18px;
+
+  background: rgba(5, 25, 20, 0.94);
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.38),
+    0 0 12px rgba(62, 255, 130, 0.18);
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+#addHomeFloatBtn span {
+  pointer-events: none;
+}
     
   </style>
 </head>
@@ -1327,6 +1374,85 @@ function closeBenefits(event) {
       closeSplash();
     });
   })();
+</script>
+
+<!-- 加入主畫面｜浮動按鈕 -->
+<button id="addHomeFloatBtn" type="button" aria-label="加入主畫面">
+  <img src="./football_icon_192x192.png" alt="">
+  <span>加入主畫面</span>
+</button>  
+<script>
+(() => {
+  const btn = document.getElementById("addHomeFloatBtn");
+  if (!btn) return;
+
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let startTop = 0;
+
+  btn.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    moved = false;
+
+    const rect = btn.getBoundingClientRect();
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+
+    btn.style.left = rect.left + "px";
+    btn.style.top = rect.top + "px";
+    btn.style.right = "auto";
+    btn.style.bottom = "auto";
+
+    btn.setPointerCapture(e.pointerId);
+  });
+
+  btn.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      moved = true;
+    }
+
+    const rect = btn.getBoundingClientRect();
+
+    let newLeft = startLeft + dx;
+    let newTop = startTop + dy;
+
+    const maxLeft = window.innerWidth - rect.width - 6;
+    const maxTop = window.innerHeight - rect.height - 6;
+
+    newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+    newTop = Math.max(6, Math.min(newTop, maxTop));
+
+    btn.style.left = newLeft + "px";
+    btn.style.top = newTop + "px";
+  });
+
+  btn.addEventListener("pointerup", (e) => {
+    dragging = false;
+
+    if (btn.hasPointerCapture(e.pointerId)) {
+      btn.releasePointerCapture(e.pointerId);
+    }
+
+    if (!moved) {
+      console.log("加入主畫面按鈕被點擊");
+    }
+  });
+
+  btn.addEventListener("pointercancel", () => {
+    dragging = false;
+  });
+})();
 </script>
   
 </body>
