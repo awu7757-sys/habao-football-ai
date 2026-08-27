@@ -1567,13 +1567,91 @@ loadPublicAnnouncements();
 (() => {
   const btn = document.getElementById("addHomeFloatBtn");
   if (!btn) return;
+  let dragging = false;
+let moved = false;
 
-btn.addEventListener("click", () => {
+let startX = 0;
+let startY = 0;
+let startLeft = 0;
+let startTop = 0;
+
+btn.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  moved = false;
+
+  const rect = btn.getBoundingClientRect();
+
+  startX = e.clientX;
+  startY = e.clientY;
+  startLeft = rect.left;
+  startTop = rect.top;
+
+  // 第一次開始拖曳時，把 CSS 的 right / 50% 定位轉成實際座標
+  btn.style.left = rect.left + "px";
+  btn.style.top = rect.top + "px";
+  btn.style.right = "auto";
+  btn.style.bottom = "auto";
+  btn.style.transform = "none";
+
+  btn.setPointerCapture(e.pointerId);
+
+  e.preventDefault();
+});
+
+btn.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    moved = true;
+  }
+
+  const rect = btn.getBoundingClientRect();
+
+  let newLeft = startLeft + dx;
+  let newTop = startTop + dy;
+
+  const maxLeft = window.innerWidth - rect.width - 6;
+  const maxTop = window.innerHeight - rect.height - 6;
+
+  newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+  newTop = Math.max(6, Math.min(newTop, maxTop));
+
+  btn.style.left = newLeft + "px";
+  btn.style.top = newTop + "px";
+
+  e.preventDefault();
+});
+
+function stopDragging(e) {
+  if (!dragging) return;
+
+  dragging = false;
+
+  if (e.pointerId !== undefined && btn.hasPointerCapture(e.pointerId)) {
+    btn.releasePointerCapture(e.pointerId);
+  }
+}
+
+btn.addEventListener("pointerup", stopDragging);
+btn.addEventListener("pointercancel", stopDragging);
+
+btn.addEventListener("click", (e) => {
+  if (moved) {
+    e.preventDefault();
+    e.stopPropagation();
+    moved = false;
+    return;
+  }
+
   const modal = document.getElementById("addHomeModal");
-  if (!modal) return;
 
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden", "false");
+  if (modal) {
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+  }
 });
   
 const modal = document.getElementById("addHomeModal");
