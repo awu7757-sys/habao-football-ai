@@ -916,6 +916,47 @@
   line-height: 1.7;
 }
 
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(95, 255, 139, 0.18);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background: linear-gradient(135deg, #28e97b, #65ff9b);
+  color: #04140b;
+
+  box-shadow:
+    0 4px 14px rgba(40, 233, 123, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}    
+
 /* 加入主畫面｜教學步驟 */
 .add-home-step {
   margin-bottom: 22px;
@@ -1554,7 +1595,18 @@ function closeBenefits(event) {
     <h2>加入主畫面</h2>
 
     <div class="add-home-modal-content">
+      
+    <div class="add-home-tabs">
+  <button type="button" class="add-home-tab active" id="iphoneGuideBtn">
+    iPhone
+  </button>
 
+  <button type="button" class="add-home-tab" id="androidGuideBtn">
+    Android
+  </button>
+</div>
+      
+  <div id="iphoneGuide">     
   <div class="add-home-step">
     <div class="add-home-step-title">
       <span>1</span>
@@ -1585,6 +1637,48 @@ function closeBenefits(event) {
     ✓ 確認名稱後點擊「加入」<br>
     即可從手機主畫面快速開啟哈寶足球AI
   </div>
+</div>
+      
+  </div>  <!-- add-home-finish -->
+
+</div>    <!-- iphoneGuide -->
+
+<div id="androidGuide" style="display:none;">
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Chrome 右上角的「⋮」選單按鈕
+    </div>
+
+    <img
+      src="./add-home-android-step-1.png"
+      alt="Android Chrome 選單教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-android-step-2.png"
+      alt="Android 加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 完成後即可從手機主畫面<br>
+    快速開啟哈寶足球AI
+  </div>
+
+</div>
+
+</div>    
 
 </div>
 
@@ -1693,6 +1787,40 @@ if (modal) {
     }
   });
 }
+// iPhone / Android 教學切換
+const iphoneGuideBtn = document.getElementById("iphoneGuideBtn");
+const androidGuideBtn = document.getElementById("androidGuideBtn");
+const iphoneGuide = document.getElementById("iphoneGuide");
+const androidGuide = document.getElementById("androidGuide");
+
+function showPhoneGuide(type) {
+  if (!iphoneGuide || !androidGuide) return;
+
+  if (type === "android") {
+    iphoneGuide.style.display = "none";
+    androidGuide.style.display = "block";
+
+    iphoneGuideBtn?.classList.remove("active");
+    androidGuideBtn?.classList.add("active");
+  } else {
+    iphoneGuide.style.display = "block";
+    androidGuide.style.display = "none";
+
+    iphoneGuideBtn?.classList.add("active");
+    androidGuideBtn?.classList.remove("active");
+  }
+}
+
+iphoneGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("iphone");
+});
+
+androidGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("android");
+});
+
+// 預設顯示 iPhone
+showPhoneGuide("iphone");
   
 })();
 </script>
