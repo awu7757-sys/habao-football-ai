@@ -1634,6 +1634,68 @@ loadPublicAnnouncements();
   btn.addEventListener("pointercancel", () => {
     dragging = false;
   });
+  // iPhone / Safari 觸控拖曳補強
+let touchDragging = false;
+let touchMoved = false;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartLeft = 0;
+let touchStartTop = 0;
+
+btn.addEventListener("touchstart", (e) => {
+  if (!e.touches.length) return;
+
+  const touch = e.touches[0];
+  const rect = btn.getBoundingClientRect();
+
+  touchDragging = true;
+  touchMoved = false;
+
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchStartLeft = rect.left;
+  touchStartTop = rect.top;
+
+  btn.style.left = rect.left + "px";
+  btn.style.top = rect.top + "px";
+  btn.style.right = "auto";
+  btn.style.bottom = "auto";
+}, { passive: false });
+
+btn.addEventListener("touchmove", (e) => {
+  if (!touchDragging || !e.touches.length) return;
+
+  e.preventDefault();
+
+  const touch = e.touches[0];
+
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+
+  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+    touchMoved = true;
+    moved = true;
+  }
+
+  const rect = btn.getBoundingClientRect();
+
+  let newLeft = touchStartLeft + dx;
+  let newTop = touchStartTop + dy;
+
+  const maxLeft = window.innerWidth - rect.width - 6;
+  const maxTop = window.innerHeight - rect.height - 6;
+
+  newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+  newTop = Math.max(6, Math.min(newTop, maxTop));
+
+  btn.style.left = newLeft + "px";
+  btn.style.top = newTop + "px";
+}, { passive: false });
+
+btn.addEventListener("touchend", () => {
+  touchDragging = false;
+});
+  
   const modal = document.getElementById("addHomeModal");
 const closeBtn = document.getElementById("closeAddHomeModal");
 
