@@ -579,7 +579,523 @@ h1{
   .history-team{
     font-size:14px;
   }
-}  
+} 
+
+/* 加入主畫面｜浮動按鈕 */
+#addHomeFloatBtn {
+  position: fixed;
+
+  right: 14px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+
+  transform: translateY(-50%);
+
+  z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  width: 76px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 60px;
+  height: 60px;
+
+  display: block;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+#addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.75);
+}    
+
+/* 加入主畫面｜教學彈窗 */
+.add-home-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 27, 0.98),
+      rgba(3, 15, 14, 0.98)
+    );
+
+  border: 1px solid rgba(94, 255, 139, 0.35);
+  border-radius: 22px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(60, 255, 126, 0.12);
+
+  color: #ffffff;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: #79ff98;
+}
+
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(95, 255, 139, 0.18);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background: linear-gradient(135deg, #28e97b, #65ff9b);
+  color: #04140b;
+
+  box-shadow:
+    0 4px 14px rgba(40, 233, 123, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}    
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #65ff8b;
+  color: #062016;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+  background: rgba(101, 255, 139, 0.08);
+  border: 1px solid rgba(101, 255, 139, 0.20);
+
+  color: #8cff9f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}    
+
+#addHomeFloatBtn {
+  position: fixed;
+
+  right: 14px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+
+  transform: translateY(-50%);
+
+  z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  width: 76px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 60px;
+  height: 60px;
+
+  display: block;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+#addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.75);
+}    
+
+/* 加入主畫面｜教學彈窗 */
+.add-home-finish {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 27, 0.98),
+      rgba(3, 15, 14, 0.98)
+    );
+
+  border: 1px solid rgba(94, 255, 139, 0.35);
+  border-radius: 22px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(60, 255, 126, 0.12);
+
+  color: #ffffff;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: #79ff98;
+}
+
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(95, 255, 139, 0.18);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background: linear-gradient(135deg, #28e97b, #65ff9b);
+  color: #04140b;
+
+  box-shadow:
+    0 4px 14px rgba(40, 233, 123, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}    
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #65ff8b;
+  color: #062016;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+  background: rgba(101, 255, 139, 0.08);
+  border: 1px solid rgba(101, 255, 139, 0.20);
+
+  color: #8cff9f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}    
+  
 </style>
 </head>
 
@@ -1598,5 +2114,360 @@ function viewAnalysisHistory(historyId) {
   window.location.href = "analysis.html";
 }  
 </script>
+
+<!-- 加入主畫面｜教學彈窗 -->
+<div id="addHomeModal" class="add-home-modal" aria-hidden="true">
+  <div class="add-home-modal-card">
+
+    <button id="closeAddHomeModal"
+            class="add-home-close"
+            type="button"
+            aria-label="關閉">
+      ×
+    </button>
+
+    <h2>加入主畫面</h2>
+
+    <div class="add-home-modal-content">
+      
+    <div class="add-home-tabs">
+  <button type="button" class="add-home-tab active" id="iphoneGuideBtn">
+    iPhone
+  </button>
+
+  <button type="button" class="add-home-tab" id="androidGuideBtn">
+    Android
+  </button>
+</div>
+      
+  <div id="iphoneGuide">     
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Safari 下方的「分享」按鈕
+    </div>
+
+    <img
+      src="./add-home-step-1.png"
+      alt="Safari 分享按鈕教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-step-2.png"
+      alt="加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 確認名稱後點擊「加入」<br>
+    即可從手機主畫面快速開啟哈寶足球AI
+  </div>
+</div>
+
+<div id="androidGuide" style="display:none;">
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Chrome 右上角的「⋮」選單按鈕
+    </div>
+
+    <img
+      src="./add-home-android-step-1.png"
+      alt="Android Chrome 選單教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-android-step-2.png"
+      alt="Android 加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 完成後即可從手機主畫面<br>
+    快速開啟哈寶足球AI
+  </div>
+
+</div>
+
+</div>    
+
+</div>
+
+  </div>
+
+<!-- 加入主畫面｜教學彈窗 -->
+<div id="addHomeModal" class="add-home-modal" aria-hidden="true">
+  <div class="add-home-modal-card">
+
+    <button id="closeAddHomeModal"
+            class="add-home-close"
+            type="button"
+            aria-label="關閉">
+      ×
+    </button>
+
+    <h2>加入主畫面</h2>
+
+    <div class="add-home-modal-content">
+      
+    <div class="add-home-tabs">
+  <button type="button" class="add-home-tab active" id="iphoneGuideBtn">
+    iPhone
+  </button>
+
+  <button type="button" class="add-home-tab" id="androidGuideBtn">
+    Android
+  </button>
+</div>
+      
+  <div id="iphoneGuide">     
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Safari 下方的「分享」按鈕
+    </div>
+
+    <img
+      src="./add-home-step-1.png"
+      alt="Safari 分享按鈕教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-step-2.png"
+      alt="加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 確認名稱後點擊「加入」<br>
+    即可從手機主畫面快速開啟哈寶足球AI
+  </div>
+</div>
+
+<div id="androidGuide" style="display:none;">
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>1</span>
+      點擊 Chrome 右上角的「⋮」選單按鈕
+    </div>
+
+    <img
+      src="./add-home-android-step-1.png"
+      alt="Android Chrome 選單教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-step">
+    <div class="add-home-step-title">
+      <span>2</span>
+      選擇「加入主畫面」
+    </div>
+
+    <img
+      src="./add-home-android-step-2.png"
+      alt="Android 加入主畫面教學"
+      class="add-home-step-image"
+    >
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 完成後即可從手機主畫面<br>
+    快速開啟哈寶足球AI
+  </div>
+
+</div>
+
+</div>    
+
+</div>
+
+  </div>
+
+<!-- 加入主畫面｜浮動按鈕 -->
+<div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
+  <img src="./add-home-icon.png" alt="">
+  <span>加入主畫面</span>
+</div>
+
+<script>
+(() => {
+  const btn = document.getElementById("addHomeFloatBtn");
+  if (!btn) return;
+  let dragging = false;
+let moved = false;
+
+let startX = 0;
+let startY = 0;
+let startLeft = 0;
+let startTop = 0;
+
+btn.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  moved = false;
+
+  const rect = btn.getBoundingClientRect();
+
+  startX = e.clientX;
+  startY = e.clientY;
+  startLeft = rect.left;
+  startTop = rect.top;
+
+  // 第一次開始拖曳時，把 CSS 的 right / 50% 定位轉成實際座標
+  btn.style.left = rect.left + "px";
+  btn.style.top = rect.top + "px";
+  btn.style.right = "auto";
+  btn.style.bottom = "auto";
+  btn.style.transform = "none";
+
+  btn.setPointerCapture(e.pointerId);
+
+  e.preventDefault();
+});
+
+btn.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    moved = true;
+  }
+
+  const rect = btn.getBoundingClientRect();
+
+  let newLeft = startLeft + dx;
+  let newTop = startTop + dy;
+
+  const maxLeft = window.innerWidth - rect.width - 6;
+  const maxTop = window.innerHeight - rect.height - 6;
+
+  newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+  newTop = Math.max(6, Math.min(newTop, maxTop));
+
+  btn.style.left = newLeft + "px";
+  btn.style.top = newTop + "px";
+
+  e.preventDefault();
+});
+
+function stopDragging(e) {
+  if (!dragging) return;
+
+  dragging = false;
+
+  if (e.pointerId !== undefined && btn.hasPointerCapture(e.pointerId)) {
+    btn.releasePointerCapture(e.pointerId);
+  }
+}
+
+btn.addEventListener("pointerup", stopDragging);
+btn.addEventListener("pointercancel", stopDragging);
+
+btn.addEventListener("click", (e) => {
+  if (moved) {
+    e.preventDefault();
+    e.stopPropagation();
+    moved = false;
+    return;
+  }
+
+  const modal = document.getElementById("addHomeModal");
+
+  if (modal) {
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+  }
+});
+  
+const modal = document.getElementById("addHomeModal");
+const closeBtn = document.getElementById("closeAddHomeModal");
+
+function closeAddHomeModal() {
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener("click", closeAddHomeModal);
+}
+
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeAddHomeModal();
+    }
+  });
+}
+// iPhone / Android 教學切換
+const iphoneGuideBtn = document.getElementById("iphoneGuideBtn");
+const androidGuideBtn = document.getElementById("androidGuideBtn");
+const iphoneGuide = document.getElementById("iphoneGuide");
+const androidGuide = document.getElementById("androidGuide");
+
+function showPhoneGuide(type) {
+  if (!iphoneGuide || !androidGuide) return;
+
+  if (type === "android") {
+    iphoneGuide.style.display = "none";
+    androidGuide.style.display = "block";
+
+    iphoneGuideBtn?.classList.remove("active");
+    androidGuideBtn?.classList.add("active");
+  } else {
+    iphoneGuide.style.display = "block";
+    androidGuide.style.display = "none";
+
+    iphoneGuideBtn?.classList.add("active");
+    androidGuideBtn?.classList.remove("active");
+  }
+}
+
+iphoneGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("iphone");
+});
+
+androidGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("android");
+});
+
+// 預設顯示 iPhone
+showPhoneGuide("iphone");
+  
+})();
+</script>  
+  
 </body>
 </html>
