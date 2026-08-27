@@ -620,8 +620,14 @@
 /* 加入主畫面｜浮動按鈕 */
 #addHomeFloatBtn {
   position: fixed;
-  right: 16px;
-  bottom: calc(22px + env(safe-area-inset-bottom));
+
+  right: 14px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+
+  transform: translateY(-50%);
+
   z-index: 99999;
 
   display: flex;
@@ -1563,89 +1569,12 @@ loadPublicAnnouncements();
   const btn = document.getElementById("addHomeFloatBtn");
   if (!btn) return;
 
-  let dragging = false;
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
+btn.addEventListener("click", () => {
+  const modal = document.getElementById("addHomeModal");
+  if (!modal) return;
 
-  // 浮動按鈕拖曳｜iPhone Safari 穩定版
-let touchDragging = false;
-let touchMoved = false;
-
-let touchStartX = 0;
-let touchStartY = 0;
-let touchStartLeft = 0;
-let touchStartTop = 0;
-
-btn.addEventListener("touchstart", (e) => {
-  if (!e.touches.length) return;
-
-  const touch = e.touches[0];
-  const rect = btn.getBoundingClientRect();
-
-  touchDragging = true;
-  touchMoved = false;
-
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-  touchStartLeft = rect.left;
-  touchStartTop = rect.top;
-
-  btn.style.left = rect.left + "px";
-  btn.style.top = rect.top + "px";
-  btn.style.right = "auto";
-  btn.style.bottom = "auto";
-
-  e.preventDefault();
-}, { passive: false });
-
-
-document.addEventListener("touchmove", (e) => {
-  if (!touchDragging || !e.touches.length) return;
-
-  e.preventDefault();
-
-  const touch = e.touches[0];
-
-  const dx = touch.clientX - touchStartX;
-  const dy = touch.clientY - touchStartY;
-
-  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-    touchMoved = true;
-  }
-
-  const rect = btn.getBoundingClientRect();
-
-  let newLeft = touchStartLeft + dx;
-  let newTop = touchStartTop + dy;
-
-  const maxLeft = window.innerWidth - rect.width - 6;
-  const maxTop = window.innerHeight - rect.height - 6;
-
-  newLeft = Math.max(6, Math.min(newLeft, maxLeft));
-  newTop = Math.max(6, Math.min(newTop, maxTop));
-
-  btn.style.left = newLeft + "px";
-  btn.style.top = newTop + "px";
-
-}, { passive: false });
-
-
-document.addEventListener("touchend", () => {
-  if (!touchDragging) return;
-
-  touchDragging = false;
-
-  if (!touchMoved) {
-    const modal = document.getElementById("addHomeModal");
-
-    if (modal) {
-      modal.classList.add("show");
-      modal.setAttribute("aria-hidden", "false");
-    }
-  }
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
 });
   
 const modal = document.getElementById("addHomeModal");
