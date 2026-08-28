@@ -1712,6 +1712,21 @@ showPhoneGuide("iphone");
   
 })();
 </script>  
+<!-- 哈寶足球 AI｜Service Worker -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./sw.js")
+      .then((registration) => {
+        console.log("Service Worker 註冊成功:", registration.scope);
+      })
+      .catch((error) => {
+        console.error("Service Worker 註冊失敗:", error);
+      });
+  });
+}
+</script>
   
 </body>
 </html>
