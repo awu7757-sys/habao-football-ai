@@ -1880,7 +1880,9 @@ async function syncExistingPushSubscription() {
   }
 }
 
-syncExistingPushSubscription();  
+window.addEventListener("load", async () => {
+  await syncExistingPushSubscription();
+});
 
 enablePushBtn?.addEventListener("click", async () => {
   try {
