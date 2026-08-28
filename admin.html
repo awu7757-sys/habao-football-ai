@@ -768,7 +768,69 @@ td{
 </button>
   </div>
 </section>
-  
+
+<!-- 推播通知管理 -->
+<section class="card" style="margin-top:20px;">
+  <div class="section-title">
+    🔔 推播通知管理
+  </div>
+
+  <div style="margin-top:16px;">
+    <label class="label">通知標題</label>
+    <input
+      id="pushTitle"
+      class="input"
+      type="text"
+      maxlength="60"
+      placeholder="例如：哈寶足球 AI"
+      value="哈寶足球 AI"
+    >
+  </div>
+
+  <div style="margin-top:16px;">
+    <label class="label">通知內容</label>
+    <textarea
+      id="pushBody"
+      class="input"
+      rows="4"
+      maxlength="200"
+      placeholder="例如：今晚賽事分析已更新，點擊立即查看"
+      style="width:100%;resize:vertical;"
+    ></textarea>
+  </div>
+
+  <div style="margin-top:16px;">
+    <label class="label">點擊通知後前往</label>
+    <select
+      id="pushUrl"
+      class="input"
+      style="width:100%;"
+    >
+      <option value="https://awu7757-sys.github.io/habao-football-ai/home.html">
+        會員首頁
+      </option>
+      <option value="https://awu7757-sys.github.io/habao-football-ai/football.html">
+        足球賽事
+      </option>
+    </select>
+  </div>
+
+  <div style="margin-top:18px;">
+    <button
+      type="button"
+      class="btn green-btn"
+      id="sendPushBtn"
+    >
+      🚀 發送推播
+    </button>
+  </div>
+
+  <div
+    id="pushSendResult"
+    style="margin-top:12px;font-size:13px;"
+  ></div>
+</section>  
+
 </main>
 
 <!-- 新增福利活動 Modal -->
@@ -2002,6 +2064,99 @@ document
     }
   );
 
+/* =========================
+   推播通知管理
+========================= */
+
+const PUSH_SEND_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
+
+const sendPushBtn = document.getElementById("sendPushBtn");
+
+sendPushBtn?.addEventListener("click", async () => {
+  const title = document.getElementById("pushTitle")?.value.trim();
+  const body = document.getElementById("pushBody")?.value.trim();
+  const url = document.getElementById("pushUrl")?.value;
+  const resultEl = document.getElementById("pushSendResult");
+
+  if (!title) {
+    alert("請輸入通知標題");
+    return;
+  }
+
+  if (!body) {
+    alert("請輸入通知內容");
+    return;
+  }
+
+  const confirmed = confirm(
+    `確定要發送這則推播給所有已開啟通知的會員嗎？\n\n` +
+    `標題：${title}\n` +
+    `內容：${body}`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    sendPushBtn.disabled = true;
+    sendPushBtn.textContent = "正在發送...";
+
+    if (resultEl) {
+      resultEl.textContent = "推播發送中，請稍候...";
+    }
+
+    const response = await fetch(PUSH_SEND_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title,
+        body,
+        url,
+        admin_password: adminPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "推播發送失敗");
+    }
+
+    if (resultEl) {
+      resultEl.textContent =
+        `✅ 發送完成｜成功 ${data.sent}｜失敗 ${data.failed}`;
+    }
+
+    alert(
+      `推播發送完成！\n\n` +
+      `總訂閱：${data.total}\n` +
+      `成功：${data.sent}\n` +
+      `失敗：${data.failed}`
+    );
+
+  } catch (error) {
+    console.error("推播發送失敗：", error);
+
+    if (resultEl) {
+      resultEl.textContent =
+        "❌ " + (error?.message || "推播發送失敗");
+    }
+
+    alert(
+      "推播發送失敗：" +
+      (error?.message || "未知錯誤")
+    );
+
+  } finally {
+    sendPushBtn.disabled = false;
+    sendPushBtn.textContent = "🚀 發送推播";
+  }
+});
+  
 </script>
 
 </body>
