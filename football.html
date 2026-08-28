@@ -1097,6 +1097,224 @@ h1{
 }    
   
 </style>
+
+<style>
+/* =========================
+   AI 額度用完彈窗
+========================= */
+
+.quota-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(0, 8, 12, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.quota-modal.show {
+  display: flex;
+}
+
+.quota-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  padding: 30px 22px 22px;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(34, 197, 94, 0.16),
+      transparent 42%
+    ),
+    linear-gradient(
+      160deg,
+      #0d1c1d 0%,
+      #071214 55%,
+      #081011 100%
+    );
+
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 24px;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.65),
+    0 0 35px rgba(34, 197, 94, 0.12);
+
+  text-align: center;
+  animation: quotaModalIn 0.28s ease-out;
+}
+
+.quota-modal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  width: 70%;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #4ade80,
+    transparent
+  );
+
+  box-shadow: 0 0 18px #22c55e;
+}
+
+.quota-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 15px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+
+  background: rgba(255,255,255,0.05);
+  color: #94a3b8;
+
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.quota-modal-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(34,197,94,0.10);
+  border: 1px solid rgba(74,222,128,0.30);
+
+  box-shadow:
+    0 0 30px rgba(34,197,94,0.20);
+
+  font-size: 38px;
+}
+
+.quota-modal-title {
+  color: #f8fafc;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.quota-modal-subtitle {
+  margin-top: 8px;
+
+  color: #8fa5a5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quota-limit-box {
+  margin-top: 20px;
+  padding: 17px;
+
+  border-radius: 17px;
+
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.quota-limit-label {
+  color: #9fb0b0;
+  font-size: 13px;
+}
+
+.quota-limit-value {
+  margin-top: 3px;
+
+  color: #4ade80;
+  font-size: 43px;
+  line-height: 1.1;
+  font-weight: 900;
+
+  text-shadow:
+    0 0 20px rgba(74,222,128,0.25);
+}
+
+.quota-limit-value small {
+  margin-left: 5px;
+
+  color: #f1f5f9;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.quota-reset-text {
+  margin-top: 14px;
+  padding: 12px 10px;
+
+  border-radius: 13px;
+
+  background: rgba(34,197,94,0.07);
+
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.quota-reset-text strong {
+  color: #4ade80;
+}
+
+.quota-modal-confirm {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+
+  border: 0;
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #4ade80
+  );
+
+  color: #04120a;
+
+  font-size: 16px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 25px rgba(34,197,94,0.20);
+}
+
+.quota-modal-confirm:active {
+  transform: scale(0.98);
+}
+
+@keyframes quotaModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+</style>
+  
 </head>
 
 <body>
@@ -1430,11 +1648,7 @@ body: JSON.stringify({
    if (!response.ok || !data.success) {
 
   if (data.error === "daily_limit_reached") {
-    alert(
-      "🤖 今日 AI 分析額度已用完\n\n" +
-      "每日可分析 3 場賽事\n" +
-      "明日將自動恢復分析次數"
-    );
+  showQuotaLimitModal(data.limit ?? data.daily_limit ?? 0);
     
 if (button) {
   clearInterval(button._progressTimer);
@@ -2467,7 +2681,80 @@ androidGuideBtn?.addEventListener("click", () => {
 showPhoneGuide("iphone");
   
 })();
+
+function showQuotaLimitModal(limit) {
+  const modal = document.getElementById("quotaLimitModal");
+  const numberEl = document.getElementById("quotaLimitNumber");
+
+  if (!modal) return;
+
+  if (numberEl) {
+    numberEl.textContent = limit;
+  }
+
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeQuotaLimitModal() {
+  const modal = document.getElementById("quotaLimitModal");
+
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  document.body.style.overflow = "";
+}
+  
 </script>  
+<div id="quotaLimitModal" class="quota-modal">
+  <div class="quota-modal-card">
+
+    <button
+      type="button"
+      class="quota-modal-close"
+      onclick="closeQuotaLimitModal()"
+      aria-label="關閉"
+    >
+      ✕
+    </button>
+
+    <div class="quota-modal-icon">
+      🤖
+    </div>
+
+    <div class="quota-modal-title">
+      今日 AI 分析額度已用完
+    </div>
+
+    <div class="quota-modal-subtitle">
+      您今天的 AI 分析次數已全部使用完畢
+    </div>
+
+    <div class="quota-limit-box">
+      <div class="quota-limit-label">
+        每日可分析
+      </div>
+
+      <div class="quota-limit-value">
+        <span id="quotaLimitNumber">0</span>
+        <small>場賽事</small>
+      </div>
+    </div>
+
+    <div class="quota-reset-text">
+      🗓️ 明日 <strong>00:00</strong> 將自動恢復分析次數
+    </div>
+
+    <button
+      type="button"
+      class="quota-modal-confirm"
+      onclick="closeQuotaLimitModal()"
+    >
+      知道了
+    </button>
+
+  </div>
+</div>
   
 </body>
 </html>
