@@ -873,6 +873,48 @@
   font-weight: 700;
   line-height: 1.6;
 }    
+
+/* 哈寶足球 AI｜賽事推播通知浮動按鈕 */
+#enablePushBtn {
+  position: fixed;
+  right: 14px;
+  top: 68%;
+  z-index: 99998;
+
+  padding: 11px 15px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(8, 35, 30, 0.96),
+    rgba(10, 55, 43, 0.96)
+  );
+
+  color: #ffffff;
+  border: 1px solid rgba(73, 255, 159, 0.55);
+  border-radius: 16px;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.38),
+    0 0 16px rgba(55, 255, 151, 0.16);
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+#enablePushBtn:active {
+  transform: scale(0.96);
+}
+
+#enablePushBtn:disabled {
+  opacity: 0.85;
+  cursor: default;
+}
     
   </style>
 </head>
