@@ -874,23 +874,26 @@
   line-height: 1.6;
 }    
 
-/* 哈寶足球 AI｜賽事推播通知浮動按鈕 */
+/* 哈寶足球 AI｜即時追蹤按鈕 */
+.push-track-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 #enablePushBtn {
-  position: fixed;
-  right: 14px;
-  top: 68%;
-  z-index: 99998;
+  position: relative;
 
-  padding: 11px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  background: linear-gradient(
-    135deg,
-    rgba(8, 35, 30, 0.96),
-    rgba(10, 55, 43, 0.96)
-  );
+  padding: 11px 16px;
 
+  background: rgba(8, 35, 30, 0.88);
   color: #ffffff;
-  border: 1px solid rgba(73, 255, 159, 0.55);
+
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 16px;
 
   font-size: 13px;
@@ -898,13 +901,35 @@
   letter-spacing: 0.3px;
 
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.38),
-    0 0 16px rgba(55, 255, 151, 0.16);
+    0 0 0 rgba(255,255,255,0),
+    0 8px 22px rgba(0,0,0,0.28);
 
   cursor: pointer;
   white-space: nowrap;
 
+  animation: pushBreath 1.8s ease-in-out infinite;
+
   -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes pushBreath {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255,255,255,0.08),
+      0 8px 22px rgba(0,0,0,0.28);
+  }
+
+  50% {
+    box-shadow:
+      0 0 12px 3px rgba(255,255,255,0.48),
+      0 8px 22px rgba(0,0,0,0.30);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(255,255,255,0.08),
+      0 8px 22px rgba(0,0,0,0.28);
+  }
 }
 
 #enablePushBtn:active {
@@ -914,6 +939,8 @@
 #enablePushBtn:disabled {
   opacity: 0.85;
   cursor: default;
+  animation: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.24);
 }
     
   </style>
@@ -993,12 +1020,18 @@
       </h1>
 
       <p>
-        AI 數據整理 × 賽事資訊 × 專業分析師
-        <br>
-        選擇運動項目開始分析。
-      </p>
+  AI 數據整理 × 賽事資訊 × 專業分析師
+  <br>
+  選擇運動項目開始分析。
+</p>
 
-    </section>
+<div class="push-track-wrap">
+  <button id="enablePushBtn" type="button">
+    🔔 點我即時追蹤
+  </button>
+</div>
+
+</section>
 
 
     <section>
@@ -1769,11 +1802,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
-  
-<!-- 哈寶足球 AI｜推播通知按鈕 -->
-<button id="enablePushBtn" type="button">
-  🔔 開啟賽事通知
-</button>
   
 <script>
 const VAPID_PUBLIC_KEY =
