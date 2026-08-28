@@ -1728,5 +1728,126 @@ if ("serviceWorker" in navigator) {
 }
 </script>
   
+<!-- 哈寶足球 AI｜推播通知按鈕 -->
+<button id="enablePushBtn" type="button">
+  🔔 開啟賽事通知
+</button>
+  
+<script>
+const VAPID_PUBLIC_KEY =
+  "BCyYI5gO18lMsle4zWIFHjjRefdkO92h1ukLSZaTHyw3ghz1R3ZAIxN3VbTi1SOrq3rhG3Tu1Q-_RQQnAZchcM4";
+
+const PUSH_SUBSCRIBE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-subscribe";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+}
+
+const enablePushBtn = document.getElementById("enablePushBtn");
+
+enablePushBtn?.addEventListener("click", async () => {
+  try {
+    if (!("serviceWorker" in navigator)) {
+      alert("此瀏覽器不支援推播通知");
+      return;
+    }
+
+    if (!("PushManager" in window)) {
+      alert("此裝置不支援推播通知");
+      return;
+    }
+
+    enablePushBtn.disabled = true;
+    enablePushBtn.textContent = "正在開啟通知...";
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      enablePushBtn.disabled = false;
+      enablePushBtn.textContent = "🔔 開啟賽事通知";
+      alert("需要允許通知權限才能接收賽事通知");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey:
+          urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const subscriptionJSON = subscription.toJSON();
+
+    const savedMember =
+      sessionStorage.getItem("habao_member");
+
+    let memberUsername = null;
+
+    if (savedMember) {
+      try {
+        const member = JSON.parse(savedMember);
+        memberUsername = member.account || null;
+      } catch (e) {
+        console.warn("會員資料解析失敗", e);
+      }
+    }
+
+    const response = await fetch(PUSH_SUBSCRIBE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        endpoint: subscriptionJSON.endpoint,
+        p256dh: subscriptionJSON.keys?.p256dh,
+        auth: subscriptionJSON.keys?.auth,
+        member_username: memberUsername
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "推播訂閱失敗");
+    }
+
+    enablePushBtn.textContent = "✅ 賽事通知已開啟";
+    enablePushBtn.disabled = true;
+
+    console.log("推播訂閱成功", data);
+
+  } catch (error) {
+    console.error("推播訂閱失敗：", error);
+
+    enablePushBtn.disabled = false;
+    enablePushBtn.textContent = "🔔 開啟賽事通知";
+
+    alert(
+      "推播通知開啟失敗：" +
+      (error?.message || "未知錯誤")
+    );
+  }
+});
+</script>
+  
 </body>
 </html>
