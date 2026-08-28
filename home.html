@@ -1830,15 +1830,15 @@ const enablePushBtn = document.getElementById("enablePushBtn");
 
 enablePushBtn?.addEventListener("click", async () => {
   try {
-    if (!("serviceWorker" in navigator)) {
-      alert("此瀏覽器不支援推播通知");
-      return;
-    }
+   if (!("serviceWorker" in navigator)) {
+  alert("請先加入主畫面，再開啟即時追蹤");
+  return;
+}
 
     if (!("PushManager" in window)) {
-      alert("此裝置不支援推播通知");
-      return;
-    }
+  alert("請先加入主畫面，再開啟即時追蹤");
+  return;
+}
 
     enablePushBtn.disabled = true;
     enablePushBtn.textContent = "正在開啟通知...";
