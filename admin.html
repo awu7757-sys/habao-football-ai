@@ -1595,7 +1595,14 @@ function renderMembers(){
       </td>
 
       <td>
-  <strong>${member.analysis_credits ?? 0} 次</strong>
+      
+  <div style="line-height:1.6;">
+  <strong>剩餘：${member.analysis_credits ?? 0} 次</strong><br>
+  <span style="font-size:12px;color:#9ca3af;">
+    每日：${member.daily_analysis_limit ?? 3} 次
+  </span>
+</div>
+
 </td>
 
       <td class="expire">
