@@ -956,7 +956,19 @@ td{
       step="1"
       placeholder="例如：3"
     >
+    <label class="label" style="margin-top:16px;">
+  每日分析上限
+</label>
 
+<input
+  id="editDailyLimit"
+  class="input"
+  type="number"
+  min="1"
+  step="1"
+  placeholder="例如：3"
+>
+    
     <div class="modal-actions">
 
       <button
@@ -1844,6 +1856,10 @@ function openCreditsModal(id){
   document
     .getElementById("editCredits")
     .value = member.analysis_credits ?? 0;
+  
+  document
+  .getElementById("editDailyLimit")
+  .value = member.daily_analysis_limit ?? 3;
 
   document
     .getElementById("creditsModal")
@@ -1871,18 +1887,30 @@ async function saveCredits(){
       .value
   );
 
+  const dailyLimit = Number(
+  document
+    .getElementById("editDailyLimit")
+    .value
+);
+
   if(!Number.isInteger(value) || value < 0){
     alert("請輸入 0 以上的整數。");
     return;
   }
 
+  if(!Number.isInteger(dailyLimit) || dailyLimit < 1){
+  alert("每日分析上限請輸入 1 以上的整數。");
+  return;
+}
+
   try{
 
     await apiRequest({
-      action: "update_credits",
-      id: editingMemberId,
-      analysis_credits: value
-    });
+  action: "update_credits",
+  id: editingMemberId,
+  analysis_credits: value,
+  daily_analysis_limit: dailyLimit
+});
 
     closeCreditsModal();
 
