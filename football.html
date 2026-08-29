@@ -1660,6 +1660,19 @@ if (button) {
     return;
   }
 
+ if (data.error === "analysis_credits_empty") {
+  showQuotaLimitModal("credits_empty");
+
+  if (button) {
+    clearInterval(button._progressTimer);
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || "開始分析 →";
+    button.classList.remove("loading");
+  }
+
+  return;
+}
+     
  if (data.error === "member_expired") {
   alert("使用權限已到期，請聯絡哈寶");
 
@@ -2688,8 +2701,58 @@ function showQuotaLimitModal(limit) {
 
   if (!modal) return;
 
-  if (numberEl) {
-    numberEl.textContent = limit;
+  const titleEl = modal.querySelector(".quota-modal-title");
+  const subtitleEl = modal.querySelector(".quota-modal-subtitle");
+  const labelEl = modal.querySelector(".quota-limit-label");
+  const resetEl = modal.querySelector(".quota-reset-text");
+
+  // 總剩餘分析次數已用完
+  if (limit === "credits_empty") {
+    if (titleEl) {
+      titleEl.textContent = "AI 分析次數已用完";
+    }
+
+    if (subtitleEl) {
+      subtitleEl.textContent = "您的剩餘 AI 分析次數已全部使用完畢";
+    }
+
+    if (labelEl) {
+      labelEl.textContent = "剩餘分析次數";
+    }
+
+    if (numberEl) {
+      numberEl.textContent = "0";
+    }
+
+    if (resetEl) {
+      resetEl.innerHTML =
+        "💬 請聯絡哈寶增加 AI 分析次數";
+    }
+  }
+
+  // 每日分析上限已用完
+  else {
+    if (titleEl) {
+      titleEl.textContent = "今日 AI 分析額度已用完";
+    }
+
+    if (subtitleEl) {
+      subtitleEl.textContent =
+        "您今天的 AI 分析次數已全部使用完畢";
+    }
+
+    if (labelEl) {
+      labelEl.textContent = "每日可分析";
+    }
+
+    if (numberEl) {
+      numberEl.textContent = limit;
+    }
+
+    if (resetEl) {
+      resetEl.innerHTML =
+        "🗓️ 明日 <strong>00:00</strong> 將自動恢復分析次數";
+    }
   }
 
   modal.classList.add("show");
