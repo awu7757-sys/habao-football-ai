@@ -2031,14 +2031,19 @@ const fixtures = (data.fixtures || []).filter(match =>
   )
 );
 
-    if (fixtures.length === 0) {
-      container.innerHTML = `
-        <div class="ai-note">
-          明日暫無符合條件的主要賽事。
-        </div>
-      `;
-      return;
-    }
+if (fixtures.length === 0) {
+  const emptyDateText =
+    offset === 0 ? "今日" :
+    offset === 1 ? "明日" :
+    "";
+
+  container.innerHTML = `
+    <div class="ai-note">
+      ${emptyDateText}暫無符合條件的主要賽事。
+    </div>
+  `;
+  return;
+}
 
     window.habaoFixtureMap = Object.fromEntries(
   fixtures.map(match => [String(match.fixtureId), match])
