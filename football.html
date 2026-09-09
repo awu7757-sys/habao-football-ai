@@ -2016,12 +2016,20 @@ container.innerHTML = `
       throw new Error(data.error || "賽事讀取失敗");
     }
 
-    const allowedLeagues = [
+   const allowedLeagues = [
+  // 五大聯賽
   { name: "Premier League", country: "England" },
   { name: "La Liga", country: "Spain" },
   { name: "Bundesliga", country: "Germany" },
   { name: "Serie A", country: "Italy" },
-  { name: "Ligue 1", country: "France" }
+  { name: "Ligue 1", country: "France" },
+
+  // 新增賽事
+  { name: "UEFA Champions League", country: "World" },
+  { name: "UEFA Europa League", country: "World" },
+  { name: "Championship", country: "England" },
+  { name: "Eredivisie", country: "Netherlands" },
+  { name: "Primeira Liga", country: "Portugal" }
 ];
 
 const fixtures = (data.fixtures || []).filter(match =>
