@@ -675,6 +675,14 @@ td{
     --
   </div>
 </div>
+
+<div class="stat">
+  <div class="stat-label">近 7 天平均 API</div>
+  <div id="avgApiUsage" class="stat-value">--</div>
+  <div id="apiUsageStatus" style="margin-top:6px;font-size:13px;color:#94a3b8;">
+    --
+  </div>
+</div>
       
     </div>
 
@@ -1527,6 +1535,32 @@ async function adminLogin(){
     
   const apiUsed = data.today_api_count ?? 0;
   const apiLimit = window.apiDailyLimit || 7500;
+    
+  const last7DaysApiCount = data.last_7_days_api_count ?? 0;
+  const avgDailyApiUsage = Math.ceil(last7DaysApiCount / 7);  
+  const remainingApi = Math.max(apiLimit - avgDailyApiUsage, 0);  
+    
+  const avgApiUsageEl = document.getElementById("avgApiUsage");
+  const apiUsageStatusEl = document.getElementById("apiUsageStatus");
+
+if (avgApiUsageEl) {
+  avgApiUsageEl.textContent = `${avgDailyApiUsage} / ${apiLimit}`;
+}
+
+if (apiUsageStatusEl) {
+  const avgPercent = (avgDailyApiUsage / apiLimit) * 100;
+
+  if (avgPercent >= 90) {
+    apiUsageStatusEl.textContent = `⚠️ 高用量｜平均剩餘 ${remainingApi} 次`;
+    apiUsageStatusEl.style.color = "#ff4d6d";
+  } else if (avgPercent >= 70) {
+    apiUsageStatusEl.textContent = `⚠️ 建議注意｜平均剩餘 ${remainingApi} 次`;
+    apiUsageStatusEl.style.color = "#f5b942";
+  } else {
+    apiUsageStatusEl.textContent = `✓ 用量正常｜平均剩餘 ${remainingApi} 次`;
+    apiUsageStatusEl.style.color = "#32e6a1";
+  }
+}  
 
 document
   .getElementById("todayApiCount")
