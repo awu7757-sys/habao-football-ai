@@ -749,6 +749,7 @@ td{
             <th>使用期限</th>
             <th>剩餘 AI 次數</th>
             <th>建立時間</th>
+            <th>最後登入時間</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -1678,6 +1679,12 @@ function renderMembers(){
         ${formatDate(member.created_at)}
 
       </td>
+
+      <td class="expire">
+
+  ${member.last_login_at ? formatDate(member.last_login_at) : "--"}
+
+</td>
 
       <td>
 
