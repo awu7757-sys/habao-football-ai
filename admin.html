@@ -665,8 +665,17 @@ td{
 </div> 
       <div class="stat">
   <div class="stat-label">今日 API 使用量</div>
-  <div id="todayApiCount" class="stat-value">0 / 100</div>
+ <div id="todayApiCount" class="stat-value">0 / --</div>
 </div>
+
+<div class="stat">
+  <div class="stat-label">API 續費</div>
+  <div id="apiRenewalDate" class="stat-value">--</div>
+  <div id="apiRenewalDays" style="margin-top:6px;font-size:13px;color:#94a3b8;">
+    --
+  </div>
+</div>
+      
     </div>
 
     <div class="toolbar-actions">
@@ -1118,6 +1127,43 @@ const BENEFITS_ADMIN_URL =
 
     if (!settings) return;
 
+    window.apiDailyLimit = Number(settings.api_daily_limit || 7500);
+    window.apiRenewalDate = settings.api_renewal_date || null;
+
+    const renewalDateEl = document.getElementById("apiRenewalDate");
+const renewalDaysEl = document.getElementById("apiRenewalDays");
+
+if (window.apiRenewalDate) {
+  const renewalDate = new Date(window.apiRenewalDate + "T00:00:00");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const daysLeft = Math.ceil(
+    (renewalDate - today) / (1000 * 60 * 60 * 24)
+  );
+
+  if (renewalDateEl) {
+    renewalDateEl.textContent = window.apiRenewalDate.replace(/-/g, "/");
+  }
+
+  if (renewalDaysEl) {
+    if (daysLeft < 0) {
+      renewalDaysEl.textContent = "已到期，請續費";
+      renewalDaysEl.style.color = "#ff4d6d";
+    } else if (daysLeft <= 3) {
+      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
+      renewalDaysEl.style.color = "#ff4d6d";
+    } else if (daysLeft <= 7) {
+      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
+      renewalDaysEl.style.color = "#f5b942";
+    } else {
+      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
+      renewalDaysEl.style.color = "#32e6a1";
+    }
+  }
+}
+
     const normalEl = document.getElementById("normalAnnouncement");
     const maintenanceEl = document.getElementById("maintenanceAnnouncement");
 
@@ -1467,6 +1513,8 @@ async function adminLogin(){
 
   try{
 
+    await loadAnnouncementSettings();
+
     const data =
       await apiRequest({
         action:"list"
@@ -1478,7 +1526,7 @@ async function adminLogin(){
   .textContent = data.today_analysis_count ?? 0;
     
   const apiUsed = data.today_api_count ?? 0;
-const apiLimit = 100;
+  const apiLimit = window.apiDailyLimit || 7500;
 
 document
   .getElementById("todayApiCount")
@@ -1505,7 +1553,7 @@ if (apiPercent >= 90) {
 
     renderMembers();
 loadBenefitsAdmin();
-loadAnnouncementSettings();
+
 
   }catch(error){
 
@@ -1549,6 +1597,8 @@ async function loadMembers(){
   loading.classList.remove("hidden");
 
   try{
+    
+    await loadAnnouncementSettings();
 
     const data=
       await apiRequest({
@@ -1560,9 +1610,12 @@ async function loadMembers(){
   .getElementById("todayAnalysisCount")
   .textContent = data.today_analysis_count ?? 0;
    
+  const apiUsed = data.today_api_count ?? 0;
+  const apiLimit = window.apiDailyLimit || 7500;
+
   document
   .getElementById("todayApiCount")
-  .textContent = data.today_api_count ?? 0;
+  .textContent = `${apiUsed} / ${apiLimit}`;
     
     renderMembers();
 
