@@ -2033,12 +2033,7 @@ container.innerHTML = `
   { name: "Primeira Liga", country: "Portugal" }
 ];
 
-const fixtures = (data.fixtures || []).filter(match =>
-  allowedLeagues.some(league =>
-    league.name === match.league?.name &&
-    league.country === match.league?.country
-  )
-);
+const fixtures = data.fixtures || [];
 
 if (fixtures.length === 0) {
   const emptyDateText =
