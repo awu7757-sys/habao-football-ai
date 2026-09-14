@@ -1032,17 +1032,27 @@ td{
 
     <div id="creditsModalAccount" class="modal-account"></div>
 
-    <label class="label">剩餘分析次數</label>
+ <label class="label">剩餘分析次數</label>
 
-    <input
-      id="editCredits"
-      class="input"
-      type="number"
-      min="0"
-      step="1"
-      placeholder="例如：3"
-    >
-    <label class="label" style="margin-top:16px;">
+<input
+  id="editCredits"
+  class="input"
+  type="number"
+  min="0"
+  step="1"
+  placeholder="例如：3"
+>
+
+<label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+  <input
+    type="checkbox"
+    id="editCreditsUnlimited"
+    onchange="toggleCreditsUnlimited()"
+  >
+  無限制總次數
+</label>
+
+<label class="label" style="margin-top:16px;">
   每日分析上限
 </label>
 
@@ -1054,6 +1064,15 @@ td{
   step="1"
   placeholder="例如：3"
 >
+
+<label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+  <input
+    type="checkbox"
+    id="editDailyUnlimited"
+    onchange="toggleDailyUnlimited()"
+  >
+  每日無限制
+</label>
     
     <div class="modal-actions">
 
@@ -2007,6 +2026,24 @@ async function saveExpire(){
 
 }
 
+function toggleCreditsUnlimited(){
+  const checkbox = document.getElementById("editCreditsUnlimited");
+  const input = document.getElementById("editCredits");
+
+  if (!checkbox || !input) return;
+
+  input.disabled = checkbox.checked;
+}
+
+function toggleDailyUnlimited(){
+  const checkbox = document.getElementById("editDailyUnlimited");
+  const input = document.getElementById("editDailyLimit");
+
+  if (!checkbox || !input) return;
+
+  input.disabled = checkbox.checked;
+}
+  
 function openCreditsModal(id){
 
   const member =
@@ -2030,6 +2067,23 @@ function openCreditsModal(id){
   .getElementById("editDailyLimit")
   .value = member.daily_analysis_limit ?? 3;
 
+  const creditsUnlimitedEl =
+  document.getElementById("editCreditsUnlimited");
+
+const dailyUnlimitedEl =
+  document.getElementById("editDailyUnlimited");
+
+if (creditsUnlimitedEl) {
+  creditsUnlimitedEl.checked = member.analysis_unlimited === true;
+}
+
+if (dailyUnlimitedEl) {
+  dailyUnlimitedEl.checked = member.daily_analysis_unlimited === true;
+}
+
+toggleCreditsUnlimited();
+toggleDailyUnlimited();
+
   document
     .getElementById("creditsModal")
     .classList.remove("hidden");
@@ -2050,36 +2104,51 @@ async function saveCredits(){
 
   if(!editingMemberId) return;
 
+  const creditsUnlimited =
+    document.getElementById("editCreditsUnlimited")?.checked === true;
+
+  const dailyUnlimited =
+    document.getElementById("editDailyUnlimited")?.checked === true;
+
   const value = Number(
-    document
-      .getElementById("editCredits")
-      .value
+    document.getElementById("editCredits").value
   );
 
   const dailyLimit = Number(
-  document
-    .getElementById("editDailyLimit")
-    .value
-);
+    document.getElementById("editDailyLimit").value
+  );
 
-  if(!Number.isInteger(value) || value < 0){
+  if(
+    !creditsUnlimited &&
+    (!Number.isInteger(value) || value < 0)
+  ){
     alert("請輸入 0 以上的整數。");
     return;
   }
 
-  if(!Number.isInteger(dailyLimit) || dailyLimit < 1){
-  alert("每日分析上限請輸入 1 以上的整數。");
-  return;
-}
+  if(
+    !dailyUnlimited &&
+    (!Number.isInteger(dailyLimit) || dailyLimit < 1)
+  ){
+    alert("每日分析上限請輸入 1 以上的整數。");
+    return;
+  }
 
   try{
 
     await apiRequest({
-  action: "update_credits",
-  id: editingMemberId,
-  analysis_credits: value,
-  daily_analysis_limit: dailyLimit
-});
+
+      action:"update_credits",
+
+      id:editingMemberId,
+
+      analysis_credits:value,
+      daily_analysis_limit:dailyLimit,
+
+      analysis_unlimited:creditsUnlimited,
+      daily_analysis_unlimited:dailyUnlimited
+
+    });
 
     closeCreditsModal();
 
