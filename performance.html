@@ -1,1 +1,1606 @@
-<!-- 哈寶 AI 公開戰績中心 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta name="theme-color" content="#080b10" />
+
+  <title>哈寶 AI｜公開戰績中心</title>
+
+  <style>
+    :root {
+      --bg: #080b10;
+      --bg-soft: #0d1118;
+      --card: #111720;
+      --card-2: #151d28;
+      --border: rgba(255, 255, 255, 0.08);
+
+      --text: #f5f7fa;
+      --muted: #8e99a8;
+
+      --gold: #f2bd4b;
+      --gold-soft: rgba(242, 189, 75, 0.12);
+
+      --green: #36d67a;
+      --green-soft: rgba(54, 214, 122, 0.12);
+
+      --red: #ff6262;
+      --red-soft: rgba(255, 98, 98, 0.12);
+
+      --blue: #5aa7ff;
+
+      --radius: 22px;
+      --radius-small: 15px;
+
+      --max-width: 720px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "PingFang TC",
+        "Microsoft JhengHei",
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(242, 189, 75, 0.12),
+          transparent 34%
+        ),
+        linear-gradient(
+          180deg,
+          #0b0f15 0%,
+          #080b10 42%,
+          #07090d 100%
+        );
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+
+      padding:
+        calc(18px + env(safe-area-inset-top))
+        16px
+        calc(40px + env(safe-area-inset-bottom));
+    }
+
+    /* =========================
+       Header
+    ========================= */
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 45px;
+      height: 45px;
+      flex: 0 0 auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 15px;
+
+      color: #171006;
+      font-size: 22px;
+      font-weight: 900;
+
+      background:
+        linear-gradient(
+          145deg,
+          #ffe091,
+          #e8a92f
+        );
+
+      box-shadow:
+        0 8px 24px rgba(242, 189, 75, 0.16);
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .back-btn {
+      border: 1px solid var(--border);
+      border-radius: 13px;
+
+      padding: 9px 12px;
+
+      color: #d8dee8;
+      background: rgba(255, 255, 255, 0.035);
+
+      cursor: pointer;
+    }
+
+    /* =========================
+       Hero
+    ========================= */
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+
+      padding: 24px 20px;
+      margin-bottom: 16px;
+
+      border: 1px solid rgba(242, 189, 75, 0.16);
+      border-radius: 26px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(242, 189, 75, 0.12),
+          rgba(255, 255, 255, 0.025) 46%,
+          rgba(90, 167, 255, 0.04)
+        );
+
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.18);
+    }
+
+    .hero::after {
+      content: "";
+
+      position: absolute;
+      width: 170px;
+      height: 170px;
+
+      top: -80px;
+      right: -70px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(242, 189, 75, 0.20),
+          transparent 68%
+        );
+
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 6px 10px;
+
+      border: 1px solid rgba(242, 189, 75, 0.18);
+      border-radius: 999px;
+
+      color: var(--gold);
+      background: var(--gold-soft);
+
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+    }
+
+    .hero h1 {
+      margin: 15px 0 8px;
+
+      font-size: clamp(27px, 7vw, 38px);
+      line-height: 1.12;
+      letter-spacing: -1px;
+    }
+
+    .hero p {
+      margin: 0;
+
+      max-width: 520px;
+
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .verified-box {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+
+      margin-top: 24px;
+    }
+
+    .verified-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .verified-number {
+      margin-top: 4px;
+
+      color: var(--gold);
+      font-size: 39px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .verified-unit {
+      margin-left: 5px;
+
+      color: #c6ced9;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 11px;
+
+      border-radius: 999px;
+
+      color: #9ce8bb;
+      background: var(--green-soft);
+
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+      background: var(--green);
+
+      box-shadow:
+        0 0 0 4px rgba(54, 214, 122, 0.10);
+    }
+
+    /* =========================
+       Section
+    ========================= */
+
+    .section {
+      margin-top: 23px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* =========================
+       Stats
+    ========================= */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      min-width: 0;
+
+      padding: 17px 12px;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0.012)
+        );
+
+      text-align: center;
+    }
+
+    .stat-icon {
+      width: 35px;
+      height: 35px;
+
+      margin: 0 auto 10px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 12px;
+
+      color: var(--gold);
+      background: var(--gold-soft);
+
+      font-size: 17px;
+    }
+
+    .stat-name {
+      color: #cbd2dc;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .stat-rate {
+      margin-top: 8px;
+
+      font-size: clamp(22px, 6vw, 30px);
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .stat-total {
+      margin-top: 5px;
+
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    /* =========================
+       Information
+    ========================= */
+
+    .info-card {
+      display: flex;
+      gap: 12px;
+
+      padding: 15px 16px;
+
+      border: 1px solid rgba(90, 167, 255, 0.10);
+      border-radius: 17px;
+
+      color: #b6c0ce;
+      background: rgba(90, 167, 255, 0.055);
+
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .info-icon {
+      flex: 0 0 auto;
+      color: var(--blue);
+    }
+
+    /* =========================
+       Match list
+    ========================= */
+
+    .match-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .match-card {
+      overflow: hidden;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0.012)
+        );
+    }
+
+    .match-main {
+      padding: 16px;
+    }
+
+    .match-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+
+      margin-bottom: 14px;
+    }
+
+    .league {
+      overflow: hidden;
+
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .date {
+      flex: 0 0 auto;
+
+      color: #7f8a99;
+      font-size: 10px;
+    }
+
+    .teams {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .team {
+      min-width: 0;
+
+      color: #edf1f6;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .team.away {
+      text-align: right;
+    }
+
+    .score {
+      padding: 7px 10px;
+
+      border: 1px solid rgba(242, 189, 75, 0.14);
+      border-radius: 10px;
+
+      color: var(--gold);
+      background: var(--gold-soft);
+
+      font-size: 17px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .markets {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+
+      border-top: 1px solid var(--border);
+    }
+
+    .market {
+      min-width: 0;
+
+      padding: 12px 8px;
+
+      text-align: center;
+    }
+
+    .market + .market {
+      border-left: 1px solid var(--border);
+    }
+
+    .market-name {
+      margin-bottom: 6px;
+
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .market-pick {
+      overflow: hidden;
+
+      color: #e4e9ef;
+      font-size: 11px;
+      font-weight: 800;
+
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .result {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 18px;
+      height: 18px;
+
+      margin-left: 4px;
+
+      border-radius: 6px;
+
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .result.win {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .result.loss {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .result.push,
+    .result.half_win,
+    .result.half_loss {
+      color: var(--gold);
+      background: var(--gold-soft);
+    }
+
+    .result.pending {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* =========================
+       Empty / Loading / Error
+    ========================= */
+
+    .state-card {
+      padding: 35px 20px;
+
+      border: 1px dashed rgba(255, 255, 255, 0.10);
+      border-radius: var(--radius);
+
+      text-align: center;
+
+      background: rgba(255, 255, 255, 0.018);
+    }
+
+    .state-icon {
+      margin-bottom: 12px;
+
+      font-size: 31px;
+    }
+
+    .state-title {
+      margin-bottom: 6px;
+
+      color: #e6ebf1;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .state-text {
+      max-width: 400px;
+      margin: 0 auto;
+
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .loader {
+      width: 28px;
+      height: 28px;
+
+      margin: 0 auto 14px;
+
+      border: 3px solid rgba(255, 255, 255, 0.08);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .retry-btn {
+      margin-top: 14px;
+      padding: 9px 14px;
+
+      border: 0;
+      border-radius: 11px;
+
+      color: #151006;
+      background: var(--gold);
+
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    /* =========================
+       Footer
+    ========================= */
+
+    .footer {
+      margin-top: 28px;
+
+      color: #626c79;
+      font-size: 10px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    @media (max-width: 430px) {
+      .app {
+        padding-left: 13px;
+        padding-right: 13px;
+      }
+
+      .hero {
+        padding: 21px 17px;
+      }
+
+      .stats-grid {
+        gap: 8px;
+      }
+
+      .stat-card {
+        padding: 15px 7px;
+      }
+
+      .market {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="app">
+
+    <!-- Header -->
+    <header class="topbar">
+
+      <div class="brand">
+        <div class="brand-logo">H</div>
+
+        <div class="brand-text">
+          <div class="brand-title">哈寶足球 AI</div>
+          <div class="brand-subtitle">AI 公開戰績中心</div>
+        </div>
+      </div>
+
+      <button
+        class="back-btn"
+        type="button"
+        onclick="goBack()"
+      >
+        返回
+      </button>
+
+    </header>
+
+
+    <!-- Hero -->
+    <section class="hero">
+
+      <div class="hero-kicker">
+        ● AI PERFORMANCE
+      </div>
+
+      <h1>公開戰績</h1>
+
+      <p>
+        AI 賽前預測於比賽結束後自動比對正式賽果，
+        公開呈現已驗證的分析結果。
+      </p>
+
+      <div class="verified-box">
+
+        <div>
+          <div class="verified-label">
+            已驗證賽事
+          </div>
+
+          <div>
+            <span
+              class="verified-number"
+              id="verifiedMatches"
+            >
+              --
+            </span>
+
+            <span class="verified-unit">
+              場
+            </span>
+          </div>
+        </div>
+
+        <div class="live-status">
+          <span class="live-dot"></span>
+          自動更新
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- Market stats -->
+    <section class="section">
+
+      <div class="section-head">
+        <h2 class="section-title">
+          AI 市場表現
+        </h2>
+
+        <div class="section-note">
+          已結算資料
+        </div>
+      </div>
+
+      <div class="stats-grid">
+
+        <article class="stat-card">
+          <div class="stat-icon">1X2</div>
+
+          <div class="stat-name">
+            獨贏
+          </div>
+
+          <div
+            class="stat-rate"
+            id="moneylineRate"
+          >
+            --
+          </div>
+
+          <div
+            class="stat-total"
+            id="moneylineTotal"
+          >
+            0 次驗證
+          </div>
+        </article>
+
+
+        <article class="stat-card">
+          <div class="stat-icon">O/U</div>
+
+          <div class="stat-name">
+            大小分
+          </div>
+
+          <div
+            class="stat-rate"
+            id="overUnderRate"
+          >
+            --
+          </div>
+
+          <div
+            class="stat-total"
+            id="overUnderTotal"
+          >
+            0 次驗證
+          </div>
+        </article>
+
+
+        <article class="stat-card">
+          <div class="stat-icon">BTTS</div>
+
+          <div class="stat-name">
+            雙方進球
+          </div>
+
+          <div
+            class="stat-rate"
+            id="bttsRate"
+          >
+            --
+          </div>
+
+          <div
+            class="stat-total"
+            id="bttsTotal"
+          >
+            0 次驗證
+          </div>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- Explanation -->
+    <section class="section">
+
+      <div class="info-card">
+
+        <div class="info-icon">
+          ⓘ
+        </div>
+
+        <div>
+          戰績依 AI 賽前保存的預測快照與正式完場比分自動驗證。
+          尚未完賽的賽事不計入命中率。
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- Match history -->
+    <section class="section">
+
+      <div class="section-head">
+
+        <h2 class="section-title">
+          賽事驗證紀錄
+        </h2>
+
+        <div
+          class="section-note"
+          id="matchCountText"
+        >
+          --
+        </div>
+
+      </div>
+
+
+      <div
+        class="match-list"
+        id="matchList"
+      >
+
+        <div class="state-card">
+
+          <div class="loader"></div>
+
+          <div class="state-title">
+            正在讀取 AI 戰績
+          </div>
+
+          <div class="state-text">
+            正在同步最新驗證資料...
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <footer class="footer">
+      哈寶足球 AI｜數據僅呈現系統歷史分析與驗證結果<br />
+      過往結果不代表未來表現
+    </footer>
+
+  </main>
+
+
+  <script>
+    /*
+     * =========================================
+     * 哈寶 AI 公開戰績中心
+     * =========================================
+     *
+     * 之後若更換 Supabase 專案，
+     * 只需要修改下面這一個網址。
+     */
+
+      const AI_PERFORMANCE_API =
+      "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
+
+
+    /*
+     * =========================================
+     * 返回
+     * =========================================
+     */
+
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+
+      window.location.href = "home.html";
+    }
+
+
+    /*
+     * =========================================
+     * 小工具
+     * =========================================
+     */
+
+    function safeNumber(value) {
+      const number = Number(value);
+
+      return Number.isFinite(number)
+        ? number
+        : 0;
+    }
+
+
+    function displayRate(value, total) {
+      if (!total) {
+        return "--";
+      }
+
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        return "--";
+      }
+
+      return `${number.toFixed(1)}%`;
+    }
+
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function formatDate(value) {
+      if (!value) {
+        return "--";
+      }
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return "--";
+      }
+
+      return new Intl.DateTimeFormat(
+        "zh-TW",
+        {
+          timeZone: "Asia/Taipei",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }
+      ).format(date);
+    }
+
+
+    /*
+     * =========================================
+     * 結算顯示
+     * =========================================
+     */
+
+    function normalizeResult(value) {
+      const text = String(value ?? "")
+        .trim()
+        .toLowerCase();
+
+      if (
+        text === "win" ||
+        text === "won"
+      ) {
+        return "win";
+      }
+
+      if (
+        text === "loss" ||
+        text === "lose" ||
+        text === "lost"
+      ) {
+        return "loss";
+      }
+
+      if (text === "push") {
+        return "push";
+      }
+
+      if (
+        text === "half_win" ||
+        text === "half-win"
+      ) {
+        return "half_win";
+      }
+
+      if (
+        text === "half_loss" ||
+        text === "half-loss"
+      ) {
+        return "half_loss";
+      }
+
+      return "pending";
+    }
+
+
+    function resultLabel(value) {
+      const result = normalizeResult(value);
+
+      const labels = {
+        win: "✓",
+        loss: "✕",
+        push: "走",
+        half_win: "半贏",
+        half_loss: "半輸",
+        pending: "待"
+      };
+
+      return labels[result];
+    }
+
+
+    function getSettlementResult(
+      settlement,
+      market
+    ) {
+      if (!settlement) {
+        return null;
+      }
+
+      const value = settlement[market];
+
+      if (
+        value &&
+        typeof value === "object"
+      ) {
+        return (
+          value.result ??
+          value.status ??
+          value.outcome ??
+          null
+        );
+      }
+
+      return value ?? null;
+    }
+
+
+    /*
+     * =========================================
+     * 預測內容
+     * =========================================
+     */
+
+    function getPredictionPick(
+      prediction,
+      market
+    ) {
+      if (!prediction) {
+        return "--";
+      }
+
+      /*
+       * 支援目前 AI JSON，
+       * 同時保留未來格式調整空間。
+       */
+
+      const direct =
+        prediction[market];
+
+      if (
+        direct &&
+        typeof direct === "object"
+      ) {
+        return (
+          direct.pick ??
+          direct.prediction ??
+          direct.value ??
+          "--"
+        );
+      }
+
+      if (typeof direct === "string") {
+        return direct;
+      }
+
+      /*
+       * 若 prediction 外層有 predictions
+       */
+      const nested =
+        prediction?.predictions?.[market];
+
+      if (
+        nested &&
+        typeof nested === "object"
+      ) {
+        return (
+          nested.pick ??
+          nested.prediction ??
+          nested.value ??
+          "--"
+        );
+      }
+
+      if (typeof nested === "string") {
+        return nested;
+      }
+
+      return "--";
+    }
+
+
+    /*
+     * =========================================
+     * 更新上方統計
+     * =========================================
+     */
+
+    function updateMarketCard(
+      market,
+      rateElementId,
+      totalElementId
+    ) {
+      const total =
+        safeNumber(market?.total);
+
+      const rate =
+        market?.hit_rate;
+
+      document.getElementById(
+        rateElementId
+      ).textContent =
+        displayRate(rate, total);
+
+      document.getElementById(
+        totalElementId
+      ).textContent =
+        `${total} 次驗證`;
+    }
+
+
+    /*
+     * =========================================
+     * 產生單場比賽
+     * =========================================
+     */
+
+    function createMarketHtml(
+      title,
+      pick,
+      result
+    ) {
+      const normalized =
+        normalizeResult(result);
+
+      return `
+        <div class="market">
+
+          <div class="market-name">
+            ${escapeHtml(title)}
+          </div>
+
+          <div class="market-pick">
+
+            ${escapeHtml(pick)}
+
+            <span
+              class="result ${normalized}"
+            >
+              ${escapeHtml(
+                resultLabel(result)
+              )}
+            </span>
+
+          </div>
+
+        </div>
+      `;
+    }
+
+
+    function createMatchCard(match) {
+      const home =
+        match?.home_team || "主隊";
+
+      const away =
+        match?.away_team || "客隊";
+
+      const league =
+        match?.league_name || "足球賽事";
+
+      const homeScore =
+        match?.final_score?.home ??
+        match?.home_score ??
+        "-";
+
+      const awayScore =
+        match?.final_score?.away ??
+        match?.away_score ??
+        "-";
+
+      const prediction =
+        match?.prediction || {};
+
+      const settlement =
+        match?.settlement || {};
+
+      const moneylinePick =
+        getPredictionPick(
+          prediction,
+          "moneyline"
+        );
+
+      const overUnderPick =
+        getPredictionPick(
+          prediction,
+          "over_under"
+        );
+
+      const bttsPick =
+        getPredictionPick(
+          prediction,
+          "btts"
+        );
+
+      const moneylineResult =
+        getSettlementResult(
+          settlement,
+          "moneyline"
+        );
+
+      const overUnderResult =
+        getSettlementResult(
+          settlement,
+          "over_under"
+        );
+
+      const bttsResult =
+        getSettlementResult(
+          settlement,
+          "btts"
+        );
+
+      return `
+        <article class="match-card">
+
+          <div class="match-main">
+
+            <div class="match-top">
+
+              <div class="league">
+                ${escapeHtml(league)}
+              </div>
+
+              <div class="date">
+                ${escapeHtml(
+                  formatDate(
+                    match?.kickoff_at
+                  )
+                )}
+              </div>
+
+            </div>
+
+
+            <div class="teams">
+
+              <div class="team home">
+                ${escapeHtml(home)}
+              </div>
+
+              <div class="score">
+                ${escapeHtml(homeScore)}
+                -
+                ${escapeHtml(awayScore)}
+              </div>
+
+              <div class="team away">
+                ${escapeHtml(away)}
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="markets">
+
+            ${createMarketHtml(
+              "獨贏",
+              moneylinePick,
+              moneylineResult
+            )}
+
+            ${createMarketHtml(
+              "大小分",
+              overUnderPick,
+              overUnderResult
+            )}
+
+            ${createMarketHtml(
+              "BTTS",
+              bttsPick,
+              bttsResult
+            )}
+
+          </div>
+
+        </article>
+      `;
+    }
+
+
+    /*
+     * =========================================
+     * 空資料
+     * =========================================
+     */
+
+    function showEmptyState() {
+      const list =
+        document.getElementById(
+          "matchList"
+        );
+
+      list.innerHTML = `
+        <div class="state-card">
+
+          <div class="state-icon">
+            ⚽
+          </div>
+
+          <div class="state-title">
+            等待首批賽事驗證
+          </div>
+
+          <div class="state-text">
+            AI 預測已開始建立賽前快照。
+            比賽完賽並完成自動驗證後，
+            戰績會直接顯示在這裡。
+          </div>
+
+        </div>
+      `;
+    }
+
+
+    /*
+     * =========================================
+     * 錯誤狀態
+     * =========================================
+     */
+
+    function showErrorState(message) {
+      const list =
+        document.getElementById(
+          "matchList"
+        );
+
+      list.innerHTML = `
+        <div class="state-card">
+
+          <div class="state-icon">
+            !
+          </div>
+
+          <div class="state-title">
+            戰績資料暫時無法讀取
+          </div>
+
+          <div class="state-text">
+            ${escapeHtml(message)}
+          </div>
+
+          <button
+            type="button"
+            class="retry-btn"
+            onclick="loadPerformance()"
+          >
+            重新整理
+          </button>
+
+        </div>
+      `;
+    }
+
+
+    /*
+     * =========================================
+     * 主程式
+     * =========================================
+     */
+
+    async function loadPerformance() {
+
+      try {
+
+        const response =
+          await fetch(
+            AI_PERFORMANCE_API,
+            {
+              method: "GET",
+              headers: {
+                "Accept": "application/json"
+              },
+              cache: "no-store"
+            }
+          );
+
+
+        if (!response.ok) {
+          throw new Error(
+            `API 回傳 ${response.status}`
+          );
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (!data?.success) {
+          throw new Error(
+            data?.error ||
+            "API 回傳失敗"
+          );
+        }
+
+
+        /*
+         * 已驗證場次
+         */
+
+        const verifiedMatches =
+          safeNumber(
+            data?.summary
+              ?.verified_matches
+          );
+
+        document.getElementById(
+          "verifiedMatches"
+        ).textContent =
+          verifiedMatches;
+
+
+        /*
+         * 三大市場
+         */
+
+        updateMarketCard(
+          data?.markets?.moneyline,
+          "moneylineRate",
+          "moneylineTotal"
+        );
+
+        updateMarketCard(
+          data?.markets?.over_under,
+          "overUnderRate",
+          "overUnderTotal"
+        );
+
+        updateMarketCard(
+          data?.markets?.btts,
+          "bttsRate",
+          "bttsTotal"
+        );
+
+
+        /*
+         * 比賽紀錄
+         */
+
+        const matches =
+          Array.isArray(data?.matches)
+            ? data.matches
+            : [];
+
+
+        document.getElementById(
+          "matchCountText"
+        ).textContent =
+          `${matches.length} 場`;
+
+
+        if (matches.length === 0) {
+          showEmptyState();
+          return;
+        }
+
+
+        document.getElementById(
+          "matchList"
+        ).innerHTML =
+          matches
+            .map(createMatchCard)
+            .join("");
+
+
+      } catch (error) {
+
+        console.error(
+          "AI PERFORMANCE ERROR:",
+          error
+        );
+
+        document.getElementById(
+          "verifiedMatches"
+        ).textContent =
+          "--";
+
+        document.getElementById(
+          "matchCountText"
+        ).textContent =
+          "--";
+
+        showErrorState(
+          error?.message ||
+          "請稍後再試"
+        );
+      }
+    }
+
+
+    /*
+     * 頁面開啟後讀取資料
+     */
+
+    loadPerformance();
+
+  </script>
+
+</body>
+</html>
