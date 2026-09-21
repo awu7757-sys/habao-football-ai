@@ -2645,6 +2645,61 @@
       }
 
     }
+
+/* =====================================
+   HABAO V2｜FOCUS TEAM LOGO
+===================================== */
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team.away {
+  justify-content: flex-end;
+}
+
+.v2-team-logo {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+
+  object-fit: contain;
+
+  padding: 4px;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.025)
+    );
+
+  border:
+    1px solid
+    rgba(255,211,112,.18);
+
+  box-shadow:
+    0 7px 16px
+    rgba(0,0,0,.28);
+}
+
+@media (max-width:520px) {
+
+  .v2-team-logo {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+  }
+
+  .team {
+    gap: 7px;
+  }
+
+}
     
   </style>
 </head>
@@ -2875,167 +2930,36 @@
 
       </div>
 
-
-      <div class="match-list">
-
-
-        <article class="match-card">
-
-          <div class="match-top">
-
-            <div class="league">
-
-              <span class="league-icon">
-
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                  />
-                  <path
-                    d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"
-                  />
-                </svg>
-
-              </span>
-
-              今日賽事
-
-            </div>
-
-
-            <div class="match-time">
-              等待串接
-            </div>
-
-          </div>
-
-
-          <div class="teams">
-
-            <div class="team">
-              主隊
-            </div>
-
-            <div class="vs">
-              VS
-            </div>
-
-            <div class="team away">
-              客隊
-            </div>
-
-          </div>
-
-
-          <div class="match-bottom">
-
-            <div class="match-status">
-
-              <span class="mini-dot"></span>
-
-              AI 分析可用
-
-            </div>
-
-
-            <a
-              href="football.html"
-              class="analyse"
-            >
-              開始分析
-              <span>→</span>
-            </a>
-
-          </div>
-
-        </article>
-
-
-        <article class="match-card">
-
-          <div class="match-top">
-
-            <div class="league">
-
-              <span class="league-icon">
-
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                  />
-                  <path
-                    d="M12 7v5l3 2"
-                  />
-                </svg>
-
-              </span>
-
-              即將開賽
-
-            </div>
-
-
-            <div class="match-time">
-              --
-            </div>
-
-          </div>
-
-
-          <div class="teams">
-
-            <div class="team">
-              主隊
-            </div>
-
-            <div class="vs">
-              VS
-            </div>
-
-            <div class="team away">
-              客隊
-            </div>
-
-          </div>
-
-
-          <div class="match-bottom">
-
-            <div class="match-status">
-
-              <span class="mini-dot"></span>
-
-              數據準備中
-
-            </div>
-
-
-            <a
-              href="football.html"
-              class="analyse"
-            >
-              查看賽事
-              <span>→</span>
-            </a>
-
-          </div>
-
-        </article>
-
-
+<div
+  class="match-list"
+  id="v2FocusMatches"
+>
+  <article class="match-card">
+    <div class="match-top">
+      <div class="league">
+        今日焦點
       </div>
+
+      <div class="match-time">
+        賽事載入中...
+      </div>
+    </div>
+
+    <div class="teams">
+      <div class="team">
+        --
+      </div>
+
+      <div class="vs">
+        VS
+      </div>
+
+      <div class="team away">
+        --
+      </div>
+    </div>
+  </article>
+</div>
 
     </section>
 
@@ -3832,6 +3756,8 @@ async function loadV2TodayFixturesCount() {
 
     window.v2TodayFixtures =
       fixtures;
+    
+    renderV2FocusMatches(fixtures);
 
 
   } catch (error) {
@@ -3956,6 +3882,389 @@ async function loadV2AnalysisCount() {
 
     countEl.textContent =
       "--";
+
+  }
+
+}
+
+/* =========================================
+   HABAO V2｜今日焦點真實賽事
+========================================= */
+
+function renderV2FocusMatches(fixtures) {
+
+  const container =
+    document.getElementById(
+      "v2FocusMatches"
+    );
+
+  if (!container) return;
+
+
+  if (
+    !Array.isArray(fixtures) ||
+    fixtures.length === 0
+  ) {
+
+    container.innerHTML = `
+      <article class="match-card">
+
+        <div class="match-top">
+
+          <div class="league">
+            今日賽事
+          </div>
+
+          <div class="match-time">
+            暫無賽事
+          </div>
+
+        </div>
+
+        <div class="teams">
+
+          <div class="team">
+            今日暫無主要賽事
+          </div>
+
+        </div>
+
+      </article>
+    `;
+
+    return;
+  }
+
+
+  /*
+    優先顯示尚未完賽的比賽。
+    若今天全部完賽，再顯示原始列表。
+  */
+
+  const finishedStatuses =
+    new Set([
+      "FT",
+      "AET",
+      "PEN",
+      "AWD",
+      "WO"
+    ]);
+
+
+  const upcoming =
+    fixtures.filter(match =>
+      !finishedStatuses.has(
+        String(
+          match?.status || ""
+        ).toUpperCase()
+      )
+    );
+
+
+  const source =
+    upcoming.length
+      ? upcoming
+      : fixtures;
+
+
+  /*
+    按開賽時間排序，
+    首頁只顯示前兩場。
+  */
+
+  const focusMatches =
+    [...source]
+      .sort((a, b) => {
+
+        const timeA =
+          new Date(
+            a?.time || 0
+          ).getTime();
+
+        const timeB =
+          new Date(
+            b?.time || 0
+          ).getTime();
+
+        return timeA - timeB;
+
+      })
+      .slice(0, 2);
+
+
+  container.innerHTML =
+    focusMatches
+      .map(match =>
+        createV2FocusMatchCard(match)
+      )
+      .join("");
+
+}
+
+
+/* =========================================
+   建立單張焦點賽事卡
+========================================= */
+
+function createV2FocusMatchCard(match) {
+
+  const home =
+    match?.home || {};
+
+  const away =
+    match?.away || {};
+
+  const league =
+    match?.league || {};
+
+
+  const fixtureId =
+    match?.fixtureId || "";
+
+
+  const gameTime =
+    match?.time
+      ? new Date(match.time)
+      : null;
+
+
+  const timeText =
+    gameTime &&
+    !Number.isNaN(
+      gameTime.getTime()
+    )
+      ? gameTime.toLocaleTimeString(
+          "zh-TW",
+          {
+            timeZone:
+              "Asia/Taipei",
+
+            hour:
+              "2-digit",
+
+            minute:
+              "2-digit",
+
+            hour12:
+              false
+          }
+        )
+      : "--:--";
+
+
+  const leagueText =
+    escapeV2HTML(
+      league.name ||
+      "足球賽事"
+    );
+
+
+  const homeName =
+    escapeV2HTML(
+      home.name ||
+      "主隊"
+    );
+
+
+  const awayName =
+    escapeV2HTML(
+      away.name ||
+      "客隊"
+    );
+
+
+  const homeLogo =
+    safeV2ImageURL(
+      home.logo
+    );
+
+
+  const awayLogo =
+    safeV2ImageURL(
+      away.logo
+    );
+
+
+  const status =
+    String(
+      match?.status || ""
+    ).toUpperCase();
+
+
+  const finished =
+    [
+      "FT",
+      "AET",
+      "PEN",
+      "AWD",
+      "WO"
+    ].includes(status);
+
+
+  return `
+    <article class="match-card">
+
+      <div class="match-top">
+
+        <div class="league">
+
+          <span class="league-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+              />
+
+              <path
+                d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"
+              />
+
+            </svg>
+
+          </span>
+
+          ${leagueText}
+
+        </div>
+
+
+        <div class="match-time">
+          ${timeText}
+        </div>
+
+      </div>
+
+
+      <div class="teams">
+
+        <div class="team">
+
+          ${
+            homeLogo
+              ? `
+                <img
+                  src="${homeLogo}"
+                  alt=""
+                  class="v2-team-logo"
+                >
+              `
+              : ""
+          }
+
+          <span>
+            ${homeName}
+          </span>
+
+        </div>
+
+
+        <div class="vs">
+          VS
+        </div>
+
+
+        <div class="team away">
+
+          ${
+            awayLogo
+              ? `
+                <img
+                  src="${awayLogo}"
+                  alt=""
+                  class="v2-team-logo"
+                >
+              `
+              : ""
+          }
+
+          <span>
+            ${awayName}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="match-bottom">
+
+        <div class="match-status">
+
+          <span class="mini-dot"></span>
+
+          ${
+            finished
+              ? "賽事已結束"
+              : "AI 分析可用"
+          }
+
+        </div>
+
+
+        <a
+          href="football.html"
+          class="analyse"
+        >
+
+          ${
+            finished
+              ? "查看賽事"
+              : "開始分析"
+          }
+
+          <span>→</span>
+
+        </a>
+
+      </div>
+
+    </article>
+  `;
+
+}
+
+
+/* =========================================
+   圖片網址安全處理
+========================================= */
+
+function safeV2ImageURL(value) {
+
+  if (!value) return "";
+
+  try {
+
+    const url =
+      new URL(
+        String(value),
+        window.location.href
+      );
+
+
+    if (
+      url.protocol !== "https:" &&
+      url.protocol !== "http:"
+    ) {
+
+      return "";
+
+    }
+
+
+    return escapeV2HTML(
+      url.href
+    );
+
+
+  } catch {
+
+    return "";
 
   }
 
