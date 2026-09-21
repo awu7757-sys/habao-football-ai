@@ -3415,5 +3415,314 @@
 
   </nav>
 
+<script>
+/* =========================================
+   HABAO V2｜真實資料
+========================================= */
+
+const MEMBER_LOGIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
+
+const AI_PERFORMANCE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
+
+const PUBLISHABLE_KEY =
+  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+
+/* ===============================
+   會員驗證
+================================ */
+
+async function verifyV2Member() {
+
+  const saved =
+    sessionStorage.getItem("habao_member");
+
+  if (!saved) {
+    window.location.href = "index.html";
+    return;
+  }
+
+
+  let member;
+
+  try {
+    member = JSON.parse(saved);
+  } catch {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+    return;
+  }
+
+
+  if (!member.account) {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+    return;
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        MEMBER_LOGIN_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+          },
+
+          body:
+            JSON.stringify({
+              account:
+                member.account
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success ||
+      !data.member
+    ) {
+
+      sessionStorage.clear();
+
+      window.location.href =
+        "index.html";
+
+      return;
+    }
+
+
+    updateV2Account(
+      data.member.account
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 MEMBER VERIFY ERROR:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ===============================
+   顯示會員帳號
+================================ */
+
+function updateV2Account(account) {
+
+  const accountBox =
+    document.querySelector(
+      ".account"
+    );
+
+  if (!accountBox) return;
+
+
+  accountBox.innerHTML = `
+    <span class="account-dot"></span>
+    ${escapeV2HTML(account)}
+  `;
+
+}
+
+
+/* ===============================
+   公開 AI 驗證數量
+================================ */
+
+async function loadV2Performance() {
+
+  const countEl =
+    document.getElementById(
+      "verifiedCount"
+    );
+
+  if (!countEl) return;
+
+
+  try {
+
+    const response =
+      await fetch(
+        AI_PERFORMANCE_URL,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+      throw new Error(
+        "AI performance request failed"
+      );
+    }
+
+
+    const data =
+      await response.json();
+
+
+    const count =
+      Number(
+        data?.summary
+          ?.verified_matches
+      );
+
+
+    if (
+      Number.isFinite(count)
+    ) {
+
+      animateV2Number(
+        countEl,
+        count
+      );
+
+    } else {
+
+      countEl.textContent =
+        "0";
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 PERFORMANCE ERROR:",
+      error
+    );
+
+    countEl.textContent =
+      "--";
+
+  }
+
+}
+
+
+/* ===============================
+   數字動畫
+================================ */
+
+function animateV2Number(
+  element,
+  target
+) {
+
+  const duration = 650;
+
+  const start =
+    performance.now();
+
+
+  function frame(now) {
+
+    const progress =
+      Math.min(
+        (now - start) /
+        duration,
+        1
+      );
+
+
+    const eased =
+      1 -
+      Math.pow(
+        1 - progress,
+        3
+      );
+
+
+    element.textContent =
+      Math.round(
+        target * eased
+      );
+
+
+    if (progress < 1) {
+      requestAnimationFrame(
+        frame
+      );
+    }
+
+  }
+
+
+  requestAnimationFrame(
+    frame
+  );
+
+}
+
+
+/* ===============================
+   HTML 安全處理
+================================ */
+
+function escapeV2HTML(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* ===============================
+   啟動
+================================ */
+
+verifyV2Member();
+
+loadV2Performance();
+
+</script>
+  
 </body>
 </html>
