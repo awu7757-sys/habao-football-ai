@@ -3941,55 +3941,125 @@ function renderV2FocusMatches(fixtures) {
     若今天全部完賽，再顯示原始列表。
   */
 
-  const finishedStatuses =
-    new Set([
-      "FT",
-      "AET",
-      "PEN",
-      "AWD",
-      "WO"
-    ]);
+const finishedStatuses =
+  new Set([
+    "FT",
+    "AET",
+    "PEN",
+    "AWD",
+    "WO"
+  ]);
 
 
-  const upcoming =
-    fixtures.filter(match =>
-      !finishedStatuses.has(
+const liveStatuses =
+  new Set([
+    "1H",
+    "HT",
+    "2H",
+    "ET",
+    "BT",
+    "P",
+    "INT",
+    "LIVE"
+  ]);
+
+
+const now =
+  Date.now();
+
+
+/*
+  1. 尚未開賽：
+     開賽時間還沒到，而且不是完賽狀態
+*/
+const upcoming =
+  fixtures
+    .filter(match => {
+
+      const status =
         String(
           match?.status || ""
-        ).toUpperCase()
-      )
+        ).toUpperCase();
+
+      const kickoff =
+        new Date(
+          match?.time || 0
+        ).getTime();
+
+      return (
+        !finishedStatuses.has(status) &&
+        !liveStatuses.has(status) &&
+        Number.isFinite(kickoff) &&
+        kickoff > now
+      );
+
+    })
+    .sort((a, b) =>
+      new Date(a.time).getTime() -
+      new Date(b.time).getTime()
     );
 
 
-  const source =
-    upcoming.length
-      ? upcoming
-      : fixtures;
+/*
+  2. 正在進行
+*/
+const live =
+  fixtures
+    .filter(match => {
+
+      const status =
+        String(
+          match?.status || ""
+        ).toUpperCase();
+
+      return liveStatuses.has(status);
+
+    })
+    .sort((a, b) =>
+      new Date(a.time).getTime() -
+      new Date(b.time).getTime()
+    );
 
 
-  /*
-    按開賽時間排序，
-    首頁只顯示前兩場。
-  */
+/*
+  3. 已完賽：
+     最近結束的排前面
+*/
+const finished =
+  fixtures
+    .filter(match => {
 
-  const focusMatches =
-    [...source]
-      .sort((a, b) => {
+      const status =
+        String(
+          match?.status || ""
+        ).toUpperCase();
 
-        const timeA =
-          new Date(
-            a?.time || 0
-          ).getTime();
+      return finishedStatuses.has(status);
 
-        const timeB =
-          new Date(
-            b?.time || 0
-          ).getTime();
+    })
+    .sort((a, b) =>
+      new Date(b.time).getTime() -
+      new Date(a.time).getTime()
+    );
 
-        return timeA - timeB;
 
-      })
-      .slice(0, 2);
+/*
+  首頁焦點優先順序：
+
+  即將開賽
+  ↓
+  正在進行
+  ↓
+  已完賽
+
+  最多兩場
+*/
+const focusMatches =
+  [
+    ...upcoming,
+    ...live,
+    ...finished
+  ].slice(0, 2);
 
 
   container.innerHTML =
