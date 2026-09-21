@@ -2816,7 +2816,7 @@
 
         <div
           class="quick-value"
-          id="analysedCount"
+          id="analysisCount"
         >
           --
         </div>
@@ -3722,6 +3722,235 @@ verifyV2Member();
 
 loadV2Performance();
 
+loadV2HomeStats();
+
+/* =========================================
+   HABAO V2｜首頁真實統計
+========================================= */
+
+const V2_FIXTURES_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/tomorrow-fixtures";
+
+const V2_HISTORY_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history";
+
+
+async function loadV2HomeStats() {
+
+  /* 今日賽事 */
+  loadV2TodayFixturesCount();
+
+  /* 我的已分析 */
+  loadV2AnalysisCount();
+
+}
+
+
+/* ===============================
+   今日賽事數量
+================================ */
+
+async function loadV2TodayFixturesCount() {
+
+  const countEl =
+    document.getElementById("todayMatchCount");
+
+  if (!countEl) return;
+
+  try {
+
+    const response =
+      await fetch(
+        V2_FIXTURES_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+          },
+
+          body:
+            JSON.stringify({
+              offset: 0
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "今日賽事讀取失敗"
+      );
+
+    }
+
+
+    const fixtures =
+      Array.isArray(data.fixtures)
+        ? data.fixtures
+        : [];
+
+
+    animateV2Number(
+      countEl,
+      fixtures.length
+    );
+
+
+    /*
+      順便保存今日賽事。
+      下一步「今日焦點」直接使用，
+      不需要再打一次 API。
+    */
+
+    window.v2TodayFixtures =
+      fixtures;
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 TODAY FIXTURES ERROR:",
+      error
+    );
+
+    countEl.textContent =
+      "--";
+
+  }
+
+}
+
+
+/* ===============================
+   我的已分析數量
+================================ */
+
+async function loadV2AnalysisCount() {
+
+  const countEl =
+    document.getElementById(
+      "analysisCount"
+    );
+
+  if (!countEl) return;
+
+
+  try {
+
+    const member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) || "null"
+      );
+
+
+    if (!member?.account) {
+
+      countEl.textContent =
+        "--";
+
+      return;
+
+    }
+
+
+    const response =
+      await fetch(
+        V2_HISTORY_URL +
+        "?account=" +
+        encodeURIComponent(
+          member.account
+        ),
+        {
+          method: "GET",
+
+          headers: {
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+
+          },
+
+          cache:
+            "no-store"
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "分析紀錄讀取失敗"
+      );
+
+    }
+
+
+    const matches =
+      Array.isArray(data.matches)
+        ? data.matches
+        : [];
+
+
+    animateV2Number(
+      countEl,
+      matches.length
+    );
+
+
+    /*
+      下一步「我的分析」頁面也能直接使用
+    */
+
+    window.v2AnalysisHistory =
+      matches;
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 ANALYSIS COUNT ERROR:",
+      error
+    );
+
+    countEl.textContent =
+      "--";
+
+  }
+
+}
+  
 </script>
   
 </body>
