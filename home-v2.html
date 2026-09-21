@@ -3691,52 +3691,6 @@ async function loadV2TodayFixturesCount() {
 
   if (!countEl) return;
 
-    /* 先顯示上一次成功取得的今日資料 */
-  try {
-
-    const cached =
-      JSON.parse(
-        sessionStorage.getItem(
-          "habao_v2_today_fixtures"
-        ) || "null"
-      );
-
-    if (
-      cached &&
-      cached.date ===
-        new Date().toLocaleDateString(
-          "en-CA",
-          {
-            timeZone: "Asia/Taipei"
-          }
-        ) &&
-      Array.isArray(cached.fixtures)
-    ) {
-
-      countEl.textContent =
-        cached.fixtures.length;
-
-      window.v2TodayFixtures =
-        cached.fixtures;
-
-      renderV2FocusMatches(
-        cached.fixtures
-      );
-
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "V2 FIXTURE CACHE READ:",
-      error
-    );
-
-  }
-
-
-  try {
-  
   try {
 
     const response =
@@ -3805,33 +3759,6 @@ async function loadV2TodayFixturesCount() {
     
     renderV2FocusMatches(fixtures);
 
-    try {
-
-  sessionStorage.setItem(
-    "habao_v2_today_fixtures",
-    JSON.stringify({
-      date:
-        new Date().toLocaleDateString(
-          "en-CA",
-          {
-            timeZone:
-              "Asia/Taipei"
-          }
-        ),
-
-      fixtures:
-        fixtures
-    })
-  );
-
-} catch (error) {
-
-  console.warn(
-    "V2 FIXTURE CACHE SAVE:",
-    error
-  );
-
-} 
 
   } catch (error) {
 
