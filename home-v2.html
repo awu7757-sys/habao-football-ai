@@ -34,6 +34,23 @@
       --red: #ff6565;
 
       --max-width: 720px;
+            --glass-top: rgba(24, 34, 47, .92);
+      --glass-bottom: rgba(8, 13, 20, .96);
+
+      --gold-glow: rgba(242, 189, 75, .32);
+      --blue-glow: rgba(70, 145, 255, .20);
+      --green-glow: rgba(60, 221, 130, .18);
+
+      --shadow-deep:
+        0 18px 45px rgba(0, 0, 0, .42);
+
+      --shadow-card:
+        0 12px 30px rgba(0, 0, 0, .30),
+        inset 0 1px 0 rgba(255, 255, 255, .07);
+
+      --shadow-gold:
+        0 10px 28px rgba(242, 189, 75, .20),
+        inset 0 1px 0 rgba(255, 255, 255, .28);
     }
 
     * {
@@ -1373,6 +1390,410 @@
       }
     }
 
+    /* =====================================
+       HABAO V2 - 3D VISUAL UPGRADE
+    ===================================== */
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+
+      background:
+        radial-gradient(
+          circle at 15% 12%,
+          rgba(54, 112, 190, .10),
+          transparent 24%
+        ),
+        radial-gradient(
+          circle at 85% 18%,
+          rgba(242, 189, 75, .09),
+          transparent 26%
+        );
+    }
+
+
+    /* HERO 立體玻璃 */
+
+    .hero {
+      border:
+        1px solid rgba(255, 220, 140, .24);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(31, 39, 51, .96) 0%,
+          rgba(13, 20, 29, .96) 42%,
+          rgba(8, 13, 20, .98) 100%
+        );
+
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, .45),
+        0 0 35px rgba(242, 189, 75, .07),
+        inset 0 1px 0 rgba(255, 255, 255, .10),
+        inset 0 -1px 0 rgba(0, 0, 0, .55);
+    }
+
+    .hero::before {
+      filter: blur(4px);
+    }
+
+
+    /* 主要金色按鈕立體化 */
+
+    .primary-btn {
+      border:
+        1px solid rgba(255, 235, 177, .62);
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffe8a7 0%,
+          #f4c354 38%,
+          #dc991e 100%
+        );
+
+      box-shadow:
+        0 12px 28px rgba(242, 189, 75, .27),
+        0 3px 0 rgba(127, 78, 8, .80),
+        inset 0 1px 0 rgba(255, 255, 255, .72),
+        inset 0 -2px 5px rgba(126, 74, 4, .20);
+
+      text-shadow:
+        0 1px 0 rgba(255, 255, 255, .25);
+    }
+
+    .primary-btn:hover {
+      transform:
+        translateY(-3px)
+        scale(1.01);
+
+      box-shadow:
+        0 17px 36px rgba(242, 189, 75, .35),
+        0 4px 0 rgba(127, 78, 8, .72),
+        inset 0 1px 0 rgba(255, 255, 255, .78);
+    }
+
+    .primary-btn:active {
+      transform:
+        translateY(2px)
+        scale(.985);
+
+      box-shadow:
+        0 5px 14px rgba(242, 189, 75, .20),
+        0 1px 0 rgba(127, 78, 8, .8),
+        inset 0 2px 5px rgba(111, 66, 5, .18);
+    }
+
+
+    /* 次要按鈕玻璃凸起 */
+
+    .secondary-btn {
+      border:
+        1px solid rgba(155, 189, 226, .22);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(36, 49, 65, .88),
+          rgba(14, 21, 31, .94)
+        );
+
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, .28),
+        0 2px 0 rgba(0, 0, 0, .45),
+        inset 0 1px 0 rgba(255, 255, 255, .10);
+    }
+
+    .secondary-btn:hover {
+      box-shadow:
+        0 14px 30px rgba(0, 0, 0, .35),
+        0 0 24px rgba(76, 145, 255, .10),
+        inset 0 1px 0 rgba(255, 255, 255, .12);
+    }
+
+
+    /* 上方三張數據卡 */
+
+    .quick-card {
+      border:
+        1px solid rgba(255, 255, 255, .10);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(27, 37, 50, .92),
+          rgba(10, 16, 24, .97)
+        );
+
+      box-shadow:
+        var(--shadow-card);
+    }
+
+    .quick-card:nth-child(1) {
+      border-color:
+        rgba(242, 189, 75, .25);
+
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, .30),
+        0 0 22px rgba(242, 189, 75, .07),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+    }
+
+    .quick-card:nth-child(2) {
+      border-color:
+        rgba(70, 145, 255, .22);
+
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, .30),
+        0 0 22px rgba(70, 145, 255, .06),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+    }
+
+    .quick-card:nth-child(3) {
+      border-color:
+        rgba(60, 221, 130, .20);
+
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, .30),
+        0 0 22px rgba(60, 221, 130, .06),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+    }
+
+    .quick-card:hover {
+      transform:
+        perspective(500px)
+        translateY(-4px)
+        rotateX(2deg);
+
+      box-shadow:
+        0 18px 38px rgba(0, 0, 0, .38),
+        inset 0 1px 0 rgba(255, 255, 255, .10);
+    }
+
+
+    /* 比賽卡立體化 */
+
+    .match-card {
+      border:
+        1px solid rgba(149, 183, 219, .18);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(27, 38, 52, .94),
+          rgba(10, 16, 24, .98)
+        );
+
+      box-shadow:
+        0 14px 32px rgba(0, 0, 0, .32),
+        inset 0 1px 0 rgba(255, 255, 255, .07),
+        inset 0 -1px 0 rgba(0, 0, 0, .35);
+    }
+
+    .match-card::before {
+      content: "";
+
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 0;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(242, 189, 75, .48),
+          transparent
+        );
+
+      opacity: .75;
+    }
+
+    .match-card:hover {
+      transform:
+        translateY(-4px)
+        scale(1.005);
+
+      border-color:
+        rgba(242, 189, 75, .28);
+
+      box-shadow:
+        0 20px 42px rgba(0, 0, 0, .42),
+        0 0 25px rgba(242, 189, 75, .06),
+        inset 0 1px 0 rgba(255, 255, 255, .09);
+    }
+
+
+    /* VS 做成內凹金屬按鈕 */
+
+    .vs {
+      border:
+        1px solid rgba(255, 255, 255, .09);
+
+      color:
+        var(--gold-light);
+
+      background:
+        linear-gradient(
+          145deg,
+          #17202b,
+          #090e15
+        );
+
+      box-shadow:
+        inset 2px 2px 5px rgba(0, 0, 0, .50),
+        inset -1px -1px 2px rgba(255, 255, 255, .05),
+        0 4px 10px rgba(0, 0, 0, .25);
+    }
+
+
+    /* AI 工具卡 */
+
+    .feature-card {
+      border:
+        1px solid rgba(148, 181, 218, .16);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(28, 39, 53, .94),
+          rgba(10, 16, 24, .98)
+        );
+
+      box-shadow:
+        0 13px 30px rgba(0, 0, 0, .30),
+        inset 0 1px 0 rgba(255, 255, 255, .07);
+    }
+
+    .feature-card:nth-child(1),
+    .feature-card:nth-child(4) {
+      border-color:
+        rgba(242, 189, 75, .22);
+    }
+
+    .feature-card:nth-child(2),
+    .feature-card:nth-child(3) {
+      border-color:
+        rgba(83, 151, 235, .20);
+    }
+
+    .feature-card:hover {
+      transform:
+        perspective(600px)
+        translateY(-5px)
+        rotateX(2deg);
+
+      box-shadow:
+        0 20px 42px rgba(0, 0, 0, .40),
+        0 0 24px rgba(71, 137, 224, .06),
+        inset 0 1px 0 rgba(255, 255, 255, .09);
+    }
+
+
+    /* 小圖示變成立體按鍵 */
+
+    .feature-icon,
+    .league-icon {
+      background:
+        linear-gradient(
+          145deg,
+          rgba(242, 189, 75, .22),
+          rgba(91, 59, 11, .13)
+        );
+
+      box-shadow:
+        0 7px 15px rgba(0, 0, 0, .25),
+        inset 0 1px 0 rgba(255, 255, 255, .12);
+    }
+
+
+    /* 開始分析小按鈕 */
+
+    .analyse {
+      border:
+        1px solid rgba(242, 189, 75, .20);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(242, 189, 75, .18),
+          rgba(119, 77, 13, .10)
+        );
+
+      box-shadow:
+        0 6px 14px rgba(0, 0, 0, .20),
+        inset 0 1px 0 rgba(255, 255, 255, .07);
+    }
+
+
+    /* 底部導航玻璃底座 */
+
+    .bottom-nav {
+      border-top:
+        1px solid rgba(173, 196, 222, .14);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(20, 29, 40, .94),
+          rgba(5, 9, 14, .99)
+        );
+
+      box-shadow:
+        0 -15px 45px rgba(0, 0, 0, .38),
+        inset 0 1px 0 rgba(255, 255, 255, .06);
+    }
+
+    .nav-item.active {
+      color:
+        var(--gold-light);
+
+      border:
+        1px solid rgba(242, 189, 75, .14);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(242, 189, 75, .18),
+          rgba(242, 189, 75, .055)
+        );
+
+      box-shadow:
+        0 0 22px rgba(242, 189, 75, .09),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+    }
+
+    .nav-item.active .nav-icon {
+      filter:
+        drop-shadow(
+          0 0 6px
+          rgba(242, 189, 75, .48)
+        );
+    }
+
+
+    /* 標題提高立體層次 */
+
+    .section-title {
+      text-shadow:
+        0 2px 8px rgba(0, 0, 0, .35);
+    }
+
+    .hero h1 {
+      text-shadow:
+        0 3px 18px rgba(0, 0, 0, .42);
+    }
+
+    .hero h1 span {
+      text-shadow:
+        0 0 22px rgba(242, 189, 75, .17);
+    }
+    
   </style>
 </head>
 
