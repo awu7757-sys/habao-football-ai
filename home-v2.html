@@ -3645,15 +3645,14 @@ function escapeV2HTML(value) {
    啟動
 ================================ */
 
-function startV2Home() {
+async function startV2Home() {
 
-  // 會員驗證獨立進行，不阻塞首頁其他資料
-  verifyV2Member();
+  await verifyV2Member();
 
-  // 首頁資料同步載入
-  loadV2Performance();
-
-  loadV2HomeStats();
+  await Promise.all([
+    loadV2Performance(),
+    loadV2HomeStats()
+  ]);
 
 }
 
