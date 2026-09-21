@@ -4251,6 +4251,13 @@ function renderV2FocusMatchCards(
 
 function renderV2FocusMatches(fixtures) {  
 
+  const container = document.getElementById("v2FocusMatches");
+
+  if (!container) {
+    console.warn("找不到 v2FocusMatches 容器");
+    return;
+  }  
+
   /*
     優先顯示尚未完賽的比賽。
     若今天全部完賽，再顯示原始列表。
