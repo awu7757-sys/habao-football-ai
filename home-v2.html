@@ -4249,50 +4249,7 @@ function renderV2FocusMatchCards(
    HABAO V2｜今日焦點真實賽事
 ========================================= */
 
-function renderV2FocusMatches(fixtures) {
-
-  const container =
-    document.getElementById(
-      "v2FocusMatches"
-    );
-
-  if (!container) return;
-
-
-  if (
-    !Array.isArray(fixtures) ||
-    fixtures.length === 0
-  ) {
-
-    container.innerHTML = `
-      <article class="match-card">
-
-        <div class="match-top">
-
-          <div class="league">
-            今日賽事
-          </div>
-
-          <div class="match-time">
-            暫無賽事
-          </div>
-
-        </div>
-
-        <div class="teams">
-
-          <div class="team">
-            今日暫無主要賽事
-          </div>
-
-        </div>
-
-      </article>
-    `;
-
-    return;
-  }
-
+  
 
   /*
     優先顯示尚未完賽的比賽。
