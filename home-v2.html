@@ -3779,6 +3779,83 @@ async function loadV2TodayFixturesCount() {
    我的已分析數量
 ================================ */
 
+/* =========================================
+   HABAO V2｜明日焦點賽事
+========================================= */
+
+async function loadV2TomorrowFocusMatches() {
+
+  try {
+
+    const response =
+      await fetch(
+        V2_FIXTURES_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+          },
+
+          body:
+            JSON.stringify({
+              offset: 1
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "明日賽事讀取失敗"
+      );
+
+    }
+
+
+    const fixtures =
+      Array.isArray(data.fixtures)
+        ? data.fixtures
+        : [];
+
+
+    window.v2TomorrowFixtures =
+      fixtures;
+
+
+    return fixtures;
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 TOMORROW FIXTURES ERROR:",
+      error
+    );
+
+    return [];
+
+  }
+
+}
+  
 async function loadV2AnalysisCount() {
 
   const countEl =
@@ -3888,6 +3965,277 @@ async function loadV2AnalysisCount() {
 }
 
 /* =========================================
+   HABAO V2｜焦點賽事卡片
+========================================= */
+
+function renderV2FocusMatchCards(
+  container,
+  matches,
+  mode = "today"
+) {
+
+  if (
+    !container ||
+    !Array.isArray(matches) ||
+    matches.length === 0
+  ) {
+
+    container.innerHTML = `
+      <article class="match-card">
+
+        <div class="match-top">
+
+          <div class="league">
+            ${mode === "tomorrow"
+              ? "明日焦點"
+              : "今日焦點"}
+          </div>
+
+          <div class="match-time">
+            暫無賽事
+          </div>
+
+        </div>
+
+        <div class="teams">
+
+          <div class="team">
+            尚無焦點賽事
+          </div>
+
+        </div>
+
+      </article>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    matches.map(match => {
+
+      const leagueName =
+        match?.league?.name ||
+        match?.league_name ||
+        match?.league ||
+        "足球賽事";
+
+
+      const homeName =
+        match?.home?.name ||
+        match?.home_name ||
+        match?.homeTeam ||
+        match?.home_team ||
+        "主隊";
+
+
+      const awayName =
+        match?.away?.name ||
+        match?.away_name ||
+        match?.awayTeam ||
+        match?.away_team ||
+        "客隊";
+
+
+      const homeLogo =
+        match?.home?.logo ||
+        match?.home_logo ||
+        match?.homeLogo ||
+        "";
+
+
+      const awayLogo =
+        match?.away?.logo ||
+        match?.away_logo ||
+        match?.awayLogo ||
+        "";
+
+
+      const kickoff =
+        match?.time
+          ? new Date(match.time)
+          : null;
+
+
+      const timeText =
+        kickoff &&
+        !Number.isNaN(kickoff.getTime())
+          ? kickoff.toLocaleTimeString(
+              "zh-TW",
+              {
+                timeZone:
+                  "Asia/Taipei",
+
+                hour:
+                  "2-digit",
+
+                minute:
+                  "2-digit",
+
+                hour12:
+                  false
+              }
+            )
+          : "--:--";
+
+
+      const status =
+        String(
+          match?.status || ""
+        ).toUpperCase();
+
+
+      const liveStatuses =
+        new Set([
+          "1H",
+          "HT",
+          "2H",
+          "ET",
+          "BT",
+          "P",
+          "INT",
+          "LIVE"
+        ]);
+
+
+      const isLive =
+        liveStatuses.has(status);
+
+
+      const label =
+        isLive
+          ? "比賽進行中"
+          : mode === "tomorrow"
+            ? "明日賽事"
+            : "即將開賽";
+
+
+      const buttonText =
+        isLive
+          ? "查看賽事"
+          : "開始分析";
+
+
+      return `
+        <article class="match-card">
+
+          <div class="match-top">
+
+            <div class="league">
+
+              <span class="league-icon">
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                  />
+
+                  <path
+                    d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"
+                  />
+                </svg>
+
+              </span>
+
+              ${leagueName}
+
+            </div>
+
+
+            <div class="match-time">
+              ${timeText}
+            </div>
+
+          </div>
+
+
+          <div class="teams">
+
+            <div class="team">
+
+              ${
+                homeLogo
+                  ? `
+                    <img
+                      src="${homeLogo}"
+                      class="v2-team-logo"
+                      alt=""
+                    >
+                  `
+                  : ""
+              }
+
+              <span>
+                ${homeName}
+              </span>
+
+            </div>
+
+
+            <div class="vs">
+              VS
+            </div>
+
+
+            <div class="team away">
+
+              ${
+                awayLogo
+                  ? `
+                    <img
+                      src="${awayLogo}"
+                      class="v2-team-logo"
+                      alt=""
+                    >
+                  `
+                  : ""
+              }
+
+              <span>
+                ${awayName}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="match-bottom">
+
+            <div class="match-status">
+
+              <span class="mini-dot"></span>
+
+              ${label}
+
+            </div>
+
+
+            <a
+              href="football.html"
+              class="analyse"
+            >
+              ${buttonText}
+              <span>→</span>
+            </a>
+
+          </div>
+
+        </article>
+      `;
+
+    }).join("");
+
+}
+  
+/* =========================================
    HABAO V2｜今日焦點真實賽事
 ========================================= */
 
@@ -3969,8 +4317,7 @@ const now =
 
 
 /*
-  1. 尚未開賽：
-     開賽時間還沒到，而且不是完賽狀態
+  今日尚未開賽
 */
 const upcoming =
   fixtures
@@ -4001,7 +4348,7 @@ const upcoming =
 
 
 /*
-  2. 正在進行
+  今日正在進行
 */
 const live =
   fixtures
@@ -4022,44 +4369,135 @@ const live =
 
 
 /*
-  3. 已完賽：
-     最近結束的排前面
+  今天還有直播或未開賽：
+  直接使用今天的資料
 */
-const finished =
-  fixtures
-    .filter(match => {
+if (
+  live.length > 0 ||
+  upcoming.length > 0
+) {
 
-      const status =
-        String(
-          match?.status || ""
-        ).toUpperCase();
+  const focusMatches =
+    [
+      ...live,
+      ...upcoming
+    ].slice(0, 2);
 
-      return finishedStatuses.has(status);
+  renderV2FocusMatchCards(
+    container,
+    focusMatches,
+    "today"
+  );
 
-    })
-    .sort((a, b) =>
-      new Date(b.time).getTime() -
-      new Date(a.time).getTime()
-    );
+  return;
+}
 
 
 /*
-  首頁焦點優先順序：
-
-  即將開賽
-  ↓
-  正在進行
-  ↓
-  已完賽
-
-  最多兩場
+  今天已經全部結束：
+  顯示載入狀態，再抓明日賽事
 */
-const focusMatches =
-  [
-    ...upcoming,
-    ...live,
-    ...finished
-  ].slice(0, 2);
+container.innerHTML = `
+  <article class="match-card">
+
+    <div class="match-top">
+
+      <div class="league">
+        明日焦點
+      </div>
+
+      <div class="match-time">
+        賽事載入中...
+      </div>
+
+    </div>
+
+    <div class="teams">
+
+      <div class="team">
+        --
+      </div>
+
+      <div class="vs">
+        VS
+      </div>
+
+      <div class="team away">
+        --
+      </div>
+
+    </div>
+
+  </article>
+`;
+
+
+loadV2TomorrowFocusMatches()
+  .then(tomorrowFixtures => {
+
+    if (
+      !Array.isArray(tomorrowFixtures) ||
+      tomorrowFixtures.length === 0
+    ) {
+
+      container.innerHTML = `
+        <article class="match-card">
+
+          <div class="match-top">
+
+            <div class="league">
+              明日焦點
+            </div>
+
+            <div class="match-time">
+              暫無賽事
+            </div>
+
+          </div>
+
+          <div class="teams">
+
+            <div class="team">
+              尚無焦點賽事
+            </div>
+
+          </div>
+
+        </article>
+      `;
+
+      return;
+    }
+
+
+    const tomorrowUpcoming =
+      [...tomorrowFixtures]
+        .filter(match => {
+
+          const status =
+            String(
+              match?.status || ""
+            ).toUpperCase();
+
+          return !finishedStatuses.has(
+            status
+          );
+
+        })
+        .sort((a, b) =>
+          new Date(a.time).getTime() -
+          new Date(b.time).getTime()
+        )
+        .slice(0, 2);
+
+
+    renderV2FocusMatchCards(
+      container,
+      tomorrowUpcoming,
+      "tomorrow"
+    );
+
+  });
 
 
   container.innerHTML =
