@@ -3686,6 +3686,8 @@ async function loadV2HomeStats() {
 
 async function loadV2TodayFixturesCount() {
 
+console.time("⏱️ 今日賽事 API");  
+
   const countEl =
     document.getElementById("todayMatchCount");
 
@@ -3721,6 +3723,7 @@ async function loadV2TodayFixturesCount() {
 
     const data =
       await response.json();
+    console.timeEnd("⏱️ 今日賽事 API");
 
 
     if (
@@ -3784,6 +3787,8 @@ async function loadV2TodayFixturesCount() {
 ========================================= */
 
 async function loadV2TomorrowFocusMatches() {
+  
+console.time("⏱️ 明日賽事 API");  
 
   try {
 
@@ -3815,6 +3820,7 @@ async function loadV2TomorrowFocusMatches() {
 
     const data =
       await response.json();
+    console.timeEnd("⏱️ 明日賽事 API");
 
 
     if (
@@ -3857,6 +3863,8 @@ async function loadV2TomorrowFocusMatches() {
 }
   
 async function loadV2AnalysisCount() {
+  
+console.time("⏱️ 已分析 API");  
 
   const countEl =
     document.getElementById(
@@ -3915,6 +3923,8 @@ async function loadV2AnalysisCount() {
 
     const data =
       await response.json();
+    
+      console.timeEnd("⏱️ 已分析 API");
 
 
     if (
