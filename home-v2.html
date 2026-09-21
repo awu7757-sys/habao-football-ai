@@ -3511,9 +3511,11 @@ async function verifyV2Member() {
     }
 
 
-    updateV2Account(
-      data.member.account
-    );
+updateV2Account(
+  data.member.account
+);
+
+return data.member;
 
 
   } catch (error) {
@@ -3522,6 +3524,7 @@ async function verifyV2Member() {
       "V2 MEMBER VERIFY ERROR:",
       error
     );
+    return null;
 
   }
 
@@ -3718,12 +3721,19 @@ function escapeV2HTML(value) {
    啟動
 ================================ */
 
-verifyV2Member();
+async function startV2Home() {
 
-loadV2Performance();
+  await verifyV2Member();
 
-loadV2HomeStats();
+  await Promise.all([
+    loadV2Performance(),
+    loadV2HomeStats()
+  ]);
 
+}
+
+startV2Home();
+  
 /* =========================================
    HABAO V2｜首頁真實統計
 ========================================= */
