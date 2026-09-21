@@ -1793,6 +1793,529 @@
       text-shadow:
         0 0 22px rgba(242, 189, 75, .17);
     }
+
+    /* =====================================
+       HABAO V2 - DEEP 3D UPGRADE
+       第二層立體強化
+    ===================================== */
+
+
+    /* 整個頁面增加空間景深 */
+
+    .app {
+      perspective: 1200px;
+    }
+
+
+    /* =========================
+       HERO - 主視覺懸浮感
+    ========================= */
+
+    .hero {
+      transform-style: preserve-3d;
+
+      box-shadow:
+        0 35px 70px rgba(0, 0, 0, .52),
+        0 12px 28px rgba(0, 0, 0, .35),
+        0 0 40px rgba(242, 189, 75, .08),
+        inset 0 1px 0 rgba(255, 255, 255, .15),
+        inset 0 -2px 0 rgba(0, 0, 0, .55);
+
+      transition:
+        transform .35s ease,
+        box-shadow .35s ease;
+    }
+
+    .hero:hover {
+      transform:
+        translateY(-3px)
+        rotateX(1deg);
+
+      box-shadow:
+        0 42px 80px rgba(0, 0, 0, .58),
+        0 16px 34px rgba(0, 0, 0, .38),
+        0 0 50px rgba(242, 189, 75, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .17);
+    }
+
+
+    /* HERO 上方玻璃反光 */
+
+    .hero .hero-badge,
+    .hero h1,
+    .hero .hero-desc,
+    .hero .hero-actions {
+      position: relative;
+      z-index: 3;
+    }
+
+    .hero-badge {
+      box-shadow:
+        0 7px 18px rgba(0, 0, 0, .25),
+        inset 0 1px 0 rgba(255, 255, 255, .12);
+    }
+
+
+    /* =========================
+       金色按鈕真正做成凸起
+    ========================= */
+
+    .primary-btn {
+      transform-style: preserve-3d;
+
+      box-shadow:
+        0 15px 0 rgba(109, 67, 6, .25),
+        0 20px 34px rgba(0, 0, 0, .28),
+        0 0 30px rgba(242, 189, 75, .22),
+        inset 0 2px 0 rgba(255, 255, 255, .72),
+        inset 0 -4px 8px rgba(129, 75, 3, .22);
+
+      transition:
+        transform .16s ease,
+        box-shadow .16s ease;
+    }
+
+    .primary-btn:hover {
+      transform:
+        translateY(-5px);
+
+      box-shadow:
+        0 18px 0 rgba(109, 67, 6, .22),
+        0 27px 40px rgba(0, 0, 0, .32),
+        0 0 38px rgba(242, 189, 75, .32),
+        inset 0 2px 0 rgba(255, 255, 255, .78),
+        inset 0 -4px 8px rgba(129, 75, 3, .20);
+    }
+
+    .primary-btn:active {
+      transform:
+        translateY(5px);
+
+      box-shadow:
+        0 4px 0 rgba(109, 67, 6, .30),
+        0 8px 14px rgba(0, 0, 0, .30),
+        0 0 20px rgba(242, 189, 75, .18),
+        inset 0 2px 5px rgba(118, 68, 2, .22);
+    }
+
+
+    /* AI 戰績按鈕 */
+
+    .secondary-btn {
+      box-shadow:
+        0 8px 0 rgba(0, 0, 0, .25),
+        0 15px 26px rgba(0, 0, 0, .32),
+        inset 0 1px 0 rgba(255, 255, 255, .14),
+        inset 0 -3px 6px rgba(0, 0, 0, .28);
+    }
+
+    .secondary-btn:hover {
+      transform:
+        translateY(-4px);
+
+      box-shadow:
+        0 11px 0 rgba(0, 0, 0, .22),
+        0 20px 32px rgba(0, 0, 0, .36),
+        0 0 28px rgba(74, 145, 255, .13),
+        inset 0 1px 0 rgba(255, 255, 255, .16);
+    }
+
+    .secondary-btn:active {
+      transform:
+        translateY(3px);
+
+      box-shadow:
+        0 3px 0 rgba(0, 0, 0, .25),
+        0 7px 12px rgba(0, 0, 0, .28);
+    }
+
+
+    /* =========================
+       三張統計卡 - 懸浮玻璃
+    ========================= */
+
+    .quick-card {
+      transform-style: preserve-3d;
+
+      box-shadow:
+        0 7px 0 rgba(0, 0, 0, .18),
+        0 17px 32px rgba(0, 0, 0, .30),
+        inset 0 1px 0 rgba(255, 255, 255, .11),
+        inset 0 -2px 5px rgba(0, 0, 0, .22);
+
+      transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+    }
+
+    .quick-card::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 12%;
+      right: 12%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,.35),
+          transparent
+        );
+    }
+
+    .quick-card:hover {
+      transform:
+        translateY(-6px)
+        rotateX(4deg);
+
+      box-shadow:
+        0 11px 0 rgba(0, 0, 0, .14),
+        0 25px 40px rgba(0, 0, 0, .38),
+        inset 0 1px 0 rgba(255, 255, 255, .15);
+    }
+
+    .quick-value {
+      text-shadow:
+        0 0 16px rgba(242, 189, 75, .18),
+        0 3px 6px rgba(0, 0, 0, .40);
+    }
+
+
+    /* =========================
+       比賽卡 - 最重要
+    ========================= */
+
+    .match-card {
+      transform-style: preserve-3d;
+
+      box-shadow:
+        0 8px 0 rgba(0, 0, 0, .17),
+        0 20px 38px rgba(0, 0, 0, .34),
+        inset 0 1px 0 rgba(255, 255, 255, .10),
+        inset 0 -3px 8px rgba(0, 0, 0, .20);
+
+      transition:
+        transform .28s ease,
+        box-shadow .28s ease,
+        border-color .28s ease;
+    }
+
+
+    /* 比賽卡右側淡金光 */
+
+    .match-card::after {
+      content: "";
+
+      position: absolute;
+
+      width: 150px;
+      height: 150px;
+
+      right: -85px;
+      bottom: -100px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(242,189,75,.13),
+          transparent 68%
+        );
+
+      pointer-events: none;
+    }
+
+
+    .match-card:hover {
+      transform:
+        translateY(-7px)
+        rotateX(2deg)
+        scale(1.008);
+
+      box-shadow:
+        0 13px 0 rgba(0, 0, 0, .13),
+        0 30px 52px rgba(0, 0, 0, .45),
+        0 0 30px rgba(242, 189, 75, .08),
+        inset 0 1px 0 rgba(255, 255, 255, .13);
+    }
+
+
+    /* 隊名稍微浮在卡片上 */
+
+    .team {
+      position: relative;
+
+      z-index: 2;
+
+      text-shadow:
+        0 3px 8px rgba(0,0,0,.50);
+    }
+
+
+    /* VS 球形金屬感 */
+
+    .vs {
+      position: relative;
+
+      z-index: 3;
+
+      border:
+        1px solid rgba(242, 189, 75, .18);
+
+      background:
+        radial-gradient(
+          circle at 35% 28%,
+          #273344,
+          #111821 48%,
+          #070b11 100%
+        );
+
+      box-shadow:
+        0 7px 12px rgba(0,0,0,.38),
+        inset 2px 2px 4px rgba(255,255,255,.07),
+        inset -3px -4px 6px rgba(0,0,0,.45),
+        0 0 15px rgba(242,189,75,.06);
+    }
+
+
+    /* =========================
+       AI 功能卡片
+    ========================= */
+
+    .feature-card {
+      transform-style: preserve-3d;
+
+      box-shadow:
+        0 8px 0 rgba(0,0,0,.16),
+        0 18px 34px rgba(0,0,0,.32),
+        inset 0 1px 0 rgba(255,255,255,.10),
+        inset 0 -3px 7px rgba(0,0,0,.20);
+    }
+
+    .feature-card:hover {
+      transform:
+        translateY(-7px)
+        rotateX(3deg)
+        scale(1.012);
+
+      box-shadow:
+        0 13px 0 rgba(0,0,0,.12),
+        0 28px 48px rgba(0,0,0,.42),
+        0 0 28px rgba(75,145,255,.07),
+        inset 0 1px 0 rgba(255,255,255,.13);
+    }
+
+
+    /* 工具圖示做成懸浮方塊 */
+
+    .feature-icon {
+      position: relative;
+
+      transform:
+        translateZ(18px);
+
+      border:
+        1px solid rgba(255,222,144,.20);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,216,121,.24),
+          rgba(105,69,13,.11)
+        );
+
+      box-shadow:
+        0 8px 0 rgba(0,0,0,.12),
+        0 13px 20px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .feature-card:hover .feature-icon {
+      transform:
+        translateZ(25px)
+        translateY(-3px)
+        scale(1.06);
+
+      box-shadow:
+        0 10px 0 rgba(0,0,0,.10),
+        0 17px 25px rgba(0,0,0,.32),
+        0 0 18px rgba(242,189,75,.10),
+        inset 0 1px 0 rgba(255,255,255,.20);
+    }
+
+
+    /* =========================
+       小分析按鈕
+    ========================= */
+
+    .analyse {
+      box-shadow:
+        0 5px 0 rgba(83,51,5,.18),
+        0 9px 15px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.12);
+
+      transition:
+        transform .16s ease,
+        box-shadow .16s ease;
+    }
+
+    .analyse:hover {
+      transform:
+        translateY(-3px);
+
+      box-shadow:
+        0 7px 0 rgba(83,51,5,.15),
+        0 13px 20px rgba(0,0,0,.27),
+        0 0 16px rgba(242,189,75,.10);
+    }
+
+    .analyse:active {
+      transform:
+        translateY(3px);
+
+      box-shadow:
+        0 2px 0 rgba(83,51,5,.18),
+        0 4px 8px rgba(0,0,0,.22);
+    }
+
+
+    /* =========================
+       底部 NAV 做成懸浮控制台
+    ========================= */
+
+    .bottom-nav {
+      width:
+        calc(100% - 18px);
+
+      bottom: 8px;
+
+      border:
+        1px solid rgba(147,178,211,.16);
+
+      border-radius:
+        22px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(27,38,52,.96),
+          rgba(7,11,17,.985)
+        );
+
+      box-shadow:
+        0 15px 45px rgba(0,0,0,.50),
+        0 6px 18px rgba(0,0,0,.38),
+        inset 0 1px 0 rgba(255,255,255,.10);
+
+      overflow: hidden;
+    }
+
+
+    /* NAV 頂部反光 */
+
+    .bottom-nav::before {
+      content: "";
+
+      position: absolute;
+
+      left: 12%;
+      right: 12%;
+      top: 0;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,.28),
+          transparent
+        );
+    }
+
+
+    .nav-item {
+      transition:
+        transform .18s ease,
+        background .18s ease,
+        color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .nav-item:hover {
+      transform:
+        translateY(-2px);
+    }
+
+
+    .nav-item.active {
+      transform:
+        translateY(-3px);
+
+      border:
+        1px solid rgba(242,189,75,.20);
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(242,189,75,.24),
+          rgba(89,57,8,.08)
+        );
+
+      box-shadow:
+        0 6px 0 rgba(0,0,0,.14),
+        0 12px 22px rgba(0,0,0,.24),
+        0 0 22px rgba(242,189,75,.13),
+        inset 0 1px 0 rgba(255,255,255,.14);
+    }
+
+
+    /* =========================
+       LOGO 也增加厚度
+    ========================= */
+
+    .logo {
+      border:
+        1px solid rgba(255,236,182,.50);
+
+      box-shadow:
+        0 6px 0 rgba(110,67,5,.28),
+        0 13px 24px rgba(0,0,0,.30),
+        0 0 24px rgba(242,189,75,.20),
+        inset 0 2px 0 rgba(255,255,255,.55),
+        inset 0 -3px 5px rgba(128,75,3,.18);
+    }
+
+
+    /* =========================
+       手機避免 3D 太誇張
+    ========================= */
+
+    @media (hover: none) {
+
+      .hero:hover,
+      .quick-card:hover,
+      .match-card:hover,
+      .feature-card:hover {
+        transform: none;
+      }
+
+      .primary-btn:active,
+      .secondary-btn:active,
+      .analyse:active,
+      .nav-item:active {
+        transform:
+          translateY(2px)
+          scale(.98);
+      }
+
+    }
     
   </style>
 </head>
