@@ -14,9 +14,7 @@
   <style>
     :root {
       --bg: #080b10;
-      --bg-soft: #0d1118;
       --card: #111720;
-      --card-2: #151d28;
       --border: rgba(255, 255, 255, 0.08);
 
       --text: #f5f7fa;
@@ -34,8 +32,6 @@
       --blue: #5aa7ff;
 
       --radius: 22px;
-      --radius-small: 15px;
-
       --max-width: 720px;
     }
 
@@ -91,9 +87,7 @@
         calc(40px + env(safe-area-inset-bottom));
     }
 
-    /* =========================
-       Header
-    ========================= */
+    /* Header */
 
     .topbar {
       display: flex;
@@ -136,21 +130,13 @@
         0 8px 24px rgba(242, 189, 75, 0.16);
     }
 
-    .brand-text {
-      min-width: 0;
-    }
-
     .brand-title {
-      margin: 0;
-
       font-size: 18px;
       font-weight: 900;
-      letter-spacing: 0.3px;
     }
 
     .brand-subtitle {
       margin-top: 3px;
-
       color: var(--muted);
       font-size: 12px;
     }
@@ -167,9 +153,7 @@
       cursor: pointer;
     }
 
-    /* =========================
-       Hero
-    ========================= */
+    /* Hero */
 
     .hero {
       position: relative;
@@ -243,7 +227,6 @@
 
     .hero p {
       margin: 0;
-
       max-width: 520px;
 
       color: var(--muted);
@@ -288,7 +271,6 @@
       gap: 7px;
 
       padding: 8px 11px;
-
       border-radius: 999px;
 
       color: #9ce8bb;
@@ -309,9 +291,64 @@
         0 0 0 4px rgba(54, 214, 122, 0.10);
     }
 
-    /* =========================
-       Section
-    ========================= */
+    /* Filter */
+
+    .filter-wrap {
+      margin-top: 18px;
+    }
+
+    .filter-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+
+      padding: 5px;
+
+      border: 1px solid var(--border);
+      border-radius: 15px;
+
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .filter-btn {
+      border: 0;
+      border-radius: 11px;
+
+      padding: 10px 8px;
+
+      color: var(--muted);
+      background: transparent;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
+    }
+
+    .filter-btn:active {
+      transform: scale(0.97);
+    }
+
+    .filter-btn.active {
+      color: #171006;
+
+      background:
+        linear-gradient(
+          145deg,
+          #ffe091,
+          #e8a92f
+        );
+
+      box-shadow:
+        0 5px 16px rgba(242, 189, 75, 0.15);
+    }
+
+    /* Section */
 
     .section {
       margin-top: 23px;
@@ -338,9 +375,7 @@
       font-size: 11px;
     }
 
-    /* =========================
-       Stats
-    ========================= */
+    /* Stats */
 
     .stats-grid {
       display: grid;
@@ -381,7 +416,8 @@
       color: var(--gold);
       background: var(--gold-soft);
 
-      font-size: 17px;
+      font-size: 13px;
+      font-weight: 900;
     }
 
     .stat-name {
@@ -405,9 +441,7 @@
       font-size: 10px;
     }
 
-    /* =========================
-       Information
-    ========================= */
+    /* Info */
 
     .info-card {
       display: flex;
@@ -430,9 +464,85 @@
       color: var(--blue);
     }
 
-    /* =========================
-       Match list
-    ========================= */
+    /* League performance */
+
+    .league-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .league-card {
+      padding: 15px;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0.012)
+        );
+    }
+
+    .league-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 13px;
+    }
+
+    .league-card-name {
+      min-width: 0;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      color: #edf1f6;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .league-card-count {
+      flex: 0 0 auto;
+
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .league-markets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .league-market {
+      padding: 9px 5px;
+
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.025);
+
+      text-align: center;
+    }
+
+    .league-market-name {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .league-market-rate {
+      margin-top: 4px;
+
+      color: #f2f4f7;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    /* Match */
 
     .match-list {
       display: flex;
@@ -561,13 +671,14 @@
       justify-content: center;
 
       min-width: 18px;
-      height: 18px;
+      min-height: 18px;
 
       margin-left: 4px;
+      padding: 2px 4px;
 
       border-radius: 6px;
 
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
     }
 
@@ -593,9 +704,7 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
-    /* =========================
-       Empty / Loading / Error
-    ========================= */
+    /* State */
 
     .state-card {
       padding: 35px 20px;
@@ -610,7 +719,6 @@
 
     .state-icon {
       margin-bottom: 12px;
-
       font-size: 31px;
     }
 
@@ -661,13 +769,8 @@
       background: var(--gold);
 
       font-weight: 900;
-
       cursor: pointer;
     }
-
-    /* =========================
-       Footer
-    ========================= */
 
     .footer {
       margin-top: 28px;
@@ -708,16 +811,24 @@
 
   <main class="app">
 
-    <!-- Header -->
     <header class="topbar">
 
       <div class="brand">
-        <div class="brand-logo">H</div>
 
-        <div class="brand-text">
-          <div class="brand-title">哈寶足球 AI</div>
-          <div class="brand-subtitle">AI 公開戰績中心</div>
+        <div class="brand-logo">
+          H
         </div>
+
+        <div>
+          <div class="brand-title">
+            哈寶足球 AI
+          </div>
+
+          <div class="brand-subtitle">
+            AI 公開戰績中心
+          </div>
+        </div>
+
       </div>
 
       <button
@@ -731,14 +842,15 @@
     </header>
 
 
-    <!-- Hero -->
     <section class="hero">
 
       <div class="hero-kicker">
         ● AI PERFORMANCE
       </div>
 
-      <h1>公開戰績</h1>
+      <h1>
+        公開戰績
+      </h1>
 
       <p>
         AI 賽前預測於比賽結束後自動比對正式賽果，
@@ -748,11 +860,13 @@
       <div class="verified-box">
 
         <div>
+
           <div class="verified-label">
             已驗證賽事
           </div>
 
           <div>
+
             <span
               class="verified-number"
               id="verifiedMatches"
@@ -763,7 +877,9 @@
             <span class="verified-unit">
               場
             </span>
+
           </div>
+
         </div>
 
         <div class="live-status">
@@ -773,26 +889,70 @@
 
       </div>
 
+
+      <div class="filter-wrap">
+
+        <div class="filter-tabs">
+
+          <button
+            type="button"
+            class="filter-btn active"
+            data-days=""
+            onclick="changeFilter(this)"
+          >
+            全部
+          </button>
+
+          <button
+            type="button"
+            class="filter-btn"
+            data-days="7"
+            onclick="changeFilter(this)"
+          >
+            近 7 天
+          </button>
+
+          <button
+            type="button"
+            class="filter-btn"
+            data-days="30"
+            onclick="changeFilter(this)"
+          >
+            近 30 天
+          </button>
+
+        </div>
+
+      </div>
+
     </section>
 
 
-    <!-- Market stats -->
     <section class="section">
 
       <div class="section-head">
+
         <h2 class="section-title">
           AI 市場表現
         </h2>
 
-        <div class="section-note">
-          已結算資料
+        <div
+          class="section-note"
+          id="currentFilterText"
+        >
+          全部
         </div>
+
       </div>
+
 
       <div class="stats-grid">
 
         <article class="stat-card">
-          <div class="stat-icon">1X2</div>
+
+          <div class="stat-icon">
+            1X2
+          </div>
 
           <div class="stat-name">
             獨贏
@@ -811,11 +971,15 @@
           >
             0 次驗證
           </div>
+
         </article>
 
 
         <article class="stat-card">
-          <div class="stat-icon">O/U</div>
+
+          <div class="stat-icon">
+            O/U
+          </div>
 
           <div class="stat-name">
             大小分
@@ -834,11 +998,15 @@
           >
             0 次驗證
           </div>
+
         </article>
 
 
         <article class="stat-card">
-          <div class="stat-icon">BTTS</div>
+
+          <div class="stat-icon">
+            BTTS
+          </div>
 
           <div class="stat-name">
             雙方進球
@@ -857,6 +1025,7 @@
           >
             0 次驗證
           </div>
+
         </article>
 
       </div>
@@ -864,7 +1033,6 @@
     </section>
 
 
-    <!-- Explanation -->
     <section class="section">
 
       <div class="info-card">
@@ -875,7 +1043,9 @@
 
         <div>
           戰績依 AI 賽前保存的預測快照與正式完場比分自動驗證。
-          尚未完賽的賽事不計入命中率。
+          尚未完賽的賽事不計入命中率；
+          亞洲大小盤走盤不列入勝負命中率，
+          半贏與半輸依半注結果計算。
         </div>
 
       </div>
@@ -883,7 +1053,35 @@
     </section>
 
 
-    <!-- Match history -->
+    <section
+      class="section"
+      id="leagueSection"
+      hidden
+    >
+
+      <div class="section-head">
+
+        <h2 class="section-title">
+          聯賽表現
+        </h2>
+
+        <div
+          class="section-note"
+          id="leagueCountText"
+        >
+          --
+        </div>
+
+      </div>
+
+      <div
+        class="league-list"
+        id="leagueList"
+      ></div>
+
+    </section>
+
+
     <section class="section">
 
       <div class="section-head">
@@ -927,7 +1125,8 @@
 
 
     <footer class="footer">
-      哈寶足球 AI｜數據僅呈現系統歷史分析與驗證結果<br />
+      哈寶足球 AI｜數據僅呈現系統歷史分析與驗證結果
+      <br />
       過往結果不代表未來表現
     </footer>
 
@@ -935,43 +1134,31 @@
 
 
   <script>
-    /*
-     * =========================================
-     * 哈寶 AI 公開戰績中心
-     * =========================================
-     *
-     * 之後若更換 Supabase 專案，
-     * 只需要修改下面這一個網址。
-     */
 
-      const AI_PERFORMANCE_API =
+    const AI_PERFORMANCE_API =
       "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
 
+    let currentDays = "";
 
-    /*
-     * =========================================
-     * 返回
-     * =========================================
-     */
+    let loadingRequestId = 0;
+
 
     function goBack() {
+
       if (window.history.length > 1) {
         window.history.back();
         return;
       }
 
-      window.location.href = "home.html";
+      window.location.href =
+        "home.html";
     }
 
 
-    /*
-     * =========================================
-     * 小工具
-     * =========================================
-     */
-
     function safeNumber(value) {
-      const number = Number(value);
+
+      const number =
+        Number(value);
 
       return Number.isFinite(number)
         ? number
@@ -979,12 +1166,17 @@
     }
 
 
-    function displayRate(value, total) {
+    function displayRate(
+      value,
+      total
+    ) {
+
       if (!total) {
         return "--";
       }
 
-      const number = Number(value);
+      const number =
+        Number(value);
 
       if (!Number.isFinite(number)) {
         return "--";
@@ -995,6 +1187,7 @@
 
 
     function escapeHtml(value) {
+
       return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -1005,13 +1198,19 @@
 
 
     function formatDate(value) {
+
       if (!value) {
         return "--";
       }
 
-      const date = new Date(value);
+      const date =
+        new Date(value);
 
-      if (Number.isNaN(date.getTime())) {
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
         return "--";
       }
 
@@ -1029,16 +1228,12 @@
     }
 
 
-    /*
-     * =========================================
-     * 結算顯示
-     * =========================================
-     */
-
     function normalizeResult(value) {
-      const text = String(value ?? "")
-        .trim()
-        .toLowerCase();
+
+      const text =
+        String(value ?? "")
+          .trim()
+          .toLowerCase();
 
       if (
         text === "win" ||
@@ -1078,7 +1273,9 @@
 
 
     function resultLabel(value) {
-      const result = normalizeResult(value);
+
+      const result =
+        normalizeResult(value);
 
       const labels = {
         win: "✓",
@@ -1097,11 +1294,13 @@
       settlement,
       market
     ) {
+
       if (!settlement) {
         return null;
       }
 
-      const value = settlement[market];
+      const value =
+        settlement[market];
 
       if (
         value &&
@@ -1119,27 +1318,50 @@
     }
 
 
-    /*
-     * =========================================
-     * 預測內容
-     * =========================================
-     */
-
     function getPredictionPick(
       prediction,
       market
     ) {
+
       if (!prediction) {
         return "--";
       }
 
       /*
-       * 支援目前 AI JSON，
-       * 同時保留未來格式調整空間。
+       * 目前正式 AI JSON：
+       * prediction.recommendations.moneyline
+       * prediction.recommendations.over_under
+       * prediction.recommendations.btts
        */
+      const recommendation =
+        prediction
+          ?.recommendations
+          ?.[market];
 
+      if (
+        recommendation &&
+        typeof recommendation === "object"
+      ) {
+        return (
+          recommendation.pick ??
+          recommendation.prediction ??
+          recommendation.value ??
+          "--"
+        );
+      }
+
+      if (
+        typeof recommendation ===
+        "string"
+      ) {
+        return recommendation;
+      }
+
+      /*
+       * 向下相容其他格式
+       */
       const direct =
-        prediction[market];
+        prediction?.[market];
 
       if (
         direct &&
@@ -1153,15 +1375,16 @@
         );
       }
 
-      if (typeof direct === "string") {
+      if (
+        typeof direct === "string"
+      ) {
         return direct;
       }
 
-      /*
-       * 若 prediction 外層有 predictions
-       */
       const nested =
-        prediction?.predictions?.[market];
+        prediction
+          ?.predictions
+          ?.[market];
 
       if (
         nested &&
@@ -1175,7 +1398,9 @@
         );
       }
 
-      if (typeof nested === "string") {
+      if (
+        typeof nested === "string"
+      ) {
         return nested;
       }
 
@@ -1183,27 +1408,24 @@
     }
 
 
-    /*
-     * =========================================
-     * 更新上方統計
-     * =========================================
-     */
-
     function updateMarketCard(
       market,
       rateElementId,
       totalElementId
     ) {
-      const total =
-        safeNumber(market?.total);
 
-      const rate =
-        market?.hit_rate;
+      const total =
+        safeNumber(
+          market?.total
+        );
 
       document.getElementById(
         rateElementId
       ).textContent =
-        displayRate(rate, total);
+        displayRate(
+          market?.hit_rate,
+          total
+        );
 
       document.getElementById(
         totalElementId
@@ -1212,17 +1434,12 @@
     }
 
 
-    /*
-     * =========================================
-     * 產生單場比賽
-     * =========================================
-     */
-
     function createMarketHtml(
       title,
       pick,
       result
     ) {
+
       const normalized =
         normalizeResult(result);
 
@@ -1252,25 +1469,73 @@
     }
 
 
+    function getFinalScore(match) {
+
+      /*
+       * 新 API：
+       * final_score = "2-1"
+       */
+      if (
+        typeof match?.final_score ===
+        "string"
+      ) {
+        return match.final_score;
+      }
+
+      /*
+       * 向下相容舊格式
+       */
+      if (
+        match?.final_score &&
+        typeof match.final_score ===
+        "object"
+      ) {
+        const home =
+          match.final_score.home ?? "-";
+
+        const away =
+          match.final_score.away ?? "-";
+
+        return `${home}-${away}`;
+      }
+
+      if (
+        match?.home_score != null &&
+        match?.away_score != null
+      ) {
+        return (
+          `${match.home_score}` +
+          `-${match.away_score}`
+        );
+      }
+
+      return "-";
+    }
+
+
     function createMatchCard(match) {
+
+      /*
+       * 新 ai-performance API：
+       * home / away / league
+       */
       const home =
-        match?.home_team || "主隊";
+        match?.home ||
+        match?.home_team ||
+        "主隊";
 
       const away =
-        match?.away_team || "客隊";
+        match?.away ||
+        match?.away_team ||
+        "客隊";
 
       const league =
-        match?.league_name || "足球賽事";
+        match?.league ||
+        match?.league_name ||
+        "足球賽事";
 
-      const homeScore =
-        match?.final_score?.home ??
-        match?.home_score ??
-        "-";
-
-      const awayScore =
-        match?.final_score?.away ??
-        match?.away_score ??
-        "-";
+      const finalScore =
+        getFinalScore(match);
 
       const prediction =
         match?.prediction || {};
@@ -1343,9 +1608,9 @@
               </div>
 
               <div class="score">
-                ${escapeHtml(homeScore)}
-                -
-                ${escapeHtml(awayScore)}
+                ${escapeHtml(
+                  finalScore
+                )}
               </div>
 
               <div class="team away">
@@ -1384,33 +1649,123 @@
     }
 
 
-    /*
-     * =========================================
-     * 空資料
-     * =========================================
-     */
+    function createLeagueCard(
+      league
+    ) {
 
-    function showEmptyState() {
-      const list =
-        document.getElementById(
-          "matchList"
-        );
+      const moneyline =
+        league?.moneyline || {};
 
-      list.innerHTML = `
-        <div class="state-card">
+      const overUnder =
+        league?.over_under || {};
 
-          <div class="state-icon">
-            ⚽
+      const btts =
+        league?.btts || {};
+
+      return `
+        <article class="league-card">
+
+          <div class="league-card-top">
+
+            <div class="league-card-name">
+              ${escapeHtml(
+                league?.league ||
+                "其他聯賽"
+              )}
+            </div>
+
+            <div class="league-card-count">
+              ${safeNumber(
+                league?.matches
+              )} 場
+            </div>
+
           </div>
 
+
+          <div class="league-markets">
+
+            <div class="league-market">
+
+              <div class="league-market-name">
+                獨贏
+              </div>
+
+              <div class="league-market-rate">
+                ${escapeHtml(
+                  displayRate(
+                    moneyline?.hit_rate,
+                    safeNumber(
+                      moneyline?.total
+                    )
+                  )
+                )}
+              </div>
+
+            </div>
+
+
+            <div class="league-market">
+
+              <div class="league-market-name">
+                大小分
+              </div>
+
+              <div class="league-market-rate">
+                ${escapeHtml(
+                  displayRate(
+                    overUnder?.hit_rate,
+                    safeNumber(
+                      overUnder?.total
+                    )
+                  )
+                )}
+              </div>
+
+            </div>
+
+
+            <div class="league-market">
+
+              <div class="league-market-name">
+                BTTS
+              </div>
+
+              <div class="league-market-rate">
+                ${escapeHtml(
+                  displayRate(
+                    btts?.hit_rate,
+                    safeNumber(
+                      btts?.total
+                    )
+                  )
+                )}
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+      `;
+    }
+
+
+    function showLoadingState() {
+
+      document.getElementById(
+        "matchList"
+      ).innerHTML = `
+        <div class="state-card">
+
+          <div class="loader"></div>
+
           <div class="state-title">
-            等待首批賽事驗證
+            正在讀取 AI 戰績
           </div>
 
           <div class="state-text">
-            AI 預測已開始建立賽前快照。
-            比賽完賽並完成自動驗證後，
-            戰績會直接顯示在這裡。
+            正在同步最新驗證資料...
           </div>
 
         </div>
@@ -1418,19 +1773,37 @@
     }
 
 
-    /*
-     * =========================================
-     * 錯誤狀態
-     * =========================================
-     */
+    function showEmptyState() {
+
+      document.getElementById(
+        "matchList"
+      ).innerHTML = `
+        <div class="state-card">
+
+          <div class="state-icon">
+            ⚽
+          </div>
+
+          <div class="state-title">
+            此區間尚無已驗證賽事
+          </div>
+
+          <div class="state-text">
+            AI 賽前預測會先保存快照，
+            比賽正式完賽並完成自動驗證後，
+            戰績會自動顯示在這裡。
+          </div>
+
+        </div>
+      `;
+    }
+
 
     function showErrorState(message) {
-      const list =
-        document.getElementById(
-          "matchList"
-        );
 
-      list.innerHTML = `
+      document.getElementById(
+        "matchList"
+      ).innerHTML = `
         <div class="state-card">
 
           <div class="state-icon">
@@ -1458,24 +1831,129 @@
     }
 
 
-    /*
-     * =========================================
-     * 主程式
-     * =========================================
-     */
+    function resetLeagueSection() {
+
+      const section =
+        document.getElementById(
+          "leagueSection"
+        );
+
+      section.hidden = true;
+
+      document.getElementById(
+        "leagueList"
+      ).innerHTML = "";
+
+      document.getElementById(
+        "leagueCountText"
+      ).textContent = "--";
+    }
+
+
+    function renderLeagues(leagues) {
+
+      const section =
+        document.getElementById(
+          "leagueSection"
+        );
+
+      const list =
+        document.getElementById(
+          "leagueList"
+        );
+
+      if (
+        !Array.isArray(leagues) ||
+        leagues.length === 0
+      ) {
+        resetLeagueSection();
+        return;
+      }
+
+      section.hidden = false;
+
+      document.getElementById(
+        "leagueCountText"
+      ).textContent =
+        `${leagues.length} 個聯賽`;
+
+      list.innerHTML =
+        leagues
+          .map(createLeagueCard)
+          .join("");
+    }
+
+
+    function changeFilter(button) {
+
+      const days =
+        button?.dataset?.days ?? "";
+
+      if (
+        days === currentDays &&
+        button.classList.contains(
+          "active"
+        )
+      ) {
+        return;
+      }
+
+      currentDays = days;
+
+      document
+        .querySelectorAll(
+          ".filter-btn"
+        )
+        .forEach((item) => {
+          item.classList.remove(
+            "active"
+          );
+        });
+
+      button.classList.add(
+        "active"
+      );
+
+      loadPerformance();
+    }
+
 
     async function loadPerformance() {
 
+      const requestId =
+        ++loadingRequestId;
+
+      showLoadingState();
+      resetLeagueSection();
+
+      document.getElementById(
+        "verifiedMatches"
+      ).textContent = "--";
+
+      document.getElementById(
+        "matchCountText"
+      ).textContent = "--";
+
+
       try {
+
+        const apiUrl =
+          currentDays
+            ? `${AI_PERFORMANCE_API}?days=${encodeURIComponent(currentDays)}`
+            : AI_PERFORMANCE_API;
+
 
         const response =
           await fetch(
-            AI_PERFORMANCE_API,
+            apiUrl,
             {
               method: "GET",
+
               headers: {
-                "Accept": "application/json"
+                "Accept":
+                  "application/json"
               },
+
               cache: "no-store"
             }
           );
@@ -1492,6 +1970,18 @@
           await response.json();
 
 
+        /*
+         * 如果使用者快速切換，
+         * 忽略較舊的 request。
+         */
+        if (
+          requestId !==
+          loadingRequestId
+        ) {
+          return;
+        }
+
+
         if (!data?.success) {
           throw new Error(
             data?.error ||
@@ -1500,15 +1990,12 @@
         }
 
 
-        /*
-         * 已驗證場次
-         */
-
         const verifiedMatches =
           safeNumber(
             data?.summary
               ?.verified_matches
           );
+
 
         document.getElementById(
           "verifiedMatches"
@@ -1516,9 +2003,12 @@
           verifiedMatches;
 
 
-        /*
-         * 三大市場
-         */
+        document.getElementById(
+          "currentFilterText"
+        ).textContent =
+          data?.filter?.label ||
+          "全部";
+
 
         updateMarketCard(
           data?.markets?.moneyline,
@@ -1526,11 +2016,13 @@
           "moneylineTotal"
         );
 
+
         updateMarketCard(
           data?.markets?.over_under,
           "overUnderRate",
           "overUnderTotal"
         );
+
 
         updateMarketCard(
           data?.markets?.btts,
@@ -1539,12 +2031,15 @@
         );
 
 
-        /*
-         * 比賽紀錄
-         */
+        renderLeagues(
+          data?.leagues
+        );
+
 
         const matches =
-          Array.isArray(data?.matches)
+          Array.isArray(
+            data?.matches
+          )
             ? data.matches
             : [];
 
@@ -1555,7 +2050,9 @@
           `${matches.length} 場`;
 
 
-        if (matches.length === 0) {
+        if (
+          matches.length === 0
+        ) {
           showEmptyState();
           return;
         }
@@ -1570,6 +2067,13 @@
 
 
       } catch (error) {
+
+        if (
+          requestId !==
+          loadingRequestId
+        ) {
+          return;
+        }
 
         console.error(
           "AI PERFORMANCE ERROR:",
@@ -1586,6 +2090,8 @@
         ).textContent =
           "--";
 
+        resetLeagueSection();
+
         showErrorState(
           error?.message ||
           "請稍後再試"
@@ -1593,10 +2099,6 @@
       }
     }
 
-
-    /*
-     * 頁面開啟後讀取資料
-     */
 
     loadPerformance();
 
