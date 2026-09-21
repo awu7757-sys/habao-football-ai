@@ -2913,8 +2913,12 @@
 
           <span class="section-line"></span>
 
-          <div class="section-title">
-            今日焦點
+<div
+  class="section-title"
+  id="v2FocusTitle"
+>
+  今日焦點
+</div>
           </div>
 
         </div>
@@ -3687,9 +3691,12 @@ async function loadV2HomeStats() {
 async function loadV2TodayFixturesCount() {
 
   const countEl =
-    document.getElementById("todayMatchCount");
+    document.getElementById(
+      "todayMatchCount"
+    );
 
   if (!countEl) return;
+
 
   try {
 
@@ -3742,6 +3749,9 @@ async function loadV2TodayFixturesCount() {
         : [];
 
 
+    /*
+      今日賽事數量
+    */
     animateV2Number(
       countEl,
       fixtures.length
@@ -3749,15 +3759,26 @@ async function loadV2TodayFixturesCount() {
 
 
     /*
-      順便保存今日賽事。
-      下一步「今日焦點」直接使用，
-      不需要再打一次 API。
+      保存今日資料，
+      焦點卡片直接共用，
+      不再重新抓今日 API。
     */
-
     window.v2TodayFixtures =
       fixtures;
-    
-    renderV2FocusMatches(fixtures);
+
+
+    /*
+      交給焦點系統判斷：
+
+      今天有直播 / 未開賽
+      → 顯示今日焦點
+
+      今天全部結束
+      → 才取得明日焦點
+    */
+    renderV2FocusMatches(
+      fixtures
+    );
 
 
   } catch (error) {
@@ -3774,7 +3795,6 @@ async function loadV2TodayFixturesCount() {
 
 }
 
-
 /* ===============================
    我的已分析數量
 ================================ */
@@ -3784,6 +3804,40 @@ async function loadV2TodayFixturesCount() {
 ========================================= */
 
 async function loadV2TomorrowFocusMatches() {
+
+  const focusTitle =
+    document.getElementById(
+      "v2FocusTitle"
+    );
+
+  if (focusTitle) {
+    focusTitle.textContent =
+      "明日焦點";
+  }
+
+  /*
+    同一頁已經取得過明日賽事，
+    直接重用，不再次呼叫 API。
+  */
+  if (
+    Array.isArray(
+      window.v2TomorrowFixtures
+    )
+  ) {
+
+    return window.v2TomorrowFixtures;
+
+  }  
+
+  const focusTitle =
+    document.getElementById(
+      "v2FocusTitle"
+    );
+
+  if (focusTitle) {
+    focusTitle.textContent =
+      "明日焦點";
+  }
 
   try {
 
