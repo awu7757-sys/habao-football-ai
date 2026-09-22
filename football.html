@@ -1354,6 +1354,553 @@ h1{
   z-index: 2;
   pointer-events: none;
 }
+
+/* =========================================================
+   HABAO FOOTBALL V2 - HEADER / HERO / DATE CONTROL
+========================================================= */
+
+/* ---------- Header ---------- */
+
+.v2-header{
+  position:relative;
+  z-index:20;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,25,22,.98),
+      rgba(10,12,14,.96)
+    );
+  border-bottom:1px solid rgba(232,184,72,.18);
+  box-shadow:0 12px 35px rgba(0,0,0,.28);
+}
+
+.v2-header .header-inner{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.v2-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  text-decoration:none;
+  color:inherit;
+  min-width:0;
+}
+
+.v2-logo{
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:15px;
+
+  font-size:22px;
+  font-weight:1000;
+  color:#16130b;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff0a8 0%,
+      #f7c84f 42%,
+      #d99a17 100%
+    );
+
+  border:1px solid rgba(255,228,142,.9);
+
+  box-shadow:
+    0 0 0 4px rgba(219,165,42,.08),
+    0 10px 25px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.65);
+}
+
+.v2-brand-copy{
+  min-width:0;
+}
+
+.v2-brand .brand-title{
+  font-size:17px;
+  font-weight:950;
+  letter-spacing:.3px;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.v2-brand .brand-sub{
+  margin-top:3px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.15px;
+  color:#8e9aaa;
+  white-space:nowrap;
+}
+
+
+/* ---------- Member ---------- */
+
+.v2-member{
+  display:flex;
+  align-items:flex-end;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+
+.v2-member .member-account{
+  padding:6px 10px;
+  border-radius:999px;
+
+  font-size:11px;
+  font-weight:850;
+  color:#dce3ea;
+
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+.v2-member .member-user-count{
+  display:flex;
+  align-items:center;
+  gap:5px;
+
+  font-size:8px;
+  letter-spacing:.5px;
+  color:#7f8994;
+}
+
+.v2-online-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#38e99b;
+
+  box-shadow:
+    0 0 0 3px rgba(56,233,155,.10),
+    0 0 10px rgba(56,233,155,.65);
+}
+
+.v2-online-text strong{
+  color:#b9c3cd;
+}
+
+
+/* ---------- Main ---------- */
+
+.v2-match-center{
+  position:relative;
+}
+
+
+/* ---------- Match Hero ---------- */
+
+.v2-match-hero{
+  position:relative;
+  overflow:hidden;
+
+  margin-top:18px;
+  padding:18px 18px 22px;
+
+  border-radius:24px;
+
+  background:
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(234,181,61,.16),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(35,82,116,.18),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      #111820,
+      #080b0f 72%
+    );
+
+  border:1px solid rgba(225,179,65,.28);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-match-hero::before{
+  content:"";
+  position:absolute;
+  width:190px;
+  height:190px;
+  right:-70px;
+  top:-90px;
+
+  border:1px solid rgba(229,183,67,.10);
+  border-radius:50%;
+}
+
+.v2-match-hero::after{
+  content:"";
+  position:absolute;
+  width:110px;
+  height:110px;
+  right:-30px;
+  top:-48px;
+
+  border:1px solid rgba(229,183,67,.10);
+  border-radius:50%;
+}
+
+.v2-match-hero > *{
+  position:relative;
+  z-index:2;
+}
+
+.v2-match-hero-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.v2-back{
+  color:#9ca8b4;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+}
+
+.v2-engine-badge{
+  padding:6px 9px;
+  border-radius:999px;
+
+  color:#e8bd55;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  border:1px solid rgba(229,181,61,.24);
+  background:rgba(229,181,61,.055);
+}
+
+.v2-match-kicker{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:8px;
+
+  color:#e9b943;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:1.6px;
+}
+
+.v2-match-kicker::before{
+  content:"";
+  width:22px;
+  height:2px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#ffd86b,#b67b12);
+}
+
+.v2-match-hero h1{
+  margin:0;
+
+  color:#fff;
+  font-size:30px;
+  line-height:1.08;
+  font-weight:1000;
+  letter-spacing:-1px;
+}
+
+.v2-match-hero .description{
+  margin-top:12px;
+
+  color:#9aa6b2;
+  font-size:12px;
+  line-height:1.8;
+  font-weight:600;
+}
+
+
+/* ---------- Control Panel ---------- */
+
+.v2-control-panel{
+  margin-top:14px;
+  padding:16px;
+
+  border-radius:21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,28,37,.98),
+      rgba(10,14,19,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 14px 35px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v2-control-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.v2-control-label{
+  color:#d9aa3c;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.v2-control-title{
+  margin-top:3px;
+  color:#f1f4f7;
+  font-size:14px;
+  font-weight:900;
+}
+
+.v2-history-btn{
+  width:auto;
+  margin:0;
+  padding:9px 11px;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  border-radius:11px;
+
+  color:#dce3e9;
+  font-size:10px;
+  font-weight:850;
+
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+
+  box-shadow:none;
+}
+
+.v2-history-icon{
+  color:#eab945;
+  font-size:14px;
+}
+
+
+/* ---------- Date Tabs ---------- */
+
+.v2-date-bar{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+
+  margin:0;
+  padding:5px;
+
+  border-radius:16px;
+
+  background:#080c10;
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.v2-date-bar .date{
+  position:relative;
+
+  margin:0;
+  padding:12px 8px;
+
+  border-radius:12px;
+  cursor:pointer;
+
+  text-align:center;
+
+  background:transparent;
+  border:1px solid transparent;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+.v2-date-bar .date.active{
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237,190,75,.19),
+      rgba(156,103,16,.10)
+    );
+
+  border-color:rgba(237,190,75,.38);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,238,174,.09),
+    0 7px 18px rgba(0,0,0,.18);
+}
+
+.v2-date-bar .date.active::before{
+  content:"";
+  position:absolute;
+
+  left:24%;
+  right:24%;
+  bottom:-1px;
+
+  height:2px;
+  border-radius:10px;
+
+  background:#f2bd45;
+  box-shadow:0 0 10px rgba(242,189,69,.65);
+}
+
+.v2-date-bar .date-day{
+  color:#d5dbe1;
+  font-size:13px;
+  font-weight:950;
+}
+
+.v2-date-bar .date-num{
+  margin-top:3px;
+
+  color:#697684;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.v2-date-bar .date.active .date-day{
+  color:#ffd86c;
+}
+
+.v2-date-bar .date.active .date-num{
+  color:#b9913d;
+}
+
+
+/* ---------- Fixture Section Title ---------- */
+
+.v2-fixture-title{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-top:27px;
+  margin-bottom:13px;
+}
+
+.v2-fixture-title::before{
+  content:"";
+  width:3px;
+  align-self:stretch;
+
+  border-radius:10px;
+  background:linear-gradient(#ffe078,#d49716);
+
+  box-shadow:0 0 10px rgba(235,181,55,.35);
+}
+
+.v2-fixture-title > div{
+  flex:1;
+}
+
+.v2-section-kicker{
+  display:block;
+
+  margin-bottom:4px;
+
+  color:#9b792f;
+  font-size:7px;
+  font-weight:950;
+  letter-spacing:1.5px;
+}
+
+.v2-fixture-title h2{
+  margin:0;
+
+  color:#f4f6f8;
+  font-size:19px;
+  font-weight:1000;
+  letter-spacing:-.3px;
+}
+
+.v2-section-engine{
+  color:#d5ad51 !important;
+  font-size:8px !important;
+  font-weight:900 !important;
+  letter-spacing:.8px;
+  white-space:nowrap;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width:600px){
+
+  .v2-header .header-inner{
+    min-height:70px;
+  }
+
+  .v2-logo{
+    width:42px;
+    height:42px;
+    flex-basis:42px;
+    border-radius:13px;
+    font-size:20px;
+  }
+
+  .v2-brand .brand-title{
+    font-size:15px;
+  }
+
+  .v2-brand .brand-sub{
+    font-size:7px;
+  }
+
+  .v2-member .member-user-count{
+    display:none;
+  }
+
+  .v2-match-hero{
+    margin-top:12px;
+    padding:16px 16px 20px;
+    border-radius:21px;
+  }
+
+  .v2-match-hero h1{
+    font-size:27px;
+  }
+
+  .v2-match-hero .description{
+    font-size:11px;
+  }
+
+  .v2-control-panel{
+    padding:14px;
+    border-radius:18px;
+  }
+
+  .v2-fixture-title{
+    margin-top:24px;
+  }
+
+}
   
 </style>
   
@@ -1361,75 +1908,191 @@ h1{
 
 <body>
 
-<header class="header">
+<header class="header v2-header">
   <div class="header-inner">
 
-   <a href="home.html" class="brand" style="text-decoration:none; color:inherit;">
-    <div class="logo">⚽️</div>
+    <a href="home-v2.html" class="brand v2-brand">
 
-    <div>
-        <div class="brand-title">哈寶足球 AI</div>
-        <div class="brand-sub">HABAO FOOTBALL AI</div>
+      <div class="v2-logo">
+        H
+      </div>
+
+      <div class="v2-brand-copy">
+        <div class="brand-title">
+          哈寶足球 AI
+        </div>
+
+        <div class="brand-sub">
+          FOOTBALL INTELLIGENCE
+        </div>
+      </div>
+
+    </a>
+
+
+    <div class="member v2-member">
+
+      <div class="member-account" id="memberAccount">
+        會員
+      </div>
+
+      <div class="member-user-count">
+        <span class="v2-online-dot"></span>
+        <span class="v2-online-text">
+          <strong id="currentUserCount">--</strong> ONLINE
+        </span>
+      </div>
+
+      <div
+        class="member-expire"
+        id="memberExpire"
+      ></div>
+
     </div>
-</a>
-
-   <div class="member">
-  <div class="member-account" id="memberAccount">會員</div>
-
-  <div class="member-user-count">
-    👥 目前使用人數
-    <strong id="currentUserCount">--</strong>
-  </div>
-
-  <div class="member-expire" id="memberExpire"></div>
-</div>
 
   </div>
 </header>
 
-<main class="container">
 
-  <a href="home.html" class="back">← 返回運動中心</a>
+<main class="container v2-match-center">
 
-  <div class="tag">FOOTBALL AI CENTER</div>
+  <!-- MATCH CENTER HERO -->
 
-  <h1>足球賽事分析</h1>
+  <section class="v2-match-hero">
 
-  <div class="description">
-    AI 數據整理 × 賽事資訊 × 市場數據<br>
-    選擇賽事，查看 AI 賽前分析。
+    <div class="v2-match-hero-top">
+
+      <a
+        href="home-v2.html"
+        class="v2-back"
+      >
+        ← 返回首頁
+      </a>
+
+      <span class="v2-engine-badge">
+        HABAO ENGINE
+      </span>
+
+    </div>
+
+
+    <div class="v2-match-kicker">
+      MATCH CENTER
+    </div>
+
+    <h1>
+      賽事中心
+    </h1>
+
+    <div class="description">
+      整合賽事資訊、近期數據與市場資料，
+      <br>
+      快速查看賽前量化分析。
+    </div>
+
+  </section>
+
+
+  <!-- DATE CONTROL -->
+
+  <section class="v2-control-panel">
+
+    <div class="v2-control-head">
+
+      <div>
+        <div class="v2-control-label">
+          MATCH DATE
+        </div>
+
+        <div class="v2-control-title">
+          選擇賽事日期
+        </div>
+      </div>
+
+
+      <button
+        type="button"
+        onclick="openAnalysisHistory()"
+        class="history-btn v2-history-btn"
+      >
+        <span class="v2-history-icon">
+          ▤
+        </span>
+
+        我的分析
+      </button>
+
+    </div>
+
+
+    <div class="date-bar v2-date-bar">
+
+      <div
+        class="date"
+        onclick="switchDate(this, 0)"
+      >
+        <div class="date-day">
+          今天
+        </div>
+
+        <div class="date-num">
+          TODAY
+        </div>
+      </div>
+
+
+      <div
+        class="date active"
+        onclick="switchDate(this, 1)"
+      >
+        <div class="date-day">
+          明天
+        </div>
+
+        <div class="date-num">
+          NEXT DAY
+        </div>
+      </div>
+
+
+      <div
+        class="date"
+        style="display:none;"
+        onclick="switchDate(this, 2)"
+      >
+        <div class="date-day">
+          後天
+        </div>
+
+        <div class="date-num">
+          +2 DAY
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FIXTURE TITLE -->
+
+  <div class="section-title v2-fixture-title">
+
+    <div>
+      <span class="v2-section-kicker">
+        LIVE DATA
+      </span>
+
+      <h2 id="fixtureSectionTitle">
+        明日焦點賽事
+      </h2>
+    </div>
+
+    <span class="v2-section-engine">
+      AI MATCH CENTER
+    </span>
+
   </div>
-
-
-  <div class="date-bar">
-
-  <div class="date" onclick="switchDate(this, 0)">
-  <div class="date-day">今天</div>
-  <div class="date-num">TODAY</div>
-</div>
-
-<div class="date active" onclick="switchDate(this, 1)">
-  <div class="date-day">明天</div>
-  <div class="date-num">NEXT DAY</div>
-</div>
-
-<div class="date" style="display:none;" onclick="switchDate(this, 2)">
-  <div class="date-day">後天</div>
-  <div class="date-num">+2 DAY</div>
-</div>
-
-  </div>
-
- <div style="margin:16px 0 22px;">
-  <button type="button" onclick="openAnalysisHistory()" class="history-btn">
-    📋 我的分析紀錄
-  </button>
-</div> 
-
- <div class="section-title">
-  <h2 id="fixtureSectionTitle">⚽️ 明日焦點賽事</h2>
-  <span>AI MATCH CENTER</span>
-</div>
 
 <div class="fixture-search">
   <span class="fixture-search-icon">⌕</span>
