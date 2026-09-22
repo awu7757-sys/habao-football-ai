@@ -1901,6 +1901,495 @@ h1{
   }
 
 }
+
+/* ========================================
+   HABAO V2 - MATCH CARD
+======================================== */
+
+.v2-match-card {
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 16px;
+  padding: 0;
+
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245, 190, 65, 0.08),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13, 29, 43, 0.98),
+      rgba(7, 19, 30, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.v2-match-card::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 195, 65, 0.85),
+    transparent
+  );
+
+  opacity: 0.65;
+}
+
+.v2-match-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(255, 195, 65, 0.22);
+
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+
+/* ===== TOP ===== */
+
+.v2-match-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 17px 10px;
+}
+
+.v2-match-league {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 0;
+
+  color: #f5c451;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.v2-league-dot {
+  width: 7px;
+  height: 7px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: #f5c451;
+
+  box-shadow:
+    0 0 0 4px rgba(245, 196, 81, 0.08),
+    0 0 12px rgba(245, 196, 81, 0.45);
+}
+
+.v2-match-time {
+  flex: 0 0 auto;
+
+  padding: 6px 9px;
+
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ===== TEAMS ===== */
+
+.v2-match-teams {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 1fr 54px 1fr;
+  align-items: center;
+
+  min-height: 145px;
+
+  padding: 14px 18px 20px;
+}
+
+.v2-match-team {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.v2-team-logo-box {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 10px;
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.10),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.v2-team-logo-box .team-logo {
+  display: block;
+
+  width: 42px;
+  height: 42px;
+
+  object-fit: contain;
+
+  filter: drop-shadow(
+    0 5px 7px rgba(0, 0, 0, 0.28)
+  );
+}
+
+.v2-match-team .team-name {
+  width: 100%;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+
+  word-break: break-word;
+}
+
+.v2-team-side {
+  margin-top: 5px;
+
+  color: rgba(255, 255, 255, 0.32);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 1.4px;
+}
+
+
+/* ===== VS ===== */
+
+.v2-match-center {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-match-line {
+  position: absolute;
+
+  width: 80px;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 196, 81, 0.25),
+    transparent
+  );
+
+  z-index: 0;
+}
+
+.v2-vs-ring {
+  position: relative;
+  z-index: 1;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(245, 196, 81, 0.14),
+      rgba(8, 18, 28, 0.98)
+    );
+
+  border: 1px solid rgba(245, 196, 81, 0.30);
+
+  color: #f5c451;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  box-shadow:
+    0 0 20px rgba(245, 196, 81, 0.08),
+    inset 0 0 15px rgba(245, 196, 81, 0.05);
+}
+
+
+/* ===== BOTTOM ACTION ===== */
+
+.v2-match-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin: 0 16px;
+
+  padding: 13px 0 16px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.v2-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+.v2-status span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+.v2-status.ready {
+  color: #37e6a1;
+}
+
+.v2-status.ready span {
+  background: #37e6a1;
+
+  box-shadow:
+    0 0 10px rgba(55, 230, 161, 0.70);
+}
+
+.v2-status.finished {
+  color: #7f91a0;
+}
+
+.v2-status.finished span {
+  background: #7f91a0;
+}
+
+.v2-status.locked {
+  color: #d1a94b;
+}
+
+.v2-status.locked span {
+  background: #d1a94b;
+
+  box-shadow:
+    0 0 9px rgba(209, 169, 75, 0.35);
+}
+
+
+/* ===== ANALYSIS BUTTON ===== */
+
+.v2-analysis-btn {
+  min-width: 112px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 11px 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #42edaa,
+      #2edc99
+    );
+
+  color: #04150f;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  box-shadow:
+    0 9px 22px rgba(46, 220, 153, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.v2-analysis-btn strong {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.v2-analysis-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 12px 26px rgba(46, 220, 153, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.v2-analysis-btn.finished {
+  background: rgba(111, 130, 145, 0.15);
+
+  color: #81909c;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+.v2-analysis-btn.locked {
+  background: rgba(209, 169, 75, 0.10);
+
+  border: 1px solid rgba(209, 169, 75, 0.16);
+
+  color: #9f8956;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 520px) {
+
+  .v2-match-card {
+    border-radius: 18px;
+  }
+
+  .v2-match-card-top {
+    padding:
+      14px
+      14px
+      8px;
+  }
+
+  .v2-match-teams {
+    grid-template-columns:
+      minmax(0, 1fr)
+      46px
+      minmax(0, 1fr);
+
+    min-height: 138px;
+
+    padding:
+      12px
+      10px
+      18px;
+  }
+
+  .v2-team-logo-box {
+    width: 54px;
+    height: 54px;
+
+    border-radius: 15px;
+  }
+
+  .v2-team-logo-box .team-logo {
+    width: 39px;
+    height: 39px;
+  }
+
+  .v2-match-team .team-name {
+    font-size: 13px;
+  }
+
+  .v2-vs-ring {
+    width: 34px;
+    height: 34px;
+  }
+
+  .v2-match-action {
+    margin:
+      0
+      14px;
+
+    padding:
+      12px
+      0
+      14px;
+  }
+
+  .v2-analysis-btn {
+    min-width: 105px;
+
+    padding:
+      10px
+      13px;
+
+    font-size: 11px;
+  }
+
+  .v2-status {
+    font-size: 8px;
+  }
+
+}
   
 </style>
   
@@ -2787,93 +3276,142 @@ if (fixtures.length === 0) {
 
 const leagueText = getLeagueNameZH(match.league.name || "");
 
-      return `
-        <div class="match-card">
-
-          <div class="match-info">
-            <div class="time">${time}</div>
-            <div class="league">${leagueText}</div>
-          </div>
-
-          <div class="teams">
-
-            <div class="team">
-              <img
-                class="team-logo"
-                src="${match.home.logo || ""}"
-                alt="${match.home.name}"
-              >
-              <div class="team-name">
-                ${getTeamNameZH(match.home.name)}
-              </div>
-            </div>
-
-            <div class="vs">VS</div>
-
-            <div class="team">
-              <img
-                class="team-logo"
-                src="${match.away.logo || ""}"
-                alt="${match.away.name}"
-              >
-              <div class="team-name">
-                ${getTeamNameZH(match.away.name)}
-              </div>
-            </div>
-
-          </div>
-
-         <div class="analysis">
-
-  ${
+const isFinished =
   currentFixtureOffset === 0 &&
-  ["FT", "AET", "PEN", "AWD", "WO"].includes(match.status)
-    ? `
-      <div class="ai-status" style="color:#8b98a5;">
-        ● MATCH FINISHED
+  ["FT", "AET", "PEN", "AWD", "WO"].includes(match.status);
+
+const isLocked =
+  currentFixtureOffset === 2;
+
+return `
+  <article class="match-card v2-match-card">
+
+    <div class="v2-match-card-top">
+
+      <div class="v2-match-league">
+        <span class="v2-league-dot"></span>
+        ${leagueText}
       </div>
 
-      <button
-        class="analysis-btn"
-        disabled
-        style="opacity:0.55; cursor:not-allowed; color:#aab4bd; background:#25313b;"
-      >
-        ✓ 已完賽
-      </button>
-    `
-    : currentFixtureOffset === 2
-    ? `
-      <div class="ai-status">
-        🔒 AI ANALYSIS LOCKED
+      <div class="v2-match-time">
+        ${time}
       </div>
 
-      <button
-        class="analysis-btn"
-        disabled
-        style="opacity:0.45; cursor:not-allowed;"
-      >
-        明日開放分析
-      </button>
-    `
-    : `
-      <div class="ai-status">
-        ● AI READY
-      </div>
+    </div>
 
-      <button
-        class="analysis-btn"
-        onclick="openMatch(${match.fixtureId}, this)"
-      >
-        開始分析 →
-      </button>
-    `
-}
 
-</div>
+    <div class="v2-match-teams">
 
+      <div class="v2-match-team">
+
+        <div class="v2-team-logo-box">
+          <img
+            class="team-logo"
+            src="${match.home.logo || ""}"
+            alt="${match.home.name}"
+          >
         </div>
-      `;
-    }).join("");
+
+        <div class="team-name">
+          ${getTeamNameZH(match.home.name)}
+        </div>
+
+        <div class="v2-team-side">
+          HOME
+        </div>
+
+      </div>
+
+
+      <div class="v2-match-center">
+
+        <div class="v2-vs-ring">
+          VS
+        </div>
+
+        <div class="v2-match-line"></div>
+
+      </div>
+
+
+      <div class="v2-match-team">
+
+        <div class="v2-team-logo-box">
+          <img
+            class="team-logo"
+            src="${match.away.logo || ""}"
+            alt="${match.away.name}"
+          >
+        </div>
+
+        <div class="team-name">
+          ${getTeamNameZH(match.away.name)}
+        </div>
+
+        <div class="v2-team-side">
+          AWAY
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="analysis v2-match-action">
+
+      ${
+        isFinished
+          ? `
+            <div class="ai-status v2-status finished">
+              <span></span>
+              MATCH FINISHED
+            </div>
+
+            <button
+              class="analysis-btn v2-analysis-btn finished"
+              disabled
+            >
+              ✓ 已完賽
+            </button>
+          `
+
+          : isLocked
+
+          ? `
+            <div class="ai-status v2-status locked">
+              <span></span>
+              AI ANALYSIS LOCKED
+            </div>
+
+            <button
+              class="analysis-btn v2-analysis-btn locked"
+              disabled
+            >
+              明日開放分析
+            </button>
+          `
+
+          : `
+            <div class="ai-status v2-status ready">
+              <span></span>
+              AI READY
+            </div>
+
+            <button
+              class="analysis-btn v2-analysis-btn"
+              onclick="openMatch(${match.fixtureId}, this)"
+            >
+              <span>開始分析</span>
+              <strong>→</strong>
+            </button>
+          `
+      }
+
+    </div>
+
+  </article>
+`;
+}).join("");
 
 // ===== 賽事即時搜尋 =====
 const searchInput = document.getElementById("fixtureSearchInput");
