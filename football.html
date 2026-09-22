@@ -3367,9 +3367,10 @@ const leagueNameZH = {
   "A-League": "澳洲職業足球聯賽",
   "Pro League": "沙烏地阿拉伯職業聯賽",
 
-  "Major League Soccer": "美國職業足球大聯盟",
-  "Serie A Brazil": "巴西甲級聯賽",
-  "Liga Profesional Argentina": "阿根廷甲級聯賽"
+"Major League Soccer": "美國職業足球大聯盟",
+"Serie A Brazil": "巴西甲級聯賽",
+"Liga Profesional Argentina": "阿根廷甲級聯賽",
+"KNVB Beker": "荷蘭盃"
 };
 
 function getLeagueNameZH(name) {
@@ -3668,9 +3669,9 @@ return `
           ${getTeamNameZH(match.home.name)}
         </div>
 
-        <div class="v2-team-side">
-          HOME
-        </div>
+         <div class="v2-team-side">
+         主隊
+         </div>
 
       </div>
 
@@ -3700,9 +3701,9 @@ return `
           ${getTeamNameZH(match.away.name)}
         </div>
 
-        <div class="v2-team-side">
-          AWAY
-        </div>
+<div class="v2-team-side">
+  客隊
+</div>
 
       </div>
 
@@ -3745,9 +3746,9 @@ return `
 
           : `
             <div class="ai-status v2-status ready">
-              <span></span>
-              AI READY
-            </div>
+          <span></span>
+           可分析
+          </div>
 
             <button
               class="analysis-btn v2-analysis-btn"
