@@ -804,6 +804,1152 @@
         padding-right: 5px;
       }
     }
+
+/* =========================================================
+   HABAO PERFORMANCE V2
+   AI 公開戰績中心｜Premium Black Gold Dashboard
+========================================================= */
+
+body{
+  background:
+    radial-gradient(circle at 10% 0%, rgba(244,185,66,.08), transparent 26%),
+    radial-gradient(circle at 95% 20%, rgba(26,214,157,.055), transparent 25%),
+    linear-gradient(180deg,#06141f 0%,#071722 45%,#06131d 100%);
+  color:#fff;
+}
+
+.app{
+  width:min(100%,760px);
+  margin:0 auto;
+  padding:0 14px 48px;
+}
+
+
+/* ===== TOP BAR ===== */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:18px 2px 16px;
+
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.brand-logo{
+  width:42px;
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.45);
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,185,66,.20),
+      rgba(244,185,66,.04)
+    );
+
+  color:#f4c95d;
+
+  font-size:20px;
+  font-weight:1000;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 24px rgba(0,0,0,.28);
+}
+
+.brand-title{
+  color:#fff;
+  font-size:15px;
+  font-weight:950;
+  letter-spacing:.2px;
+}
+
+.brand-subtitle{
+  margin-top:3px;
+
+  color:#7f93a2;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.4px;
+}
+
+.back-btn{
+  min-width:62px;
+  padding:9px 13px;
+
+  border:1px solid rgba(244,185,66,.25);
+  border-radius:10px;
+
+  background:rgba(244,185,66,.06);
+  color:#f4c95d;
+
+  font-size:11px;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+
+/* ===== HERO ===== */
+
+.hero{
+  position:relative;
+  overflow:hidden;
+
+  margin-top:16px;
+  padding:25px 20px 20px;
+
+  border:1px solid rgba(244,185,66,.20);
+  border-radius:22px;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(244,185,66,.12),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,34,46,.98),
+      rgba(7,24,35,.98)
+    );
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.hero::before{
+  content:"";
+  position:absolute;
+  top:-70px;
+  right:-70px;
+
+  width:180px;
+  height:180px;
+
+  border:1px solid rgba(244,185,66,.10);
+  border-radius:50%;
+}
+
+.hero-kicker{
+  position:relative;
+  z-index:1;
+
+  color:#f4c95d;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:2px;
+}
+
+.hero h1{
+  position:relative;
+  z-index:1;
+
+  margin:9px 0 7px;
+
+  color:#fff;
+  font-size:30px;
+  font-weight:1000;
+  letter-spacing:-1px;
+}
+
+.hero p{
+  position:relative;
+  z-index:1;
+
+  max-width:520px;
+  margin:0;
+
+  color:#91a6b5;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.8;
+}
+
+
+/* ===== VERIFIED COUNTER ===== */
+
+.verified-box{
+  position:relative;
+  z-index:1;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin-top:20px;
+  padding:17px 18px;
+
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+
+  background:rgba(0,0,0,.17);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.verified-label{
+  margin-bottom:3px;
+
+  color:#8195a4;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:1px;
+}
+
+.verified-number{
+  color:#fff;
+  font-size:30px;
+  font-weight:1000;
+  line-height:1;
+}
+
+.verified-unit{
+  margin-left:4px;
+
+  color:#f4c95d;
+  font-size:10px;
+  font-weight:900;
+}
+
+.live-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  padding:7px 10px;
+
+  border:1px solid rgba(42,224,164,.18);
+  border-radius:999px;
+
+  background:rgba(42,224,164,.055);
+  color:#39e5a9;
+
+  font-size:9px;
+  font-weight:900;
+}
+
+.live-dot{
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+  background:#39e5a9;
+
+  box-shadow:0 0 10px rgba(57,229,169,.8);
+}
+
+
+/* ===== FILTER ===== */
+
+.filter-wrap{
+  position:relative;
+  z-index:1;
+
+  margin-top:15px;
+}
+
+.filter-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+
+  padding:5px;
+
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:13px;
+
+  background:rgba(0,0,0,.18);
+}
+
+.filter-btn{
+  padding:10px 6px;
+
+  border:0;
+  border-radius:9px;
+
+  background:transparent;
+  color:#718796;
+
+  font-size:10px;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.filter-btn.active{
+  background:
+    linear-gradient(
+      135deg,
+      #f6c84d,
+      #d99e21
+    );
+
+  color:#101820;
+
+  box-shadow:
+    0 5px 18px rgba(244,185,66,.17),
+    inset 0 1px 0 rgba(255,255,255,.30);
+}
+
+
+/* ===== SECTIONS ===== */
+
+.section{
+  margin-top:24px;
+}
+
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin-bottom:12px;
+  padding:0 3px;
+}
+
+.section-title{
+  margin:0;
+
+  color:#fff;
+  font-size:16px;
+  font-weight:1000;
+}
+
+.section-note{
+  padding:5px 9px;
+
+  border:1px solid rgba(244,185,66,.18);
+  border-radius:999px;
+
+  background:rgba(244,185,66,.05);
+  color:#f4c95d;
+
+  font-size:9px;
+  font-weight:900;
+}
+
+
+/* ===== PERFORMANCE CARDS ===== */
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.stat-card{
+  position:relative;
+  overflow:hidden;
+
+  min-height:150px;
+  padding:15px 13px;
+
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(15,37,49,.98),
+      rgba(8,27,39,.98)
+    );
+
+  box-shadow:
+    0 13px 28px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.stat-card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #f4b942,
+      rgba(244,185,66,0)
+    );
+}
+
+.stat-icon{
+  width:42px;
+  height:27px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.24);
+  border-radius:8px;
+
+  background:rgba(244,185,66,.07);
+  color:#f4c95d;
+
+  font-size:9px;
+  font-weight:1000;
+  letter-spacing:.5px;
+}
+
+.stat-name{
+  margin-top:15px;
+
+  color:#8297a6;
+  font-size:10px;
+  font-weight:850;
+}
+
+.stat-rate{
+  margin-top:5px;
+
+  color:#fff;
+  font-size:27px;
+  font-weight:1000;
+  letter-spacing:-1px;
+}
+
+.stat-total{
+  margin-top:5px;
+
+  color:#617785;
+  font-size:9px;
+  font-weight:800;
+}
+
+
+/* ===== INFO ===== */
+
+.info-card{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+
+  padding:15px 16px;
+
+  border:1px solid rgba(244,185,66,.14);
+  border-radius:15px;
+
+  background:rgba(244,185,66,.035);
+
+  color:#8195a4;
+  font-size:10px;
+  font-weight:650;
+  line-height:1.75;
+}
+
+.info-icon{
+  flex:0 0 auto;
+
+  width:26px;
+  height:26px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.25);
+  border-radius:50%;
+
+  color:#f4c95d;
+  font-size:12px;
+  font-weight:900;
+}
+
+
+/* ===== LEAGUE LIST ===== */
+
+.league-list{
+  display:grid;
+  gap:9px;
+}
+
+.league-list > *{
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,35,47,.98),
+      rgba(8,27,38,.98)
+    );
+
+  box-shadow:0 10px 24px rgba(0,0,0,.15);
+}
+
+
+/* ===== MATCH VERIFICATION LIST ===== */
+
+.match-list{
+  display:grid;
+  gap:11px;
+}
+
+.match-list > *{
+  border-color:rgba(255,255,255,.075);
+}
+
+.state-card{
+  padding:35px 20px;
+
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,35,47,.98),
+      rgba(8,27,38,.98)
+    );
+
+  text-align:center;
+}
+
+.loader{
+  width:27px;
+  height:27px;
+
+  margin:0 auto 13px;
+
+  border:3px solid rgba(255,255,255,.08);
+  border-top-color:#f4c95d;
+  border-radius:50%;
+
+  animation:habaoPerformanceSpin .8s linear infinite;
+}
+
+@keyframes habaoPerformanceSpin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.state-title{
+  color:#fff;
+  font-size:13px;
+  font-weight:950;
+}
+
+.state-text{
+  margin-top:5px;
+
+  color:#6f8492;
+  font-size:10px;
+  font-weight:700;
+}
+
+
+/* ===== FOOTER ===== */
+
+.footer{
+  margin-top:32px;
+  padding:20px 10px 5px;
+
+  border-top:1px solid rgba(255,255,255,.06);
+
+  color:#516875;
+  font-size:9px;
+  font-weight:650;
+  line-height:1.8;
+  text-align:center;
+}
+
+
+/* ===== MOBILE ===== */
+
+@media(max-width:520px){
+
+  .app{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .hero{
+    padding:21px 16px 17px;
+    border-radius:19px;
+  }
+
+  .hero h1{
+    font-size:27px;
+  }
+
+  .hero p{
+    font-size:11px;
+  }
+
+  .verified-box{
+    padding:15px;
+  }
+
+  .verified-number{
+    font-size:27px;
+  }
+
+  .stats-grid{
+    gap:7px;
+  }
+
+  .stat-card{
+    min-height:137px;
+    padding:13px 10px;
+    border-radius:14px;
+  }
+
+  .stat-rate{
+    font-size:23px;
+  }
+
+  .stat-name{
+    font-size:9px;
+  }
+
+  .stat-total{
+    font-size:8px;
+  }
+
+  .section{
+    margin-top:21px;
+  }
+
+}
+
+/* =========================================================
+   HABAO PERFORMANCE V2
+   LEAGUE + VERIFIED MATCH CARDS
+========================================================= */
+
+
+/* ===== 聯賽表現 ===== */
+
+.league-list{
+  display:grid;
+  gap:10px;
+}
+
+.league-card{
+  position:relative;
+  overflow:hidden;
+
+  padding:16px;
+
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:17px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(244,185,66,.055),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14,35,47,.99),
+      rgba(8,26,38,.99)
+    );
+
+  box-shadow:
+    0 13px 30px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.league-card::before{
+  content:"";
+
+  position:absolute;
+  left:0;
+  top:16px;
+
+  width:2px;
+  height:31px;
+
+  border-radius:0 3px 3px 0;
+
+  background:
+    linear-gradient(
+      #ffe078,
+      #c78c20
+    );
+
+  box-shadow:
+    0 0 10px rgba(244,185,66,.25);
+}
+
+.league-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:13px;
+}
+
+.league-card-name{
+  min-width:0;
+
+  color:#fff;
+
+  font-size:13px;
+  font-weight:950;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.league-card-count{
+  flex:0 0 auto;
+
+  padding:5px 8px;
+
+  border:1px solid rgba(244,185,66,.16);
+  border-radius:999px;
+
+  background:rgba(244,185,66,.045);
+
+  color:#c99c42;
+
+  font-size:8px;
+  font-weight:900;
+}
+
+.league-markets{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+
+.league-market{
+  min-width:0;
+
+  padding:10px 5px;
+
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:11px;
+
+  background:rgba(255,255,255,.022);
+
+  text-align:center;
+}
+
+.league-market-name{
+  color:#718795;
+
+  font-size:8px;
+  font-weight:800;
+}
+
+.league-market-rate{
+  margin-top:5px;
+
+  color:#fff;
+
+  font-size:14px;
+  font-weight:1000;
+}
+
+
+/* =========================================================
+   賽事驗證紀錄
+========================================================= */
+
+.match-list{
+  display:grid;
+  gap:11px;
+}
+
+.match-card{
+  position:relative;
+  overflow:hidden;
+
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(244,185,66,.045),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14,35,47,.99),
+      rgba(7,25,36,.99)
+    );
+
+  box-shadow:
+    0 15px 34px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.match-card::before{
+  content:"";
+
+  position:absolute;
+  top:0;
+  left:20%;
+  right:20%;
+
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(244,185,66,.55),
+      transparent
+    );
+}
+
+.match-main{
+  padding:16px;
+}
+
+.match-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  margin-bottom:16px;
+}
+
+.league{
+  min-width:0;
+
+  color:#c99c42;
+
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.25px;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.date{
+  flex:0 0 auto;
+
+  color:#667c8a;
+
+  font-size:8px;
+  font-weight:800;
+}
+
+
+/* ===== 球隊 + 比分 ===== */
+
+.teams{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+}
+
+.team{
+  min-width:0;
+
+  color:#fff;
+
+  font-size:13px;
+  font-weight:950;
+  line-height:1.35;
+
+  overflow-wrap:anywhere;
+}
+
+.team.home{
+  text-align:left;
+}
+
+.team.away{
+  text-align:right;
+}
+
+.score{
+  min-width:51px;
+
+  padding:8px 9px;
+
+  border:1px solid rgba(244,185,66,.20);
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,185,66,.12),
+      rgba(244,185,66,.035)
+    );
+
+  color:#f4c95d;
+
+  font-size:17px;
+  font-weight:1000;
+  text-align:center;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+
+/* ===== 三市場驗證 ===== */
+
+.markets{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+
+  border-top:1px solid rgba(255,255,255,.065);
+
+  background:rgba(0,0,0,.10);
+}
+
+.market{
+  min-width:0;
+
+  padding:12px 7px;
+
+  text-align:center;
+}
+
+.market + .market{
+  border-left:1px solid rgba(255,255,255,.055);
+}
+
+.market-name{
+  margin-bottom:6px;
+
+  color:#667c8a;
+
+  font-size:8px;
+  font-weight:850;
+}
+
+.market-pick{
+  min-width:0;
+
+  color:#dfe7ec;
+
+  font-size:10px;
+  font-weight:900;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+
+/* ===== 驗證結果 ===== */
+
+.result{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:19px;
+  min-height:19px;
+
+  margin-left:4px;
+  padding:2px 4px;
+
+  border-radius:6px;
+
+  font-size:8px;
+  font-weight:1000;
+}
+
+.result.win{
+  color:#39e5a9;
+
+  background:rgba(57,229,169,.08);
+
+  border:1px solid rgba(57,229,169,.16);
+}
+
+.result.loss{
+  color:#ff7373;
+
+  background:rgba(255,115,115,.08);
+
+  border:1px solid rgba(255,115,115,.16);
+}
+
+.result.push,
+.result.half_win,
+.result.half_loss{
+  color:#f4c95d;
+
+  background:rgba(244,185,66,.07);
+
+  border:1px solid rgba(244,185,66,.15);
+}
+
+.result.pending{
+  color:#8295a1;
+
+  background:rgba(255,255,255,.04);
+
+  border:1px solid rgba(255,255,255,.07);
+}
+
+
+/* =========================================================
+   EMPTY / ERROR
+========================================================= */
+
+.state-card{
+  position:relative;
+  overflow:hidden;
+
+  padding:38px 20px;
+
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(244,185,66,.055),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14,35,47,.98),
+      rgba(8,27,38,.98)
+    );
+
+  text-align:center;
+
+  box-shadow:
+    0 14px 32px rgba(0,0,0,.18);
+}
+
+.state-icon{
+  width:42px;
+  height:42px;
+
+  margin:0 auto 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.20);
+  border-radius:13px;
+
+  background:rgba(244,185,66,.06);
+
+  color:#f4c95d;
+
+  font-size:19px;
+  font-weight:1000;
+}
+
+.retry-btn{
+  margin-top:15px;
+  padding:10px 15px;
+
+  border:1px solid rgba(244,185,66,.35);
+  border-radius:10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6c84d,
+      #d99e21
+    );
+
+  color:#101820;
+
+  font-size:10px;
+  font-weight:950;
+
+  cursor:pointer;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:520px){
+
+  .league-card{
+    padding:14px;
+    border-radius:15px;
+  }
+
+  .league-card-name{
+    font-size:12px;
+  }
+
+  .league-market-rate{
+    font-size:13px;
+  }
+
+  .match-card{
+    border-radius:16px;
+  }
+
+  .match-main{
+    padding:14px 13px;
+  }
+
+  .teams{
+    gap:7px;
+  }
+
+  .team{
+    font-size:11px;
+  }
+
+  .score{
+    min-width:46px;
+
+    padding:7px 7px;
+
+    font-size:15px;
+  }
+
+  .market{
+    padding:11px 4px;
+  }
+
+  .market-pick{
+    font-size:9px;
+  }
+
+  .result{
+    min-width:17px;
+    min-height:17px;
+
+    margin-left:2px;
+
+    font-size:7px;
+  }
+
+}    
+    
   </style>
 </head>
 
