@@ -3661,6 +3661,573 @@
   }
 
 }
+
+/* =====================================
+   HABAO V2 - FOCUS MATCH 3D
+===================================== */
+
+#v2FocusMatches {
+  display: grid;
+  gap: 13px;
+  perspective: 1000px;
+}
+
+
+/* 主卡片 */
+
+#v2FocusMatches .match-card {
+  position: relative;
+  overflow: hidden;
+
+  padding: 16px;
+
+  border-radius: 22px;
+
+  border: 1px solid rgba(255, 211, 112, .18);
+
+  background:
+    radial-gradient(
+      circle at 88% 0%,
+      rgba(242, 189, 75, .12),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(71, 137, 224, .08),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(28, 39, 53, .97),
+      rgba(8, 13, 20, .99)
+    );
+
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, .38),
+    0 6px 14px rgba(0, 0, 0, .26),
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    inset 0 -1px 0 rgba(0, 0, 0, .5);
+
+  transform: translateZ(0);
+
+  transition:
+    transform .28s ease,
+    border-color .28s ease,
+    box-shadow .28s ease;
+}
+
+
+/* 頂部高光 */
+
+#v2FocusMatches .match-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 12%;
+
+  width: 76%;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, .28),
+      transparent
+    );
+
+  pointer-events: none;
+}
+
+
+/* 右側金色環境光 */
+
+#v2FocusMatches .match-card::after {
+  content: "";
+
+  position: absolute;
+
+  width: 170px;
+  height: 170px;
+
+  right: -90px;
+  top: -95px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(242, 189, 75, .12),
+      transparent 70%
+    );
+
+  pointer-events: none;
+}
+
+
+/* 立體互動 */
+
+#v2FocusMatches .match-card:hover {
+  transform:
+    perspective(800px)
+    translateY(-4px)
+    rotateX(1.5deg);
+
+  border-color: rgba(255, 211, 112, .34);
+
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, .46),
+    0 8px 22px rgba(242, 189, 75, .06),
+    inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+
+
+/* =========================
+   TOP
+========================= */
+
+#v2FocusMatches .match-top {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+/* 聯賽標籤 */
+
+#v2FocusMatches .league {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  color: rgba(255, 224, 151, .94);
+
+  font-size: 10px;
+  font-weight: 850;
+
+  letter-spacing: .02em;
+}
+
+
+#v2FocusMatches .league-icon {
+  width: 25px;
+  height: 25px;
+
+  flex: 0 0 25px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 8px;
+
+  color: #ffd76b;
+
+  border: 1px solid rgba(255, 211, 112, .22);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(242, 189, 75, .18),
+      rgba(16, 22, 29, .92)
+    );
+
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, .26),
+    inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+
+
+#v2FocusMatches .league-icon svg {
+  width: 14px;
+  height: 14px;
+
+  stroke-width: 1.7;
+}
+
+
+/* 比賽時間 */
+
+#v2FocusMatches .match-time {
+  flex: 0 0 auto;
+
+  padding: 5px 8px;
+
+  border-radius: 8px;
+
+  color: rgba(221, 230, 239, .82);
+
+  background: rgba(255, 255, 255, .035);
+
+  border: 1px solid rgba(255, 255, 255, .07);
+
+  font-size: 9px;
+  font-weight: 800;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+
+/* =========================
+   TEAMS
+========================= */
+
+#v2FocusMatches .teams {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    42px
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 20px;
+  margin-bottom: 19px;
+}
+
+
+/* 球隊 */
+
+#v2FocusMatches .team {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 9px;
+
+  text-align: center;
+
+  color: #f5f7fa;
+
+  font-size: 12px;
+  line-height: 1.35;
+
+  font-weight: 850;
+}
+
+
+#v2FocusMatches .team span {
+  display: -webkit-box;
+
+  overflow: hidden;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  min-height: 32px;
+}
+
+
+/* 隊徽 */
+
+#v2FocusMatches .v2-team-logo {
+  width: 48px;
+  height: 48px;
+
+  object-fit: contain;
+
+  padding: 5px;
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, .09),
+      rgba(255, 255, 255, .025)
+    );
+
+  border: 1px solid rgba(255, 255, 255, .09);
+
+  filter:
+    drop-shadow(
+      0 7px 8px rgba(0, 0, 0, .35)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+
+/* VS */
+
+#v2FocusMatches .vs {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  margin: 0 auto;
+
+  border-radius: 50%;
+
+  color: #ffd76b;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(242, 189, 75, .16),
+      rgba(15, 20, 27, .92)
+    );
+
+  border: 1px solid rgba(255, 211, 112, .22);
+
+  font-size: 9px;
+  font-weight: 950;
+
+  letter-spacing: .08em;
+
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, .32),
+    0 0 22px rgba(242, 189, 75, .06),
+    inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+
+
+/* VS 左右線 */
+
+#v2FocusMatches .vs::before,
+#v2FocusMatches .vs::after {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+
+  width: 13px;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 211, 112, .20)
+    );
+}
+
+
+#v2FocusMatches .vs::before {
+  right: 100%;
+}
+
+
+#v2FocusMatches .vs::after {
+  left: 100%;
+
+  transform: rotate(180deg);
+}
+
+
+/* =========================
+   BOTTOM
+========================= */
+
+#v2FocusMatches .match-bottom {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding-top: 12px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, .065);
+}
+
+
+/* 狀態 */
+
+#v2FocusMatches .match-status {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: rgba(193, 205, 217, .72);
+
+  font-size: 9px;
+  font-weight: 750;
+}
+
+
+#v2FocusMatches .mini-dot {
+  width: 6px;
+  height: 6px;
+
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+
+  background: #4be19a;
+
+  box-shadow:
+    0 0 10px rgba(75, 225, 154, .60);
+}
+
+
+/* AI 分析按鈕 */
+
+#v2FocusMatches .analyse {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 8px 11px;
+
+  border-radius: 10px;
+
+  text-decoration: none;
+
+  color: #16130b;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe292,
+      #eeb84a
+    );
+
+  border: 1px solid rgba(255, 226, 146, .55);
+
+  font-size: 9px;
+  font-weight: 950;
+
+  box-shadow:
+    0 7px 17px rgba(0, 0, 0, .28),
+    0 3px 13px rgba(242, 189, 75, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .45);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+#v2FocusMatches .analyse:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 21px rgba(0, 0, 0, .34),
+    0 5px 18px rgba(242, 189, 75, .17),
+    inset 0 1px 0 rgba(255, 255, 255, .50);
+}
+
+
+#v2FocusMatches .analyse span {
+  font-size: 12px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 520px) {
+
+  #v2FocusMatches {
+    gap: 11px;
+  }
+
+  #v2FocusMatches .match-card {
+    padding: 14px;
+
+    border-radius: 19px;
+  }
+
+  #v2FocusMatches .teams {
+    margin-top: 17px;
+    margin-bottom: 16px;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      38px
+      minmax(0, 1fr);
+  }
+
+  #v2FocusMatches .v2-team-logo {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 13px;
+  }
+
+  #v2FocusMatches .team {
+    font-size: 11px;
+  }
+
+  #v2FocusMatches .vs {
+    width: 34px;
+    height: 34px;
+
+    font-size: 8px;
+  }
+
+}
+
+
+/* 超窄手機 */
+
+@media (max-width: 370px) {
+
+  #v2FocusMatches .match-card {
+    padding: 12px;
+  }
+
+  #v2FocusMatches .league {
+    font-size: 9px;
+  }
+
+  #v2FocusMatches .match-time {
+    padding: 4px 6px;
+
+    font-size: 8px;
+  }
+
+  #v2FocusMatches .v2-team-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  #v2FocusMatches .team {
+    font-size: 10px;
+  }
+
+  #v2FocusMatches .analyse {
+    padding: 7px 9px;
+
+    font-size: 8px;
+  }
+
+}
     
 </style>
 </head>    
