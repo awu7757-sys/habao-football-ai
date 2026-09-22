@@ -2390,6 +2390,141 @@ h1{
   }
 
 }
+
+/* ========================================
+   HABAO V2 - MATCH CARD LAYOUT FIX
+   Override legacy match-card styles
+======================================== */
+
+#matchesContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+
+  transform: none;
+}
+
+#matchesContainer .v2-match-card:hover {
+  transform: translateY(-2px);
+}
+
+#matchesContainer .v2-match-card .v2-match-card-top {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-teams {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    54px
+    minmax(0, 1fr) !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-team {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#matchesContainer .v2-match-card .team-name {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  text-align: center !important;
+
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-center {
+  width: 54px !important;
+  min-width: 54px !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-action {
+  width: auto !important;
+
+  margin-left: 16px !important;
+  margin-right: 16px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* MOBILE HARD FIX */
+
+@media (max-width: 520px) {
+
+  #matchesContainer {
+    overflow: hidden !important;
+  }
+
+  #matchesContainer .v2-match-card {
+    left: auto !important;
+    right: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin:
+      0
+      0
+      14px
+      0 !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-teams {
+    grid-template-columns:
+      minmax(0, 1fr)
+      44px
+      minmax(0, 1fr) !important;
+
+    padding:
+      14px
+      10px
+      18px !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-center {
+    width: 44px !important;
+    min-width: 44px !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-action {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+
+}
   
 </style>
   
