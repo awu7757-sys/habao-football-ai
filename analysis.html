@@ -1232,6 +1232,647 @@ h1{
     filter:drop-shadow(0 0 3px rgba(255,120,30,.45));
   }
 }
+
+/* =========================================
+   HABAO V2 - DEEP MATCH INTELLIGENCE
+========================================= */
+
+.v2-analysis-detail{
+  margin-top:28px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* ===== 區塊標題 ===== */
+
+.v2-detail-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding:4px 2px 8px;
+}
+
+.v2-detail-kicker,
+.v2-insight-label{
+  color:#d9a92f;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.8px;
+  line-height:1.4;
+}
+
+.v2-detail-title{
+  margin-top:6px;
+  color:#fff;
+  font-size:24px;
+  font-weight:950;
+  letter-spacing:.3px;
+}
+
+.v2-detail-badge{
+  flex-shrink:0;
+  padding:8px 11px;
+  border:1px solid rgba(235,181,47,.32);
+  border-radius:10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(235,181,47,.12),
+      rgba(235,181,47,.03)
+    );
+
+  color:#f0c34d;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+
+/* ===== 分析情報卡 ===== */
+
+.v2-insight-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(230,177,47,.10),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,31,42,.98),
+      rgba(6,22,32,.98)
+    );
+
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:18px;
+  bottom:18px;
+  width:2px;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      #e8b432,
+      transparent
+    );
+
+  box-shadow:0 0 12px rgba(232,180,50,.35);
+}
+
+.v2-insight-icon{
+  width:48px;
+  height:48px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:14px;
+
+  border:1px solid rgba(232,180,50,.24);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(232,180,50,.14),
+      rgba(232,180,50,.035)
+    );
+
+  color:#f2c14a;
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 20px rgba(0,0,0,.18);
+}
+
+.v2-insight-content{
+  min-width:0;
+}
+
+.v2-insight-title{
+  margin-top:4px;
+
+  color:#fff;
+  font-size:18px;
+  font-weight:950;
+  line-height:1.35;
+}
+
+.v2-insight-content p,
+.v2-final-content p{
+  margin:11px 0 0;
+
+  color:#9bb2c1;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.9;
+}
+
+
+/* ===== 預測比分 ===== */
+
+.v2-score-section{
+  position:relative;
+  overflow:hidden;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(232,180,50,.22);
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(232,180,50,.10),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14,32,43,.98),
+      rgba(7,22,32,.98)
+    );
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-score-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:17px;
+}
+
+.v2-score-tag{
+  padding:7px 10px;
+
+  border-radius:9px;
+  border:1px solid rgba(232,180,50,.24);
+
+  background:rgba(232,180,50,.08);
+
+  color:#e8b432;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.v2-score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+
+.v2-score-card{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+  padding:16px 12px 14px;
+
+  text-align:center;
+
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.045),
+      rgba(255,255,255,.015)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 10px 25px rgba(0,0,0,.16);
+}
+
+.v2-score-rank{
+  color:#687f8e;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.5px;
+}
+
+.v2-score-number{
+  margin:7px 0 5px;
+
+  color:#fff;
+  font-size:27px;
+  font-weight:950;
+  line-height:1;
+
+  text-shadow:0 0 20px rgba(255,255,255,.08);
+}
+
+.v2-score-confidence{
+  color:#91a9b8;
+  font-size:9px;
+  font-weight:800;
+}
+
+.v2-score-bar{
+  height:3px;
+  margin-top:11px;
+
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+}
+
+.v2-score-bar > div{
+  height:100%;
+  max-width:100%;
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #d99f20,
+      #f4d36b
+    );
+
+  box-shadow:0 0 8px rgba(238,187,61,.35);
+}
+
+
+/* ===== 風險評估 ===== */
+
+.v2-risk-card{
+  position:relative;
+  overflow:hidden;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+
+  padding:19px 20px;
+
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,30,41,.98),
+      rgba(7,22,31,.98)
+    );
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-risk-value{
+  flex-shrink:0;
+
+  min-width:78px;
+  padding:10px 14px;
+
+  text-align:center;
+
+  border-radius:11px;
+  border:1px solid rgba(232,180,50,.30);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(232,180,50,.16),
+      rgba(232,180,50,.05)
+    );
+
+  color:#f1c34c;
+  font-size:14px;
+  font-weight:950;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+
+/* ===== 最終提醒 ===== */
+
+.v2-final-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr);
+  gap:15px;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(232,180,50,.25);
+
+  background:
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(232,180,50,.11),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(15,32,42,.98),
+      rgba(7,21,30,.98)
+    );
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.27),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-final-mark{
+  width:50px;
+  height:50px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f4cb58,
+      #d99d20
+    );
+
+  color:#07141c;
+  font-size:21px;
+  font-weight:1000;
+
+  box-shadow:
+    0 8px 22px rgba(218,160,33,.20),
+    inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+.v2-final-content{
+  min-width:0;
+}
+
+
+/* ===== 手機版 ===== */
+
+@media(max-width:600px){
+
+  .v2-analysis-detail{
+    margin-top:22px;
+    gap:13px;
+  }
+
+  .v2-detail-title{
+    font-size:21px;
+  }
+
+  .v2-detail-badge{
+    padding:7px 9px;
+    font-size:8px;
+  }
+
+  .v2-insight-card{
+    grid-template-columns:40px minmax(0,1fr);
+    gap:12px;
+    padding:17px 15px;
+    border-radius:18px;
+  }
+
+  .v2-insight-icon{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    font-size:11px;
+  }
+
+  .v2-insight-title{
+    font-size:16px;
+  }
+
+  .v2-insight-content p,
+  .v2-final-content p{
+    font-size:12px;
+    line-height:1.85;
+  }
+
+  .v2-score-section{
+    padding:17px 14px;
+    border-radius:18px;
+  }
+
+  .v2-score-grid{
+    gap:7px;
+  }
+
+  .v2-score-card{
+    padding:14px 6px 12px;
+    border-radius:14px;
+  }
+
+  .v2-score-number{
+    font-size:22px;
+  }
+
+  .v2-score-confidence{
+    font-size:8px;
+  }
+
+  .v2-risk-card{
+    padding:17px 15px;
+  }
+
+  .v2-risk-value{
+    min-width:68px;
+    padding:9px 11px;
+    font-size:13px;
+  }
+
+  .v2-final-card{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:12px;
+    padding:17px 15px;
+    border-radius:18px;
+  }
+
+  .v2-final-mark{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    font-size:18px;
+  }
+
+}
+
+/* =========================================
+   HABAO V2 - ANALYSIS ACTION BUTTONS
+========================================= */
+
+.bet-action{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+
+  margin:20px 0 26px;
+}
+
+.bet-btn,
+.expert-btn{
+  position:relative;
+  overflow:hidden;
+
+  min-height:54px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:0 18px;
+
+  border-radius:15px;
+
+  text-decoration:none;
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:.3px;
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+/* 立即投注 */
+
+.bet-btn{
+  color:#07141c;
+
+  border:1px solid rgba(255,218,107,.65);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6d365 0%,
+      #e5a824 55%,
+      #ca8c12 100%
+    );
+
+  box-shadow:
+    0 12px 28px rgba(214,155,31,.20),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.bet-btn::before{
+  content:"";
+  position:absolute;
+
+  width:70px;
+  height:160%;
+
+  top:-30%;
+  left:-100px;
+
+  transform:rotate(20deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.28),
+      transparent
+    );
+
+  transition:left .55s ease;
+}
+
+.bet-btn:hover::before{
+  left:120%;
+}
+
+
+/* 專人分析 */
+
+.expert-btn{
+  color:#f2c34b;
+
+  border:1px solid rgba(232,180,50,.28);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(232,180,50,.11),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(16,34,44,.98),
+      rgba(7,22,31,.98)
+    );
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.bet-btn:hover,
+.expert-btn:hover{
+  transform:translateY(-2px);
+}
+
+.bet-btn:active,
+.expert-btn:active{
+  transform:scale(.98);
+}
+
+
+/* 手機 */
+
+@media(max-width:600px){
+
+  .bet-action{
+    gap:9px;
+    margin:17px 0 22px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    min-height:50px;
+    padding:0 10px;
+
+    border-radius:13px;
+
+    font-size:13px;
+  }
+
+}
   
 </style>
 </head>
@@ -1473,41 +2114,121 @@ ${confidenceFire(btts.confidence, btts.pick)}
   專人分析 →
 </a>
 </div>
-      <div class="section">
-        <div class="section-title">AI 分析重點</div>
-        <p>${analysis.summary || "目前沒有摘要資料。"}</p>
-      </div>
+      <div class="v2-analysis-detail">
 
-      <div class="section">
-        <div class="section-title">市場與賠率分析</div>
-        <p>${analysis.market_analysis || "資料不足"}</p>
-      </div>
+        <div class="v2-detail-head">
+          <div>
+            <div class="v2-detail-kicker">HABAO MATCH INTELLIGENCE</div>
+            <div class="v2-detail-title">深度賽事情報</div>
+          </div>
 
-      <div class="section">
-        <div class="section-title">AI 預測比分</div>
-
-        <div class="score-grid">
-          ${scores.slice(0,3).map(item => `
-            <div class="score">
-              <div class="score-num">${item.score || "-"}</div>
-              <div class="score-confidence">
-                信心 ${item.confidence || 0}%
-              </div>
-            </div>
-          `).join("")}
+          <div class="v2-detail-badge">
+            AI REPORT
+          </div>
         </div>
-      </div>
 
-      <div class="section">
-        <div class="section-title">本場風險</div>
-        <span class="risk">${analysis.risk_level || "未評估"}</span>
-      </div>
+        <div class="v2-insight-card">
+          <div class="v2-insight-icon">01</div>
 
-      <div class="section">
-        <div class="section-title">AI 最終提醒</div>
-        <p>${analysis.final_note || "請綜合即時資訊判斷。"}</p>
-      </div>
+          <div class="v2-insight-content">
+            <div class="v2-insight-label">MATCH INSIGHT</div>
+            <div class="v2-insight-title">AI 分析重點</div>
 
+            <p>
+              ${analysis.summary || "目前沒有摘要資料。"}
+            </p>
+          </div>
+        </div>
+
+
+        <div class="v2-insight-card">
+          <div class="v2-insight-icon">02</div>
+
+          <div class="v2-insight-content">
+            <div class="v2-insight-label">MARKET INTELLIGENCE</div>
+            <div class="v2-insight-title">市場與賠率分析</div>
+
+            <p>
+              ${analysis.market_analysis || "資料不足"}
+            </p>
+          </div>
+        </div>
+
+
+        <div class="v2-score-section">
+
+          <div class="v2-score-head">
+            <div>
+              <div class="v2-insight-label">SCORE PROJECTION</div>
+              <div class="v2-insight-title">AI 預測比分</div>
+            </div>
+
+            <div class="v2-score-tag">
+              TOP 3
+            </div>
+          </div>
+
+          <div class="v2-score-grid">
+
+            ${scores.slice(0,3).map((item, index) => `
+              <div class="v2-score-card">
+
+                <div class="v2-score-rank">
+                  0${index + 1}
+                </div>
+
+                <div class="v2-score-number">
+                  ${item.score || "-"}
+                </div>
+
+                <div class="v2-score-confidence">
+                  AI 信心 ${item.confidence || 0}%
+                </div>
+
+                <div class="v2-score-bar">
+                  <div
+                    style="width:${confidenceBar(item.confidence)}%"
+                  ></div>
+                </div>
+
+              </div>
+            `).join("")}
+
+          </div>
+
+        </div>
+
+
+        <div class="v2-risk-card">
+
+          <div class="v2-risk-left">
+            <div class="v2-insight-label">RISK ASSESSMENT</div>
+            <div class="v2-insight-title">本場風險</div>
+          </div>
+
+          <div class="v2-risk-value">
+            ${analysis.risk_level || "未評估"}
+          </div>
+
+        </div>
+
+
+        <div class="v2-final-card">
+
+          <div class="v2-final-mark">H</div>
+
+          <div class="v2-final-content">
+            <div class="v2-insight-label">FINAL NOTE</div>
+            <div class="v2-insight-title">AI 最終提醒</div>
+
+            <p>
+              ${analysis.final_note || "請綜合即時資訊判斷。"}
+            </p>
+          </div>
+
+        </div>
+
+      </div>
     `;
 
   } catch (error) {
