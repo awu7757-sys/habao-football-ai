@@ -1341,7 +1341,7 @@ if (!raw) {
      <div class="match-card">
 
   <div class="team">
-    <div class="team-side">HOME</div>
+    <div class="team-side">主隊</div>
 
     <div class="team-logo-box">
       <img src="${fixture.home?.logo || ""}" alt="">
@@ -1359,7 +1359,7 @@ if (!raw) {
   </div>
 
   <div class="team">
-    <div class="team-side">AWAY</div>
+    <div class="team-side">客隊</div>
 
     <div class="team-logo-box">
       <img src="${fixture.away?.logo || ""}" alt="">
@@ -1388,8 +1388,9 @@ if (!raw) {
   "Belgian Pro League": "比利時甲級聯賽",
   "UEFA Conference League": "歐洲協會聯賽",
   "Europa Conference League": "歐洲協會聯賽",
-  "Super Lig": "土耳其超級聯賽",
-  "Süper Lig": "土耳其超級聯賽"
+"Super Lig": "土耳其超級聯賽",
+"Süper Lig": "土耳其超級聯賽",
+"KNVB Beker": "荷蘭盃"
           
 })[fixture.league] || fixture.league || ""}<br>
         ${timeText}<br>
