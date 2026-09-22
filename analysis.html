@@ -1873,6 +1873,28 @@ h1{
   }
 
 }
+
+/* ===== 五市場｜讓分盤口 ===== */
+
+.market-line{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  width:max-content;
+  margin:7px 0 2px;
+  padding:5px 9px;
+
+  border:1px solid rgba(244,195,75,.24);
+  border-radius:8px;
+
+  background:rgba(244,195,75,.07);
+
+  color:#d9b657;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.4px;
+}
   
 </style>
 </head>
@@ -1925,10 +1947,12 @@ if (!raw) {
     const analysis = data.analysis || {};
     const rec = analysis.recommendations || {};
 
-    const moneyline = rec.moneyline || {};
-    const overUnder = rec.over_under || {};
-    const btts = rec.btts || {};
-    const scores = analysis.predicted_scores || [];
+const moneyline = rec.moneyline || {};
+const handicap = rec.handicap || {};
+const overUnder = rec.over_under || {};
+const btts = rec.btts || {};
+const doubleChance = rec.double_chance || {};
+const scores = analysis.predicted_scores || [];
 
     const gameDate = fixture.date
       ? new Date(fixture.date)
@@ -2040,13 +2064,17 @@ if (!raw) {
 
       <div class="grid">
 
+        <!-- 獨贏 -->
         <div class="pick-card">
           <div class="pick-label">獨贏</div>
-          <div class="pick-value">${moneyline.pick || "暫不推薦"}</div>
+
+          <div class="pick-value">
+            ${moneyline.pick || "暫不推薦"}
+          </div>
 
           <div class="confidence">
             AI 信心 ${moneyline.confidence || 0}%
-${confidenceFire(moneyline.confidence, moneyline.pick)}
+            ${confidenceFire(moneyline.confidence, moneyline.pick)}
           </div>
 
           <div class="bar">
@@ -2058,13 +2086,51 @@ ${confidenceFire(moneyline.confidence, moneyline.pick)}
           </div>
         </div>
 
+
+        <!-- 讓分 -->
+        <div class="pick-card">
+          <div class="pick-label">讓分</div>
+
+          <div class="pick-value">
+            ${handicap.pick || "暫不推薦"}
+          </div>
+
+          ${
+            handicap.line && handicap.pick !== "暫不推薦"
+              ? `
+                <div class="market-line">
+                  盤口 ${handicap.line}
+                </div>
+              `
+              : ""
+          }
+
+          <div class="confidence">
+            AI 信心 ${handicap.confidence || 0}%
+            ${confidenceFire(handicap.confidence, handicap.pick)}
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(handicap.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            ${handicap.reason || "資料不足"}
+          </div>
+        </div>
+
+
+        <!-- 大小球 -->
         <div class="pick-card">
           <div class="pick-label">大小球</div>
-          <div class="pick-value">${overUnder.pick || "暫不推薦"}</div>
+
+          <div class="pick-value">
+            ${overUnder.pick || "暫不推薦"}
+          </div>
 
           <div class="confidence">
             AI 信心 ${overUnder.confidence || 0}%
-${confidenceFire(overUnder.confidence, overUnder.pick)}
+            ${confidenceFire(overUnder.confidence, overUnder.pick)}
           </div>
 
           <div class="bar">
@@ -2076,13 +2142,18 @@ ${confidenceFire(overUnder.confidence, overUnder.pick)}
           </div>
         </div>
 
+
+        <!-- BTTS -->
         <div class="pick-card">
           <div class="pick-label">BTTS</div>
-          <div class="pick-value">${btts.pick || "暫不推薦"}</div>
+
+          <div class="pick-value">
+            ${btts.pick || "暫不推薦"}
+          </div>
 
           <div class="confidence">
             AI 信心 ${btts.confidence || 0}%
-${confidenceFire(btts.confidence, btts.pick)}
+            ${confidenceFire(btts.confidence, btts.pick)}
           </div>
 
           <div class="bar">
@@ -2094,7 +2165,34 @@ ${confidenceFire(btts.confidence, btts.pick)}
           </div>
         </div>
 
+
+        <!-- 雙重機會 -->
+        <div class="pick-card">
+          <div class="pick-label">雙重機會</div>
+
+          <div class="pick-value">
+            ${doubleChance.pick || "暫不推薦"}
+          </div>
+
+          <div class="confidence">
+            AI 信心 ${doubleChance.confidence || 0}%
+            ${confidenceFire(
+              doubleChance.confidence,
+              doubleChance.pick
+            )}
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(doubleChance.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            ${doubleChance.reason || "資料不足"}
+          </div>
+        </div>
+
       </div>
+      
       <div class="bet-action">
   <a
     href="https://www.hd5957.com/"
