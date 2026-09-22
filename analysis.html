@@ -890,26 +890,73 @@ h1{
 @media(max-width:800px){
 
   .grid{
-    grid-template-columns:1fr;
-    gap:11px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
   }
 
   .pick-card{
-    min-height:auto;
+    min-height:0;
+    padding:14px 12px;
+    border-radius:15px;
+  }
 
-    padding:17px 16px;
+  /* 第五張：雙重機會橫跨整列 */
+  .pick-card:nth-child(5){
+    grid-column:1 / -1;
+  }
 
-    border-radius:16px;
+  .pick-card::before{
+    left:12px;
+    right:12px;
+  }
+
+  .pick-label{
+    margin-bottom:8px;
+    font-size:8px;
+    letter-spacing:1px;
+  }
+
+  .pick-label::before{
+    width:5px;
+    height:5px;
   }
 
   .pick-value{
     min-height:0;
+    margin-bottom:8px;
+    font-size:17px;
+    line-height:1.25;
+  }
 
-    font-size:19px;
+  .market-line{
+    margin:2px 0 7px;
+    padding:4px 7px;
+    font-size:8px;
+  }
+
+  .confidence{
+    margin-bottom:7px;
+    font-size:9px;
+  }
+
+  .bar{
+    height:4px;
+    margin-bottom:9px;
   }
 
   .reason{
-    font-size:11px;
+    font-size:9px;
+    line-height:1.55;
+
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    overflow:hidden;
+  }
+
+  /* 雙重機會橫卡保留較完整說明 */
+  .pick-card:nth-child(5) .reason{
+    -webkit-line-clamp:2;
   }
 
   .bet-action{
