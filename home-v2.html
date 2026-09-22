@@ -3118,6 +3118,550 @@
   }
 }
 
+/* =====================================
+   HABAO V2 - QUICK STATS 3D DASHBOARD
+===================================== */
+
+.quick-dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  perspective: 1000px;
+}
+
+.quick-dashboard .quick-card {
+  position: relative;
+  min-width: 0;
+  min-height: 142px;
+  padding: 13px 12px 12px;
+  border-radius: 19px;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(242, 189, 75, .12),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(29, 40, 54, .96),
+      rgba(8, 13, 20, .99)
+    );
+
+  border: 1px solid rgba(255, 211, 112, .18);
+
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, .36),
+    0 5px 12px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    inset 0 -1px 0 rgba(0, 0, 0, .45);
+
+  transform: translateZ(0);
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease;
+}
+
+
+/* 卡片上方反光 */
+
+.quick-dashboard .quick-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, .24),
+    transparent
+  );
+
+  pointer-events: none;
+}
+
+
+/* 卡片右下光暈 */
+
+.quick-dashboard .quick-card::after {
+  content: "";
+  position: absolute;
+  right: -42px;
+  bottom: -48px;
+
+  width: 105px;
+  height: 105px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(242, 189, 75, .13),
+      transparent 68%
+    );
+
+  pointer-events: none;
+}
+
+
+/* Hover / 手機點擊 */
+
+.quick-dashboard .quick-card:hover {
+  transform:
+    perspective(700px)
+    translateY(-4px)
+    rotateX(2deg);
+
+  border-color: rgba(255, 211, 112, .34);
+
+  box-shadow:
+    0 21px 40px rgba(0, 0, 0, .44),
+    0 7px 18px rgba(242, 189, 75, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+
+
+/* =========================
+   CARD TOP
+========================= */
+
+.quick-card-top {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 30px;
+}
+
+
+/* =========================
+   ICON
+========================= */
+
+.quick-dashboard .quick-icon {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  color: #ffd76b;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(242, 189, 75, .20),
+      rgba(17, 23, 31, .92)
+    );
+
+  border: 1px solid rgba(255, 211, 112, .25);
+
+  box-shadow:
+    0 7px 15px rgba(0, 0, 0, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .13);
+}
+
+
+.quick-dashboard .quick-icon svg {
+  width: 16px;
+  height: 16px;
+
+  stroke-width: 1.8;
+}
+
+
+/* =========================
+   LIVE DOT
+========================= */
+
+.quick-live-dot {
+  position: relative;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #46e39a;
+
+  box-shadow:
+    0 0 0 4px rgba(70, 227, 154, .08),
+    0 0 12px rgba(70, 227, 154, .75);
+}
+
+
+.quick-live-dot::after {
+  content: "";
+
+  position: absolute;
+  inset: -4px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(70, 227, 154, .28);
+
+  animation: quickPulse 1.8s ease-out infinite;
+}
+
+
+@keyframes quickPulse {
+
+  0% {
+    transform: scale(.65);
+    opacity: .9;
+  }
+
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+
+}
+
+
+/* =========================
+   STATUS BADGE
+========================= */
+
+.quick-status {
+  padding: 4px 6px;
+
+  border-radius: 7px;
+
+  color: rgba(255, 215, 107, .95);
+
+  background: rgba(242, 189, 75, .08);
+
+  border: 1px solid rgba(255, 211, 112, .16);
+
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 900;
+
+  letter-spacing: .08em;
+}
+
+
+/* =========================
+   VALUE
+========================= */
+
+.quick-dashboard .quick-value {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 11px;
+
+  color: #ffffff;
+
+  font-size: 27px;
+  line-height: 1;
+
+  font-weight: 950;
+
+  letter-spacing: -.04em;
+
+  text-shadow:
+    0 4px 14px rgba(0, 0, 0, .38);
+}
+
+
+/* =========================
+   LABEL
+========================= */
+
+.quick-dashboard .quick-label {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 5px;
+
+  color: rgba(207, 217, 228, .70);
+
+  font-size: 9px;
+  line-height: 1.2;
+
+  font-weight: 750;
+
+  white-space: nowrap;
+}
+
+
+/* =========================
+   MINI CHART
+========================= */
+
+.quick-mini-chart {
+  position: absolute;
+
+  z-index: 2;
+
+  right: 11px;
+  bottom: 12px;
+
+  height: 25px;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 3px;
+
+  opacity: .78;
+}
+
+
+.quick-mini-chart span {
+  display: block;
+
+  width: 3px;
+
+  border-radius: 3px 3px 1px 1px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffd76b,
+      rgba(242, 189, 75, .24)
+    );
+
+  box-shadow:
+    0 0 8px rgba(242, 189, 75, .12);
+}
+
+
+.quick-mini-chart span:nth-child(1) {
+  height: 8px;
+}
+
+.quick-mini-chart span:nth-child(2) {
+  height: 14px;
+}
+
+.quick-mini-chart span:nth-child(3) {
+  height: 10px;
+}
+
+.quick-mini-chart span:nth-child(4) {
+  height: 20px;
+}
+
+.quick-mini-chart span:nth-child(5) {
+  height: 16px;
+}
+
+
+/* =========================
+   ANALYSIS - BLUE
+========================= */
+
+.quick-card-analysis {
+  border-color: rgba(91, 155, 235, .22) !important;
+
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(71, 137, 224, .14),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(25, 39, 56, .96),
+      rgba(8, 13, 20, .99)
+    ) !important;
+}
+
+
+.quick-card-analysis .quick-icon {
+  color: #8dc0ff;
+
+  border-color: rgba(91, 155, 235, .28);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(71, 137, 224, .20),
+      rgba(17, 23, 31, .92)
+    );
+}
+
+
+.quick-card-analysis .quick-status {
+  color: #9bc8ff;
+
+  background: rgba(71, 137, 224, .09);
+
+  border-color: rgba(91, 155, 235, .18);
+}
+
+
+.quick-card-analysis .quick-mini-chart span {
+  background:
+    linear-gradient(
+      180deg,
+      #8dc0ff,
+      rgba(71, 137, 224, .22)
+    );
+}
+
+
+/* =========================
+   VERIFIED - GREEN
+========================= */
+
+.quick-card-verified {
+  border-color: rgba(70, 227, 154, .19) !important;
+
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(70, 227, 154, .11),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(22, 42, 43, .94),
+      rgba(8, 13, 20, .99)
+    ) !important;
+}
+
+
+.quick-card-verified .quick-icon {
+  color: #64e9a5;
+
+  border-color: rgba(70, 227, 154, .26);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(70, 227, 154, .16),
+      rgba(17, 23, 31, .92)
+    );
+}
+
+
+.quick-card-verified .quick-status {
+  color: #6ce9aa;
+
+  background: rgba(70, 227, 154, .08);
+
+  border-color: rgba(70, 227, 154, .17);
+}
+
+
+.quick-card-verified .quick-mini-chart span {
+  background:
+    linear-gradient(
+      180deg,
+      #64e9a5,
+      rgba(70, 227, 154, .20)
+    );
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 520px) {
+
+  .quick-dashboard {
+    gap: 8px;
+  }
+
+  .quick-dashboard .quick-card {
+    min-height: 132px;
+
+    padding:
+      11px
+      9px
+      10px;
+
+    border-radius: 16px;
+  }
+
+  .quick-dashboard .quick-icon {
+    width: 27px;
+    height: 27px;
+
+    border-radius: 9px;
+  }
+
+  .quick-dashboard .quick-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .quick-dashboard .quick-value {
+    margin-top: 10px;
+
+    font-size: 24px;
+  }
+
+  .quick-dashboard .quick-label {
+    font-size: 8px;
+  }
+
+  .quick-mini-chart {
+    right: 8px;
+    bottom: 10px;
+
+    gap: 2px;
+  }
+
+  .quick-mini-chart span {
+    width: 2px;
+  }
+
+  .quick-status {
+    padding: 3px 4px;
+
+    font-size: 6px;
+  }
+
+}
+
+
+/* 超窄手機 */
+
+@media (max-width: 370px) {
+
+  .quick-dashboard {
+    gap: 6px;
+  }
+
+  .quick-dashboard .quick-card {
+    min-height: 126px;
+
+    padding:
+      10px
+      8px
+      9px;
+
+    border-radius: 15px;
+  }
+
+  .quick-dashboard .quick-value {
+    font-size: 22px;
+  }
+
+  .quick-mini-chart {
+    opacity: .60;
+  }
+
+}
+    
 </style>
 </head>    
 
@@ -3260,63 +3804,153 @@
       </div>
 
     </section>
+    
+   <!-- QUICK STATS -->
+
+<section class="quick-stats quick-dashboard fade-up delay-2">
+
+  <!-- 今日賽事 -->
+  <div class="quick-card quick-card-match">
+
+    <div class="quick-card-top">
+
+      <div class="quick-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <circle cx="12" cy="12" r="8"/>
+          <path d="m8.5 9 3.5-2.2L15.5 9l-1.3 4H9.8L8.5 9Z"/>
+          <path d="m7 16 2.8-3M17 16l-2.8-3"/>
+        </svg>
+
+      </div>
+
+      <span class="quick-live-dot"></span>
+
+    </div>
 
 
-    <!-- QUICK STATS -->
-
-    <section
-      class="quick-stats fade-up delay-2"
+    <div
+      class="quick-value"
+      id="todayMatchCount"
     >
+      --
+    </div>
 
-      <div class="quick-card">
+    <div class="quick-label">
+      今日賽事
+    </div>
 
-        <div
-          class="quick-value"
-          id="todayMatchCount"
+    <div class="quick-mini-chart">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+  </div>
+
+
+  <!-- 已分析 -->
+  <div class="quick-card quick-card-analysis">
+
+    <div class="quick-card-top">
+
+      <div class="quick-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
         >
-          --
-        </div>
-
-        <div class="quick-label">
-          今日賽事
-        </div>
+          <path d="M5 18V11"/>
+          <path d="M10 18V6"/>
+          <path d="M15 18v-4"/>
+          <path d="M20 18V8"/>
+        </svg>
 
       </div>
 
+      <span class="quick-status">
+        AI
+      </span>
 
-      <div class="quick-card">
+    </div>
 
-        <div
-          class="quick-value"
-          id="analysisCount"
+
+    <div
+      class="quick-value"
+      id="analysisCount"
+    >
+      --
+    </div>
+
+    <div class="quick-label">
+      已分析
+    </div>
+
+    <div class="quick-mini-chart">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+  </div>
+
+
+  <!-- 公開驗證 -->
+  <div class="quick-card quick-card-verified">
+
+    <div class="quick-card-top">
+
+      <div class="quick-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
         >
-          --
-        </div>
-
-        <div class="quick-label">
-          已分析
-        </div>
+          <path d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z"/>
+          <path d="m9 12 2 2 4-5"/>
+        </svg>
 
       </div>
 
+      <span class="quick-status">
+        LIVE
+      </span>
 
-      <div class="quick-card">
+    </div>
 
-        <div
-          class="quick-value"
-          id="verifiedCount"
-        >
-          --
-        </div>
 
-        <div class="quick-label">
-          公開驗證
-        </div>
+    <div
+      class="quick-value"
+      id="verifiedCount"
+    >
+      --
+    </div>
 
-      </div>
+    <div class="quick-label">
+      公開驗證
+    </div>
 
-    </section>
+    <div class="quick-mini-chart">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
+  </div>
+
+</section>
 
     <!-- TODAY MATCH -->
 
