@@ -6,7 +6,539 @@
 
 <title>AI 賽事分析｜哈寶足球 AI</title>
 
+/* ========================================
+   HABAO V2 - MATCH INTELLIGENCE FINAL
+======================================== */
+
+.v2-analysis-detail{
+  position:relative;
+  margin-top:30px;
+  padding-bottom:12px;
+}
+
+
+/* ===== 標題 ===== */
+
+.v2-detail-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+
+  margin-bottom:16px;
+  padding:0 2px;
+}
+
+.v2-detail-kicker{
+  margin-bottom:6px;
+
+  color:#dca82e;
+
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:2.1px;
+}
+
+.v2-detail-title{
+  color:#fff;
+
+  font-size:23px;
+  font-weight:1000;
+  line-height:1.2;
+}
+
+.v2-detail-badge{
+  flex:0 0 auto;
+
+  padding:8px 11px;
+
+  border:1px solid rgba(245,196,81,.35);
+  border-radius:10px;
+
+  background:rgba(245,196,81,.055);
+
+  color:#f5c451;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+
+/* ========================================
+   情報卡
+======================================== */
+
+.v2-insight-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  margin-bottom:12px;
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.06),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(12,31,43,.99),
+      rgba(7,22,32,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-card::before{
+  content:"";
+
+  position:absolute;
+  left:0;
+  top:18px;
+
+  width:2px;
+  height:38px;
+
+  border-radius:0 3px 3px 0;
+
+  background:linear-gradient(
+    #ffe078,
+    #c78c20
+  );
+
+  box-shadow:
+    0 0 12px rgba(245,196,81,.28);
+}
+
+.v2-insight-icon{
+  width:44px;
+  height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:13px;
+
+  color:#f5c451;
+
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.5px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(245,196,81,.13),
+      rgba(245,196,81,.035)
+    );
+
+  border:1px solid rgba(245,196,81,.20);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-content{
+  min-width:0;
+}
+
+.v2-insight-label{
+  margin-bottom:6px;
+
+  color:#dca82e;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.6px;
+}
+
+.v2-insight-title{
+  color:#fff;
+
+  font-size:16px;
+  font-weight:1000;
+  line-height:1.35;
+}
+
+.v2-insight-card p,
+.v2-final-card p{
+  margin-top:11px;
+
+  color:#8fa4af;
+
+  font-size:11px;
+  line-height:1.9;
+
+  letter-spacing:.1px;
+
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+}
+
+
+/* ========================================
+   SCORE PROJECTION
+======================================== */
+
+.v2-score-section{
+  position:relative;
+  overflow:hidden;
+
+  margin-bottom:12px;
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11,29,41,.99),
+      rgba(7,21,31,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.v2-score-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.v2-score-tag{
+  padding:6px 9px;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  background:rgba(245,196,81,.07);
+
+  border:1px solid rgba(245,196,81,.20);
+}
+
+.v2-score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+
+.v2-score-card{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+  padding:15px 10px 13px;
+
+  text-align:center;
+
+  border-radius:14px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(245,196,81,.07),
+      transparent 48%
+    ),
+    rgba(255,255,255,.025);
+
+  border:1px solid rgba(245,196,81,.11);
+}
+
+.v2-score-rank{
+  margin-bottom:8px;
+
+  color:#79642e;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+}
+
+.v2-score-number{
+  color:#fff;
+
+  font-size:25px;
+  font-weight:1000;
+  line-height:1.15;
+  letter-spacing:.4px;
+}
+
+.v2-score-confidence{
+  margin-top:7px;
+
+  color:#c69a43;
+
+  font-size:8px;
+  font-weight:850;
+}
+
+.v2-score-bar{
+  height:4px;
+
+  margin-top:10px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.055);
+}
+
+.v2-score-bar > div{
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #b77b16,
+      #f5c451,
+      #ffe180
+    );
+
+  box-shadow:
+    0 0 8px rgba(245,196,81,.25);
+}
+
+
+/* ========================================
+   RISK ASSESSMENT
+======================================== */
+
+.v2-risk-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+
+  margin-bottom:12px;
+  padding:18px 19px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(12,30,42,.99),
+      rgba(7,22,32,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 13px 30px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.v2-risk-left{
+  min-width:0;
+}
+
+.v2-risk-value{
+  flex:0 0 auto;
+
+  min-width:66px;
+
+  padding:9px 13px;
+
+  text-align:center;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:11px;
+  font-weight:1000;
+
+  background:rgba(245,196,81,.07);
+
+  border:1px solid rgba(245,196,81,.24);
+
+  box-shadow:
+    0 0 16px rgba(245,196,81,.05);
+}
+
+
+/* ========================================
+   FINAL NOTE
+======================================== */
+
+.v2-final-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(245,196,81,.08),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(15,34,45,.99),
+      rgba(8,23,33,.99)
+    );
+
+  border:1px solid rgba(245,196,81,.16);
+
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-final-mark{
+  width:44px;
+  height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:13px;
+
+  color:#171208;
+
+  font-size:15px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe078,
+      #d99d27
+    );
+
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.22);
+}
+
+.v2-final-content{
+  min-width:0;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media(max-width:600px){
+
+  .v2-analysis-detail{
+    margin-top:26px;
+  }
+
+  .v2-detail-title{
+    font-size:21px;
+  }
+
+  .v2-detail-badge{
+    padding:7px 9px;
+    font-size:7px;
+  }
+
+  .v2-insight-card,
+  .v2-final-card{
+    grid-template-columns:40px minmax(0,1fr);
+    gap:12px;
+
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-insight-icon,
+  .v2-final-mark{
+    width:38px;
+    height:38px;
+
+    border-radius:11px;
+  }
+
+  .v2-insight-title{
+    font-size:14px;
+  }
+
+  .v2-insight-card p,
+  .v2-final-card p{
+    margin-top:9px;
+
+    font-size:10px;
+    line-height:1.85;
+  }
+
+  .v2-score-section{
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-score-grid{
+    gap:6px;
+  }
+
+  .v2-score-card{
+    padding:13px 5px 11px;
+  }
+
+  .v2-score-number{
+    font-size:21px;
+  }
+
+  .v2-score-confidence{
+    font-size:7px;
+  }
+
+  .v2-risk-card{
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-risk-value{
+    min-width:58px;
+
+    padding:8px 10px;
+
+    font-size:10px;
+  }
+}
+  
 <style>
+  
 *{
   box-sizing:border-box;
   margin:0;
