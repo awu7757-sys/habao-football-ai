@@ -5421,6 +5421,9 @@ console.time("⏱️ 明日賽事 API");
 
     const data =
       await response.json();
+
+    console.log("🔎 明日賽事完整回傳：", data);
+    
     console.timeEnd("⏱️ 明日賽事 API");
 
 
@@ -5442,10 +5445,10 @@ console.time("⏱️ 明日賽事 API");
         ? data.fixtures
         : [];
 
-
+   console.log("🔎 明日 fixtures 數量：", fixtures.length, fixtures);
+    
     window.v2TomorrowFixtures =
       fixtures;
-
 
     return fixtures;
 
