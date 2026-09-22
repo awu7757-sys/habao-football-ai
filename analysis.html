@@ -41,9 +41,8 @@ body{
 ======================================== */
 
 .header{
-  position:sticky;
-  top:0;
-  z-index:1000;
+position:relative;
+z-index:1000;
 
   height:72px;
 
@@ -1023,14 +1022,20 @@ h1{
 }
 
 .section p{
-  color:#8da0aa;
+  color:#91a5b0;
 
   font-size:12px;
-  line-height:1.9;
+  line-height:2;
 
+  letter-spacing:.15px;
   white-space:pre-line;
+
+  overflow-wrap:anywhere;
 }
 
+.section p + p{
+  margin-top:10px;
+}  
 
 /* ========================================
    HABAO V2 - PREDICTED SCORES
@@ -1455,7 +1460,7 @@ ${confidenceFire(btts.confidence, btts.pick)}
     rel="noopener noreferrer"
     class="bet-btn"
   >
-    ⚡ 立即投注
+    立即投注 →
   </a>
 
 <a
@@ -1464,7 +1469,7 @@ ${confidenceFire(btts.confidence, btts.pick)}
   rel="noopener noreferrer"
   class="expert-btn"
 >
-  👤 專人分析
+  專人分析 →
 </a>
 </div>
       <div class="section">
