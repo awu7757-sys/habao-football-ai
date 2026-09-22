@@ -811,6 +811,88 @@ h1{
   }
 }
 
+}
+
+ /* ===== 我的分析紀錄｜主客隊中文標示與名稱保護 ===== */
+
+.history-team-side{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-bottom:8px;
+  padding:4px 9px;
+
+  border:1px solid rgba(244,185,66,.28);
+  border-radius:999px;
+
+  background:rgba(244,185,66,.08);
+  color:#f4c95d;
+
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.5px;
+  line-height:1;
+}
+
+.history-team-name{
+  width:100%;
+  max-width:135px;
+  margin:0 auto;
+
+  color:#ffffff;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.35;
+  text-align:center;
+
+  overflow-wrap:anywhere;
+  word-break:break-word;
+
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+}
+
+.history-vs{
+  min-width:42px;
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.30);
+  border-radius:50%;
+
+  background:rgba(244,185,66,.06);
+  color:#f4c95d;
+
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.5px;
+}
+
+@media(max-width:520px){
+  .history-team-name{
+    max-width:110px;
+    font-size:13px;
+  }
+
+  .history-team-side{
+    font-size:8px;
+    padding:4px 8px;
+  }
+
+  .history-vs{
+    min-width:38px;
+    width:38px;
+    height:38px;
+    font-size:9px;
+  }
+}
+
 /* 加入主畫面｜浮動按鈕 */
 #addHomeFloatBtn {
   position: fixed;
@@ -3916,29 +3998,58 @@ function renderAnalysisHistory(matches) {
   }
 
   if (!matches.length) {
-  container.innerHTML = `
-    <div class="v2-history-empty">
+    container.innerHTML = `
+      <div class="v2-history-empty">
 
-      <div class="v2-history-empty-icon">
-        H
+        <div class="v2-history-empty-icon">
+          H
+        </div>
+
+        <div class="v2-history-empty-label">
+          ANALYSIS HISTORY
+        </div>
+
+        <div class="v2-history-empty-title">
+          尚無分析紀錄
+        </div>
+
+        <div class="v2-history-empty-text">
+          完成賽事分析後，紀錄會自動保存在這裡。
+        </div>
+
       </div>
+    `;
+    return;
+  }
 
-      <div class="v2-history-empty-label">
-        ANALYSIS HISTORY
-      </div>
+  const historyLeagueNameZH = {
+    "Premier League": "英格蘭超級聯賽",
+    "La Liga": "西班牙甲級聯賽",
+    "Bundesliga": "德國甲級聯賽",
+    "Serie A": "義大利甲級聯賽",
+    "Ligue 1": "法國甲級聯賽",
 
-      <div class="v2-history-empty-title">
-        尚無分析紀錄
-      </div>
+    "UEFA Champions League": "歐洲冠軍聯賽",
+    "UEFA Europa League": "歐霸盃",
+    "UEFA Europa Conference League": "歐洲協會聯賽",
+    "UEFA Conference League": "歐洲協會聯賽",
 
-      <div class="v2-history-empty-text">
-        完成賽事分析後，紀錄會自動保存在這裡。
-      </div>
+    "Championship": "英格蘭冠軍聯賽",
+    "Eredivisie": "荷蘭甲級聯賽",
+    "Primeira Liga": "葡萄牙超級聯賽",
 
-    </div>
-  `;
-  return;
-}
+    "Jupiler Pro League": "比利時甲級聯賽",
+    "Belgian Pro League": "比利時甲級聯賽",
+
+    "Super Lig": "土耳其超級聯賽",
+    "Süper Lig": "土耳其超級聯賽",
+
+    "Major League Soccer": "美國職業足球大聯盟",
+    "Serie A Brazil": "巴西甲級聯賽",
+    "Liga Profesional Argentina": "阿根廷甲級聯賽",
+
+    "KNVB Beker": "荷蘭盃"
+  };
 
   container.innerHTML = matches.map(match => {
     const gameTime = match.fixture_time
@@ -3952,37 +4063,64 @@ function renderAnalysisHistory(matches) {
         })
       : "--";
 
+    const leagueName =
+      historyLeagueNameZH[match.league_name] ||
+      match.league_name ||
+      "足球賽事";
+
     return `
       <div class="history-match-card">
 
         <div class="history-match-top">
+
           <span class="history-league">
-            ${match.league_name || "足球賽事"}
+            ${leagueName}
           </span>
 
           <span class="history-time">
             ${gameTime}
           </span>
+
         </div>
 
         <div class="history-teams">
 
           <div class="history-team">
+
+            <div class="history-team-side">
+              主隊
+            </div>
+
             <img
               src="${match.home_logo || ""}"
               alt="${match.home_team || ""}"
             >
-            <div>${match.home_team || "--"}</div>
+
+            <div class="history-team-name">
+              ${match.home_team || "--"}
+            </div>
+
           </div>
 
-          <div class="history-vs">VS</div>
+          <div class="history-vs">
+            對戰
+          </div>
 
           <div class="history-team">
+
+            <div class="history-team-side">
+              客隊
+            </div>
+
             <img
               src="${match.away_logo || ""}"
               alt="${match.away_team || ""}"
             >
-            <div>${match.away_team || "--"}</div>
+
+            <div class="history-team-name">
+              ${match.away_team || "--"}
+            </div>
+
           </div>
 
         </div>
