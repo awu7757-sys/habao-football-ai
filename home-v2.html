@@ -2700,9 +2700,426 @@
   }
 
 }
-    
-  </style>
-</head>
+
+}
+
+/* =====================================
+   HABAO V2 - AI TOOLS 3D
+===================================== */
+
+.tools-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border: 1px solid rgba(242, 189, 75, .20);
+  border-radius: 999px;
+  background: rgba(242, 189, 75, .06);
+  color: rgba(255, 215, 126, .78);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .9px;
+}
+
+.v2-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  perspective: 1000px;
+}
+
+.v2-tool-card {
+  position: relative;
+  min-width: 0;
+  min-height: 205px;
+  padding: 15px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  text-decoration: none;
+  color: #f5f7fa;
+
+  border-radius: 20px;
+  border: 1px solid rgba(148, 181, 218, .16);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28, 39, 53, .96),
+      rgba(10, 16, 24, .99)
+    );
+
+  box-shadow:
+    0 18px 35px rgba(0, 0, 0, .35),
+    0 4px 10px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    inset 0 -1px 0 rgba(0, 0, 0, .70);
+
+  transform:
+    translateZ(0)
+    rotateX(0deg);
+
+  transition:
+    transform .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease;
+}
+
+/* 上方玻璃高光 */
+.v2-tool-card::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 0;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.28),
+      transparent
+    );
+
+  opacity: .65;
+}
+
+/* 卡片內光暈 */
+.v2-tool-card::after {
+  content: "";
+  position: absolute;
+  width: 115px;
+  height: 115px;
+  right: -55px;
+  top: -55px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(242,189,75,.13),
+      transparent 70%
+    );
+
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* 不同功能色 */
+.v2-tool-gold {
+  border-color: rgba(242, 189, 75, .28);
+
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.38),
+    0 5px 14px rgba(242,189,75,.05),
+    inset 0 1px 0 rgba(255,255,255,.09);
+}
+
+.v2-tool-blue {
+  border-color: rgba(72, 145, 255, .24);
+}
+
+.v2-tool-blue::after {
+  background:
+    radial-gradient(
+      circle,
+      rgba(70,145,255,.16),
+      transparent 70%
+    );
+}
+
+.v2-tool-green {
+  border-color: rgba(60, 221, 130, .22);
+}
+
+.v2-tool-green::after {
+  background:
+    radial-gradient(
+      circle,
+      rgba(60,221,130,.13),
+      transparent 70%
+    );
+}
+
+.v2-tool-disabled {
+  border-color: rgba(148,181,218,.10);
+  opacity: .72;
+}
+
+/* 卡片頂部 */
+.v2-tool-top {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* 3D 圖示 */
+.v2-tool-icon {
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  color: #ffd66f;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(92,76,40,.88),
+      rgba(24,25,25,.98)
+    );
+
+  border: 1px solid rgba(255, 214, 111, .30);
+
+  box-shadow:
+    0 9px 17px rgba(0,0,0,.38),
+    0 3px 7px rgba(242,189,75,.10),
+    inset 2px 2px 2px rgba(255,255,255,.10),
+    inset -3px -3px 6px rgba(0,0,0,.55);
+
+  transform:
+    perspective(400px)
+    rotateX(5deg)
+    rotateY(-5deg);
+}
+
+.v2-tool-icon svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.8;
+  filter:
+    drop-shadow(0 2px 3px rgba(0,0,0,.65));
+}
+
+.v2-tool-blue .v2-tool-icon {
+  color: #91baff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(38,62,92,.90),
+      rgba(17,24,34,.98)
+    );
+
+  border-color: rgba(110,166,255,.28);
+}
+
+.v2-tool-green .v2-tool-icon {
+  color: #79e9a7;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31,73,53,.90),
+      rgba(15,27,22,.98)
+    );
+
+  border-color: rgba(80,221,140,.25);
+}
+
+/* 箭頭 */
+.v2-tool-arrow {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  color: rgba(255,218,126,.85);
+  font-size: 16px;
+  font-weight: 700;
+
+  border: 1px solid rgba(242,189,75,.13);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.045),
+      rgba(0,0,0,.10)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.v2-tool-coming {
+  padding: 5px 7px;
+
+  border-radius: 7px;
+
+  color: #88929e;
+  background: rgba(255,255,255,.035);
+
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+/* 文字 */
+.v2-tool-content {
+  position: relative;
+  z-index: 2;
+  margin-top: 19px;
+  flex: 1;
+}
+
+.v2-tool-kicker {
+  color: rgba(255,210,108,.55);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.v2-tool-blue .v2-tool-kicker {
+  color: rgba(126,176,255,.65);
+}
+
+.v2-tool-green .v2-tool-kicker {
+  color: rgba(100,225,151,.62);
+}
+
+.v2-tool-title {
+  margin-top: 5px;
+
+  color: #f7f9fb;
+
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 900;
+
+  letter-spacing: .2px;
+
+  text-shadow:
+    0 2px 5px rgba(0,0,0,.65);
+}
+
+.v2-tool-desc {
+  margin-top: 8px;
+
+  color: #8f9ba8;
+
+  font-size: 9px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+/* 底部狀態 */
+.v2-tool-footer {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 14px;
+  padding-top: 10px;
+
+  border-top:
+    1px solid rgba(255,255,255,.055);
+
+  color: #788592;
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.v2-tool-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #43df89;
+
+  box-shadow:
+    0 0 8px rgba(67,223,137,.60);
+}
+
+/* 桌機滑過 */
+@media (hover: hover) {
+
+  .v2-tool-card[href]:hover {
+    transform:
+      perspective(800px)
+      translateY(-5px)
+      rotateX(2deg);
+
+    box-shadow:
+      0 25px 45px rgba(0,0,0,.46),
+      0 8px 20px rgba(242,189,75,.07),
+      inset 0 1px 0 rgba(255,255,255,.11);
+  }
+
+  .v2-tool-card[href]:hover .v2-tool-icon {
+    transform:
+      perspective(400px)
+      translateY(-2px)
+      rotateX(8deg)
+      rotateY(-7deg)
+      scale(1.04);
+  }
+
+  .v2-tool-icon {
+    transition: transform .22s ease;
+  }
+}
+
+/* 手機按下有實體按鈕感 */
+.v2-tool-card[href]:active {
+  transform:
+    translateY(2px)
+    scale(.985);
+
+  box-shadow:
+    0 9px 18px rgba(0,0,0,.34),
+    inset 0 2px 5px rgba(0,0,0,.28);
+}
+
+
+/* 小手機 */
+@media (max-width: 370px) {
+
+  .v2-tools-grid {
+    gap: 9px;
+  }
+
+  .v2-tool-card {
+    min-height: 195px;
+    padding: 13px;
+  }
+
+  .v2-tool-icon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .v2-tool-title {
+    font-size: 14px;
+  }
+
+  .v2-tool-desc {
+    font-size: 8px;
+  }
+}
+
+</style>
+</head>    
 
 <body>
 
@@ -2963,246 +3380,229 @@
 
     </section>
 
+<!-- TOOLS -->
 
-    <!-- TOOLS -->
+<section class="section fade-up delay-4">
 
-    <section
-      class="section fade-up delay-4"
+  <div class="section-head">
+
+    <div class="section-title-wrap">
+      <span class="section-line"></span>
+
+      <div class="section-title">
+        AI 工具
+      </div>
+    </div>
+
+    <span class="tools-status">
+      HABAO ENGINE
+    </span>
+
+  </div>
+
+
+  <div class="v2-tools-grid">
+
+    <!-- 賽事中心 -->
+    <a
+      href="football.html"
+      class="v2-tool-card v2-tool-gold"
     >
 
-      <div class="section-head">
+      <div class="v2-tool-top">
 
-        <div class="section-title-wrap">
+        <div class="v2-tool-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="12" cy="12" r="8"/>
+            <path d="m8.5 9 3.5-2.2L15.5 9l-1.3 4H9.8L8.5 9Z"/>
+            <path d="m7 16 2.8-3M17 16l-2.8-3"/>
+          </svg>
+        </div>
 
-          <span class="section-line"></span>
-
-          <div class="section-title">
-            AI 工具
-          </div>
-
+        <div class="v2-tool-arrow">
+          →
         </div>
 
       </div>
 
+      <div class="v2-tool-content">
 
-      <div class="feature-grid">
-
-
-        <!-- MATCH CENTER -->
-
-        <a
-          href="football.html"
-          class="feature-card"
-        >
-
-          <div class="feature-arrow">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="m9 18 6-6-6-6"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-              />
-              <path
-                d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"
-              />
-              <path
-                d="m7.2 17.4 3.3-3.2M16.8 17.4l-3.3-3.2"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-title">
-            賽事中心
-          </div>
-
-          <div class="feature-desc">
-            今日、明日賽程與 AI 賽前分析
-          </div>
-
-        </a>
-
-
-        <!-- PERFORMANCE -->
-
-        <a
-          href="performance.html"
-          class="feature-card"
-        >
-
-          <div class="feature-arrow">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="m9 18 6-6-6-6"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="M4 19V9"
-              />
-              <path
-                d="M10 19V5"
-              />
-              <path
-                d="M16 19v-7"
-              />
-              <path
-                d="M22 19V3"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-title">
-            AI 公開戰績
-          </div>
-
-          <div class="feature-desc">
-            查看正式完賽後的 AI 歷史驗證表現
-          </div>
-
-        </a>
-
-
-        <!-- HISTORY -->
-
-        <div class="feature-card">
-
-          <div class="feature-arrow">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="m9 18 6-6-6-6"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="M5 4h14v16H5z"
-              />
-              <path
-                d="M8 8h8M8 12h8M8 16h5"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-title">
-            我的分析
-          </div>
-
-          <div class="feature-desc">
-            查看帳號曾經分析過的賽事紀錄
-          </div>
-
+        <div class="v2-tool-kicker">
+          MATCH CENTER
         </div>
 
-
-        <!-- FUTURE -->
-
-        <div class="feature-card">
-
-          <div class="feature-arrow">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="m9 18 6-6-6-6"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path
-                d="M12 3v18M3 12h18"
-              />
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-              />
-            </svg>
-
-          </div>
-
-
-          <div class="feature-title">
-            更多功能
-          </div>
-
-          <div class="feature-desc">
-            預留更多聯賽、數據與運動項目擴充
-          </div>
-
+        <div class="v2-tool-title">
+          賽事中心
         </div>
 
+        <div class="v2-tool-desc">
+          今日、明日賽程與多聯賽賽事資料
+        </div>
 
       </div>
 
-    </section>
+      <div class="v2-tool-footer">
+        <span class="v2-tool-dot"></span>
+        即時賽事資料
+      </div>
 
+    </a>
+
+
+    <!-- AI 戰績 -->
+    <a
+      href="performance.html"
+      class="v2-tool-card v2-tool-blue"
+    >
+
+      <div class="v2-tool-top">
+
+        <div class="v2-tool-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M5 20V10"/>
+            <path d="M10 20V4"/>
+            <path d="M15 20v-7"/>
+            <path d="M20 20V7"/>
+          </svg>
+        </div>
+
+        <div class="v2-tool-arrow">
+          →
+        </div>
+
+      </div>
+
+      <div class="v2-tool-content">
+
+        <div class="v2-tool-kicker">
+          AI PERFORMANCE
+        </div>
+
+        <div class="v2-tool-title">
+          AI 戰績
+        </div>
+
+        <div class="v2-tool-desc">
+          公開驗證預測結果與市場命中表現
+        </div>
+
+      </div>
+
+      <div class="v2-tool-footer">
+        <span class="v2-tool-dot"></span>
+        自動驗證系統
+      </div>
+
+    </a>
+
+
+    <!-- 我的分析 -->
+    <a
+      href="analysis.html"
+      class="v2-tool-card v2-tool-green"
+    >
+
+      <div class="v2-tool-top">
+
+        <div class="v2-tool-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M4 19V5"/>
+            <path d="M4 19h16"/>
+            <path d="m7 15 4-4 3 2 5-6"/>
+            <circle cx="19" cy="7" r="1"/>
+          </svg>
+        </div>
+
+        <div class="v2-tool-arrow">
+          →
+        </div>
+
+      </div>
+
+      <div class="v2-tool-content">
+
+        <div class="v2-tool-kicker">
+          AI ANALYSIS
+        </div>
+
+        <div class="v2-tool-title">
+          我的分析
+        </div>
+
+        <div class="v2-tool-desc">
+          查看 AI 賽前分析與個人分析內容
+        </div>
+
+      </div>
+
+      <div class="v2-tool-footer">
+        <span class="v2-tool-dot"></span>
+        個人分析中心
+      </div>
+
+    </a>
+
+
+    <!-- 更多功能 -->
+    <div class="v2-tool-card v2-tool-disabled">
+
+      <div class="v2-tool-top">
+
+        <div class="v2-tool-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M12 3v18"/>
+            <path d="M3 12h18"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+        </div>
+
+        <div class="v2-tool-coming">
+          SOON
+        </div>
+
+      </div>
+
+      <div class="v2-tool-content">
+
+        <div class="v2-tool-kicker">
+          EXPANSION
+        </div>
+
+        <div class="v2-tool-title">
+          更多功能
+        </div>
+
+        <div class="v2-tool-desc">
+          更多聯賽、數據與運動項目持續擴充
+        </div>
+
+      </div>
+
+      <div class="v2-tool-footer">
+        系統持續升級
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
 
   </main>
 
