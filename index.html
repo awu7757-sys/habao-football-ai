@@ -1496,6 +1496,9 @@
 }
     
   </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 </head>
 
 <body>
@@ -1705,6 +1708,349 @@
     const STATS_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
     // ② 等一下貼剛才複製的 Publishable Key
     const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+    const SUPABASE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co";
+
+const OAUTH_MEMBER_URL =
+  `${SUPABASE_URL}/functions/v1/oauth-member-login`;
+
+const supabaseAuth =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+ async function loginWithLINE() {
+  const message =
+    document.getElementById("message");
+
+  try {
+    message.textContent =
+      "正在前往 LINE 登入...";
+
+    const { error } =
+      await supabaseAuth.auth.signInWithOAuth({
+        provider: "custom:line-oauth",
+
+        options: {
+          redirectTo:
+            window.location.origin +
+            window.location.pathname,
+
+          scopes: "openid profile"
+        }
+      });
+
+    if (error) throw error;
+
+  } catch (error) {
+    console.error(
+      "LINE LOGIN ERROR:",
+      error
+    );
+
+    message.textContent =
+      "LINE 登入失敗，請重新嘗試";
+  }
+}
+
+
+async function loginWithGoogle() {
+  const message =
+    document.getElementById("message");
+
+  try {
+    message.textContent =
+      "正在前往 Google 登入...";
+
+    const { error } =
+      await supabaseAuth.auth.signInWithOAuth({
+        provider: "google",
+
+        options: {
+          redirectTo:
+            window.location.origin +
+            window.location.pathname,
+
+          scopes: "openid email profile"
+        }
+      });
+
+    if (error) throw error;
+
+  } catch (error) {
+    console.error(
+      "GOOGLE LOGIN ERROR:",
+      error
+    );
+
+    message.textContent =
+      "Google 登入失敗，請重新嘗試";
+  }
+}   
+
+const lineLoginBtn =
+  document.getElementById("lineLoginBtn");
+
+const googleLoginBtn =
+  document.getElementById("googleLoginBtn");
+
+if (lineLoginBtn) {
+  lineLoginBtn.addEventListener(
+    "click",
+    loginWithLINE
+  );
+}
+
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener(
+    "click",
+    loginWithGoogle
+  );
+}    
+
+/* ========================================
+   HABAO OAuth Member Session
+   ======================================== */
+
+let oauthMemberChecking = false;
+
+async function verifyHabaoOAuthMember(session) {
+
+  if (!session?.access_token) {
+    return false;
+  }
+
+  if (oauthMemberChecking) {
+    return false;
+  }
+
+  oauthMemberChecking = true;
+
+  const message =
+    document.getElementById("message");
+
+  try {
+
+    if (message) {
+      message.textContent =
+        "正在確認會員資料...";
+    }
+
+    const response = await fetch(
+      OAUTH_MEMBER_URL,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "apikey":
+            PUBLISHABLE_KEY,
+
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+
+        body:
+          JSON.stringify({})
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+
+      if (
+        data.code ===
+        "ACCOUNT_DISABLED"
+      ) {
+
+        await supabaseAuth.auth.signOut();
+
+        sessionStorage.removeItem(
+          "habao_member"
+        );
+
+        if (message) {
+          message.textContent =
+            "此帳號目前無法使用，請聯絡哈寶";
+        }
+
+        return false;
+      }
+
+      throw new Error(
+        data.message ||
+        "會員驗證失敗"
+      );
+    }
+
+    /*
+     * 保存現有網站需要的會員資料。
+     * football.html / home.html
+     * 可以繼續沿用 habao_member。
+     */
+    sessionStorage.setItem(
+      "habao_member",
+      JSON.stringify(data.member)
+    );
+
+    /*
+     * 第一次 OAuth 建立會員時，
+     * 暫時留下標記。
+     *
+     * 下一階段改新版 UI 時，
+     * 我們會利用這個標記顯示
+     * 「首次登入贈送 3 積分」彈窗。
+     */
+    if (
+      data.is_new_member === true &&
+      data.signup_bonus > 0
+    ) {
+
+      sessionStorage.setItem(
+        "habao_signup_bonus",
+        String(data.signup_bonus)
+      );
+
+    } else {
+
+      sessionStorage.removeItem(
+        "habao_signup_bonus"
+      );
+    }
+
+    if (message) {
+      message.textContent =
+        "登入成功，正在進入 HABAO...";
+    }
+
+    /*
+     * 正式首頁目前仍是 home.html。
+     * 等 V2 功能遷移完成後，
+     * 再正式替換 home.html。
+     */
+    window.location.replace(
+      "home.html"
+    );
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "OAUTH MEMBER VERIFY ERROR:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        "會員登入驗證失敗，請重新嘗試";
+    }
+
+    return false;
+
+  } finally {
+
+    oauthMemberChecking = false;
+  }
+}
+
+
+/*
+ * 網站開啟時：
+ * 如果瀏覽器已經保存 Supabase Session，
+ * 不需要使用者重新按 LINE / Google。
+ */
+async function restoreHabaoLogin() {
+
+  try {
+
+    const {
+      data: { session },
+      error
+    } =
+      await supabaseAuth.auth.getSession();
+
+    if (error) {
+      console.error(
+        "GET SESSION ERROR:",
+        error
+      );
+
+      return;
+    }
+
+    if (!session) {
+      return;
+    }
+
+    await verifyHabaoOAuthMember(
+      session
+    );
+
+  } catch (error) {
+
+    console.error(
+      "RESTORE LOGIN ERROR:",
+      error
+    );
+  }
+}
+
+
+/*
+ * 監聽 OAuth 登入完成。
+ *
+ * SIGNED_IN：
+ * LINE / Google OAuth 回到網站。
+ *
+ * TOKEN_REFRESHED：
+ * Supabase 自動更新登入 Token。
+ * 這裡不需要再次跳頁，
+ * restoreHabaoLogin 已負責頁面載入。
+ */
+supabaseAuth.auth.onAuthStateChange(
+  async (event, session) => {
+
+    console.log(
+      "HABAO AUTH EVENT:",
+      event
+    );
+
+    if (
+      event === "SIGNED_IN" &&
+      session
+    ) {
+
+      await verifyHabaoOAuthMember(
+        session
+      );
+    }
+  }
+);
+
+
+/*
+ * 頁面 DOM 完成後檢查既有登入。
+ */
+window.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    restoreHabaoLogin();
+  }
+);
+    
     // ===== 本站福利 Supabase 資料 =====
 const BENEFITS_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/rest/v1/benefits" +
