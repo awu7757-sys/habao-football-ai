@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HABAO LINE Login Test</title>
+  <title>HABAO Login Test</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -38,16 +38,38 @@
       margin-bottom: 28px;
     }
 
-    button {
+    .login-btn {
       width: 100%;
       padding: 15px;
       border: 0;
       border-radius: 12px;
-      background: #06c755;
       color: #fff;
       font-size: 17px;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .line-btn {
+      background: #06c755;
+    }
+
+    .google-btn {
+      margin-top: 12px;
+      background: #fff;
+      color: #222;
+      border: 1px solid #ddd;
+    }
+
+    .logout-btn {
+      display: none;
+      margin-top: 16px;
+      background: #2b2b2b;
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
     }
 
     #status {
@@ -56,6 +78,10 @@
       line-height: 1.7;
       word-break: break-word;
     }
+
+    .user-info {
+      color: #ddd;
+    }
   </style>
 </head>
 
@@ -63,13 +89,32 @@
 
   <div class="box">
     <h1>HABAO</h1>
-    <p>LINE Login 測試</p>
+    <p>登入功能測試</p>
 
-    <button id="lineLoginBtn">
+    <button
+      id="lineLoginBtn"
+      class="login-btn line-btn"
+    >
       使用 LINE 登入
     </button>
 
-    <div id="status">尚未登入</div>
+    <button
+      id="googleLoginBtn"
+      class="login-btn google-btn"
+    >
+      使用 Google 登入
+    </button>
+
+    <button
+      id="logoutBtn"
+      class="login-btn logout-btn"
+    >
+      登出測試帳號
+    </button>
+
+    <div id="status">
+      尚未登入
+    </div>
   </div>
 
 <script>
@@ -79,34 +124,99 @@
   const SUPABASE_KEY =
     "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
+  const REDIRECT_URL =
+    "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html";
+
   const { createClient } = supabase;
 
   const db = createClient(
     SUPABASE_URL,
     SUPABASE_KEY,
     {
-auth: {
-  persistSession: true,
-  autoRefreshToken: true,
-  detectSessionInUrl: true
-}
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
     }
   );
 
   const statusEl =
     document.getElementById("status");
 
-  const loginBtn =
+  const lineLoginBtn =
     document.getElementById("lineLoginBtn");
+
+  const googleLoginBtn =
+    document.getElementById("googleLoginBtn");
+
+  const logoutBtn =
+    document.getElementById("logoutBtn");
+
+
+  function setButtonsLoading(isLoading) {
+    lineLoginBtn.disabled = isLoading;
+    googleLoginBtn.disabled = isLoading;
+  }
+
+
+  function showLoggedOut() {
+    lineLoginBtn.style.display = "block";
+    googleLoginBtn.style.display = "block";
+    logoutBtn.style.display = "none";
+
+    setButtonsLoading(false);
+
+    statusEl.textContent =
+      "尚未登入";
+  }
 
 
   function showLoggedIn(session) {
-    loginBtn.style.display = "none";
+    const user =
+      session.user;
+
+    const provider =
+      user.app_metadata?.provider || "unknown";
+
+    const providerName =
+      provider === "google"
+        ? "Google"
+        : provider === "custom:line-oauth"
+          ? "LINE"
+          : provider;
+
+    const email =
+      user.email || "未提供";
+
+    const name =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.user_metadata?.display_name ||
+      "未提供";
+
+    lineLoginBtn.style.display = "none";
+    googleLoginBtn.style.display = "none";
+    logoutBtn.style.display = "block";
 
     statusEl.innerHTML =
-      "LINE 登入成功 ✅<br><br>" +
+      providerName + " 登入成功 ✅<br><br>" +
+
+      '<span class="user-info">' +
+
       "Supabase User ID：<br>" +
-      session.user.id;
+      user.id +
+
+      "<br><br>Google Email：<br>" +
+      email +
+
+      "<br><br>姓名：<br>" +
+      name +
+
+      "<br><br>Provider：<br>" +
+      provider +
+
+      "</span>";
   }
 
 
@@ -117,19 +227,19 @@ auth: {
         "正在確認登入狀態...";
 
       const params =
-        new URLSearchParams(window.location.search);
-
-      const code =
-        params.get("code");
+        new URLSearchParams(
+          window.location.search
+        );
 
       const oauthError =
         params.get("error");
 
       const oauthErrorDescription =
-        params.get("error_description");
+        params.get(
+          "error_description"
+        );
 
 
-      // OAuth 本身有回傳錯誤
       if (oauthError) {
 
         console.error(
@@ -139,24 +249,24 @@ auth: {
         );
 
         statusEl.textContent =
-          "LINE 登入失敗：" +
-          (oauthErrorDescription || oauthError);
+          "登入失敗：" +
+          (
+            oauthErrorDescription ||
+            oauthError
+          );
 
-        loginBtn.style.display = "block";
+        setButtonsLoading(false);
 
         return;
       }
 
 
-      
-
-      // 沒有 callback code 時，
-      // 檢查瀏覽器是否已有 Session
       const {
         data,
         error
       } =
         await db.auth.getSession();
+
 
       if (error) {
 
@@ -169,24 +279,22 @@ auth: {
           "讀取登入狀態失敗：" +
           error.message;
 
-        loginBtn.style.display =
-          "block";
+        setButtonsLoading(false);
 
         return;
       }
 
 
       if (data.session) {
-        showLoggedIn(data.session);
+        showLoggedIn(
+          data.session
+        );
+
         return;
       }
 
 
-      statusEl.textContent =
-        "尚未登入";
-
-      loginBtn.style.display =
-        "block";
+      showLoggedOut();
 
 
     } catch (error) {
@@ -200,20 +308,19 @@ auth: {
         "登入處理發生錯誤：" +
         error.message;
 
-      loginBtn.style.display =
-        "block";
+      setButtonsLoading(false);
     }
   }
 
 
-  loginBtn.addEventListener(
+  lineLoginBtn.addEventListener(
     "click",
     async () => {
 
       statusEl.textContent =
         "正在前往 LINE...";
 
-      loginBtn.disabled = true;
+      setButtonsLoading(true);
 
 
       const {
@@ -228,7 +335,7 @@ auth: {
           options: {
 
             redirectTo:
-              "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html",
+              REDIRECT_URL,
 
             scopes:
               "openid profile"
@@ -244,20 +351,107 @@ auth: {
         );
 
         statusEl.textContent =
-          "登入啟動失敗：" +
+          "LINE 登入啟動失敗：" +
           error.message;
 
-        loginBtn.disabled =
-          false;
+        setButtonsLoading(false);
 
         return;
       }
 
 
       console.log(
-        "OAuth started:",
+        "LINE OAuth started:",
         data
       );
+    }
+  );
+
+
+  googleLoginBtn.addEventListener(
+    "click",
+    async () => {
+
+      statusEl.textContent =
+        "正在前往 Google...";
+
+      setButtonsLoading(true);
+
+
+      const {
+        data,
+        error
+      } =
+        await db.auth.signInWithOAuth({
+
+          provider:
+            "google",
+
+          options: {
+
+            redirectTo:
+              REDIRECT_URL,
+
+            scopes:
+              "openid email profile"
+          }
+        });
+
+
+      if (error) {
+
+        console.error(
+          "Google OAuth start error:",
+          error
+        );
+
+        statusEl.textContent =
+          "Google 登入啟動失敗：" +
+          error.message;
+
+        setButtonsLoading(false);
+
+        return;
+      }
+
+
+      console.log(
+        "Google OAuth started:",
+        data
+      );
+    }
+  );
+
+
+  logoutBtn.addEventListener(
+    "click",
+    async () => {
+
+      statusEl.textContent =
+        "正在登出...";
+
+      logoutBtn.disabled = true;
+
+      const {
+        error
+      } =
+        await db.auth.signOut();
+
+
+      logoutBtn.disabled = false;
+
+
+      if (error) {
+
+        statusEl.textContent =
+          "登出失敗：" +
+          error.message;
+
+        return;
+      }
+
+
+      showLoggedOut();
     }
   );
 
@@ -270,11 +464,25 @@ auth: {
         event
       );
 
+
       if (
         event === "SIGNED_IN" &&
         session
       ) {
-        showLoggedIn(session);
+
+        showLoggedIn(
+          session
+        );
+
+      }
+
+
+      if (
+        event === "SIGNED_OUT"
+      ) {
+
+        showLoggedOut();
+
       }
     }
   );
