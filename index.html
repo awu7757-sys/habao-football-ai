@@ -1650,6 +1650,11 @@ const supabaseAuth =
   );
 
  async function loginWithLINE() {
+
+localStorage.removeItem(
+  "habao_manual_logout"
+);
+   
   const message =
     document.getElementById("message");
 
@@ -1685,6 +1690,11 @@ const supabaseAuth =
 
 
 async function loginWithGoogle() {
+
+localStorage.removeItem(
+  "habao_manual_logout"
+);
+  
   const message =
     document.getElementById("message");
 
@@ -1896,7 +1906,33 @@ async function verifyHabaoOAuthMember(session) {
  */
 async function restoreHabaoLogin() {
 
+    const manualLogout =
+    localStorage.getItem(
+      "habao_manual_logout"
+    );
+
+  if (manualLogout === "1") {
+    return;
+  }
+
   try {
+
+    const manualLogout =
+      localStorage.getItem(
+        "habao_manual_logout"
+      );
+
+    if (manualLogout === "1") {
+
+      await supabaseAuth.auth.signOut();
+
+      sessionStorage.removeItem(
+        "habao_member"
+      );
+
+      return;
+    }
+
 
     const {
       data: { session },
@@ -1904,7 +1940,9 @@ async function restoreHabaoLogin() {
     } =
       await supabaseAuth.auth.getSession();
 
+
     if (error) {
+
       console.error(
         "GET SESSION ERROR:",
         error
@@ -1913,13 +1951,16 @@ async function restoreHabaoLogin() {
       return;
     }
 
+
     if (!session) {
       return;
     }
 
+
     await verifyHabaoOAuthMember(
       session
     );
+
 
   } catch (error) {
 
@@ -1927,7 +1968,9 @@ async function restoreHabaoLogin() {
       "RESTORE LOGIN ERROR:",
       error
     );
+
   }
+
 }
 
 
