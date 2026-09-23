@@ -328,6 +328,310 @@
       }
     }
 
+   /* =========================================
+   HABAO V2｜ACCOUNT PANEL
+========================================= */
+
+.v2-account-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  padding: 18px;
+
+  background:
+    rgba(0,0,0,.68);
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity .25s ease,
+    visibility .25s ease;
+}
+
+
+.v2-account-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+.v2-account-panel {
+  width: 100%;
+  max-width: 430px;
+
+  padding:
+    12px 18px 18px;
+
+  border:
+    1px solid rgba(242,189,75,.18);
+
+  border-radius:
+    26px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,28,32,.98),
+      rgba(8,10,12,.99)
+    );
+
+  box-shadow:
+    0 -15px 60px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.07);
+
+  transform:
+    translateY(35px);
+
+  transition:
+    transform .28s
+    cubic-bezier(.22,.8,.25,1);
+}
+
+
+.v2-account-overlay.show
+.v2-account-panel {
+  transform:
+    translateY(0);
+}
+
+
+.v2-account-handle {
+  width: 38px;
+  height: 4px;
+
+  margin:
+    0 auto 18px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(255,255,255,.15);
+}
+
+
+.v2-account-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+
+.v2-account-kicker {
+  margin-bottom: 4px;
+
+  color:
+    var(--gold);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 1.5px;
+}
+
+
+.v2-account-title {
+  color: #fff;
+
+  font-size: 20px;
+  font-weight: 900;
+
+  letter-spacing: -.4px;
+}
+
+
+.v2-account-close {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius: 50%;
+
+  color:
+    #aeb7c2;
+
+  background:
+    rgba(255,255,255,.04);
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+.v2-account-status {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 14px;
+
+  padding:
+    10px 12px;
+
+  border:
+    1px solid rgba(60,221,130,.12);
+
+  border-radius:
+    13px;
+
+  color:
+    #a9b5bf;
+
+  background:
+    rgba(60,221,130,.045);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.v2-account-status-dot {
+  width: 7px;
+  height: 7px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background:
+    var(--green);
+
+  box-shadow:
+    0 0 10px
+    rgba(60,221,130,.55);
+}
+
+
+.v2-account-info {
+  overflow: hidden;
+
+  border:
+    1px solid rgba(255,255,255,.07);
+
+  border-radius:
+    18px;
+
+  background:
+    rgba(255,255,255,.025);
+}
+
+
+.v2-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  min-height: 58px;
+
+  padding:
+    12px 14px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.055);
+}
+
+
+.v2-account-row:last-child {
+  border-bottom: 0;
+}
+
+
+.v2-account-label {
+  flex: 0 0 auto;
+
+  color:
+    #727d8b;
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+
+.v2-account-value {
+  min-width: 0;
+
+  color:
+    #e8edf2;
+
+  font-size: 12px;
+  font-weight: 850;
+
+  text-align: right;
+
+  overflow-wrap: anywhere;
+}
+
+
+.v2-account-expire {
+  color:
+    var(--gold-light);
+}
+
+
+.v2-account-logout {
+  width: 100%;
+
+  margin-top: 15px;
+
+  padding:
+    14px 16px;
+
+  border:
+    1px solid rgba(255,95,95,.15);
+
+  border-radius:
+    15px;
+
+  color:
+    #ff8d8d;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,80,80,.08),
+      rgba(255,80,80,.035)
+    );
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+
+.v2-account-logout:active {
+  transform:
+    scale(.98);
+} 
 
     /* =========================
        HERO
@@ -4910,7 +5214,11 @@
       </a>
 
 
-      <div class="nav-item">
+      <div
+  class="nav-item"
+  id="v2MyButton"
+  onclick="openV2AccountPanel()"
+>
 
         <div class="nav-icon">
 
@@ -4940,6 +5248,109 @@
 
   </nav>
 
+<!-- =========================================
+     HABAO V2｜我的帳號面板
+========================================= -->
+
+<div
+  class="v2-account-overlay"
+  id="v2AccountOverlay"
+  onclick="closeV2AccountPanel(event)"
+>
+  <div
+    class="v2-account-panel"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="v2-account-handle"></div>
+
+    <div class="v2-account-head">
+
+      <div>
+        <div class="v2-account-kicker">
+          MY ACCOUNT
+        </div>
+
+        <div class="v2-account-title">
+          我的帳號
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="v2-account-close"
+        onclick="closeV2AccountPanel()"
+        aria-label="關閉"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="v2-account-status">
+      <span class="v2-account-status-dot"></span>
+      帳號已登入
+    </div>
+
+
+    <div class="v2-account-info">
+
+      <div class="v2-account-row">
+        <div class="v2-account-label">
+          會員帳號
+        </div>
+
+        <div
+          class="v2-account-value"
+          id="v2AccountName"
+        >
+          --
+        </div>
+      </div>
+
+
+      <div class="v2-account-row">
+        <div class="v2-account-label">
+          登入方式
+        </div>
+
+        <div
+          class="v2-account-value"
+          id="v2AccountProvider"
+        >
+          --
+        </div>
+      </div>
+
+
+      <div class="v2-account-row">
+        <div class="v2-account-label">
+          使用期限
+        </div>
+
+        <div
+          class="v2-account-value v2-account-expire"
+          id="v2AccountExpire"
+        >
+          --
+        </div>
+      </div>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="v2-account-logout"
+      onclick="logoutV2Member()"
+    >
+      登出帳號
+    </button>
+
+  </div>
+</div>
+  
 <script>
 /* =========================================
    HABAO V2｜真實資料
@@ -4965,28 +5376,77 @@ async function verifyV2Member() {
     sessionStorage.getItem("habao_member");
 
   if (!saved) {
-    window.location.href = "index.html";
-    return;
+    window.location.replace("index.html");
+    return null;
   }
-
 
   let member;
 
   try {
     member = JSON.parse(saved);
-  } catch {
-    sessionStorage.clear();
-    window.location.href = "index.html";
-    return;
+  } catch (error) {
+
+    console.error(
+      "V2 MEMBER PARSE ERROR:",
+      error
+    );
+
+    sessionStorage.removeItem(
+      "habao_member"
+    );
+
+    window.location.replace(
+      "index.html"
+    );
+
+    return null;
+  }
+
+  if (!member || !member.account) {
+
+    sessionStorage.removeItem(
+      "habao_member"
+    );
+
+    window.location.replace(
+      "index.html"
+    );
+
+    return null;
   }
 
 
-  if (!member.account) {
-    sessionStorage.clear();
-    window.location.href = "index.html";
-    return;
-  }
+  /* ===============================
+     OAuth 會員
+     LINE / Google 已經由
+     oauth-member-login 驗證完成
+  ================================ */
 
+  const isOAuthMember =
+    Boolean(member.auth_user_id) ||
+    Boolean(member.auth_provider) ||
+    member.account.startsWith("google_") ||
+    member.account.startsWith("line_");
+
+
+if (isOAuthMember) {
+
+  updateV2Account(
+    member.account
+  );
+
+  updateV2AccountPanel(
+    member
+  );
+
+  return member;
+}
+
+
+  /* ===============================
+     舊會員
+     保留 member-login 驗證
+  ================================ */
 
   try {
 
@@ -5027,20 +5487,37 @@ async function verifyV2Member() {
       !data.member
     ) {
 
-      sessionStorage.clear();
+      sessionStorage.removeItem(
+        "habao_member"
+      );
 
-      window.location.href =
-        "index.html";
+      window.location.replace(
+        "index.html"
+      );
 
-      return;
+      return null;
     }
 
 
+    member =
+      data.member;
+
+
+    sessionStorage.setItem(
+      "habao_member",
+      JSON.stringify(member)
+    );
+
+
 updateV2Account(
-  data.member.account
+  member.account
 );
 
-return data.member;
+updateV2AccountPanel(
+  member
+);
+
+return member;
 
 
   } catch (error) {
@@ -5049,10 +5526,22 @@ return data.member;
       "V2 MEMBER VERIFY ERROR:",
       error
     );
-    return null;
 
+    /*
+      API 暫時失敗時不清除登入資料，
+      避免短暫網路問題把會員踢出去。
+    */
+
+updateV2Account(
+  member.account
+);
+
+updateV2AccountPanel(
+  member
+);
+
+return member;
   }
-
 }
 
 
@@ -5076,7 +5565,229 @@ function updateV2Account(account) {
   `;
 
 }
+  
+/* ===============================
+   V2 我的帳號
+================================ */
 
+function updateV2AccountPanel(member) {
+
+  if (!member) return;
+
+
+  const nameEl =
+    document.getElementById(
+      "v2AccountName"
+    );
+
+  const providerEl =
+    document.getElementById(
+      "v2AccountProvider"
+    );
+
+  const expireEl =
+    document.getElementById(
+      "v2AccountExpire"
+    );
+
+
+  if (nameEl) {
+
+    nameEl.textContent =
+      member.account || "--";
+
+  }
+
+
+  if (providerEl) {
+
+    const provider =
+      String(
+        member.auth_provider || ""
+      ).toLowerCase();
+
+
+    if (
+      provider.includes("line") ||
+      String(member.account || "")
+        .startsWith("line_")
+    ) {
+
+      providerEl.textContent =
+        "LINE";
+
+    } else if (
+      provider.includes("google") ||
+      String(member.account || "")
+        .startsWith("google_")
+    ) {
+
+      providerEl.textContent =
+        "Google";
+
+    } else {
+
+      providerEl.textContent =
+        "HABAO 帳號";
+
+    }
+
+  }
+
+
+  if (expireEl) {
+
+    if (member.expire_at) {
+
+      const expire =
+        new Date(
+          member.expire_at
+        );
+
+
+      if (
+        Number.isNaN(
+          expire.getTime()
+        )
+      ) {
+
+        expireEl.textContent =
+          "--";
+
+      } else {
+
+        expireEl.textContent =
+          expire.toLocaleString(
+            "zh-TW",
+            {
+              timeZone:
+                "Asia/Taipei",
+
+              year:
+                "numeric",
+
+              month:
+                "2-digit",
+
+              day:
+                "2-digit",
+
+              hour:
+                "2-digit",
+
+              minute:
+                "2-digit",
+
+              hour12:
+                false
+            }
+          );
+
+      }
+
+    } else {
+
+      expireEl.textContent =
+        "長期有效";
+
+    }
+
+  }
+
+}
+
+
+function openV2AccountPanel() {
+
+  let member = null;
+
+  try {
+
+    member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) || "null"
+      );
+
+  } catch (error) {
+
+    console.error(
+      "V2 ACCOUNT READ ERROR:",
+      error
+    );
+
+  }
+
+
+  updateV2AccountPanel(
+    member
+  );
+
+
+  const overlay =
+    document.getElementById(
+      "v2AccountOverlay"
+    );
+
+
+  if (overlay) {
+
+    overlay.classList.add(
+      "show"
+    );
+
+  }
+
+}
+
+
+function closeV2AccountPanel(event) {
+
+  if (
+    event &&
+    event.target !==
+      event.currentTarget
+  ) {
+
+    return;
+
+  }
+
+
+  const overlay =
+    document.getElementById(
+      "v2AccountOverlay"
+    );
+
+
+  if (overlay) {
+
+    overlay.classList.remove(
+      "show"
+    );
+
+  }
+
+}
+
+
+function logoutV2Member() {
+
+  sessionStorage.removeItem(
+    "habao_member"
+  );
+
+  sessionStorage.removeItem(
+    "habao_signup_bonus"
+  );
+
+
+  window.location.replace(
+    "index.html"
+  );
+
+}
 
 /* ===============================
    公開 AI 驗證數量
