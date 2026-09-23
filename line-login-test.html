@@ -85,11 +85,11 @@
     SUPABASE_URL,
     SUPABASE_KEY,
     {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false
-      }
+auth: {
+  persistSession: true,
+  autoRefreshToken: true,
+  detectSessionInUrl: true
+}
     }
   );
 
@@ -148,60 +148,7 @@
       }
 
 
-      // Supabase PKCE callback
-      if (code) {
-
-        statusEl.textContent =
-          "正在建立登入 Session...";
-
-        console.log(
-          "OAuth callback code detected"
-        );
-
-        const {
-          data,
-          error
-        } =
-          await db.auth.exchangeCodeForSession(code);
-
-        if (error) {
-
-          console.error(
-            "exchangeCodeForSession error:",
-            error
-          );
-
-          statusEl.textContent =
-            "Session 建立失敗：" +
-            error.message;
-
-          loginBtn.style.display =
-            "block";
-
-          return;
-        }
-
-
-        console.log(
-          "Session exchange success:",
-          !!data.session
-        );
-
-
-        // 成功交換後才清除網址 code
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
-
-
-        if (data.session) {
-          showLoggedIn(data.session);
-          return;
-        }
-      }
-
+      
 
       // 沒有 callback code 時，
       // 檢查瀏覽器是否已有 Session
