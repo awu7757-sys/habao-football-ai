@@ -7,6 +7,14 @@
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#07090b">
 <link rel="apple-touch-icon" href="./football_icon_192x192.png">
+<!-- HABAO 登入頁核心資源預載 -->
+<link rel="preload" href="./habao-login-bg-v2.png" as="image" fetchpriority="high">
+<link rel="preload" href="./habao-hb-logo.png" as="image" fetchpriority="high">
+
+<!-- 提前建立 Supabase CDN 連線 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  
   <!-- 網站基本資訊 -->
 <meta name="description" content="每日各大賽事｜大小分・獨贏・BTTS等全方位數據分析">
 
@@ -2011,7 +2019,35 @@ body {
     url("./habao-login-bg-v2.png")
       center / cover no-repeat;
 }
+    
+/* =========================================================
+   HABAO SPLASH / LOGIN 切換修正
+   Splash 存在期間，正式登入 UI 不提前露出
+   ========================================================= */
 
+body.splash-active {
+  overflow: hidden;
+}
+
+body.splash-active .app {
+  visibility: hidden;
+  opacity: 0;
+}
+
+body.login-ready .app {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Splash 本身保持完全不透明，避免淡出時穿透看到登入頁 */
+.splash-screen {
+  background-color: #030405;
+}
+
+.splash-screen.hide {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
 
 /* ===== 小手機 ===== */
 
@@ -3055,21 +3091,21 @@ body {
     class="oauth-login-btn line-login-btn"
     type="button"
   >
-<span class="oauth-icon line-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
+<span class="oauth-icon line-icon" aria-hidden="true">
+  <svg viewBox="0 0 48 48">
     <path
-      fill="currentColor"
-      d="M32 7C17.1 7 5 16.7 5 28.7c0 10.8 9.6 19.8 22.6 21.4.9.2 2.1.6 2.4 1.3.3.7.2 1.8.1 2.5l-.4 2.3c-.1.7-.6 2.7 2.4 1.5 3-1.3 16.2-9.6 22.1-16.4C57.2 35.2 59 31.9 59 28.7 59 16.7 46.9 7 32 7Z"
+      fill="#06C755"
+      d="M24 7C14.06 7 6 13.62 6 21.78c0 7.31 6.46 13.43 15.18 14.58.59.13 1.39.39 1.59.9.18.46.12 1.18.06 1.65l-.25 1.56c-.08.46-.36 1.8 1.57.98 1.93-.81 10.4-6.13 14.19-10.49C40.96 28.08 42 25.1 42 21.78 42 13.62 33.94 7 24 7Z"
     />
     <text
-      x="32"
-      y="33"
+      x="24"
+      y="25.5"
       text-anchor="middle"
       dominant-baseline="middle"
       fill="#ffffff"
-      font-size="13"
+      font-size="8.2"
+      font-weight="800"
       font-family="Arial, sans-serif"
-      font-weight="900"
     >LINE</text>
   </svg>
 </span>
@@ -3164,43 +3200,61 @@ body {
     rel="noopener noreferrer"
   >
 <div class="shortcut-icon" aria-hidden="true">
-  <svg viewBox="0 0 24 24" aria-hidden="true">
+  <svg
+    viewBox="0 0 48 48"
+    width="26"
+    height="26"
+  >
     <path
-      d="M4 13v-2a8 8 0 0 1 16 0v2"
+      d="M11 25v-3C11 14.82 16.82 9 24 9s13 5.82 13 13v3"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
+      stroke-width="3"
       stroke-linecap="round"
     />
 
-    <path
-      d="M4 12h2.2c1 0 1.8.8 1.8 1.8v3.4c0 1-.8 1.8-1.8 1.8H5.8A1.8 1.8 0 0 1 4 17.2V12Z"
+    <rect
+      x="8"
+      y="23"
+      width="7"
+      height="12"
+      rx="3.5"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
+      stroke-width="3"
+    />
+
+    <rect
+      x="33"
+      y="23"
+      width="7"
+      height="12"
+      rx="3.5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3"
     />
 
     <path
-      d="M20 12h-2.2c-1 0-1.8.8-1.8 1.8v3.4c0 1 .8 1.8 1.8 1.8h.4"
+      d="M37 35c0 3.3-2.7 6-6 6h-4"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
+      stroke-width="3"
       stroke-linecap="round"
     />
 
-    <path
-      d="M18 19c-.8 1.3-2.1 2-4 2h-2"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
+    <circle
+      cx="25"
+      cy="41"
+      r="2"
+      fill="currentColor"
     />
   </svg>
 </div>
 
     <div class="shortcut-content">
       <div class="shortcut-title">LINE 客服</div>
-      <div class="shortcut-sub">有問題？聯絡 HABAO 客服</div>
+      <div class="shortcut-sub">有問題？立即聯絡我們</div>
     </div>
 
     <div class="shortcut-arrow">›</div>
@@ -3607,33 +3661,55 @@ window.addEventListener(
     
 </script>
 <script>
-  (() => {
-    const splash = document.getElementById("splashScreen");
+(() => {
+  const splash = document.getElementById("splashScreen");
+  const body = document.body;
 
-    if (!splash) return;
+  if (!splash) {
+    body.classList.add("login-ready");
+    return;
+  }
 
-    let closed = false;
+  body.classList.add("splash-active");
 
-    function closeSplash() {
-      if (closed) return;
-      closed = true;
+  let closed = false;
 
-      splash.classList.add("hide");
+  function closeSplash() {
+    if (closed) return;
 
-      setTimeout(() => {
-        splash.remove();
-      }, 550);
-    }
+    closed = true;
 
-    // 4 秒後自動進入登入頁
-    const splashTimer = setTimeout(closeSplash, 4000);
+    /*
+     * 不再讓 Splash 半透明淡出，
+     * 避免底下登入 Logo / 文字與 Splash 重疊。
+     */
+    splash.remove();
 
-    // 點擊 / 手機觸碰畫面即可跳過
-    splash.addEventListener("click", () => {
+    body.classList.remove("splash-active");
+    body.classList.add("login-ready");
+  }
+
+  /*
+   * 最長 4 秒。
+   * 如果核心背景與 Logo 已載入完成，
+   * 仍保留啟動畫面的正常展示。
+   */
+  const splashTimer =
+    setTimeout(closeSplash, 4000);
+
+  /*
+   * 點擊 / 手機觸碰即可立即跳過。
+   */
+  splash.addEventListener(
+    "click",
+    () => {
       clearTimeout(splashTimer);
       closeSplash();
-    });
-  })();
+    },
+    { once: true }
+  );
+})();
+  
 </script>
 
 <!-- 加入主畫面｜教學彈窗 -->
@@ -3873,6 +3949,24 @@ androidGuideBtn?.addEventListener("click", () => {
 showPhoneGuide("iphone");
   
 })();
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener(
+      "load",
+      () => {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .catch((error) => {
+            console.error(
+              "SERVICE WORKER REGISTER ERROR:",
+              error
+            );
+          });
+      }
+    );
+  }
 </script>
   
 </body>
