@@ -2143,51 +2143,61 @@ body {
 }
 
 /* =========================================================
-   HABAO LOGIN V6
-   登入按鈕區｜1:1 Reference Style
+   HABAO LOGIN V7
+   Reference Match Final
    ========================================================= */
 
-/* 主登入卡：加大、玻璃、金色外框 */
+/* ===== 主玻璃登入卡 ===== */
+
 .login-wrap .card {
-  padding: 23px 25px 19px !important;
-  border-radius: 26px !important;
+  padding: 27px 31px 24px !important;
+  border-radius: 29px !important;
 
   background:
     radial-gradient(
-      circle at 50% 0%,
-      rgba(255, 226, 163, .11),
-      transparent 42%
+      ellipse at 50% 0%,
+      rgba(255, 235, 190, .13),
+      transparent 48%
     ),
     linear-gradient(
       145deg,
-      rgba(31, 31, 29, .76),
-      rgba(12, 13, 13, .88)
+      rgba(43, 42, 38, .76),
+      rgba(16, 17, 16, .88)
     ) !important;
 
-  border: 1px solid rgba(235, 200, 124, .72) !important;
+  border:
+    1px solid rgba(238, 205, 132, .78) !important;
 
-  backdrop-filter: blur(28px) saturate(115%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(115%) !important;
+  backdrop-filter:
+    blur(30px) saturate(118%) !important;
+
+  -webkit-backdrop-filter:
+    blur(30px) saturate(118%) !important;
 
   box-shadow:
-    0 24px 55px rgba(0, 0, 0, .48),
-    0 0 20px rgba(221, 177, 80, .08),
-    inset 0 1px 0 rgba(255, 255, 255, .15),
-    inset 0 0 34px rgba(255, 255, 255, .025) !important;
+    0 25px 60px rgba(0, 0, 0, .48),
+    0 0 17px rgba(226, 184, 90, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .17),
+    inset 0 0 42px rgba(255, 255, 255, .025)
+    !important;
 }
 
 
-/* SECURE ACCESS */
+/* ===== SECURE ACCESS ===== */
+
 .card-subtitle {
-  margin: 0 0 18px !important;
+  margin:
+    0
+    0
+    21px !important;
 }
 
 .card-subtitle .secure-title {
-  gap: 13px !important;
+  gap: 14px !important;
 
-  margin-bottom: 5px !important;
+  margin-bottom: 6px !important;
 
-  color: #e6c681 !important;
+  color: #e7c985 !important;
 
   font-size: 10px !important;
   font-weight: 700 !important;
@@ -2197,104 +2207,112 @@ body {
 
 .card-subtitle .secure-title::before,
 .card-subtitle .secure-title::after {
-  width: 34px !important;
+  width: 37px !important;
+  height: 1px !important;
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(231, 197, 125, .92)
+      rgba(232, 201, 132, .92)
     ) !important;
 }
 
 .card-subtitle .secure-sub {
-  color: rgba(255, 255, 255, .65) !important;
+  color:
+    rgba(255, 255, 255, .69) !important;
 
   font-size: 11px !important;
+  font-weight: 500 !important;
 
-  letter-spacing: 1.6px !important;
+  letter-spacing: 1.7px !important;
 }
 
 
-/* LINE / Google 間距 */
+/* ===== LINE / GOOGLE 區 ===== */
+
 .oauth-login-area {
-  gap: 12px !important;
+  gap: 14px !important;
 }
 
-
-/* 兩顆登入按鈕共用尺寸 */
 .oauth-login-btn {
-  min-height: 78px !important;
+  min-height: 86px !important;
 
-  padding: 10px 14px !important;
+  padding:
+    11px
+    16px !important;
 
   grid-template-columns:
-    54px
+    56px
     1px
     1fr
-    40px !important;
+    42px !important;
 
-  gap: 14px !important;
+  gap: 15px !important;
 
-  border-radius: 17px !important;
+  border-radius: 19px !important;
 
   overflow: hidden !important;
 }
 
 
-/* 中央發光分隔線 */
-.oauth-login-btn::before {
-  height: 44px !important;
+/* ===== 中間發光直線 ===== */
 
-  opacity: .90 !important;
+.oauth-login-btn::before {
+  height: 51px !important;
+
+  opacity: .95 !important;
 
   filter:
     drop-shadow(0 0 4px currentColor)
-    drop-shadow(0 0 9px currentColor) !important;
+    drop-shadow(0 0 10px currentColor)
+    !important;
 }
 
 
-/* =========================
+/* =========================================================
    LINE
-   ========================= */
+   ========================================================= */
 
 .line-login-btn {
-  color: #a8ff72 !important;
+  color: #b9ff75 !important;
 
   background:
     radial-gradient(
-      circle at 12% 50%,
-      rgba(0, 255, 94, .18),
-      transparent 29%
+      circle at 11% 50%,
+      rgba(0, 255, 91, .21),
+      transparent 30%
     ),
     radial-gradient(
       circle at 100% 50%,
-      rgba(120, 255, 190, .06),
-      transparent 32%
+      rgba(100, 226, 197, .08),
+      transparent 33%
     ),
     linear-gradient(
       100deg,
-      rgba(16, 51, 36, .80),
-      rgba(17, 28, 25, .90) 38%,
-      rgba(17, 24, 24, .90)
+      rgba(18, 54, 38, .83),
+      rgba(19, 31, 27, .91) 39%,
+      rgba(18, 26, 26, .91)
     ) !important;
 
   border:
-    1px solid rgba(141, 255, 199, .86) !important;
+    1px solid rgba(151, 255, 203, .92) !important;
 
   box-shadow:
-    -5px 0 18px rgba(0, 255, 92, .32),
-    0 0 16px rgba(0, 255, 92, .16),
-    0 13px 25px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .12),
-    inset 0 0 18px rgba(0, 255, 105, .045) !important;
+    -7px 0 20px rgba(0, 255, 92, .38),
+    0 0 19px rgba(0, 255, 92, .17),
+    0 14px 29px rgba(0, 0, 0, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .14),
+    inset 0 0 22px rgba(0, 255, 105, .055)
+    !important;
 }
 
 
-/* LINE Logo：圖1的發光圓形效果 */
+/* LINE 白色發光圓 */
+
 .line-login-btn .oauth-icon {
-  width: 48px !important;
-  height: 48px !important;
+  width: 51px !important;
+  height: 51px !important;
 
   border-radius: 50% !important;
 
@@ -2303,105 +2321,107 @@ body {
   background: #ffffff !important;
 
   border:
-    2px solid rgba(47, 255, 127, .90) !important;
+    2px solid rgba(50, 255, 128, .95) !important;
 
   box-shadow:
-    0 0 7px rgba(0, 255, 98, .95),
-    0 0 17px rgba(0, 255, 98, .68),
-    0 0 27px rgba(0, 255, 98, .25) !important;
+    0 0 8px rgba(0, 255, 98, 1),
+    0 0 19px rgba(0, 255, 98, .72),
+    0 0 30px rgba(0, 255, 98, .28)
+    !important;
 }
 
 .line-login-btn .oauth-icon svg {
-  width: 31px !important;
-  height: 31px !important;
+  width: 33px !important;
+  height: 33px !important;
 }
 
 
-/* =========================
+/* =========================================================
    GOOGLE
-   ========================= */
+   ========================================================= */
 
 .google-login-btn {
-  color: #a9c7ff !important;
+  color: #a8c9ff !important;
 
   background:
     radial-gradient(
       circle at 0% 50%,
-      rgba(66, 133, 244, .24),
+      rgba(66, 133, 244, .30),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 100% 15%,
+      rgba(234, 67, 53, .30),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 100% 90%,
+      rgba(251, 188, 5, .31),
       transparent 29%
-    ),
-    radial-gradient(
-      circle at 100% 20%,
-      rgba(234, 67, 53, .22),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 100% 100%,
-      rgba(251, 188, 5, .25),
-      transparent 30%
     ),
     linear-gradient(
       100deg,
-      rgba(21, 26, 34, .92),
-      rgba(19, 21, 24, .92)
+      rgba(22, 28, 38, .95),
+      rgba(20, 22, 25, .95)
     ) !important;
 
   border:
-    1px solid rgba(172, 203, 255, .88) !important;
+    1px solid rgba(174, 207, 255, .93) !important;
 
   box-shadow:
-    -6px 0 18px rgba(66, 133, 244, .34),
-    7px 0 20px rgba(234, 67, 53, .25),
-    7px 8px 19px rgba(251, 188, 5, .20),
-    0 13px 25px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .12) !important;
+    -8px 0 21px rgba(66, 133, 244, .42),
+    8px -5px 20px rgba(234, 67, 53, .31),
+    8px 9px 20px rgba(251, 188, 5, .27),
+    0 14px 29px rgba(0, 0, 0, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .14)
+    !important;
 }
 
 
-/* Google Logo */
+/* Google G */
+
 .google-login-btn .oauth-icon {
-  width: 48px !important;
-  height: 48px !important;
+  width: 51px !important;
+  height: 51px !important;
 
   border-radius: 50% !important;
 
   background: transparent !important;
-
   border: none !important;
-
   box-shadow: none !important;
 }
 
 .google-login-btn .oauth-icon svg {
-  width: 38px !important;
-  height: 38px !important;
+  width: 41px !important;
+  height: 41px !important;
 }
 
 
-/* =========================
+/* =========================================================
    登入文字
-   ========================= */
+   ========================================================= */
 
 .oauth-btn-text strong {
   color: #ffffff !important;
 
-  font-size: 20px !important;
+  font-size: 21px !important;
   font-weight: 850 !important;
 
-  line-height: 1.1 !important;
-
-  letter-spacing: .3px !important;
+  line-height: 1.05 !important;
+  letter-spacing: .25px !important;
 
   text-shadow:
-    0 2px 8px rgba(0, 0, 0, .55) !important;
+    0 2px 9px rgba(0, 0, 0, .58)
+    !important;
 }
 
 .oauth-btn-text small {
   display: block !important;
 
-  margin-top: 6px !important;
+  margin-top: 7px !important;
 
-  color: rgba(255, 255, 255, .48) !important;
+  color:
+    rgba(255, 255, 255, .50) !important;
 
   font-size: 10px !important;
   font-weight: 500 !important;
@@ -2410,182 +2430,182 @@ body {
 }
 
 
-/* =========================
+/* =========================================================
    右側圓形箭頭
-   ========================= */
+   ========================================================= */
 
 .oauth-arrow {
-  width: 38px !important;
-  height: 38px !important;
+  width: 41px !important;
+  height: 41px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
   border-radius: 50% !important;
 
-  color: rgba(255, 255, 255, .92) !important;
+  color:
+    rgba(255, 255, 255, .94) !important;
 
   background:
-    rgba(255, 255, 255, .055) !important;
+    rgba(255, 255, 255, .065) !important;
 
   border:
-    1px solid rgba(255, 255, 255, .18) !important;
+    1px solid rgba(255, 255, 255, .20) !important;
 
-  font-size: 29px !important;
+  font-size: 30px !important;
   font-weight: 300 !important;
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .09),
-    0 3px 10px rgba(0, 0, 0, .20) !important;
+    inset 0 1px 0 rgba(255, 255, 255, .10),
+    0 4px 12px rgba(0, 0, 0, .22)
+    !important;
 }
 
 
-/* =========================
-   下方安全驗證
-   ========================= */
+/* =========================================================
+   底部安全驗證
+   ========================================================= */
 
 .v5-security {
-  margin-top: 18px !important;
+  margin-top: 22px !important;
 
-  padding-top: 15px !important;
+  padding-top: 19px !important;
+  padding-bottom: 2px !important;
 
   gap: 10px !important;
 
-  color: rgba(255, 255, 255, .47) !important;
+  color:
+    rgba(255, 255, 255, .48) !important;
 
   font-size: 10px !important;
 
-  letter-spacing: 1.8px !important;
+  letter-spacing: 1.9px !important;
 }
 
 .v5-security svg {
   width: 16px !important;
   height: 16px !important;
 
-  color: rgba(223, 192, 122, .75) !important;
+  color:
+    rgba(224, 193, 123, .78) !important;
 }
 
-
-/* =========================
-   手機比例
-   ========================= */
-
-@media (max-width: 520px) {
-
-  .login-wrap .card {
-    padding:
-      22px
-      19px
-      18px !important;
-
-    border-radius: 25px !important;
-  }
-
-  .oauth-login-btn {
-    min-height: 76px !important;
-
-    grid-template-columns:
-      51px
-      1px
-      1fr
-      38px !important;
-
-    gap: 13px !important;
-  }
-
-  .line-login-btn .oauth-icon,
-  .google-login-btn .oauth-icon {
-    width: 46px !important;
-    height: 46px !important;
-  }
-
-  .oauth-btn-text strong {
-    font-size: 19px !important;
-  }
-
-  .oauth-btn-text small {
-    font-size: 9px !important;
-  }
-
-  .oauth-arrow {
-    width: 36px !important;
-    height: 36px !important;
-
-    font-size: 27px !important;
-  }
-}
-
-
-/* 超窄手機避免文字擠壓 */
-@media (max-width: 360px) {
-
-  .login-wrap .card {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-  }
-
-  .oauth-login-btn {
-    grid-template-columns:
-      46px
-      1px
-      1fr
-      34px !important;
-
-    gap: 10px !important;
-
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  .line-login-btn .oauth-icon,
-  .google-login-btn .oauth-icon {
-    width: 43px !important;
-    height: 43px !important;
-  }
-
-  .oauth-btn-text strong {
-    font-size: 17px !important;
-  }
-
-  .oauth-btn-text small {
-    font-size: 8px !important;
-  }
-}    
 
 /* =========================================================
-   HABAO LOGIN V6.1
-   Reference Final Proportion Tuning
+   LINE 客服
+   ========================================================= */
+
+.login-shortcuts {
+  width: 86% !important;
+
+  margin:
+    15px
+    auto
+    0 !important;
+}
+
+.shortcut-card.line-card {
+  min-height: 61px !important;
+
+  padding:
+    10px
+    14px !important;
+
+  border-radius: 14px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(25, 22, 17, .83),
+      rgba(8, 9, 9, .91)
+    ) !important;
+
+  border:
+    1px solid rgba(225, 187, 101, .75) !important;
+
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, .34),
+    0 0 17px rgba(218, 180, 98, .08),
+    inset 0 1px 0 rgba(255, 255, 255, .06)
+    !important;
+}
+
+.shortcut-card.line-card .shortcut-icon {
+  width: 39px !important;
+  height: 39px !important;
+
+  flex:
+    0
+    0
+    39px !important;
+
+  border-radius: 50% !important;
+
+  color: #e1b75e !important;
+
+  background:
+    rgba(217, 178, 91, .09) !important;
+
+  border:
+    1px solid rgba(225, 188, 103, .75) !important;
+
+  box-shadow:
+    0 0 13px rgba(218, 180, 98, .10)
+    !important;
+}
+
+.shortcut-card.line-card .shortcut-title {
+  color: #e6c27a !important;
+
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.shortcut-card.line-card .shortcut-sub {
+  margin-top: 3px !important;
+
+  color:
+    rgba(255, 255, 255, .47) !important;
+
+  font-size: 8px !important;
+}
+
+.shortcut-card.line-card .shortcut-arrow {
+  color: #e2bb68 !important;
+
+  font-size: 22px !important;
+}
+
+
+/* =========================================================
+   MOBILE
    ========================================================= */
 
 @media (max-width: 520px) {
 
-  /* 圖1：整張登入玻璃卡更厚、更有上下空間 */
   .login-wrap .card {
     padding:
-      24px
-      24px
-      22px !important;
+      26px
+      27px
+      23px !important;
 
-    border-radius: 27px !important;
+    border-radius: 28px !important;
   }
 
-  /* SECURE ACCESS 與按鈕拉開 */
   .card-subtitle {
-    margin-bottom: 20px !important;
+    margin-bottom: 21px !important;
   }
 
-  /* 兩顆按鈕間距 */
-  .oauth-login-area {
-    gap: 13px !important;
-  }
-
-  /* 圖1的按鈕更高、更飽滿 */
   .oauth-login-btn {
-    min-height: 82px !important;
+    min-height: 84px !important;
 
     padding:
       11px
       15px !important;
 
     grid-template-columns:
-      52px
+      54px
       1px
       1fr
       40px !important;
@@ -2595,11 +2615,10 @@ body {
     border-radius: 18px !important;
   }
 
-  /* Logo 放大 */
   .line-login-btn .oauth-icon,
   .google-login-btn .oauth-icon {
-    width: 49px !important;
-    height: 49px !important;
+    width: 50px !important;
+    height: 50px !important;
   }
 
   .line-login-btn .oauth-icon svg {
@@ -2612,24 +2631,19 @@ body {
     height: 40px !important;
   }
 
-  /* 發光直線加長 */
   .oauth-login-btn::before {
-    height: 48px !important;
+    height: 50px !important;
   }
 
-  /* 主文字 */
   .oauth-btn-text strong {
     font-size: 20px !important;
-    line-height: 1.05 !important;
   }
 
-  /* 副文字 */
   .oauth-btn-text small {
-    margin-top: 7px !important;
+    margin-top: 6px !important;
     font-size: 9px !important;
   }
 
-  /* 右側箭頭 */
   .oauth-arrow {
     width: 39px !important;
     height: 39px !important;
@@ -2637,55 +2651,42 @@ body {
     font-size: 29px !important;
   }
 
-  /* LINE 左側綠光再集中到 Logo 周圍 */
-  .line-login-btn {
-    box-shadow:
-      -4px 0 20px rgba(0,255,92,.38),
-      0 0 18px rgba(0,255,92,.14),
-      0 14px 28px rgba(0,0,0,.38),
-      inset 0 1px 0 rgba(255,255,255,.13),
-      inset 0 0 20px rgba(0,255,105,.045)
-      !important;
-  }
-
-  /* Google 改成圖1的左藍、右紅黃邊緣光 */
-  .google-login-btn {
-    background:
-      radial-gradient(
-        circle at 0% 50%,
-        rgba(66,133,244,.27),
-        transparent 31%
-      ),
-      radial-gradient(
-        circle at 100% 12%,
-        rgba(234,67,53,.30),
-        transparent 25%
-      ),
-      radial-gradient(
-        circle at 100% 88%,
-        rgba(251,188,5,.27),
-        transparent 28%
-      ),
-      linear-gradient(
-        100deg,
-        rgba(19,25,34,.94),
-        rgba(18,20,23,.94)
-      ) !important;
-
-    box-shadow:
-      -7px 0 20px rgba(66,133,244,.38),
-      7px -4px 18px rgba(234,67,53,.28),
-      7px 8px 18px rgba(251,188,5,.24),
-      0 14px 28px rgba(0,0,0,.38),
-      inset 0 1px 0 rgba(255,255,255,.13)
-      !important;
-  }
-
-  /* 圖1底部安全區比較厚 */
   .v5-security {
     margin-top: 21px !important;
+
     padding-top: 18px !important;
-    padding-bottom: 1px !important;
+  }
+}
+
+
+/* ===== 超窄手機 ===== */
+
+@media (max-width: 360px) {
+
+  .login-wrap .card {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .oauth-login-btn {
+    grid-template-columns:
+      49px
+      1px
+      1fr
+      36px !important;
+
+    gap: 11px !important;
+
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+  }
+
+  .oauth-btn-text strong {
+    font-size: 18px !important;
+  }
+
+  .oauth-btn-text small {
+    font-size: 8px !important;
   }
 }    
     
