@@ -107,35 +107,43 @@
         user.id;
     }
 
-    document
-      .getElementById("lineLoginBtn")
-      .addEventListener("click", async () => {
+document
+  .getElementById("lineLoginBtn")
+  .addEventListener("click", async () => {
 
-        statusEl.textContent = "正在前往 LINE...";
+    statusEl.textContent = "正在前往 LINE...";
 
-const { error } =
-  await db.auth.signInWithOAuth({
-    provider: "custom:line",
+    const { data, error } =
+      await db.auth.signInWithOAuth({
+        provider: "custom:line",
 
-    options: {
-      redirectTo:
-        "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html",
+        options: {
+          redirectTo:
+            "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html",
 
-      scopes: "openid profile",
+          scopes: "openid profile",
 
-      queryParams: {
-        disable_auto_login: "true",
-        bot_prompt: "aggressive"
-      }
-    }
-  });
-
-        if (error) {
-          console.error(error);
-          statusEl.textContent =
-            "登入啟動失敗：" + error.message;
+          skipBrowserRedirect: true
         }
       });
+
+    if (error) {
+      console.error(error);
+      statusEl.textContent =
+        "登入啟動失敗：" + error.message;
+      return;
+    }
+
+    if (data?.url) {
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.style.display = "none";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  });
 
     checkLogin();
   </script>
