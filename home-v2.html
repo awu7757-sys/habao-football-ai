@@ -5783,12 +5783,11 @@ function updateV2Account(account) {
   
 /* ===============================
    V2 我的帳號
-================================ */
+================================ */ 
 
 function updateV2AccountPanel(member) {
 
   if (!member) return;
-
 
   const nameEl =
     document.getElementById(
@@ -5805,18 +5804,15 @@ function updateV2AccountPanel(member) {
       "v2AccountExpire"
     );
 
-    const creditsEl =
+  const creditsEl =
     document.getElementById(
       "v2AccountCredits"
     );
 
   if (nameEl) {
-
     nameEl.textContent =
       member.account || "--";
-
   }
-
 
   if (providerEl) {
 
@@ -5824,7 +5820,6 @@ function updateV2AccountPanel(member) {
       String(
         member.auth_provider || ""
       ).toLowerCase();
-
 
     if (
       provider.includes("line") ||
@@ -5853,7 +5848,6 @@ function updateV2AccountPanel(member) {
 
   }
 
-
   if (expireEl) {
 
     if (member.expire_at) {
@@ -5862,7 +5856,6 @@ function updateV2AccountPanel(member) {
         new Date(
           member.expire_at
         );
-
 
       if (
         Number.isNaN(
@@ -5913,11 +5906,11 @@ function updateV2AccountPanel(member) {
 
   }
 
-}
-
   if (creditsEl) {
 
-    if (member.analysis_unlimited === true) {
+    if (
+      member.analysis_unlimited === true
+    ) {
 
       creditsEl.textContent =
         "無限制";
@@ -5936,8 +5929,10 @@ function updateV2AccountPanel(member) {
 
     }
 
-  }    
+  }
 
+}
+  
 function openV2AccountPanel() {
 
   let member = null;
