@@ -332,6 +332,151 @@
    HABAO V2｜ACCOUNT PANEL
 ========================================= */
 
+/* =========================================
+   HABAO V2｜SIGNUP BONUS
+========================================= */
+
+.v2-bonus-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 10050;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(0,0,0,.78);
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity .25s ease,
+    visibility .25s ease;
+}
+
+.v2-bonus-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.v2-bonus-card {
+  width: 100%;
+  max-width: 360px;
+
+  padding:
+    30px 24px 24px;
+
+  border:
+    1px solid rgba(242,189,75,.32);
+
+  border-radius: 26px;
+
+  text-align: center;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(242,189,75,.14),
+      transparent 48%
+    ),
+    linear-gradient(
+      180deg,
+      #191b1f,
+      #090a0c
+    );
+
+  box-shadow:
+    0 25px 80px rgba(0,0,0,.7),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.v2-bonus-kicker {
+  margin-bottom: 8px;
+
+  color:
+    #9a7a37;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 2px;
+}
+
+.v2-bonus-title {
+  color:
+    #f4f6f8;
+
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.v2-bonus-amount {
+  margin:
+    18px 0 12px;
+
+  color:
+    var(--gold-light);
+
+  font-size: 34px;
+  font-weight: 950;
+
+  text-shadow:
+    0 0 24px rgba(242,189,75,.22);
+}
+
+.v2-bonus-text {
+  color:
+    #aeb6c0;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  line-height: 1.8;
+}
+
+.v2-bonus-button {
+  width: 100%;
+
+  margin-top: 22px;
+
+  padding:
+    14px 18px;
+
+  border: 0;
+  border-radius: 15px;
+
+  color:
+    #16120a;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f4d77a,
+      #d7a936
+    );
+
+  font-size: 13px;
+  font-weight: 950;
+
+  cursor: pointer;
+}
+
+.v2-bonus-button:active {
+  transform:
+    scale(.98);
+}
+    
 .v2-account-overlay {
   position: fixed;
   inset: 0;
@@ -5252,6 +5397,44 @@
   </nav>
 
 <!-- =========================================
+     HABAO V2｜新會員登入禮
+========================================= -->
+
+<div
+  class="v2-bonus-overlay"
+  id="v2BonusOverlay"
+>
+  <div class="v2-bonus-card">
+
+    <div class="v2-bonus-kicker">
+      WELCOME BONUS
+    </div>
+
+    <div class="v2-bonus-title">
+      新會員登入禮
+    </div>
+
+    <div class="v2-bonus-amount">
+      +<span id="v2BonusAmount">3</span> 積分
+    </div>
+
+    <div class="v2-bonus-text">
+      已贈送 3 積分<br>
+      可進行 3 次賽事分析
+    </div>
+
+    <button
+      type="button"
+      class="v2-bonus-button"
+      onclick="closeV2SignupBonus()"
+    >
+      立即體驗
+    </button>
+
+  </div>
+</div>
+  
+<!-- =========================================
      HABAO V2｜我的帳號面板
 ========================================= -->
 
@@ -5339,6 +5522,19 @@
           --
         </div>
       </div>
+
+          <div class="v2-account-row">
+        <div class="v2-account-label">
+          可用積分
+        </div>
+
+        <div
+          class="v2-account-value v2-account-expire"
+          id="v2AccountCredits"
+        >
+          --
+        </div>
+      </div>  
 
     </div>
 
@@ -5609,6 +5805,10 @@ function updateV2AccountPanel(member) {
       "v2AccountExpire"
     );
 
+    const creditsEl =
+    document.getElementById(
+      "v2AccountCredits"
+    );
 
   if (nameEl) {
 
@@ -5715,6 +5915,28 @@ function updateV2AccountPanel(member) {
 
 }
 
+  if (creditsEl) {
+
+    if (member.analysis_unlimited === true) {
+
+      creditsEl.textContent =
+        "無限制";
+
+    } else {
+
+      const credits =
+        Number(
+          member.analysis_credits ?? 0
+        );
+
+      creditsEl.textContent =
+        Number.isFinite(credits)
+          ? `${credits} 積分`
+          : "0 積分";
+
+    }
+
+  }    
 
 function openV2AccountPanel() {
 
@@ -5759,7 +5981,6 @@ function openV2AccountPanel() {
   }
 
 }
-
 
 function closeV2AccountPanel(event) {
 
@@ -5989,6 +6210,68 @@ function escapeV2HTML(value) {
 
 }
 
+/* ===============================
+   新會員登入禮
+================================ */
+
+function showV2SignupBonus() {
+
+  const bonus =
+    Number(
+      sessionStorage.getItem(
+        "habao_signup_bonus"
+      ) || 0
+    );
+
+  if (bonus <= 0) {
+    return;
+  }
+
+
+  const overlay =
+    document.getElementById(
+      "v2BonusOverlay"
+    );
+
+  const amountEl =
+    document.getElementById(
+      "v2BonusAmount"
+    );
+
+
+  if (amountEl) {
+    amountEl.textContent =
+      String(bonus);
+  }
+
+
+  if (overlay) {
+    overlay.classList.add(
+      "show"
+    );
+  }
+
+  sessionStorage.removeItem(
+  "habao_signup_bonus"
+);
+
+}
+
+
+function closeV2SignupBonus() {
+
+  const overlay =
+    document.getElementById(
+      "v2BonusOverlay"
+    );
+
+
+  if (overlay) {
+    overlay.classList.remove(
+      "show"
+    );
+  }
+}  
 
 /* ===============================
    啟動
@@ -5996,7 +6279,14 @@ function escapeV2HTML(value) {
 
 async function startV2Home() {
 
-  await verifyV2Member();
+  const member =
+    await verifyV2Member();
+
+  if (!member) {
+    return;
+  }
+
+  showV2SignupBonus();
 
   await Promise.all([
     loadV2Performance(),
