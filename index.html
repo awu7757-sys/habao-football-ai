@@ -1703,17 +1703,21 @@ localStorage.removeItem(
       "正在前往 Google 登入...";
 
     const { error } =
-      await supabaseAuth.auth.signInWithOAuth({
-        provider: "google",
+  await supabaseAuth.auth.signInWithOAuth({
+    provider: "google",
 
-        options: {
-          redirectTo:
-            window.location.origin +
-            window.location.pathname,
+    options: {
+      redirectTo:
+        window.location.origin +
+        window.location.pathname,
 
-          scopes: "openid email profile"
-        }
-      });
+      scopes: "openid email profile",
+
+      queryParams: {
+        prompt: "select_account"
+      }
+    }
+  });
 
     if (error) throw error;
 
@@ -1867,14 +1871,15 @@ async function verifyHabaoOAuthMember(session) {
         "登入成功，正在進入 HABAO...";
     }
 
-    /*
-     * 正式首頁目前仍是 home.html。
-     * 等 V2 功能遷移完成後，
-     * 再正式替換 home.html。
-     */
-    window.location.replace(
-      "home.html"
-    );
+/*
+ * V2 功能遷移測試期間，
+ * OAuth 登入成功後先進入 home-v2.html。
+ * 等 V2 全部 QA 完成後，
+ * 才正式升級為 home.html。
+ */
+window.location.replace(
+  "home-v2.html"
+);
 
     return true;
 
@@ -1916,23 +1921,6 @@ async function restoreHabaoLogin() {
   }
 
   try {
-
-    const manualLogout =
-      localStorage.getItem(
-        "habao_manual_logout"
-      );
-
-    if (manualLogout === "1") {
-
-      await supabaseAuth.auth.signOut();
-
-      sessionStorage.removeItem(
-        "habao_member"
-      );
-
-      return;
-    }
-
 
     const {
       data: { session },
@@ -1992,6 +1980,15 @@ supabaseAuth.auth.onAuthStateChange(
       "HABAO AUTH EVENT:",
       event
     );
+
+    const manualLogout =
+      localStorage.getItem(
+        "habao_manual_logout"
+      );
+
+    if (manualLogout === "1") {
+      return;
+    }
 
     if (
       event === "SIGNED_IN" &&
