@@ -1239,6 +1239,51 @@ loadCurrentUserCount();
       return;
     }
 
+    // ===== OAuth 會員：已由 oauth-member-login 驗證完成 =====
+const isOAuthMember =
+  member.auth_user_id ||
+  member.auth_provider ||
+  member.account?.startsWith("google_") ||
+  member.account?.startsWith("line_");
+
+if (isOAuthMember) {
+
+  document
+    .getElementById("userAccount")
+    .innerText =
+      member.account || "HABAO 會員";
+
+  const expireEl =
+    document.getElementById("userExpire");
+
+  if (expireEl) {
+    expireEl.innerText =
+      member.expire_at
+        ? new Date(
+            member.expire_at
+          ).toLocaleString(
+            "zh-TW",
+            {
+              timeZone:
+                "Asia/Taipei",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            }
+          )
+        : "長期有效";
+  }
+
+  console.log(
+    "OAuth member verified:",
+    member.account
+  );
+
+  return;
+}
 
     try{
 
