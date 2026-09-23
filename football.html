@@ -3096,136 +3096,98 @@ verifyMember();
 /* =========================
    會員登入保護
 ========================= */
-async function verifyMember(){
+async function verifyMember() {
 
-    const saved =
-      sessionStorage.getItem(
-        "habao_member"
-      );
+  const saved = sessionStorage.getItem("habao_member");
 
-    if(!saved){
-
-      window.location.href =
-        "index.html";
-
-      return;
-    }
-
-
-    let member;
-
-    try{
-
-      member =
-        JSON.parse(saved);
-
-    }catch{
-
-      sessionStorage.clear();
-
-      window.location.href =
-        "index.html";
-
-      return;
-    }
-
-
-    if(!member.account){
-
-      window.location.href =
-        "index.html";
-
-      return;
-    }
-
-
-    try{
-
-      const response =
-        await fetch(
-          FUNCTION_URL,
-          {
-
-            method:"POST",
-
-            headers:{
-
-              "Content-Type":
-                "application/json",
-
-              "apikey":
-                FIXTURES_PUBLISHABLE_KEY,
-
-              "Authorization":
-                "Bearer " +
-                FIXTURES_PUBLISHABLE_KEY
-
-            },
-
-            body:
-              JSON.stringify({
-                account:
-                  member.account
-              })
-
-          }
-        );
-
-
-      const data =
-        await response.json();
-
-      if(!data.success){
-
-        sessionStorage.clear();
-
-        window.location.href =
-          "index.html";
-
-        return;
-      }
-
-
-  document
-  .getElementById("memberAccount")
-  .innerText = data.member.account;
-
-
-      const expire =
-        new Date(
-          data.member.expire_at
-        );
-
-
-      document
-.getElementById("memberExpire")
-        
-        .innerText =
-          expire.toLocaleString(
-            "zh-TW",
-            {
-  timeZone: "Asia/Taipei",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false
-}
-          );
-
-    }catch(error){
-
-      console.error(error);
-
-      sessionStorage.clear();
-
-      window.location.href =
-        "index.html";
-
-    }
-
+  if (!saved) {
+    window.location.href = "index.html";
+    return;
   }
+
+  let member;
+
+  try {
+    member = JSON.parse(saved);
+  } catch (error) {
+    console.error("會員資料解析失敗：", error);
+    sessionStorage.removeItem("habao_member");
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (!member || !member.account) {
+    sessionStorage.removeItem("habao_member");
+    window.location.href = "index.html";
+    return;
+  }
+
+  // OAuth 新會員已經由 oauth-member-login 完成驗證
+  const isOAuthMember =
+    member.auth_user_id ||
+    member.auth_provider ||
+    member.account?.startsWith("google_") ||
+    member.account?.startsWith("line_");
+
+  if (isOAuthMember) {
+    console.log("OAuth 會員驗證通過：", member.account);
+
+    const accountEl = document.getElementById("userAccount");
+    if (accountEl) {
+      accountEl.innerText = member.account;
+    }
+
+    return;
+  }
+
+  // 舊會員才繼續使用原本 member-login 驗證
+  try {
+
+    const response = await fetch(FUNCTION_URL, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": FIXTURES_PUBLISHABLE_KEY,
+        "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+      },
+
+      body: JSON.stringify({
+        account: member.account
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      sessionStorage.removeItem("habao_member");
+      window.location.href = "index.html";
+      return;
+    }
+
+    sessionStorage.setItem(
+      "habao_member",
+      JSON.stringify(data.member)
+    );
+
+    const accountEl = document.getElementById("userAccount");
+
+    if (accountEl) {
+      accountEl.innerText = data.member.account;
+    }
+
+  } catch (error) {
+
+    console.error("會員驗證失敗：", error);
+
+    // 網路/API 暫時失敗時不要直接把會員登出
+    const accountEl = document.getElementById("userAccount");
+
+    if (accountEl) {
+      accountEl.innerText = member.account;
+    }
+  }
+}
 /* =========================
    賽事分析
 ========================= */
