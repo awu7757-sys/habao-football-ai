@@ -77,7 +77,7 @@
     "https://oqtbsbohcfeghgnykwxy.supabase.co";
 
   const SUPABASE_KEY =
-    "這裡保留你原本的 Publishable Key";
+    "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
   const { createClient } = supabase;
 
@@ -88,7 +88,7 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: false
       }
     }
   );
@@ -100,72 +100,127 @@
     document.getElementById("lineLoginBtn");
 
 
+  function showLoggedIn(session) {
+    loginBtn.style.display = "none";
+
+    statusEl.innerHTML =
+      "LINE 登入成功 ✅<br><br>" +
+      "Supabase User ID：<br>" +
+      session.user.id;
+  }
+
+
   async function initAuth() {
     try {
 
-      statusEl.textContent = "正在確認登入狀態...";
+      statusEl.textContent =
+        "正在確認登入狀態...";
 
-      // 取得 LINE / Supabase 回傳的 OAuth code
       const params =
         new URLSearchParams(window.location.search);
 
-      const code = params.get("code");
+      const code =
+        params.get("code");
 
+      const oauthError =
+        params.get("error");
+
+      const oauthErrorDescription =
+        params.get("error_description");
+
+
+      // OAuth 本身有回傳錯誤
+      if (oauthError) {
+
+        console.error(
+          "OAuth callback error:",
+          oauthError,
+          oauthErrorDescription
+        );
+
+        statusEl.textContent =
+          "LINE 登入失敗：" +
+          (oauthErrorDescription || oauthError);
+
+        loginBtn.style.display = "block";
+
+        return;
+      }
+
+
+      // Supabase PKCE callback
       if (code) {
 
         statusEl.textContent =
-          "正在完成 LINE 登入...";
+          "正在建立登入 Session...";
+
+        console.log(
+          "OAuth callback code detected"
+        );
 
         const {
           data,
           error
-        } = await db.auth.exchangeCodeForSession(code);
+        } =
+          await db.auth.exchangeCodeForSession(code);
 
         if (error) {
+
           console.error(
             "exchangeCodeForSession error:",
             error
           );
 
           statusEl.textContent =
-            "LINE 登入交換失敗：" +
+            "Session 建立失敗：" +
             error.message;
+
+          loginBtn.style.display =
+            "block";
 
           return;
         }
 
-        // code 只能使用一次
-        // 成功後把網址清乾淨，避免重新整理再次交換
+
+        console.log(
+          "Session exchange success:",
+          !!data.session
+        );
+
+
+        // 成功交換後才清除網址 code
         window.history.replaceState(
           {},
           document.title,
           window.location.pathname
         );
+
+
+        if (data.session) {
+          showLoggedIn(data.session);
+          return;
+        }
       }
 
 
+      // 沒有 callback code 時，
+      // 檢查瀏覽器是否已有 Session
       const {
-        data: { session },
-        error: sessionError
-      } = await db.auth.getSession();
+        data,
+        error
+      } =
+        await db.auth.getSession();
 
-      if (sessionError) {
+      if (error) {
+
         console.error(
           "getSession error:",
-          sessionError
+          error
         );
 
         statusEl.textContent =
           "讀取登入狀態失敗：" +
-          sessionError.message;
-
-        return;
-      }
-
-
-      if (!session) {
-        statusEl.textContent =
-          "尚未登入";
+          error.message;
 
         loginBtn.style.display =
           "block";
@@ -174,15 +229,18 @@
       }
 
 
-      const user = session.user;
+      if (data.session) {
+        showLoggedIn(data.session);
+        return;
+      }
+
+
+      statusEl.textContent =
+        "尚未登入";
 
       loginBtn.style.display =
-        "none";
+        "block";
 
-      statusEl.innerHTML =
-        "LINE 登入成功 ✅<br><br>" +
-        "Supabase User ID：<br>" +
-        user.id;
 
     } catch (error) {
 
@@ -194,6 +252,9 @@
       statusEl.textContent =
         "登入處理發生錯誤：" +
         error.message;
+
+      loginBtn.style.display =
+        "block";
     }
   }
 
@@ -209,26 +270,29 @@
 
 
       const {
+        data,
         error
-      } = await db.auth.signInWithOAuth({
+      } =
+        await db.auth.signInWithOAuth({
 
-        provider: "custom:line-oauth",
+          provider:
+            "custom:line-oauth",
 
-        options: {
+          options: {
 
-          redirectTo:
-            "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html",
+            redirectTo:
+              "https://awu7757-sys.github.io/habao-football-ai/line-login-test.html",
 
-          scopes:
-            "openid profile"
-        }
-      });
+            scopes:
+              "openid profile"
+          }
+        });
 
 
       if (error) {
 
         console.error(
-          "LINE OAuth error:",
+          "LINE OAuth start error:",
           error
         );
 
@@ -238,7 +302,15 @@
 
         loginBtn.disabled =
           false;
+
+        return;
       }
+
+
+      console.log(
+        "OAuth started:",
+        data
+      );
     }
   );
 
@@ -255,14 +327,7 @@
         event === "SIGNED_IN" &&
         session
       ) {
-
-        loginBtn.style.display =
-          "none";
-
-        statusEl.innerHTML =
-          "LINE 登入成功 ✅<br><br>" +
-          "Supabase User ID：<br>" +
-          session.user.id;
+        showLoggedIn(session);
       }
     }
   );
