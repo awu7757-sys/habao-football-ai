@@ -3067,7 +3067,7 @@ body.login-ready .app {
       
       <div class="online-users">
     <span class="online-dot"></span>
-    目前 <strong id="onlineCount">128</strong> 人正在使用
+    目前 <strong id="onlineCount">200</strong> 人正在使用
 </div>
       
       <section class="card">
@@ -3273,6 +3273,47 @@ body.login-ready .app {
     // Supabase Public Stats
 const STATS_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
+  async function loadPublicStats() {
+  const countEl =
+    document.getElementById("onlineCount");
+
+  if (!countEl) return;
+
+  try {
+    const response = await fetch(
+      STATS_URL,
+      {
+        method: "GET",
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `public-stats ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    if (
+      typeof data.user_count === "number"
+    ) {
+      countEl.textContent =
+        String(data.user_count);
+    }
+
+  } catch (error) {
+    console.error(
+      "PUBLIC STATS ERROR:",
+      error
+    );
+
+    // API 暫時失敗時保留 HTML 預設 200
+  }
+}
+
+loadPublicStats();  
 
 // Supabase Publishable Key
 const PUBLISHABLE_KEY =
