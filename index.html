@@ -3086,11 +3086,13 @@ body.login-ready .app {
 
 <div class="oauth-login-area">
 
-  <button
+ <a
     id="lineLoginBtn"
     class="oauth-login-btn line-login-btn"
-    type="button"
-  >
+    href="#"
+    role="button"
+    aria-label="使用 LINE 登入"
+>
 <span class="oauth-icon line-icon" aria-hidden="true">
   <svg viewBox="0 0 48 48">
     <path
@@ -3128,7 +3130,7 @@ body.login-ready .app {
   </svg>
 </span>
     
-  </button>
+  </a>
 
   <button
     id="googleLoginBtn"
@@ -3295,20 +3297,21 @@ const supabaseAuth =
     }
   );
 
- async function loginWithLINE() {
+async function prepareLINELogin() {
 
-localStorage.removeItem(
-  "habao_manual_logout"
-);
-   
+  const lineLoginBtn =
+    document.getElementById("lineLoginBtn");
+
   const message =
     document.getElementById("message");
 
-  try {
-    message.textContent =
-      "正在前往 LINE 登入...";
+  if (!lineLoginBtn) {
+    return;
+  }
 
-    const { error } =
+  try {
+
+    const { data, error } =
       await supabaseAuth.auth.signInWithOAuth({
         provider: "custom:line-oauth",
 
@@ -3317,20 +3320,51 @@ localStorage.removeItem(
             window.location.origin +
             window.location.pathname,
 
-          scopes: "openid profile"
+          scopes: "openid profile",
+
+          skipBrowserRedirect: true
         }
       });
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.url) {
+      throw new Error(
+        "LINE OAuth URL not found"
+      );
+    }
+
+    /*
+     * 重要：
+     * 不使用 JavaScript 把使用者導向 LINE。
+     *
+     * 頁面載入時只先取得 Supabase
+     * 產生的安全 OAuth URL，
+     * 再放進真正的 <a href>。
+     *
+     * 使用者之後親自點擊連結，
+     * Safari / iOS 才有較好的機會
+     * 正常觸發 LINE Universal Link / Auto Login。
+     */
+    lineLoginBtn.href = data.url;
+
+    lineLoginBtn.dataset.ready = "1";
 
   } catch (error) {
+
     console.error(
-      "LINE LOGIN ERROR:",
+      "LINE LOGIN PREPARE ERROR:",
       error
     );
 
-    message.textContent =
-      "LINE 登入失敗，請重新嘗試";
+    lineLoginBtn.href = "#";
+
+    if (message) {
+      message.textContent =
+        "LINE 登入準備失敗，請重新整理頁面";
+    }
   }
 }
 
@@ -3383,13 +3417,40 @@ const lineLoginBtn =
 
 const googleLoginBtn =
   document.getElementById("googleLoginBtn");
+  /*
+ * 預先取得 LINE OAuth URL。
+ * 使用者真正點擊時走原生 <a href>，
+ * 不使用 JavaScript redirect。
+ */
+prepareLINELogin();  
 
 if (lineLoginBtn) {
   lineLoginBtn.addEventListener(
     "click",
-    loginWithLINE
+    (event) => {
+
+      if (
+        lineLoginBtn.dataset.ready !== "1"
+      ) {
+        event.preventDefault();
+
+        const message =
+          document.getElementById("message");
+
+        if (message) {
+          message.textContent =
+            "LINE 登入準備中，請稍候再點一次";
+        }
+
+        return;
+      }
+
+      localStorage.removeItem(
+        "habao_manual_logout"
+      );
+    }
   );
-}
+}  
 
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener(
@@ -3659,11 +3720,13 @@ window.addEventListener(
   }
 );
     
-</script>
 <script>
 (() => {
-  const splash = document.getElementById("splashScreen");
-  const body = document.body;
+  const splash =
+    document.getElementById("splashScreen");
+
+  const body =
+    document.body;
 
   if (!splash) {
     body.classList.add("login-ready");
@@ -3672,44 +3735,144 @@ window.addEventListener(
 
   body.classList.add("splash-active");
 
-  let closed = false;
+  /*
+   * HABAO Splash 啟動策略
+   *
+   * 1. 最少顯示 1.5 秒
+   * 2. 背景 + Logo 載入完成後即可進站
+   * 3. 最長 3 秒強制進站
+   * 4. 使用者點擊仍可立即跳過
+   */
 
-  function closeSplash() {
-    if (closed) return;
+  const MIN_SPLASH_TIME = 1500;
+  const MAX_SPLASH_TIME = 3000;
+
+  const startTime =
+    performance.now();
+
+  let closed = false;
+  let assetsReady = false;
+
+  function closeSplash(force = false) {
+
+    if (closed) {
+      return;
+    }
+
+    const elapsed =
+      performance.now() - startTime;
+
+    /*
+     * 非強制關閉時：
+     * 核心圖片尚未完成，先等待。
+     */
+    if (!force && !assetsReady) {
+      return;
+    }
+
+    /*
+     * 非強制關閉時：
+     * 即使圖片很快載好，
+     * Splash 至少保留 1.5 秒。
+     */
+    if (
+      !force &&
+      elapsed < MIN_SPLASH_TIME
+    ) {
+
+      setTimeout(
+        () => closeSplash(false),
+        MIN_SPLASH_TIME - elapsed
+      );
+
+      return;
+    }
 
     closed = true;
 
     /*
-     * 不再讓 Splash 半透明淡出，
-     * 避免底下登入 Logo / 文字與 Splash 重疊。
+     * 直接移除 Splash，
+     * 避免淡出期間與登入頁
+     * Logo / 文字重疊。
      */
     splash.remove();
 
-    body.classList.remove("splash-active");
-    body.classList.add("login-ready");
+    body.classList.remove(
+      "splash-active"
+    );
+
+    body.classList.add(
+      "login-ready"
+    );
   }
 
   /*
-   * 最長 4 秒。
-   * 如果核心背景與 Logo 已載入完成，
-   * 仍保留啟動畫面的正常展示。
+   * 預先確認登入頁兩個核心圖片：
+   * 1. V2 背景
+   * 2. HABAO Logo
    */
-  const splashTimer =
-    setTimeout(closeSplash, 4000);
+  const coreAssets = [
+    "./habao-login-bg-v2.png",
+    "./habao-hb-logo.png"
+  ];
+
+  Promise.allSettled(
+    coreAssets.map((src) => {
+
+      return new Promise((resolve) => {
+
+        const img =
+          new Image();
+
+        img.onload = resolve;
+        img.onerror = resolve;
+
+        img.src = src;
+
+        /*
+         * 已經在瀏覽器快取內時，
+         * 不需要再次等待下載。
+         */
+        if (img.complete) {
+          resolve();
+        }
+      });
+    })
+  ).then(() => {
+
+    assetsReady = true;
+
+    closeSplash(false);
+  });
 
   /*
-   * 點擊 / 手機觸碰即可立即跳過。
+   * 最長等待 3 秒。
+   * 即使網路慢或圖片異常，
+   * 也不讓使用者一直卡在 Splash。
+   */
+  const maxSplashTimer =
+    setTimeout(
+      () => closeSplash(true),
+      MAX_SPLASH_TIME
+    );
+
+  /*
+   * 使用者主動點擊 Splash：
+   * 立即跳過，不等待 1.5 秒。
    */
   splash.addEventListener(
     "click",
     () => {
-      clearTimeout(splashTimer);
-      closeSplash();
+
+      clearTimeout(
+        maxSplashTimer
+      );
+
+      closeSplash(true);
     },
     { once: true }
   );
 })();
-  
 </script>
 
 <!-- 加入主畫面｜教學彈窗 -->
