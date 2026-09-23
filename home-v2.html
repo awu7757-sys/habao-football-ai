@@ -5792,6 +5792,11 @@ function closeV2AccountPanel(event) {
 
 async function logoutV2Member() {
 
+  localStorage.setItem(
+  "habao_manual_logout",
+  "1"
+);
+
   try {
 
     await v2SupabaseAuth.auth.signOut();
