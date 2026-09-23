@@ -3725,8 +3725,7 @@ window.addEventListener(
   const splash =
     document.getElementById("splashScreen");
 
-  const body =
-    document.body;
+  const body = document.body;
 
   if (!splash) {
     body.classList.add("login-ready");
@@ -3735,67 +3734,29 @@ window.addEventListener(
 
   body.classList.add("splash-active");
 
-  /*
-   * HABAO Splash 啟動策略
-   *
-   * 1. 最少顯示 1.5 秒
-   * 2. 背景 + Logo 載入完成後即可進站
-   * 3. 最長 3 秒強制進站
-   * 4. 使用者點擊仍可立即跳過
-   */
-
   const MIN_SPLASH_TIME = 1500;
   const MAX_SPLASH_TIME = 3000;
 
-  const startTime =
-    performance.now();
+  const startTime = Date.now();
 
   let closed = false;
-  let assetsReady = false;
+  let ready = false;
 
-  function closeSplash(force = false) {
+  function finishSplash(force = false) {
 
-    if (closed) {
-      return;
-    }
+    if (closed) return;
 
     const elapsed =
-      performance.now() - startTime;
+      Date.now() - startTime;
 
-    /*
-     * 非強制關閉時：
-     * 核心圖片尚未完成，先等待。
-     */
-    if (!force && !assetsReady) {
-      return;
-    }
-
-    /*
-     * 非強制關閉時：
-     * 即使圖片很快載好，
-     * Splash 至少保留 1.5 秒。
-     */
     if (
       !force &&
-      elapsed < MIN_SPLASH_TIME
+      (!ready || elapsed < MIN_SPLASH_TIME)
     ) {
-
-      setTimeout(
-        () => closeSplash(false),
-        MIN_SPLASH_TIME - elapsed
-      );
-
       return;
     }
 
     closed = true;
-
-    /*
-     * 直接移除 Splash，
-     * 避免淡出期間與登入頁
-     * Logo / 文字重疊。
-     */
-    splash.remove();
 
     body.classList.remove(
       "splash-active"
@@ -3804,74 +3765,58 @@ window.addEventListener(
     body.classList.add(
       "login-ready"
     );
+
+    splash.remove();
   }
 
   /*
-   * 預先確認登入頁兩個核心圖片：
-   * 1. V2 背景
-   * 2. HABAO Logo
+   * 最少 1.5 秒後再次檢查。
    */
-  const coreAssets = [
-    "./habao-login-bg-v2.png",
-    "./habao-hb-logo.png"
-  ];
-
-  Promise.allSettled(
-    coreAssets.map((src) => {
-
-      return new Promise((resolve) => {
-
-        const img =
-          new Image();
-
-        img.onload = resolve;
-        img.onerror = resolve;
-
-        img.src = src;
-
-        /*
-         * 已經在瀏覽器快取內時，
-         * 不需要再次等待下載。
-         */
-        if (img.complete) {
-          resolve();
-        }
-      });
-    })
-  ).then(() => {
-
-    assetsReady = true;
-
-    closeSplash(false);
-  });
+  setTimeout(() => {
+    finishSplash(false);
+  }, MIN_SPLASH_TIME);
 
   /*
-   * 最長等待 3 秒。
-   * 即使網路慢或圖片異常，
-   * 也不讓使用者一直卡在 Splash。
+   * 頁面完成載入後，
+   * 標記登入頁已準備完成。
    */
-  const maxSplashTimer =
-    setTimeout(
-      () => closeSplash(true),
-      MAX_SPLASH_TIME
+  if (document.readyState === "complete") {
+
+    ready = true;
+
+  } else {
+
+    window.addEventListener(
+      "load",
+      () => {
+        ready = true;
+        finishSplash(false);
+      },
+      { once: true }
     );
+  }
 
   /*
-   * 使用者主動點擊 Splash：
-   * 立即跳過，不等待 1.5 秒。
+   * 最長 3 秒。
+   * 不論任何圖片、網路或事件異常，
+   * 一律強制關閉 Splash。
+   */
+  setTimeout(() => {
+    finishSplash(true);
+  }, MAX_SPLASH_TIME);
+
+  /*
+   * 點擊 Splash：
+   * 無條件立即跳過。
    */
   splash.addEventListener(
     "click",
     () => {
-
-      clearTimeout(
-        maxSplashTimer
-      );
-
-      closeSplash(true);
+      finishSplash(true);
     },
     { once: true }
   );
+
 })();
 </script>
 
