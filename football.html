@@ -3310,6 +3310,32 @@ if (data.error === "member_inactive") {
   JSON.stringify(data)
 );
 
+if (
+  data.remaining_credits !== null &&
+  data.remaining_credits !== undefined
+) {
+  try {
+    const member = JSON.parse(
+      sessionStorage.getItem("habao_member") || "null"
+    );
+
+    if (member) {
+      member.analysis_credits =
+        Number(data.remaining_credits);
+
+      sessionStorage.setItem(
+        "habao_member",
+        JSON.stringify(member)
+      );
+    }
+  } catch (creditSyncError) {
+    console.error(
+      "會員積分同步失敗：",
+      creditSyncError
+    );
+  }
+}    
+
 try {
   const member = JSON.parse(
     sessionStorage.getItem("habao_member") || "null"
