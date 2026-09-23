@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>哈寶足球 AI</title>
+  <title>HABAO 賽事預測 AI</title>
   <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#061923">
+<meta name="theme-color" content="#07090b">
 <link rel="apple-touch-icon" href="./football_icon_192x192.png">
   <!-- 網站基本資訊 -->
 <meta name="description" content="每日各大賽事｜大小分・獨贏・BTTS等全方位數據分析">
 
 <!-- LINE / Facebook 分享預覽 -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="哈寶足球AI｜智能分析">
+<meta property="og:title" content="HABAO 賽事預測 AI｜智能賽事分析">
 <meta property="og:description" content="每日各大賽事｜大小分・獨贏・BTTS等全方位數據分析">
 <meta property="og:url" content="https://awu7757-sys.github.io/habao-football-ai/">
 <meta property="og:image" content="https://awu7757-sys.github.io/habao-football-ai/football_icon_192x192.png">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="哈寶足球 AI 智能賽事分析平台">
+<meta property="og:image:alt" content="HABAO 賽事預測 AI">
 
 <!-- X / Twitter 分享預覽 -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="哈寶足球AI｜智能分析">
+<meta name="twitter:title" content="HABAO 賽事預測 AI｜智能賽事分析">
 <meta name="twitter:description" content="每日各大賽事｜大小分・獨贏・BTTS等全方位數據分析">
 <meta name="twitter:image" content="https://awu7757-sys.github.io/habao-football-ai/football_icon_192x192.png">
 
@@ -32,210 +32,7 @@
       padding: 0;
     }
 
-    body {
-      min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
-      color: #fff;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(45,255,153,.13), transparent 32%),
-        radial-gradient(circle at 80% 80%, rgba(30,122,255,.16), transparent 35%),
-        linear-gradient(135deg, #050b12 0%, #091522 48%, #05090f 100%);
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
 
-    .field {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .08;
-    }
-
-    .field::before {
-      content: "";
-      position: absolute;
-      width: 700px;
-      height: 700px;
-      border: 1px solid #75ffb8;
-      border-radius: 50%;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .field::after {
-      content: "";
-      position: absolute;
-      width: 1px;
-      height: 100%;
-      background: #75ffb8;
-      left: 50%;
-    }
-
-    .app {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .login-wrap {
-      width: 100%;
-      max-width: 430px;
-    }
-
-    .brand {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .logo {
-      width: 76px;
-      height: 76px;
-      margin: 0 auto 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 24px;
-      background: linear-gradient(145deg, rgba(45,255,153,.22), rgba(45,255,153,.05));
-      border: 1px solid rgba(96,255,176,.28);
-      box-shadow: 0 0 35px rgba(34,255,137,.12);
-      font-size: 36px;
-    }
-
-    .brand-small {
-      color: #5dffab;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      margin-bottom: 8px;
-    }
-
-    .brand h1 {
-      font-size: 34px;
-      font-weight: 800;
-    }
-
-    .brand p {
-      color: #8997a8;
-      font-size: 14px;
-      margin-top: 9px;
-    }
-
-    .card {
-      background: linear-gradient(160deg, rgba(17,31,44,.9), rgba(8,18,27,.9));
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 26px;
-      padding: 34px 30px 30px;
-      backdrop-filter: blur(22px);
-      box-shadow: 0 30px 80px rgba(0,0,0,.45);
-    }
-
-    .card-title {
-      font-size: 19px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .card-subtitle {
-      color: #718092;
-      font-size: 13px;
-      margin-bottom: 25px;
-    }
-
-    .label {
-      display: block;
-      color: #aab5c1;
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      height: 56px;
-      border-radius: 15px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(0,0,0,.22);
-      color: #fff;
-      padding: 0 17px;
-      outline: none;
-      font-size: 16px;
-    }
-
-    input:focus {
-      border-color: rgba(66,255,160,.55);
-      box-shadow: 0 0 0 3px rgba(41,255,144,.07);
-    }
-
-    button {
-      width: 100%;
-      height: 56px;
-      margin-top: 18px;
-      border: none;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 800;
-      color: #03130b;
-      background: linear-gradient(90deg, #35ed8a, #66ffb0);
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    .message {
-      display: none;
-      margin-top: 16px;
-      padding: 13px;
-      border-radius: 13px;
-      font-size: 13px;
-      text-align: center;
-      line-height: 1.6;
-    }
-
-    .error {
-      display: block;
-      color: #ff9c9c;
-      border: 1px solid rgba(255,94,94,.16);
-      background: rgba(255,63,63,.06);
-    }
-
-    .success {
-      display: block;
-      color: #6dffb5;
-      border: 1px solid rgba(66,255,160,.18);
-      background: rgba(66,255,160,.06);
-    }
-
-    .security {
-      margin-top: 23px;
-      text-align: center;
-      color: #526171;
-      font-size: 11px;
-    }
-
-    .footer {
-      margin-top: 24px;
-      text-align: center;
-      color: #3f4d5a;
-      font-size: 10px;
-      letter-spacing: 1px;
-    }
-
-    @media (max-width: 520px) {
-      .card {
-        padding: 29px 22px;
-      }
-
-      .brand h1 {
-        font-size: 29px;
-      }
-    }
   /* ===== 登入頁下方快捷按鈕 ===== */
 
 .login-shortcuts{
@@ -268,17 +65,6 @@
   box-shadow:0 0 20px rgba(32,233,138,.10);
 }
 
-.benefit-card{
-    width:100%;
-    height:110px;
-    margin:0;
-    margin-top:0;
-    border:1px solid #d9a928;
-    color:inherit;
-    appearance:none;
-    text-align:left;
-}
-
 .shortcut-icon{
   width:46px;
   height:46px;
@@ -293,11 +79,6 @@
   font-weight:900;
 }
 
-.gift-icon{
-  background:transparent;
-  font-size:30px;
-}
-
 .shortcut-content{
   flex:1;
   min-width:0;
@@ -308,10 +89,6 @@
   font-size:16px;
   font-weight:800;
   white-space:nowrap;
-}
-
-.benefit-card .shortcut-title{
-  color:#f4c542;
 }
 
 .shortcut-sub{
@@ -346,10 +123,6 @@
     font-size:9px;
   }
 
-  .gift-icon{
-    font-size:25px;
-  }
-
   .shortcut-title{
     font-size:14px;
   }
@@ -361,184 +134,6 @@
   .shortcut-arrow{
     font-size:22px;
   }
-}
-  /* ===== 本站福利彈窗 ===== */
-
-.benefits-modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(5px);
-  align-items:center;
-  justify-content:center;
-  padding:22px;
-}
-
-.benefits-modal.show{
-  display:flex;
-}
-
-.benefits-box{
-  position:relative;
-  width:100%;
-  max-width:420px;
-  background:#0b1825;
-  border:1px solid rgba(53,237,138,.45);
-  border-radius:24px;
-  padding:28px 22px 22px;
-  box-shadow:0 20px 60px rgba(0,0,0,.45);
-}
-
-.benefits-close{
-  position:absolute;
-  top:12px;
-  right:14px;
-  width:38px;
-  height:38px;
-  margin:0;
-  padding:0;
-  border-radius:50%;
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  font-size:25px;
-  line-height:38px;
-}
-
-.benefits-title{
-  color:#fff;
-  font-size:24px;
-  font-weight:900;
-  text-align:center;
-}
-
-.benefits-subtitle{
-  margin-top:6px;
-  color:#718096;
-  font-size:13px;
-  text-align:center;
-}
-
-.benefits-image-wrap{
-  margin-top:20px;
-}
-
-.benefits-image{
-  display:block;
-  width:100%;
-  height:auto;
-  max-height:460px;
-  object-fit:contain;
-  border-radius:18px;
-}
-
-    /* ===== 福利活動輪播 ===== */
-
-.benefits-slider{
-  position:relative;
-  width:100%;
-  margin-top:16px;
-  overflow:hidden;
-  border-radius:18px;
-}
-
-.benefits-slide{
-  display:none;
-  width:100%;
-}
-
-.benefits-slide.active{
-  display:block;
-}
-
-.benefits-slide .benefits-image{
-  display:block;
-  width:100%;
-  height:auto;
-  max-height:460px;
-  object-fit:contain;
-  border-radius:18px;
-}
-
-/* 左右切換按鈕 */
-.benefits-prev,
-.benefits-next{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-
-  width:42px;
-  height:42px;
-  margin:0;
-  padding:0;
-
-  border:none;
-  border-radius:50%;
-
-  background:rgba(0,0,0,.55);
-  color:#fff;
-
-  font-size:30px;
-  font-weight:700;
-  line-height:42px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  z-index:5;
-  cursor:pointer;
-}
-
-.benefits-prev{
-  left:10px;
-}
-
-.benefits-next{
-  right:10px;
-}
-
-/* 下方頁數圓點 */
-.benefits-dots{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:8px;
-  margin-top:12px;
-}
-
-.benefits-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:rgba(255,255,255,.28);
-  cursor:pointer;
-  transition:.2s;
-}
-
-.benefits-dot.active{
-  width:22px;
-  border-radius:10px;
-  background:#35ed8a;
-}
-    
-.benefits-placeholder{
-  min-height:220px;
-  border:1px dashed rgba(53,237,138,.5);
-  border-radius:18px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  color:#35ed8a;
-  font-size:38px;
-}
-
-.benefits-placeholder span{
-  color:#8290a0;
-  font-size:14px;
 }
 
 /* ===== 目前使用人數 ===== */
@@ -579,196 +174,47 @@
   flex:0 0 8px;
 }
 
-/* ===== 哈寶足球 AI 啟動畫面 ===== */
-.splash-screen{
-  position:fixed;
-  inset:0;
-  z-index:99999;
+/* ===== Splash 共用狀態 / 動畫 ===== */
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  background:
-    radial-gradient(circle at center, rgba(34,197,94,.14), transparent 42%),
-    linear-gradient(180deg, #06131a 0%, #071624 100%);
-
-  cursor:pointer;
-  overflow:hidden;
-
-  opacity:1;
-  visibility:visible;
-  transition:opacity .5s ease, visibility .5s ease;
+.splash-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
-.splash-screen::before{
-  content:"";
-  position:absolute;
-  width:520px;
-  height:520px;
-  border:1px solid rgba(53,237,138,.14);
-  border-radius:50%;
-  animation:splashRing 3.2s ease-in-out infinite;
-}
-
-.splash-content{
-  position:relative;
-  z-index:2;
-  text-align:center;
-  padding:24px;
-
-  animation:splashContentIn 1s ease both;
-}
-
-.splash-logo{
-  width:88px;
-  height:88px;
-  margin:0 auto 24px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:24px;
-  font-size:42px;
-
-  background:linear-gradient(145deg, rgba(34,197,94,.28), rgba(16,185,129,.08));
-  border:1px solid rgba(53,237,138,.45);
-
-  box-shadow:
-    0 0 40px rgba(53,237,138,.22),
-    inset 0 0 25px rgba(53,237,138,.08);
-
-  animation:splashLogo 2.2s ease-in-out infinite;
-}
-
-.splash-en{
-  margin-bottom:12px;
-
-  color:#35ed8a;
-  font-size:14px;
-  font-weight:900;
-  letter-spacing:5px;
-
-  opacity:0;
-  animation:splashFadeUp .7s ease .65s forwards;
-}
-
-.splash-title{
-  color:#ffffff;
-  font-size:34px;
-  font-weight:900;
-  letter-spacing:2px;
-
-  opacity:0;
-  animation:splashFadeUp .7s ease 1.05s forwards;
-}
-
-.splash-subtitle{
-  margin-top:12px;
-
-  color:#8290a0;
-  font-size:14px;
-  letter-spacing:1px;
-
-  opacity:0;
-  animation:splashFadeUp .7s ease 1.45s forwards;
-}
-
-.splash-skip{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:38px;
-
-  text-align:center;
-  color:rgba(255,255,255,.38);
-  font-size:12px;
-  letter-spacing:1px;
-
-  animation:splashSkip 1.4s ease-in-out infinite;
-}
-
-.splash-screen.hide{
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-}
-
-@keyframes splashContentIn{
-  from{
-    opacity:0;
-    transform:scale(.92);
+@keyframes splashContentIn {
+  from {
+    opacity: 0;
+    transform: scale(.92);
   }
-  to{
-    opacity:1;
-    transform:scale(1);
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-@keyframes splashFadeUp{
-  from{
-    opacity:0;
-    transform:translateY(14px);
+@keyframes splashFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
   }
-  to{
-    opacity:1;
-    transform:translateY(0);
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes splashLogo{
-  0%,100%{
-    transform:scale(1);
-    box-shadow:0 0 35px rgba(53,237,138,.18);
-  }
-  50%{
-    transform:scale(1.06);
-    box-shadow:0 0 55px rgba(53,237,138,.38);
-  }
-}
-
-@keyframes splashRing{
-  0%,100%{
-    transform:scale(.92);
-    opacity:.35;
-  }
-  50%{
-    transform:scale(1.08);
-    opacity:.7;
-  }
-}
-
-@keyframes splashSkip{
-  0%,100%{
-    opacity:.35;
-  }
-  50%{
-    opacity:.7;
-  }
-}
-
-@media(max-width:600px){
-  .splash-logo{
-    width:78px;
-    height:78px;
-    font-size:36px;
-    border-radius:22px;
+@keyframes splashSkip {
+  0%, 100% {
+    opacity: .35;
   }
 
-  .splash-en{
-    font-size:12px;
-    letter-spacing:4px;
+  50% {
+    opacity: .7;
   }
-
-  .splash-title{
-    font-size:28px;
-  }
-
-  .splash-subtitle{
-    font-size:13px;
-  }
-}
+}    
 
 /* 加入主畫面｜浮動按鈕 */
 #addHomeFloatBtn {
@@ -860,20 +306,26 @@
   padding: 24px 18px 20px;
 
   background:
+    radial-gradient(
+      circle at 85% 0%,
+      rgba(214, 181, 111, 0.09),
+      transparent 32%
+    ),
     linear-gradient(
       145deg,
-      rgba(8, 31, 27, 0.98),
-      rgba(3, 15, 14, 0.98)
+      rgba(22, 24, 27, 0.99),
+      rgba(7, 9, 11, 0.99)
     );
 
-  border: 1px solid rgba(94, 255, 139, 0.35);
+  border: 1px solid rgba(214, 181, 111, 0.22);
   border-radius: 22px;
 
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.55),
-    0 0 24px rgba(60, 255, 126, 0.12);
+    0 24px 70px rgba(0, 0, 0, 0.65),
+    0 0 30px rgba(214, 181, 111, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
-  color: #ffffff;
+  color: #f7f4ed;
 }
 
 .add-home-modal-card h2 {
@@ -881,10 +333,10 @@
   text-align: center;
 
   font-size: 21px;
-  font-weight: 800;
-  color: #79ff98;
+  font-weight: 850;
+  color: #e5c77e;
 }
-
+    
 .add-home-close {
   position: absolute;
   top: 10px;
@@ -919,14 +371,16 @@
 /* iPhone / Android 教學切換 */
 .add-home-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+
   width: 100%;
   max-width: 300px;
+
   margin: 0 auto 22px;
   padding: 4px;
 
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(95, 255, 139, 0.18);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(214, 181, 111, 0.12);
   border-radius: 14px;
 }
 
@@ -949,13 +403,19 @@
 }
 
 .add-home-tab.active {
-  background: linear-gradient(135deg, #28e97b, #65ff9b);
-  color: #04140b;
+  background:
+    linear-gradient(
+      135deg,
+      #e5c77e,
+      #b9934c
+    );
+
+  color: #090a0b;
 
   box-shadow:
-    0 4px 14px rgba(40, 233, 123, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}    
+    0 5px 16px rgba(214, 181, 111, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+} 
 
 /* 加入主畫面｜教學步驟 */
 .add-home-step {
@@ -986,8 +446,8 @@
   justify-content: center;
 
   border-radius: 50%;
-  background: #65ff8b;
-  color: #062016;
+  background: #e5c77e;
+  color: #090a0b;
 
   font-size: 14px;
   font-weight: 900;
@@ -1013,96 +473,248 @@
   padding: 12px 10px;
 
   border-radius: 12px;
-  background: rgba(101, 255, 139, 0.08);
-  border: 1px solid rgba(101, 255, 139, 0.20);
 
-  color: #8cff9f;
+  background: rgba(214, 181, 111, 0.055);
+  border: 1px solid rgba(214, 181, 111, 0.16);
+
+  color: #dfc47e;
+
   font-size: 13px;
   font-weight: 700;
   line-height: 1.6;
-}    
+} 
 
-/* ========================================
-   HABAO OAuth Login V2
-   ======================================== */
+/* =========================================================
+   HABAO LOGIN FINAL V3
+   黑金登入頁 / 啟動畫面 / 客服卡
+   ========================================================= */
 
-:root {
-  --habao-gold: #d6b56f;
-  --habao-gold-light: #f2d58f;
-  --habao-gold-dark: #8d6d32;
-  --habao-black: #07090b;
-  --habao-panel: rgba(17, 20, 23, 0.92);
-  --habao-border: rgba(214, 181, 111, 0.20);
-  --habao-text: #f7f4ed;
-  --habao-muted: #8e949c;
+body {
+  min-height: 100vh;
+  color: #f7f4ed;
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(214, 181, 111, 0.13),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(214, 181, 111, 0.055),
+      transparent 30%
+    ),
+    linear-gradient(
+      155deg,
+      #050607 0%,
+      #090b0d 48%,
+      #030405 100%
+    );
+
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-/* 整體登入區 */
-.login-wrap {
-  width: min(92%, 430px);
-  margin: 0 auto;
+/* 舊足球場綠線改成低調科技背景 */
+.field {
+  position: fixed;
+  inset: 0;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.field::before {
+  content: "";
+  position: absolute;
+  width: 620px;
+  height: 620px;
+  left: 50%;
+  top: 42%;
+
+  transform:
+    translate(-50%, -50%)
+    perspective(800px)
+    rotateX(68deg);
+
+  border: 1px solid rgba(214, 181, 111, 0.08);
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 80px rgba(214, 181, 111, 0.025),
+    inset 0 0 80px rgba(214, 181, 111, 0.018);
+}
+
+.field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(214, 181, 111, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(214, 181, 111, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 48px 48px;
+
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(0,0,0,.7) 35%,
+      transparent 88%
+    );
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(0,0,0,.7) 35%,
+      transparent 88%
+    );
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding:
+    max(30px, env(safe-area-inset-top))
+    18px
+    max(34px, env(safe-area-inset-bottom));
+
   position: relative;
-  z-index: 5;
+  z-index: 2;
 }
 
-/* HABAO 品牌 */
+.login-wrap {
+  width: min(100%, 430px);
+  margin: 0 auto;
+}
+
+/* ===== 品牌 ===== */
+
 .habao-login-brand {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .habao-brand-mark {
-  width: 74px;
-  height: 74px;
-  margin: 0 auto 16px;
+  position: relative;
+
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 17px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 22px;
+  border-radius: 23px;
+
+  background:
+    radial-gradient(
+      circle at 35% 20%,
+      rgba(255, 235, 181, 0.20),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #181715,
+      #090a0b
+    );
+
+  border: 1px solid rgba(226, 196, 128, 0.38);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.52),
+    0 0 32px rgba(214, 181, 111, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -12px 25px rgba(0, 0, 0, 0.28);
+
+  overflow: hidden;
+}
+
+.habao-brand-mark::before {
+  content: "";
+  position: absolute;
+  width: 55px;
+  height: 1px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
 
   background:
     linear-gradient(
-      145deg,
-      rgba(246, 217, 151, 0.18),
-      rgba(214, 181, 111, 0.04)
+      90deg,
+      transparent,
+      #f2d58f,
+      transparent
     );
 
-  border: 1px solid rgba(230, 199, 128, 0.35);
+  opacity: .85;
+}
 
-  box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.50),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 0 35px rgba(214, 181, 111, 0.08);
+.habao-brand-mark::after {
+  content: "";
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  right: -13px;
+  bottom: -13px;
 
-  font-weight: 900;
-  letter-spacing: -3px;
+  border-radius: 50%;
+  background: rgba(214, 181, 111, 0.12);
+  filter: blur(8px);
 }
 
 .habao-brand-h {
-  color: #f7f3e8;
-  font-size: 32px;
+  position: relative;
+  z-index: 2;
+
+  color: #f8f4e9;
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: -3px;
+  line-height: 1;
 }
 
 .habao-brand-ai {
-  color: var(--habao-gold-light);
-  font-size: 22px;
-  margin-left: 2px;
-  margin-top: 8px;
+  position: relative;
+  z-index: 2;
+
+  color: #e5c77e;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1;
+
+  margin-left: 3px;
+  margin-top: 12px;
 }
 
 .habao-login-brand .brand-small {
-  color: var(--habao-gold);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 3px;
   margin-bottom: 7px;
+
+  color: #d6b56f;
+
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 3.5px;
 }
 
 .habao-login-brand h1 {
   margin: 0;
-  color: #fff;
+
+  color: #f8f6f0;
+
   font-size: 27px;
   font-weight: 900;
   letter-spacing: -0.7px;
@@ -1110,116 +722,142 @@
 
 .habao-login-brand p {
   margin: 8px 0 0;
-  color: #92979e;
-  font-size: 13px;
+
+  color: #777d84;
+
+  font-size: 12px;
+  letter-spacing: .2px;
 }
 
-/* 在線人數 */
+/* ===== 使用人數 ===== */
+
 .online-users {
   width: fit-content;
+
   margin: 0 auto 14px;
   padding: 7px 13px;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #858b92;
+  font-size: 11px;
+  font-weight: 650;
 
-  color: #8f959c;
-  font-size: 12px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.065);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
 }
 
 .online-users strong {
-  color: var(--habao-gold-light);
+  color: #e6ca86;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .online-dot {
-  box-shadow: 0 0 10px rgba(79, 214, 142, 0.75);
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+
+  background: #54d894;
+
+  box-shadow:
+    0 0 9px rgba(84,216,148,.65);
 }
 
-/* 登入主卡 */
+/* ===== 登入卡 ===== */
+
 .login-wrap .card {
   position: relative;
   overflow: hidden;
 
-  padding: 26px 22px 22px;
+  padding: 25px 21px 21px;
 
-  border-radius: 26px;
+  border-radius: 25px;
 
   background:
+    radial-gradient(
+      circle at 85% 0%,
+      rgba(214,181,111,.08),
+      transparent 34%
+    ),
     linear-gradient(
       145deg,
-      rgba(23, 26, 30, 0.97),
-      rgba(10, 12, 14, 0.97)
+      rgba(22,24,27,.97),
+      rgba(8,10,12,.98)
     );
 
-  border: 1px solid var(--habao-border);
+  border:
+    1px solid rgba(214,181,111,.19);
 
   box-shadow:
-    0 28px 80px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    0 28px 75px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 .login-wrap .card::before {
   content: "";
   position: absolute;
-  left: 18%;
-  right: 18%;
+
   top: 0;
+  left: 19%;
+  right: 19%;
+
   height: 1px;
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      var(--habao-gold-light),
+      rgba(242,213,143,.85),
       transparent
     );
-
-  opacity: 0.75;
 }
 
 .login-wrap .card::after {
   content: "";
   position: absolute;
 
-  width: 180px;
-  height: 180px;
+  width: 150px;
+  height: 150px;
 
   top: -100px;
-  right: -90px;
+  right: -75px;
 
   border-radius: 50%;
 
-  background: rgba(214, 181, 111, 0.07);
-  filter: blur(35px);
+  background:
+    rgba(214,181,111,.07);
 
+  filter: blur(30px);
   pointer-events: none;
-}
-
-.card-title {
-  position: relative;
-  z-index: 2;
-
-  color: #fff;
-  font-size: 21px;
-  font-weight: 900;
-  text-align: center;
 }
 
 .card-subtitle {
   position: relative;
   z-index: 2;
 
-  margin-top: 7px;
-  margin-bottom: 21px;
+  margin: 0 0 18px;
 
-  color: #858b92;
+  color: #8b9096;
+
   font-size: 12px;
+  font-weight: 550;
   text-align: center;
+  letter-spacing: .2px;
 }
 
-/* OAuth 區 */
+/* ===== OAuth ===== */
+
 .oauth-login-area {
   position: relative;
   z-index: 2;
@@ -1228,7 +866,6 @@
   gap: 11px;
 }
 
-/* 清除舊 button 樣式干擾 */
 .oauth-login-btn {
   width: 100%;
   min-height: 62px;
@@ -1246,10 +883,12 @@
   cursor: pointer;
 
   transform: translateY(0);
+
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease !important;
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease !important;
 }
 
 .oauth-login-btn:hover {
@@ -1257,10 +896,9 @@
 }
 
 .oauth-login-btn:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0) scale(.99);
 }
 
-/* LINE */
 .line-login-btn {
   color: #fff !important;
 
@@ -1268,46 +906,51 @@
     linear-gradient(
       135deg,
       #08bd61,
-      #05a953
+      #06aa56
     ) !important;
 
-  border: 1px solid rgba(85, 255, 167, 0.28) !important;
+  border:
+    1px solid rgba(101,255,176,.25) !important;
 
   box-shadow:
-    0 12px 28px rgba(6, 183, 91, 0.16) !important;
+    0 13px 28px rgba(6,183,91,.16),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
 }
 
 .line-login-btn:hover {
+  filter: brightness(1.04);
+
   box-shadow:
-    0 16px 35px rgba(6, 183, 91, 0.24) !important;
+    0 16px 35px rgba(6,183,91,.23) !important;
 }
 
-/* GOOGLE */
 .google-login-btn {
-  color: #f4f4f4 !important;
+  color: #f3f3f3 !important;
 
   background:
     linear-gradient(
       145deg,
       #202327,
-      #151719
+      #131517
     ) !important;
 
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border:
+    1px solid rgba(255,255,255,.095) !important;
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 10px 25px rgba(0,0,0,.18) !important;
 }
 
 .google-login-btn:hover {
-  border-color: rgba(214, 181, 111, 0.35) !important;
+  border-color:
+    rgba(214,181,111,.32) !important;
 
   box-shadow:
-    0 14px 32px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    0 14px 32px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.06) !important;
 }
 
-/* 登入圖示 */
 .oauth-icon {
   width: 40px;
   height: 40px;
@@ -1317,27 +960,30 @@
   justify-content: center;
 
   border-radius: 12px;
+}
 
-  font-size: 17px;
-  font-weight: 900;
+.oauth-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 
 .line-icon {
   color: #08b75b;
   background: #fff;
+
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.12);
 }
 
 .google-icon {
-  color: #d7b971;
+  background: #fff;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(214, 181, 111, 0.17),
-      rgba(214, 181, 111, 0.07)
-    );
+  border:
+    1px solid rgba(255,255,255,.12);
 
-  border: 1px solid rgba(214, 181, 111, 0.22);
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.15);
 }
 
 .oauth-btn-text {
@@ -1350,135 +996,441 @@
 
 .oauth-btn-text strong {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 850;
 }
 
 .oauth-btn-text small {
   margin-top: 3px;
 
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(255,255,255,.64);
+
   font-size: 10px;
   font-weight: 500;
 }
 
 .google-login-btn .oauth-btn-text small {
-  color: #7e858c;
+  color: #81878d;
 }
 
 .oauth-arrow {
-  font-size: 25px;
+  color: inherit;
+
+  font-size: 24px;
   font-weight: 300;
-  opacity: 0.55;
+
+  opacity: .52;
 }
 
-/* 首次登入積分 */
-.signup-credit-bonus {
-  position: relative;
-  z-index: 2;
+/* ===== 登入訊息 ===== */
 
-  margin-top: 15px;
-  padding: 12px 14px;
+.login-wrap .message {
+  position: relative;
+  z-index: 3;
+
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  color: #e7c97f;
+  background: rgba(214,181,111,.055);
+  border: 1px solid rgba(214,181,111,.10);
+
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* ===== LINE 客服 ===== */
+
+.login-shortcuts {
+  display: block;
+  width: 100%;
+
+  margin-top: 13px;
+}
+
+.shortcut-card.line-card {
+  width: 100%;
+  height: auto;
+  min-height: 70px;
+
+  padding: 12px 15px;
 
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 
-  border-radius: 15px;
+  border-radius: 18px;
+
+  text-decoration: none;
 
   background:
     linear-gradient(
-      135deg,
-      rgba(214, 181, 111, 0.11),
-      rgba(214, 181, 111, 0.035)
+      145deg,
+      rgba(19,22,24,.96),
+      rgba(9,11,13,.96)
     );
 
-  border: 1px solid rgba(214, 181, 111, 0.17);
-}
-
-.bonus-icon {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  color: #f4d88f;
-  background: rgba(214, 181, 111, 0.12);
-
-  font-size: 17px;
-}
-
-.signup-credit-bonus strong,
-.signup-credit-bonus span {
-  display: block;
-}
-
-.signup-credit-bonus strong {
-  color: #e8cd8a;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.signup-credit-bonus span {
-  margin-top: 2px;
-
-  color: #777e85;
-  font-size: 10px;
-}
-
-/* 訊息 */
-.login-wrap .message {
-  position: relative;
-  z-index: 2;
-
-  margin-top: 12px;
-
-  color: #e7c97f;
-  text-align: center;
-  font-size: 12px;
-}
-
-/* 安全登入 */
-.login-wrap .security {
-  position: relative;
-  z-index: 2;
-
-  margin-top: 16px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  color: #656b72;
-  font-size: 10px;
-}
-
-.security-dot {
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-  background: #4cc98a;
+  border:
+    1px solid rgba(214,181,111,.15);
 
   box-shadow:
-    0 0 8px rgba(76, 201, 138, 0.65);
+    0 15px 35px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.035);
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease;
 }
 
-/* 手機 */
+.shortcut-card.line-card:hover {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(214,181,111,.30);
+}
+
+.shortcut-card.line-card .shortcut-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+
+  border-radius: 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+  background: #06c755;
+
+  font-size: 9px;
+  font-weight: 950;
+
+  box-shadow:
+    0 7px 18px rgba(6,199,85,.16);
+}
+
+.shortcut-card.line-card .shortcut-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.shortcut-card.line-card .shortcut-title {
+  color: #f4f2ec;
+
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.shortcut-card.line-card .shortcut-sub {
+  margin-top: 3px;
+
+  color: #747a81;
+
+  font-size: 10px;
+}
+
+.shortcut-card.line-card .shortcut-arrow {
+  color: #d6b56f;
+
+  font-size: 23px;
+  opacity: .7;
+}
+
+/* =========================================================
+   HABAO SPLASH V3
+   ========================================================= */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      rgba(214,181,111,.13),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(214,181,111,.035),
+      transparent 48%
+    ),
+    linear-gradient(
+      160deg,
+      #050607,
+      #090b0d 55%,
+      #020303
+    );
+
+  cursor: pointer;
+  overflow: hidden;
+
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity .5s ease,
+    visibility .5s ease;
+}
+
+.splash-screen::before {
+  content: "";
+  position: absolute;
+
+  width: 430px;
+  height: 430px;
+
+  border-radius: 50%;
+
+  border:
+    1px solid rgba(214,181,111,.09);
+
+  box-shadow:
+    0 0 80px rgba(214,181,111,.025),
+    inset 0 0 80px rgba(214,181,111,.02);
+
+  animation:
+    splashRing 3.2s ease-in-out infinite;
+}
+
+.splash-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(214,181,111,.022) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(214,181,111,.022) 1px,
+      transparent 1px
+    );
+
+  background-size: 52px 52px;
+
+  -webkit-mask-image:
+    radial-gradient(
+      circle at center,
+      #000,
+      transparent 66%
+    );
+
+  mask-image:
+    radial-gradient(
+      circle at center,
+      #000,
+      transparent 66%
+    );
+
+  pointer-events: none;
+}
+
+.splash-content {
+  position: relative;
+  z-index: 2;
+
+  text-align: center;
+  padding: 24px;
+
+  animation:
+    splashContentIn 1s ease both;
+}
+
+.splash-logo {
+  position: relative;
+
+  width: 88px;
+  height: 88px;
+
+  margin: 0 auto 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 25px;
+
+  background:
+    radial-gradient(
+      circle at 35% 20%,
+      rgba(255,235,181,.19),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #191816,
+      #090a0b
+    );
+
+  border:
+    1px solid rgba(226,196,128,.40);
+
+  box-shadow:
+    0 20px 55px rgba(0,0,0,.55),
+    0 0 42px rgba(214,181,111,.12),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  animation:
+    splashLogo 2.2s ease-in-out infinite;
+}
+
+.splash-logo-h {
+  color: #f8f4e9;
+
+  font-size: 39px;
+  font-weight: 950;
+  line-height: 1;
+
+  letter-spacing: -4px;
+}
+
+.splash-logo-ai {
+  color: #e5c77e;
+
+  margin-left: 3px;
+  margin-top: 14px;
+
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.splash-en {
+  margin-bottom: 10px;
+
+  color: #d6b56f;
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 4px;
+
+  opacity: 0;
+
+  animation:
+    splashFadeUp .7s ease .55s forwards;
+}
+
+.splash-title {
+  color: #f8f6f0;
+
+  font-size: 31px;
+  font-weight: 900;
+  letter-spacing: -.4px;
+
+  opacity: 0;
+
+  animation:
+    splashFadeUp .7s ease .9s forwards;
+}
+
+.splash-subtitle {
+  margin-top: 10px;
+
+  color: #777d84;
+
+  font-size: 12px;
+  letter-spacing: .6px;
+
+  opacity: 0;
+
+  animation:
+    splashFadeUp .7s ease 1.25s forwards;
+}
+
+.splash-skip {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom:
+    max(30px, env(safe-area-inset-bottom));
+
+  z-index: 3;
+
+  color: rgba(255,255,255,.34);
+
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1px;
+
+  animation:
+    splashSkip 1.4s ease-in-out infinite;
+}
+
+/* 新黑金動畫 */
+@keyframes splashLogo {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+
+    box-shadow:
+      0 20px 55px rgba(0,0,0,.55),
+      0 0 34px rgba(214,181,111,.10),
+      inset 0 1px 0 rgba(255,255,255,.10);
+  }
+
+  50% {
+    transform: translateY(-4px) scale(1.035);
+
+    box-shadow:
+      0 24px 65px rgba(0,0,0,.58),
+      0 0 52px rgba(214,181,111,.18),
+      inset 0 1px 0 rgba(255,255,255,.10);
+  }
+}
+
+@keyframes splashRing {
+  0%, 100% {
+    transform: scale(.92);
+    opacity: .30;
+  }
+
+  50% {
+    transform: scale(1.07);
+    opacity: .62;
+  }
+}
+
+/* ===== 手機 ===== */
+
 @media (max-width: 520px) {
+  .app {
+    align-items: center;
+
+    padding:
+      max(22px, env(safe-area-inset-top))
+      14px
+      max(28px, env(safe-area-inset-bottom));
+  }
+
   .login-wrap {
-    width: calc(100% - 28px);
+    width: 100%;
   }
 
   .habao-brand-mark {
-    width: 66px;
-    height: 66px;
+    width: 68px;
+    height: 68px;
+
     border-radius: 20px;
+  }
+
+  .habao-brand-h {
+    font-size: 30px;
+  }
+
+  .habao-brand-ai {
+    font-size: 18px;
+    margin-top: 10px;
   }
 
   .habao-login-brand h1 {
@@ -1486,12 +1438,33 @@
   }
 
   .login-wrap .card {
-    padding: 23px 17px 19px;
-    border-radius: 23px;
+    padding: 22px 17px 18px;
+
+    border-radius: 22px;
   }
 
   .oauth-login-btn {
-    min-height: 60px;
+    min-height: 59px;
+  }
+
+  .splash-logo {
+    width: 78px;
+    height: 78px;
+
+    border-radius: 22px;
+  }
+
+  .splash-logo-h {
+    font-size: 35px;
+  }
+
+  .splash-logo-ai {
+    font-size: 20px;
+    margin-top: 12px;
+  }
+
+  .splash-title {
+    font-size: 27px;
   }
 }
     
@@ -1503,22 +1476,26 @@
 
 <body>
 
-<!-- ===== 哈寶足球 AI 啟動畫面 ===== -->
+<!-- ===== HABAO 啟動畫面 ===== -->
 <div id="splashScreen" class="splash-screen">
+
   <div class="splash-content">
 
-    <div class="splash-logo">⚽</div>
+    <div class="splash-logo">
+      <span class="splash-logo-h">H</span>
+      <span class="splash-logo-ai">AI</span>
+    </div>
 
     <div class="splash-en">
-      HABAO FOOTBALL AI
+      HABAO SPORTS AI
     </div>
 
     <div class="splash-title">
-      哈寶足球 AI
+      HABAO 賽事預測 AI
     </div>
 
     <div class="splash-subtitle">
-      AI 智能賽事數據分析平台
+      多維賽事數據・智能分析平台
     </div>
 
   </div>
@@ -1526,8 +1503,9 @@
   <div class="splash-skip">
     點擊畫面跳過
   </div>
+
 </div>
-<!-- ===== 啟動畫面結束 ===== -->
+<!-- ===== HABAO 啟動畫面結束 ===== -->
   
   <div class="field"></div>
 
@@ -1555,8 +1533,6 @@
       
       <section class="card">
 
-<div class="card-title">登入 HABAO</div>
-
 <div class="card-subtitle">
   一鍵登入，開始使用賽事分析系統
 </div>
@@ -1568,7 +1544,11 @@
     class="oauth-login-btn line-login-btn"
     type="button"
   >
-    <span class="oauth-icon line-icon">L</span>
+    <span class="oauth-icon line-icon">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="currentColor" d="M19.365 9.863c0-3.386-3.394-6.14-7.565-6.14-4.17 0-7.565 2.754-7.565 6.14 0 3.035 2.692 5.577 6.327 6.058.246.053.581.162.666.372.077.191.05.49.024.683l-.105.646c-.032.191-.148.748.655.408.804-.339 4.337-2.554 5.917-4.372 1.092-1.198 1.646-2.414 1.646-3.795z"/>
+  </svg>
+</span>
 
     <span class="oauth-btn-text">
       <strong>使用 LINE 登入</strong>
@@ -1583,7 +1563,14 @@
     class="oauth-login-btn google-login-btn"
     type="button"
   >
-    <span class="oauth-icon google-icon">G</span>
+    <span class="oauth-icon google-icon">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#4285F4" d="M21.6 12.227c0-.709-.064-1.391-.182-2.045H12v3.868h5.382a4.6 4.6 0 0 1-1.996 3.018v2.509h3.232c1.891-1.741 2.982-4.305 2.982-7.35z"/>
+    <path fill="#34A853" d="M12 22c2.7 0 4.964-.895 6.618-2.423l-3.232-2.509c-.895.6-2.041.955-3.386.955-2.605 0-4.809-1.759-5.596-4.123H3.064v2.591A9.997 9.997 0 0 0 12 22z"/>
+    <path fill="#FBBC05" d="M6.404 13.9A6.01 6.01 0 0 1 6.091 12c0-.659.114-1.3.313-1.9V7.509h-3.34A9.997 9.997 0 0 0 2 12c0 1.614.386 3.141 1.064 4.491L6.404 13.9z"/>
+    <path fill="#EA4335" d="M12 5.977c1.468 0 2.786.505 3.823 1.496l2.868-2.868C16.959 2.991 14.695 2 12 2a9.997 9.997 0 0 0-8.936 5.509l3.34 2.591C7.191 7.736 9.395 5.977 12 5.977z"/>
+  </svg>
+</span>
 
     <span class="oauth-btn-text">
       <strong>使用 Google 登入</strong>
@@ -1595,24 +1582,10 @@
 
 </div>
 
-<div class="signup-credit-bonus">
-  <div class="bonus-icon">✦</div>
-
-  <div>
-    <strong>首次登入贈送 3 積分</strong>
-    <span>立即體驗 HABAO 賽事分析</span>
-  </div>
-</div>
-
 <div
   id="message"
   class="message"
 ></div>
-
-<div class="security">
-  <span class="security-dot"></span>
-  安全登入・登入狀態將自動保留
-</div>
 
       </section>
 
@@ -1624,93 +1597,42 @@
     target="_blank"
     rel="noopener noreferrer"
   >
-    <div class="shortcut-icon">LINE</div>
+   <div class="shortcut-icon" aria-hidden="true">
+  <svg viewBox="0 0 24 24" width="23" height="23">
+    <path
+      fill="currentColor"
+      d="M19.365 9.863c0-3.386-3.394-6.14-7.565-6.14-4.17 0-7.565 2.754-7.565 6.14 0 3.035 2.692 5.577 6.327 6.058.246.053.581.162.666.372.077.191.05.49.024.683l-.105.646c-.032.191-.148.748.655.408.804-.339 4.337-2.554 5.917-4.372 1.092-1.198 1.646-2.414 1.646-3.795z"
+    />
+  </svg>
+</div>
 
     <div class="shortcut-content">
-      <div class="shortcut-title">領取AI帳號</div>
-      <div class="shortcut-sub">加入官方 LINE</div>
+      <div class="shortcut-title">LINE 客服</div>
+      <div class="shortcut-sub">有問題？聯絡 HABAO 客服</div>
     </div>
 
     <div class="shortcut-arrow">›</div>
   </a>
 
-
-  <button
-    type="button"
-    class="shortcut-card benefit-card"
-    onclick="openBenefits()"
-  >
-    <div class="shortcut-icon gift-icon">🎁</div>
-
-    <div class="shortcut-content">
-      <div class="shortcut-title">本站福利</div>
-      <div class="shortcut-sub">查看最新活動</div>
-    </div>
-
-    <div class="shortcut-arrow">›</div>
-  </button>
-
 </div>
 
     </div>
-
-  <div id="benefitsModal" class="benefits-modal" onclick="closeBenefits(event)">
-
-  <div class="benefits-box">
-
-    <button
-      type="button"
-      class="benefits-close"
-      onclick="closeBenefits()"
-      aria-label="關閉"
-    >
-      ×
-    </button>
-
-    <div class="benefits-title">本站福利</div>
-    <div class="benefits-subtitle">最新活動</div>
-
-<div class="benefits-slider">
-
-  <div class="benefits-slide active">
-    <img src="new-member-500.png" alt="新人加碼500紅包" class="benefits-image">
-  </div>
-
-  <div class="benefits-slide">
-    <img src="newcomer-cashback-70.png" alt="玩一單返70現金" class="benefits-image">
-  </div>
-
-  <div class="benefits-slide">
-    <img src="series-bonus-5888.png" alt="串關助攻最高領5888" class="benefits-image">
-  </div>
-
-  <button type="button" class="benefits-prev" onclick="changeBenefit(-1)">‹</button>
-  <button type="button" class="benefits-next" onclick="changeBenefit(1)">›</button>
-
-  <div class="benefits-dots">
-    <span class="benefits-dot active" onclick="showBenefit(0)"></span>
-    <span class="benefits-dot" onclick="showBenefit(1)"></span>
-    <span class="benefits-dot" onclick="showBenefit(2)"></span>
-  </div>
-
-</div>
-
-  </div>
-
-</div>
     
   </main>
 
   <script>
 
-    // ① 等一下貼 Supabase Function 網址
-    const FUNCTION_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
-    const STATS_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
-    // ② 等一下貼剛才複製的 Publishable Key
-    const PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
-    const SUPABASE_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co";
+    // Supabase Public Stats
+const STATS_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
 
+// Supabase Publishable Key
+const PUBLISHABLE_KEY =
+  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+const SUPABASE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co";
+    
 const OAUTH_MEMBER_URL =
   `${SUPABASE_URL}/functions/v1/oauth-member-login`;
 
@@ -2051,364 +1973,6 @@ window.addEventListener(
   }
 );
     
-    // ===== 本站福利 Supabase 資料 =====
-const BENEFITS_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co/rest/v1/benefits" +
-  "?is_active=eq.true" +
-  "&image_url=not.is.null" +
-  "&select=id,title,image_url,link_url,sort_order" +
-  "&order=sort_order.asc";
-
-  let benefitsLoaded = false;
-
-async function loadBenefitsFromSupabase() {
-  if (benefitsLoaded) return;
-
-  try {
-    const response = await fetch(BENEFITS_URL, {
-      method: "GET",
-      headers: {
-        "apikey": PUBLISHABLE_KEY,
-        "Authorization": `Bearer ${PUBLISHABLE_KEY}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error("福利資料讀取失敗");
-    }
-
-    const benefits = await response.json();
-
-    const slider = document.querySelector(".benefits-slider");
-    const dotsBox = document.querySelector(".benefits-dots");
-    const prevBtn = document.querySelector(".benefits-prev");
-    const nextBtn = document.querySelector(".benefits-next");
-
-    if (!slider || !dotsBox || !prevBtn || !nextBtn) return;
-
-    if (!Array.isArray(benefits) || benefits.length === 0) {
-      return;
-    }
-
-    // 先移除原本寫死的活動圖片
-    slider
-      .querySelectorAll(".benefits-slide")
-      .forEach(slide => slide.remove());
-
-    dotsBox.innerHTML = "";
-
-    benefits.forEach((item, index) => {
-      const slide = document.createElement("div");
-
-      slide.className =
-        index === 0
-          ? "benefits-slide active"
-          : "benefits-slide";
-
-      const img = document.createElement("img");
-      img.src = item.image_url;
-      img.alt = item.title || "本站福利";
-      img.className = "benefits-image";
-
-      if (item.link_url) {
-        const link = document.createElement("a");
-        link.href = item.link_url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.appendChild(img);
-        slide.appendChild(link);
-      } else {
-        slide.appendChild(img);
-      }
-
-      slider.insertBefore(slide, prevBtn);
-
-      const dot = document.createElement("span");
-
-      dot.className =
-        index === 0
-          ? "benefits-dot active"
-          : "benefits-dot";
-
-      dot.addEventListener("click", () => {
-        showBenefit(index);
-      });
-
-      dotsBox.appendChild(dot);
-    });
-
-    const hasMultipleBenefits = benefits.length > 1;
-
-    prevBtn.style.display =
-      hasMultipleBenefits ? "" : "none";
-
-    nextBtn.style.display =
-      hasMultipleBenefits ? "" : "none";
-
-    dotsBox.style.display =
-      hasMultipleBenefits ? "" : "none";
-
-    currentBenefit = 0;
-    benefitsLoaded = true;
-
-  } catch (error) {
-    console.error("LOAD BENEFITS ERROR:", error);
-  }
-}
-    
-   async function loadOnlineCount() {
-  const countEl = document.getElementById("onlineCount");
-
-  try {
-    const response = await fetch(
-      STATS_URL + "?t=" + Date.now(),
-      {
-        method: "GET",
-        cache: "no-store"
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("HTTP " + response.status);
-    }
-
-    const data = await response.json();
-
-    if (countEl && typeof data.user_count === "number") {
-      countEl.textContent = data.user_count;
-    }
-
-} catch (error) {
-  console.error("使用人數載入失敗：", error);
-
-  if (countEl) {
-    countEl.textContent = "--";
-  }
-}
-}
-
-loadOnlineCount();
-    
-    async function login() {
-
-      const input = document.getElementById("account");
-      const button = document.getElementById("loginBtn");
-      const message = document.getElementById("message");
-
-      const account = input.value.trim();
-
-      if (!account) {
-        showError("請先輸入會員帳號");
-        return;
-      }
-
-      button.disabled = true;
-      button.innerText = "正在驗證會員資格...";
-
-      message.style.display = "none";
-
-      try {
-
-        const response = await fetch(FUNCTION_URL, {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": PUBLISHABLE_KEY,
-            "Authorization": "Bearer " + PUBLISHABLE_KEY
-          },
-
-          body: JSON.stringify({
-            account: account
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-
-          message.className = "message success";
-          message.innerHTML = "✓ 驗證成功，正在進入系統...";
-          message.style.display = "block";
-
-          sessionStorage.setItem(
-            "habao_member",
-            JSON.stringify(data.member)
-          );
-
-          setTimeout(() => {
-            window.location.href = "home.html";
-          }, 800);
-
-          return;
-        }
-
-        if (data.code === "ACCOUNT_EXPIRED") {
-          showError(
-            "您的使用權限已到期<br>請聯絡哈寶"
-          );
-        }
-
-        else if (data.code === "ACCOUNT_DISABLED") {
-          showError(
-            "此帳號目前無法使用<br>請聯絡哈寶"
-          );
-        }
-
-        else if (data.code === "ACCOUNT_NOT_FOUND") {
-          showError(
-            "查無此授權帳號"
-          );
-        }
-
-        else {
-          showError(
-            data.message || "登入失敗，請稍後再試"
-          );
-        }
-
-      }
-
-      catch (error) {
-
-        console.error(error);
-
-        showError(
-          "系統連線失敗，請稍後再試"
-        );
-
-      }
-
-      finally {
-
-        button.disabled = false;
-        button.innerText = "進入分析系統 →";
-
-      }
-
-    }
-
-
-    function showError(text) {
-
-      const message =
-        document.getElementById("message");
-
-      message.className =
-        "message error";
-
-      message.innerHTML = text;
-
-      message.style.display =
-        "block";
-
-    }
-
-
-    document
-      .getElementById("account")
-      .addEventListener(
-        "keydown",
-        function(event) {
-
-          if (event.key === "Enter") {
-            login();
-          }
-
-        }
-      );
-
-  let currentBenefit = 0;
-
-function showBenefit(index) {
-  const slides = document.querySelectorAll(".benefits-slide");
-  const dots = document.querySelectorAll(".benefits-dot");
-
-  if (!slides.length) return;
-
-  if (index < 0) {
-    index = slides.length - 1;
-  }
-
-  if (index >= slides.length) {
-    index = 0;
-  }
-
-  slides.forEach((slide) => {
-    slide.classList.remove("active");
-  });
-
-  dots.forEach((dot) => {
-    dot.classList.remove("active");
-  });
-
-  slides[index].classList.add("active");
-
-  if (dots[index]) {
-    dots[index].classList.add("active");
-  }
-
-  currentBenefit = index;
-}
-
-function changeBenefit(direction) {
-  showBenefit(currentBenefit + direction);
-}
-
-
-/* ===== 手機左右滑動切換福利 ===== */
-
-let benefitTouchStartX = 0;
-let benefitTouchEndX = 0;
-
-document.addEventListener("touchstart", function(event) {
-  const slider = event.target.closest(".benefits-slider");
-
-  if (!slider) return;
-
-  benefitTouchStartX = event.changedTouches[0].screenX;
-}, { passive: true });
-
-document.addEventListener("touchend", function(event) {
-  const slider = event.target.closest(".benefits-slider");
-
-  if (!slider) return;
-
-  benefitTouchEndX = event.changedTouches[0].screenX;
-
-  const distance = benefitTouchEndX - benefitTouchStartX;
-
-  if (Math.abs(distance) < 50) return;
-
-  if (distance < 0) {
-    changeBenefit(1);
-  } else {
-    changeBenefit(-1);
-  }
-}, { passive: true });
-    
-async function openBenefits() {
-  const modal = document.getElementById("benefitsModal");
-
-  modal.classList.add("show");
-  document.body.style.overflow = "hidden";
-
-  await loadBenefitsFromSupabase();
-
-  showBenefit(currentBenefit);
-}
-
-function closeBenefits(event) {
-  const modal = document.getElementById("benefitsModal");
-
-  if (event && event.target !== modal) {
-    return;
-  }
-
-  modal.classList.remove("show");
-  document.body.style.overflow = "";
-}
-    
 </script>
 <script>
   (() => {
@@ -2492,10 +2056,10 @@ function closeBenefits(event) {
     >
   </div>
 
-  <div class="add-home-finish">
-    ✓ 確認名稱後點擊「加入」<br>
-    即可從手機主畫面快速開啟哈寶足球AI
-  </div>
+<div class="add-home-finish">
+  ✓ 確認名稱後點擊「加入」<br>
+  即可從手機主畫面快速開啟 HABAO 賽事預測 AI
+</div>
 </div>
 
 <div id="androidGuide" style="display:none;">
@@ -2526,10 +2090,10 @@ function closeBenefits(event) {
     >
   </div>
 
-  <div class="add-home-finish">
-    ✓ 完成後即可從手機主畫面<br>
-    快速開啟哈寶足球AI
-  </div>
+<div class="add-home-finish">
+  ✓ 完成後即可從手機主畫面<br>
+  快速開啟 HABAO 賽事預測 AI
+</div>
 
 </div>
 
