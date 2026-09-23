@@ -1021,6 +1021,479 @@
   font-weight: 700;
   line-height: 1.6;
 }    
+
+/* ========================================
+   HABAO OAuth Login V2
+   ======================================== */
+
+:root {
+  --habao-gold: #d6b56f;
+  --habao-gold-light: #f2d58f;
+  --habao-gold-dark: #8d6d32;
+  --habao-black: #07090b;
+  --habao-panel: rgba(17, 20, 23, 0.92);
+  --habao-border: rgba(214, 181, 111, 0.20);
+  --habao-text: #f7f4ed;
+  --habao-muted: #8e949c;
+}
+
+/* 整體登入區 */
+.login-wrap {
+  width: min(92%, 430px);
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+}
+
+/* HABAO 品牌 */
+.habao-login-brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.habao-brand-mark {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(246, 217, 151, 0.18),
+      rgba(214, 181, 111, 0.04)
+    );
+
+  border: 1px solid rgba(230, 199, 128, 0.35);
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.50),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 35px rgba(214, 181, 111, 0.08);
+
+  font-weight: 900;
+  letter-spacing: -3px;
+}
+
+.habao-brand-h {
+  color: #f7f3e8;
+  font-size: 32px;
+}
+
+.habao-brand-ai {
+  color: var(--habao-gold-light);
+  font-size: 22px;
+  margin-left: 2px;
+  margin-top: 8px;
+}
+
+.habao-login-brand .brand-small {
+  color: var(--habao-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 7px;
+}
+
+.habao-login-brand h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -0.7px;
+}
+
+.habao-login-brand p {
+  margin: 8px 0 0;
+  color: #92979e;
+  font-size: 13px;
+}
+
+/* 在線人數 */
+.online-users {
+  width: fit-content;
+  margin: 0 auto 14px;
+  padding: 7px 13px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
+  color: #8f959c;
+  font-size: 12px;
+}
+
+.online-users strong {
+  color: var(--habao-gold-light);
+}
+
+.online-dot {
+  box-shadow: 0 0 10px rgba(79, 214, 142, 0.75);
+}
+
+/* 登入主卡 */
+.login-wrap .card {
+  position: relative;
+  overflow: hidden;
+
+  padding: 26px 22px 22px;
+
+  border-radius: 26px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(23, 26, 30, 0.97),
+      rgba(10, 12, 14, 0.97)
+    );
+
+  border: 1px solid var(--habao-border);
+
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.login-wrap .card::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 0;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--habao-gold-light),
+      transparent
+    );
+
+  opacity: 0.75;
+}
+
+.login-wrap .card::after {
+  content: "";
+  position: absolute;
+
+  width: 180px;
+  height: 180px;
+
+  top: -100px;
+  right: -90px;
+
+  border-radius: 50%;
+
+  background: rgba(214, 181, 111, 0.07);
+  filter: blur(35px);
+
+  pointer-events: none;
+}
+
+.card-title {
+  position: relative;
+  z-index: 2;
+
+  color: #fff;
+  font-size: 21px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.card-subtitle {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 7px;
+  margin-bottom: 21px;
+
+  color: #858b92;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* OAuth 區 */
+.oauth-login-area {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  gap: 11px;
+}
+
+/* 清除舊 button 樣式干擾 */
+.oauth-login-btn {
+  width: 100%;
+  min-height: 62px;
+
+  margin: 0 !important;
+  padding: 10px 14px !important;
+
+  display: grid !important;
+  grid-template-columns: 42px 1fr 18px;
+  align-items: center;
+  gap: 12px;
+
+  border-radius: 17px !important;
+
+  cursor: pointer;
+
+  transform: translateY(0);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease !important;
+}
+
+.oauth-login-btn:hover {
+  transform: translateY(-2px);
+}
+
+.oauth-login-btn:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* LINE */
+.line-login-btn {
+  color: #fff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #08bd61,
+      #05a953
+    ) !important;
+
+  border: 1px solid rgba(85, 255, 167, 0.28) !important;
+
+  box-shadow:
+    0 12px 28px rgba(6, 183, 91, 0.16) !important;
+}
+
+.line-login-btn:hover {
+  box-shadow:
+    0 16px 35px rgba(6, 183, 91, 0.24) !important;
+}
+
+/* GOOGLE */
+.google-login-btn {
+  color: #f4f4f4 !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #202327,
+      #151719
+    ) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.google-login-btn:hover {
+  border-color: rgba(214, 181, 111, 0.35) !important;
+
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* 登入圖示 */
+.oauth-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.line-icon {
+  color: #08b75b;
+  background: #fff;
+}
+
+.google-icon {
+  color: #d7b971;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(214, 181, 111, 0.17),
+      rgba(214, 181, 111, 0.07)
+    );
+
+  border: 1px solid rgba(214, 181, 111, 0.22);
+}
+
+.oauth-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  text-align: left;
+}
+
+.oauth-btn-text strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.oauth-btn-text small {
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.google-login-btn .oauth-btn-text small {
+  color: #7e858c;
+}
+
+.oauth-arrow {
+  font-size: 25px;
+  font-weight: 300;
+  opacity: 0.55;
+}
+
+/* 首次登入積分 */
+.signup-credit-bonus {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 15px;
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(214, 181, 111, 0.11),
+      rgba(214, 181, 111, 0.035)
+    );
+
+  border: 1px solid rgba(214, 181, 111, 0.17);
+}
+
+.bonus-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #f4d88f;
+  background: rgba(214, 181, 111, 0.12);
+
+  font-size: 17px;
+}
+
+.signup-credit-bonus strong,
+.signup-credit-bonus span {
+  display: block;
+}
+
+.signup-credit-bonus strong {
+  color: #e8cd8a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.signup-credit-bonus span {
+  margin-top: 2px;
+
+  color: #777e85;
+  font-size: 10px;
+}
+
+/* 訊息 */
+.login-wrap .message {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 12px;
+
+  color: #e7c97f;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 安全登入 */
+.login-wrap .security {
+  position: relative;
+  z-index: 2;
+
+  margin-top: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  color: #656b72;
+  font-size: 10px;
+}
+
+.security-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+  background: #4cc98a;
+
+  box-shadow:
+    0 0 8px rgba(76, 201, 138, 0.65);
+}
+
+/* 手機 */
+@media (max-width: 520px) {
+  .login-wrap {
+    width: calc(100% - 28px);
+  }
+
+  .habao-brand-mark {
+    width: 66px;
+    height: 66px;
+    border-radius: 20px;
+  }
+
+  .habao-login-brand h1 {
+    font-size: 24px;
+  }
+
+  .login-wrap .card {
+    padding: 23px 17px 19px;
+    border-radius: 23px;
+  }
+
+  .oauth-login-btn {
+    min-height: 60px;
+  }
+}
     
   </style>
 </head>
@@ -1059,12 +1532,18 @@
 
     <div class="login-wrap">
 
-      <div class="brand">
-        <div class="logo">⚽</div>
-        <div class="brand-small">HABAO FOOTBALL AI</div>
-        <h1>哈寶足球 AI</h1>
-        <p>AI 智能賽事數據分析平台</p>
-      </div>
+<div class="brand habao-login-brand">
+  <div class="habao-brand-mark">
+    <span class="habao-brand-h">H</span>
+    <span class="habao-brand-ai">AI</span>
+  </div>
+
+  <div class="brand-small">HABAO SPORTS AI</div>
+
+  <h1>HABAO 賽事預測 AI</h1>
+
+  <p>多維賽事數據・智能分析平台</p>
+</div>
       
       <div class="online-users">
     <span class="online-dot"></span>
@@ -1073,30 +1552,64 @@
       
       <section class="card">
 
-        <div class="card-title">會員登入</div>
+<div class="card-title">登入 HABAO</div>
 
-        <div class="card-subtitle">
-          請輸入哈寶提供的授權帳號進入分析系統
-        </div>
+<div class="card-subtitle">
+  一鍵登入，開始使用賽事分析系統
+</div>
 
-        <label class="label">使用帳號</label>
+<div class="oauth-login-area">
 
-        <input
-          id="account"
-          type="text"
-          placeholder="請輸入會員帳號"
-          autocomplete="off"
-        >
+  <button
+    id="lineLoginBtn"
+    class="oauth-login-btn line-login-btn"
+    type="button"
+  >
+    <span class="oauth-icon line-icon">L</span>
 
-        <button id="loginBtn" onclick="login()">
-          進入分析系統 →
-        </button>
+    <span class="oauth-btn-text">
+      <strong>使用 LINE 登入</strong>
+      <small>快速登入 HABAO</small>
+    </span>
 
-        <div id="message" class="message"></div>
+    <span class="oauth-arrow">›</span>
+  </button>
 
-        <div class="security">
-          ● 僅限授權會員使用
-        </div>
+  <button
+    id="googleLoginBtn"
+    class="oauth-login-btn google-login-btn"
+    type="button"
+  >
+    <span class="oauth-icon google-icon">G</span>
+
+    <span class="oauth-btn-text">
+      <strong>使用 Google 登入</strong>
+      <small>使用 Google 帳號繼續</small>
+    </span>
+
+    <span class="oauth-arrow">›</span>
+  </button>
+
+</div>
+
+<div class="signup-credit-bonus">
+  <div class="bonus-icon">✦</div>
+
+  <div>
+    <strong>首次登入贈送 3 積分</strong>
+    <span>立即體驗 HABAO 賽事分析</span>
+  </div>
+</div>
+
+<div
+  id="message"
+  class="message"
+></div>
+
+<div class="security">
+  <span class="security-dot"></span>
+  安全登入・登入狀態將自動保留
+</div>
 
       </section>
 
