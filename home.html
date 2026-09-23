@@ -1199,69 +1199,93 @@ loadCurrentUserCount();
 
   async function verifyMember(){
 
-    const saved =
-      sessionStorage.getItem(
-        "habao_member"
+  const saved =
+    sessionStorage.getItem("habao_member");
+
+  // 完全沒有會員資料才回登入頁
+  if (!saved) {
+    window.location.replace("index.html");
+    return;
+  }
+
+  let member;
+
+  try {
+    member = JSON.parse(saved);
+  } catch (error) {
+    console.error(
+      "會員資料解析失敗:",
+      error
+    );
+
+    sessionStorage.removeItem(
+      "habao_member"
+    );
+
+    window.location.replace(
+      "index.html"
+    );
+
+    return;
+  }
+
+  if (!member || !member.account) {
+    sessionStorage.removeItem(
+      "habao_member"
+    );
+
+    window.location.replace(
+      "index.html"
+    );
+
+    return;
+  }
+
+
+  // =====================================
+  // OAuth 會員
+  // LINE / Google 已由 oauth-member-login
+  // 完成伺服器端驗證，不再呼叫舊 member-login
+  // =====================================
+
+  const isOAuthMember =
+    Boolean(member.auth_user_id) ||
+    Boolean(member.auth_provider) ||
+    member.account.startsWith("google_") ||
+    member.account.startsWith("line_");
+
+  if (isOAuthMember) {
+
+    console.log(
+      "HABAO OAuth member:",
+      member.account
+    );
+
+    const accountEl =
+      document.getElementById(
+        "userAccount"
       );
 
-    if(!saved){
-
-      window.location.href =
-        "index.html";
-
-      return;
+    if (accountEl) {
+      accountEl.innerText =
+        member.account;
     }
 
 
-    let member;
+    const expireEl =
+      document.getElementById(
+        "userExpire"
+      );
 
-    try{
+    if (expireEl) {
 
-      member =
-        JSON.parse(saved);
+      if (member.expire_at) {
 
-    }catch{
+        const expire =
+          new Date(member.expire_at);
 
-      sessionStorage.clear();
-
-      window.location.href =
-        "index.html";
-
-      return;
-    }
-
-
-    if(!member.account){
-
-      window.location.href =
-        "index.html";
-
-      return;
-    }
-
-    // ===== OAuth 會員：已由 oauth-member-login 驗證完成 =====
-const isOAuthMember =
-  member.auth_user_id ||
-  member.auth_provider ||
-  member.account?.startsWith("google_") ||
-  member.account?.startsWith("line_");
-
-if (isOAuthMember) {
-
-  document
-    .getElementById("userAccount")
-    .innerText =
-      member.account || "HABAO 會員";
-
-  const expireEl =
-    document.getElementById("userExpire");
-
-  if (expireEl) {
-    expireEl.innerText =
-      member.expire_at
-        ? new Date(
-            member.expire_at
-          ).toLocaleString(
+        expireEl.innerText =
+          expire.toLocaleString(
             "zh-TW",
             {
               timeZone:
@@ -1273,118 +1297,180 @@ if (isOAuthMember) {
               minute: "2-digit",
               hour12: false
             }
-          )
-        : "長期有效";
+          );
+
+      } else {
+
+        expireEl.innerText =
+          "長期有效";
+      }
+    }
+
+
+    const loadingEl =
+      document.getElementById(
+        "loading"
+      );
+
+    if (loadingEl) {
+      loadingEl.style.display =
+        "none";
+    }
+
+    return;
   }
 
-  console.log(
-    "OAuth member verified:",
-    member.account
-  );
 
-  return;
-}
+  // =====================================
+  // 舊會員
+  // 保留原本 member-login 驗證
+  // =====================================
 
-    try{
+  try {
 
-      const response =
-        await fetch(
-          FUNCTION_URL,
-          {
+    const response =
+      await fetch(
+        FUNCTION_URL,
+        {
+          method: "POST",
 
-            method:"POST",
+          headers: {
+            "Content-Type":
+              "application/json",
 
-            headers:{
+            "apikey":
+              PUBLISHABLE_KEY,
 
-              "Content-Type":
-                "application/json",
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+          },
 
-              "apikey":
-                PUBLISHABLE_KEY,
-
-              "Authorization":
-                "Bearer " +
-                PUBLISHABLE_KEY
-
-            },
-
-            body:
-              JSON.stringify({
-                account:
-                  member.account
-              })
-
-          }
-        );
+          body:
+            JSON.stringify({
+              account:
+                member.account
+            })
+        }
+      );
 
 
-      const data =
-        await response.json();
-
-      if(!data.success){
-
-        sessionStorage.clear();
-
-        window.location.href =
-          "index.html";
-
-        return;
-      }
+    const data =
+      await response.json();
 
 
-      document
-        .getElementById(
-          "userAccount"
-        )
-        .innerText =
-          data.member.account;
+    if (!response.ok || !data.success) {
+
+      sessionStorage.removeItem(
+        "habao_member"
+      );
+
+      window.location.replace(
+        "index.html"
+      );
+
+      return;
+    }
 
 
-      const expire =
-        new Date(
-          data.member.expire_at
-        );
+    // 用後端最新會員資料覆蓋舊資料
+    if (data.member) {
+
+      member =
+        data.member;
+
+      sessionStorage.setItem(
+        "habao_member",
+        JSON.stringify(member)
+      );
+    }
 
 
-      document
-        .getElementById(
-          "userExpire"
-        )
-        .innerText =
+    const accountEl =
+      document.getElementById(
+        "userAccount"
+      );
+
+    if (accountEl) {
+      accountEl.innerText =
+        member.account;
+    }
+
+
+    const expireEl =
+      document.getElementById(
+        "userExpire"
+      );
+
+    if (expireEl) {
+
+      if (member.expire_at) {
+
+        const expire =
+          new Date(
+            member.expire_at
+          );
+
+        expireEl.innerText =
           expire.toLocaleString(
             "zh-TW",
             {
-  timeZone: "Asia/Taipei",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false
-}
+              timeZone:
+                "Asia/Taipei",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            }
           );
 
+      } else {
 
-      document
-        .getElementById(
-          "loading"
-        )
-        .style.display =
-          "none";
-
-
-    }catch(error){
-
-      console.error(error);
-
-      sessionStorage.clear();
-
-      window.location.href =
-        "index.html";
-
+        expireEl.innerText =
+          "長期有效";
+      }
     }
 
+
+    const loadingEl =
+      document.getElementById(
+        "loading"
+      );
+
+    if (loadingEl) {
+      loadingEl.style.display =
+        "none";
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "舊會員驗證失敗:",
+      error
+    );
+
+    /*
+      網路/API 暫時失敗時，
+      不再 sessionStorage.clear()。
+
+      否則短暫 API 問題也會把
+      已登入會員踢回登入頁。
+    */
+
+    const loadingEl =
+      document.getElementById(
+        "loading"
+      );
+
+    if (loadingEl) {
+      loadingEl.style.display =
+        "none";
+    }
   }
+}
 
 
   function goFootball(){
