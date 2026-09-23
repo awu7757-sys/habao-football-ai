@@ -2548,6 +2548,146 @@ body {
     font-size: 8px !important;
   }
 }    
+
+/* =========================================================
+   HABAO LOGIN V6.1
+   Reference Final Proportion Tuning
+   ========================================================= */
+
+@media (max-width: 520px) {
+
+  /* 圖1：整張登入玻璃卡更厚、更有上下空間 */
+  .login-wrap .card {
+    padding:
+      24px
+      24px
+      22px !important;
+
+    border-radius: 27px !important;
+  }
+
+  /* SECURE ACCESS 與按鈕拉開 */
+  .card-subtitle {
+    margin-bottom: 20px !important;
+  }
+
+  /* 兩顆按鈕間距 */
+  .oauth-login-area {
+    gap: 13px !important;
+  }
+
+  /* 圖1的按鈕更高、更飽滿 */
+  .oauth-login-btn {
+    min-height: 82px !important;
+
+    padding:
+      11px
+      15px !important;
+
+    grid-template-columns:
+      52px
+      1px
+      1fr
+      40px !important;
+
+    gap: 14px !important;
+
+    border-radius: 18px !important;
+  }
+
+  /* Logo 放大 */
+  .line-login-btn .oauth-icon,
+  .google-login-btn .oauth-icon {
+    width: 49px !important;
+    height: 49px !important;
+  }
+
+  .line-login-btn .oauth-icon svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .google-login-btn .oauth-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* 發光直線加長 */
+  .oauth-login-btn::before {
+    height: 48px !important;
+  }
+
+  /* 主文字 */
+  .oauth-btn-text strong {
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+  }
+
+  /* 副文字 */
+  .oauth-btn-text small {
+    margin-top: 7px !important;
+    font-size: 9px !important;
+  }
+
+  /* 右側箭頭 */
+  .oauth-arrow {
+    width: 39px !important;
+    height: 39px !important;
+
+    font-size: 29px !important;
+  }
+
+  /* LINE 左側綠光再集中到 Logo 周圍 */
+  .line-login-btn {
+    box-shadow:
+      -4px 0 20px rgba(0,255,92,.38),
+      0 0 18px rgba(0,255,92,.14),
+      0 14px 28px rgba(0,0,0,.38),
+      inset 0 1px 0 rgba(255,255,255,.13),
+      inset 0 0 20px rgba(0,255,105,.045)
+      !important;
+  }
+
+  /* Google 改成圖1的左藍、右紅黃邊緣光 */
+  .google-login-btn {
+    background:
+      radial-gradient(
+        circle at 0% 50%,
+        rgba(66,133,244,.27),
+        transparent 31%
+      ),
+      radial-gradient(
+        circle at 100% 12%,
+        rgba(234,67,53,.30),
+        transparent 25%
+      ),
+      radial-gradient(
+        circle at 100% 88%,
+        rgba(251,188,5,.27),
+        transparent 28%
+      ),
+      linear-gradient(
+        100deg,
+        rgba(19,25,34,.94),
+        rgba(18,20,23,.94)
+      ) !important;
+
+    box-shadow:
+      -7px 0 20px rgba(66,133,244,.38),
+      7px -4px 18px rgba(234,67,53,.28),
+      7px 8px 18px rgba(251,188,5,.24),
+      0 14px 28px rgba(0,0,0,.38),
+      inset 0 1px 0 rgba(255,255,255,.13)
+      !important;
+  }
+
+  /* 圖1底部安全區比較厚 */
+  .v5-security {
+    margin-top: 21px !important;
+    padding-top: 18px !important;
+    padding-bottom: 1px !important;
+  }
+}    
     
   </style>
 
