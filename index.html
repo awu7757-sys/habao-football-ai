@@ -485,64 +485,55 @@
 } 
 
 /* =========================================================
-   HABAO LOGIN FINAL V3
-   黑金登入頁 / 啟動畫面 / 客服卡
+   HABAO LOGIN V4
+   Mobile Data Intelligence / Glass Interface
    ========================================================= */
 
 body {
   min-height: 100vh;
   color: #f7f4ed;
-
-  background:
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(214, 181, 111, 0.13),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 90% 80%,
-      rgba(214, 181, 111, 0.055),
-      transparent 30%
-    ),
-    linear-gradient(
-      155deg,
-      #050607 0%,
-      #090b0d 48%,
-      #030405 100%
-    );
-
+  background: #030405;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-/* 舊足球場綠線改成低調科技背景 */
+/* ===== 正式登入背景 ===== */
+
 .field {
   position: fixed;
   inset: 0;
-  opacity: 1;
-  overflow: hidden;
+  z-index: 0;
   pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(2,3,4,.18) 0%,
+      rgba(2,3,4,.34) 48%,
+      rgba(2,3,4,.70) 100%
+    ),
+    url("./habao-login-bg.png")
+      center center / cover no-repeat;
 }
 
 .field::before {
   content: "";
   position: absolute;
-  width: 620px;
-  height: 620px;
-  left: 50%;
-  top: 42%;
+  inset: 0;
 
-  transform:
-    translate(-50%, -50%)
-    perspective(800px)
-    rotateX(68deg);
-
-  border: 1px solid rgba(214, 181, 111, 0.08);
-  border-radius: 50%;
-
-  box-shadow:
-    0 0 80px rgba(214, 181, 111, 0.025),
-    inset 0 0 80px rgba(214, 181, 111, 0.018);
+  background:
+    radial-gradient(
+      circle at 50% 25%,
+      rgba(226,196,128,.10),
+      transparent 34%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.28),
+      transparent 25%,
+      transparent 75%,
+      rgba(0,0,0,.28)
+    );
 }
 
 .field::after {
@@ -550,53 +541,32 @@ body {
   position: absolute;
   inset: 0;
 
-  background-image:
-    linear-gradient(
-      rgba(214, 181, 111, 0.025) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(214, 181, 111, 0.025) 1px,
-      transparent 1px
-    );
-
-  background-size: 48px 48px;
-
-  -webkit-mask-image:
+  background:
     linear-gradient(
       to bottom,
-      transparent,
-      rgba(0,0,0,.7) 35%,
-      transparent 88%
-    );
-
-  mask-image:
-    linear-gradient(
-      to bottom,
-      transparent,
-      rgba(0,0,0,.7) 35%,
-      transparent 88%
+      transparent 60%,
+      rgba(0,0,0,.42)
     );
 }
 
 .app {
-  min-height: 100vh;
+  min-height: 100svh;
+
   display: flex;
   justify-content: center;
   align-items: center;
 
   padding:
-    max(30px, env(safe-area-inset-top))
-    18px
-    max(34px, env(safe-area-inset-bottom));
+    max(26px, env(safe-area-inset-top))
+    16px
+    max(38px, env(safe-area-inset-bottom));
 
   position: relative;
   z-index: 2;
 }
 
 .login-wrap {
-  width: min(100%, 430px);
+  width: min(100%, 420px);
   margin: 0 auto;
 }
 
@@ -604,129 +574,63 @@ body {
 
 .habao-login-brand {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .habao-brand-mark {
-  position: relative;
+  width: 82px;
+  height: 82px;
 
-  width: 78px;
-  height: 78px;
-  margin: 0 auto 17px;
+  margin: 0 auto 14px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 23px;
-
   background:
-    radial-gradient(
-      circle at 35% 20%,
-      rgba(255, 235, 181, 0.20),
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      #181715,
-      #090a0b
-    );
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
 
-  border: 1px solid rgba(226, 196, 128, 0.38);
-
-  box-shadow:
-    0 18px 45px rgba(0, 0, 0, 0.52),
-    0 0 32px rgba(214, 181, 111, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    inset 0 -12px 25px rgba(0, 0, 0, 0.28);
-
-  overflow: hidden;
+  filter:
+    drop-shadow(0 14px 25px rgba(0,0,0,.48))
+    drop-shadow(0 0 18px rgba(214,181,111,.12));
 }
 
-.habao-brand-mark::before {
-  content: "";
-  position: absolute;
-  width: 55px;
-  height: 1px;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      #f2d58f,
-      transparent
-    );
-
-  opacity: .85;
-}
-
-.habao-brand-mark::after {
-  content: "";
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  right: -13px;
-  bottom: -13px;
-
-  border-radius: 50%;
-  background: rgba(214, 181, 111, 0.12);
-  filter: blur(8px);
-}
-
-.habao-brand-h {
-  position: relative;
-  z-index: 2;
-
-  color: #f8f4e9;
-  font-size: 34px;
-  font-weight: 950;
-  letter-spacing: -3px;
-  line-height: 1;
-}
-
+/* 舊文字 Logo 隱藏，正式改用圖片 */
+.habao-brand-h,
 .habao-brand-ai {
-  position: relative;
-  z-index: 2;
-
-  color: #e5c77e;
-  font-size: 20px;
-  font-weight: 950;
-  line-height: 1;
-
-  margin-left: 3px;
-  margin-top: 12px;
+  display: none;
 }
 
 .habao-login-brand .brand-small {
   margin-bottom: 7px;
 
-  color: #d6b56f;
+  color: #d9ba72;
 
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: 3.5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 4px;
 }
 
 .habao-login-brand h1 {
   margin: 0;
 
-  color: #f8f6f0;
+  color: #fff;
 
-  font-size: 27px;
-  font-weight: 900;
-  letter-spacing: -0.7px;
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: -.5px;
+
+  text-shadow: 0 4px 18px rgba(0,0,0,.55);
 }
 
 .habao-login-brand p {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 
-  color: #777d84;
+  color: rgba(255,255,255,.58);
 
-  font-size: 12px;
-  letter-spacing: .2px;
+  font-size: 11px;
+  letter-spacing: .4px;
 }
 
 /* ===== 使用人數 ===== */
@@ -734,7 +638,7 @@ body {
 .online-users {
   width: fit-content;
 
-  margin: 0 auto 14px;
+  margin: 0 auto 15px;
   padding: 7px 13px;
 
   display: flex;
@@ -744,21 +648,27 @@ body {
 
   border-radius: 999px;
 
-  color: #858b92;
-  font-size: 11px;
-  font-weight: 650;
+  color: rgba(255,255,255,.63);
+  font-size: 10px;
+  font-weight: 600;
 
-  background: rgba(255,255,255,.025);
-  border: 1px solid rgba(255,255,255,.065);
+  background: rgba(5,9,11,.58);
+
+  border:
+    1px solid rgba(255,255,255,.10);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.025);
+    0 10px 28px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.05);
 }
 
 .online-users strong {
-  color: #e6ca86;
-  font-size: 13px;
-  font-weight: 900;
+  color: #e5c77e;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .online-dot {
@@ -768,40 +678,38 @@ body {
 
   border-radius: 50%;
 
-  background: #54d894;
+  background: #3de69a;
 
   box-shadow:
-    0 0 9px rgba(84,216,148,.65);
+    0 0 10px rgba(61,230,154,.72);
 }
 
-/* ===== 登入卡 ===== */
+/* ===== 登入玻璃卡 ===== */
 
 .login-wrap .card {
   position: relative;
   overflow: hidden;
 
-  padding: 25px 21px 21px;
+  padding: 20px 16px 16px;
 
-  border-radius: 25px;
+  border-radius: 20px;
 
   background:
-    radial-gradient(
-      circle at 85% 0%,
-      rgba(214,181,111,.08),
-      transparent 34%
-    ),
     linear-gradient(
       145deg,
-      rgba(22,24,27,.97),
-      rgba(8,10,12,.98)
+      rgba(13,17,19,.82),
+      rgba(5,7,8,.90)
     );
 
   border:
-    1px solid rgba(214,181,111,.19);
+    1px solid rgba(214,181,111,.22);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 
   box-shadow:
-    0 28px 75px rgba(0,0,0,.55),
-    inset 0 1px 0 rgba(255,255,255,.05);
+    0 24px 65px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.06);
 }
 
 .login-wrap .card::before {
@@ -809,8 +717,8 @@ body {
   position: absolute;
 
   top: 0;
-  left: 19%;
-  right: 19%;
+  left: 22%;
+  right: 22%;
 
   height: 1px;
 
@@ -818,7 +726,7 @@ body {
     linear-gradient(
       90deg,
       transparent,
-      rgba(242,213,143,.85),
+      rgba(235,205,139,.85),
       transparent
     );
 }
@@ -827,18 +735,17 @@ body {
   content: "";
   position: absolute;
 
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
 
-  top: -100px;
-  right: -75px;
+  top: -80px;
+  right: -55px;
 
   border-radius: 50%;
 
-  background:
-    rgba(214,181,111,.07);
+  background: rgba(214,181,111,.07);
+  filter: blur(28px);
 
-  filter: blur(30px);
   pointer-events: none;
 }
 
@@ -846,14 +753,15 @@ body {
   position: relative;
   z-index: 2;
 
-  margin: 0 0 18px;
+  margin: 0 0 14px;
 
-  color: #8b9096;
+  color: rgba(255,255,255,.48);
 
-  font-size: 12px;
-  font-weight: 550;
+  font-size: 10px;
+  font-weight: 600;
+
   text-align: center;
-  letter-spacing: .2px;
+  letter-spacing: 1px;
 }
 
 /* ===== OAuth ===== */
@@ -863,24 +771,32 @@ body {
   z-index: 2;
 
   display: grid;
-  gap: 11px;
+  gap: 9px;
 }
 
 .oauth-login-btn {
+  position: relative;
+
   width: 100%;
-  min-height: 62px;
+  min-height: 58px;
 
   margin: 0 !important;
-  padding: 10px 14px !important;
+  padding: 9px 13px !important;
 
   display: grid !important;
-  grid-template-columns: 42px 1fr 18px;
-  align-items: center;
-  gap: 12px;
 
-  border-radius: 17px !important;
+  grid-template-columns:
+    38px
+    1fr
+    18px;
+
+  align-items: center;
+  gap: 11px;
+
+  border-radius: 14px !important;
 
   cursor: pointer;
+  overflow: hidden;
 
   transform: translateY(0);
 
@@ -888,102 +804,114 @@ body {
     transform .18s ease,
     border-color .18s ease,
     box-shadow .18s ease,
-    filter .18s ease !important;
+    background .18s ease !important;
 }
 
 .oauth-login-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .oauth-login-btn:active {
-  transform: translateY(0) scale(.99);
+  transform: scale(.985);
 }
+
+/* LINE：科技深色 + LINE 品牌光 */
 
 .line-login-btn {
   color: #fff !important;
 
   background:
     linear-gradient(
-      135deg,
-      #08bd61,
-      #06aa56
+      90deg,
+      rgba(6,199,85,.14),
+      rgba(11,17,16,.94) 32%,
+      rgba(8,11,12,.96)
     ) !important;
 
   border:
-    1px solid rgba(101,255,176,.25) !important;
+    1px solid rgba(6,199,85,.32) !important;
 
   box-shadow:
-    0 13px 28px rgba(6,183,91,.16),
-    inset 0 1px 0 rgba(255,255,255,.12) !important;
+    inset 3px 0 0 #06c755,
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 12px 30px rgba(0,0,0,.20) !important;
 }
 
 .line-login-btn:hover {
-  filter: brightness(1.04);
+  border-color:
+    rgba(6,199,85,.60) !important;
 
   box-shadow:
-    0 16px 35px rgba(6,183,91,.23) !important;
+    inset 3px 0 0 #06c755,
+    0 0 22px rgba(6,199,85,.10),
+    0 14px 32px rgba(0,0,0,.24) !important;
 }
 
+/* Google：同一套分析平台視覺 */
+
 .google-login-btn {
-  color: #f3f3f3 !important;
+  color: #f4f4f4 !important;
 
   background:
     linear-gradient(
       145deg,
-      #202327,
-      #131517
+      rgba(25,28,31,.94),
+      rgba(9,11,13,.97)
     ) !important;
 
   border:
-    1px solid rgba(255,255,255,.095) !important;
+    1px solid rgba(255,255,255,.11) !important;
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.05),
-    0 10px 25px rgba(0,0,0,.18) !important;
+    inset 3px 0 0 rgba(66,133,244,.85),
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 12px 30px rgba(0,0,0,.20) !important;
 }
 
 .google-login-btn:hover {
   border-color:
-    rgba(214,181,111,.32) !important;
+    rgba(255,255,255,.20) !important;
 
   box-shadow:
-    0 14px 32px rgba(0,0,0,.28),
-    inset 0 1px 0 rgba(255,255,255,.06) !important;
+    inset 3px 0 0 #4285f4,
+    0 0 20px rgba(66,133,244,.08),
+    0 14px 32px rgba(0,0,0,.24) !important;
 }
 
 .oauth-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .oauth-icon svg {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 21px;
+  height: 21px;
 }
 
 .line-icon {
-  color: #08b75b;
-  background: #fff;
+  color: #06c755;
+
+  background: rgba(255,255,255,.97);
 
   box-shadow:
-    0 3px 10px rgba(0,0,0,.12);
+    0 4px 12px rgba(0,0,0,.16);
 }
 
 .google-icon {
   background: #fff;
 
   border:
-    1px solid rgba(255,255,255,.12);
+    1px solid rgba(255,255,255,.15);
 
   box-shadow:
-    0 3px 10px rgba(0,0,0,.15);
+    0 4px 12px rgba(0,0,0,.16);
 }
 
 .oauth-btn-text {
@@ -995,108 +923,114 @@ body {
 }
 
 .oauth-btn-text strong {
-  font-size: 14px;
-  font-weight: 850;
+  color: #f7f7f7;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  letter-spacing: .2px;
 }
 
+/* 新版只留簡單登入文字 */
 .oauth-btn-text small {
-  margin-top: 3px;
-
-  color: rgba(255,255,255,.64);
-
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.google-login-btn .oauth-btn-text small {
-  color: #81878d;
+  display: none;
 }
 
 .oauth-arrow {
-  color: inherit;
+  color: rgba(255,255,255,.42);
 
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 300;
-
-  opacity: .52;
 }
 
-/* ===== 登入訊息 ===== */
+/* ===== 登入狀態訊息 ===== */
 
 .login-wrap .message {
   position: relative;
   z-index: 3;
 
-  margin-top: 12px;
-  padding: 10px 12px;
+  min-height: 0;
 
-  border-radius: 12px;
+  margin-top: 10px;
+  padding: 0;
 
-  color: #e7c97f;
-  background: rgba(214,181,111,.055);
-  border: 1px solid rgba(214,181,111,.10);
+  color: #dfc47e;
+  background: transparent;
+  border: 0;
 
   text-align: center;
-  font-size: 11px;
-  line-height: 1.55;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.login-wrap .message:empty {
+  display: none;
 }
 
 /* ===== LINE 客服 ===== */
 
 .login-shortcuts {
   display: block;
-  width: 100%;
 
-  margin-top: 13px;
+  width: 100%;
+  margin-top: 11px;
 }
 
 .shortcut-card.line-card {
   width: 100%;
   height: auto;
-  min-height: 70px;
+  min-height: 56px;
 
-  padding: 12px 15px;
+  padding: 9px 13px;
 
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
 
-  border-radius: 18px;
+  border-radius: 14px;
 
   text-decoration: none;
 
   background:
     linear-gradient(
       145deg,
-      rgba(19,22,24,.96),
-      rgba(9,11,13,.96)
+      rgba(11,15,16,.78),
+      rgba(5,7,8,.86)
     );
 
   border:
-    1px solid rgba(214,181,111,.15);
+    1px solid rgba(255,255,255,.08);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
   box-shadow:
-    0 15px 35px rgba(0,0,0,.25),
+    0 15px 35px rgba(0,0,0,.22),
     inset 0 1px 0 rgba(255,255,255,.035);
 
   transition:
     transform .18s ease,
-    border-color .18s ease;
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 
 .shortcut-card.line-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 
   border-color:
-    rgba(214,181,111,.30);
+    rgba(6,199,85,.26);
+
+  box-shadow:
+    0 16px 35px rgba(0,0,0,.28),
+    0 0 20px rgba(6,199,85,.05);
 }
 
 .shortcut-card.line-card .shortcut-icon {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
 
-  border-radius: 13px;
+  border-radius: 10px;
 
   display: flex;
   align-items: center;
@@ -1105,11 +1039,8 @@ body {
   color: #fff;
   background: #06c755;
 
-  font-size: 9px;
-  font-weight: 950;
-
   box-shadow:
-    0 7px 18px rgba(6,199,85,.16);
+    0 6px 16px rgba(6,199,85,.16);
 }
 
 .shortcut-card.line-card .shortcut-content {
@@ -1118,29 +1049,28 @@ body {
 }
 
 .shortcut-card.line-card .shortcut-title {
-  color: #f4f2ec;
+  color: #f1f2ef;
 
-  font-size: 13px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 750;
 }
 
 .shortcut-card.line-card .shortcut-sub {
-  margin-top: 3px;
+  margin-top: 2px;
 
-  color: #747a81;
+  color: rgba(255,255,255,.38);
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .shortcut-card.line-card .shortcut-arrow {
-  color: #d6b56f;
+  color: rgba(214,181,111,.70);
 
-  font-size: 23px;
-  opacity: .7;
+  font-size: 20px;
 }
 
 /* =========================================================
-   HABAO SPLASH V3
+   HABAO SPLASH V4
    ========================================================= */
 
 .splash-screen {
@@ -1153,22 +1083,12 @@ body {
   justify-content: center;
 
   background:
-    radial-gradient(
-      circle at 50% 38%,
-      rgba(214,181,111,.13),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(214,181,111,.035),
-      transparent 48%
-    ),
     linear-gradient(
-      160deg,
-      #050607,
-      #090b0d 55%,
-      #020303
-    );
+      rgba(2,3,4,.48),
+      rgba(2,3,4,.68)
+    ),
+    url("./habao-login-bg.png")
+      center / cover no-repeat;
 
   cursor: pointer;
   overflow: hidden;
@@ -1185,17 +1105,17 @@ body {
   content: "";
   position: absolute;
 
-  width: 430px;
-  height: 430px;
+  width: 360px;
+  height: 360px;
 
   border-radius: 50%;
 
   border:
-    1px solid rgba(214,181,111,.09);
+    1px solid rgba(214,181,111,.10);
 
   box-shadow:
-    0 0 80px rgba(214,181,111,.025),
-    inset 0 0 80px rgba(214,181,111,.02);
+    0 0 80px rgba(214,181,111,.04),
+    inset 0 0 80px rgba(214,181,111,.025);
 
   animation:
     splashRing 3.2s ease-in-out infinite;
@@ -1206,31 +1126,16 @@ body {
   position: absolute;
   inset: 0;
 
-  background-image:
-    linear-gradient(
-      rgba(214,181,111,.022) 1px,
-      transparent 1px
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(214,181,111,.07),
+      transparent 38%
     ),
     linear-gradient(
-      90deg,
-      rgba(214,181,111,.022) 1px,
-      transparent 1px
-    );
-
-  background-size: 52px 52px;
-
-  -webkit-mask-image:
-    radial-gradient(
-      circle at center,
-      #000,
-      transparent 66%
-    );
-
-  mask-image:
-    radial-gradient(
-      circle at center,
-      #000,
-      transparent 66%
+      to bottom,
+      rgba(0,0,0,.08),
+      rgba(0,0,0,.40)
     );
 
   pointer-events: none;
@@ -1248,71 +1153,36 @@ body {
 }
 
 .splash-logo {
-  position: relative;
+  width: 96px;
+  height: 96px;
 
-  width: 88px;
-  height: 88px;
-
-  margin: 0 auto 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 25px;
+  margin: 0 auto 21px;
 
   background:
-    radial-gradient(
-      circle at 35% 20%,
-      rgba(255,235,181,.19),
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      #191816,
-      #090a0b
-    );
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
 
-  border:
-    1px solid rgba(226,196,128,.40);
-
-  box-shadow:
-    0 20px 55px rgba(0,0,0,.55),
-    0 0 42px rgba(214,181,111,.12),
-    inset 0 1px 0 rgba(255,255,255,.10);
+  filter:
+    drop-shadow(0 20px 28px rgba(0,0,0,.48))
+    drop-shadow(0 0 22px rgba(214,181,111,.14));
 
   animation:
     splashLogo 2.2s ease-in-out infinite;
 }
 
-.splash-logo-h {
-  color: #f8f4e9;
-
-  font-size: 39px;
-  font-weight: 950;
-  line-height: 1;
-
-  letter-spacing: -4px;
-}
-
+/* Splash 舊 HAI 字樣關閉 */
+.splash-logo-h,
 .splash-logo-ai {
-  color: #e5c77e;
-
-  margin-left: 3px;
-  margin-top: 14px;
-
-  font-size: 22px;
-  font-weight: 950;
-  line-height: 1;
+  display: none;
 }
 
 .splash-en {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 
   color: #d6b56f;
 
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 850;
   letter-spacing: 4px;
 
   opacity: 0;
@@ -1322,11 +1192,14 @@ body {
 }
 
 .splash-title {
-  color: #f8f6f0;
+  color: #fff;
 
-  font-size: 31px;
-  font-weight: 900;
-  letter-spacing: -.4px;
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: -.3px;
+
+  text-shadow:
+    0 6px 24px rgba(0,0,0,.58);
 
   opacity: 0;
 
@@ -1335,12 +1208,12 @@ body {
 }
 
 .splash-subtitle {
-  margin-top: 10px;
+  margin-top: 9px;
 
-  color: #777d84;
+  color: rgba(255,255,255,.52);
 
-  font-size: 12px;
-  letter-spacing: .6px;
+  font-size: 11px;
+  letter-spacing: .5px;
 
   opacity: 0;
 
@@ -1353,39 +1226,33 @@ body {
 
   left: 0;
   right: 0;
+
   bottom:
-    max(30px, env(safe-area-inset-bottom));
+    max(28px, env(safe-area-inset-bottom));
 
   z-index: 3;
 
-  color: rgba(255,255,255,.34);
+  color: rgba(255,255,255,.38);
 
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 1px;
 
   animation:
     splashSkip 1.4s ease-in-out infinite;
 }
 
-/* 新黑金動畫 */
 @keyframes splashLogo {
   0%, 100% {
-    transform: translateY(0) scale(1);
-
-    box-shadow:
-      0 20px 55px rgba(0,0,0,.55),
-      0 0 34px rgba(214,181,111,.10),
-      inset 0 1px 0 rgba(255,255,255,.10);
+    transform:
+      translateY(0)
+      scale(1);
   }
 
   50% {
-    transform: translateY(-4px) scale(1.035);
-
-    box-shadow:
-      0 24px 65px rgba(0,0,0,.58),
-      0 0 52px rgba(214,181,111,.18),
-      inset 0 1px 0 rgba(255,255,255,.10);
+    transform:
+      translateY(-4px)
+      scale(1.035);
   }
 }
 
@@ -1401,16 +1268,17 @@ body {
   }
 }
 
-/* ===== 手機 ===== */
+/* ===== 手機優先 ===== */
 
 @media (max-width: 520px) {
+
   .app {
     align-items: center;
 
     padding:
-      max(22px, env(safe-area-inset-top))
+      max(20px, env(safe-area-inset-top))
       14px
-      max(28px, env(safe-area-inset-bottom));
+      max(26px, env(safe-area-inset-bottom));
   }
 
   .login-wrap {
@@ -1418,53 +1286,35 @@ body {
   }
 
   .habao-brand-mark {
-    width: 68px;
-    height: 68px;
-
-    border-radius: 20px;
+    width: 74px;
+    height: 74px;
+    margin-bottom: 12px;
   }
 
-  .habao-brand-h {
-    font-size: 30px;
-  }
-
-  .habao-brand-ai {
-    font-size: 18px;
-    margin-top: 10px;
+  .habao-login-brand {
+    margin-bottom: 13px;
   }
 
   .habao-login-brand h1 {
-    font-size: 24px;
+    font-size: 23px;
   }
 
   .login-wrap .card {
-    padding: 22px 17px 18px;
-
-    border-radius: 22px;
+    padding: 18px 14px 14px;
+    border-radius: 18px;
   }
 
   .oauth-login-btn {
-    min-height: 59px;
+    min-height: 56px;
   }
 
   .splash-logo {
-    width: 78px;
-    height: 78px;
-
-    border-radius: 22px;
-  }
-
-  .splash-logo-h {
-    font-size: 35px;
-  }
-
-  .splash-logo-ai {
-    font-size: 20px;
-    margin-top: 12px;
+    width: 88px;
+    height: 88px;
   }
 
   .splash-title {
-    font-size: 27px;
+    font-size: 26px;
   }
 }
     
@@ -1551,8 +1401,8 @@ body {
 </span>
 
     <span class="oauth-btn-text">
-      <strong>使用 LINE 登入</strong>
-      <small>快速登入 HABAO</small>
+    <strong>LINE 登入</strong>
+    <small>LINE</small>
     </span>
 
     <span class="oauth-arrow">›</span>
@@ -1573,8 +1423,8 @@ body {
 </span>
 
     <span class="oauth-btn-text">
-      <strong>使用 Google 登入</strong>
-      <small>使用 Google 帳號繼續</small>
+    <strong>Google 登入</strong>
+    <small>Google</small>
     </span>
 
     <span class="oauth-arrow">›</span>
