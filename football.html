@@ -3303,7 +3303,7 @@ const FUNCTION_URL =
 const FIXTURES_PUBLISHABLE_KEY =
 "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
-let currentFixtureOffset = 1;
+window.currentFixtureOffset = 1;
 
 verifyMember();
 
@@ -3320,10 +3320,12 @@ const supabaseAuth =
     }
   );
   
-const FUNCTION_URL =
-"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
-  
-const FIXTURES_PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";  
+window.FUNCTION_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
+
+window.FIXTURES_PUBLISHABLE_KEY =
+  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
 verifyMember();
   
 /* =========================
