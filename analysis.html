@@ -618,30 +618,15 @@ z-index:1000;
 
   width:39px;
   height:39px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:12px;
-
-  color:#171208;
-
-  font-size:20px;
-  font-weight:1000;
+  flex:0 0 39px;
 
   background:
-    linear-gradient(
-      145deg,
-      #ffe37d,
-      #dfa527
-    );
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
 
-  border:1px solid rgba(255,227,125,.50);
-
-  box-shadow:
-    0 8px 22px rgba(0,0,0,.28),
-    inset 0 1px 0 rgba(255,255,255,.40);
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,.38))
+    drop-shadow(0 0 10px rgba(214,181,111,.10));
 }
 
 .brand-copy{
@@ -708,14 +693,11 @@ z-index:1000;
     width:calc(100% - 24px);
   }
 
-  .logo{
-    width:36px;
-    height:36px;
-
-    border-radius:11px;
-
-    font-size:18px;
-  }
+.logo{
+  width:36px;
+  height:36px;
+  flex-basis:36px;
+}
 
   .brand-title{
     font-size:14px;
@@ -2580,14 +2562,14 @@ h1{
 <header class="header">
   <div class="header-inner">
 
-    <a href="home-v2.html" class="brand">
-      <div class="logo">H</div>
+<a href="home-v2.html" class="brand">
+  <div class="logo" aria-label="HABAO"></div>
 
-      <div class="brand-copy">
-        <div class="brand-title">哈寶足球 AI</div>
-        <div class="brand-sub">FOOTBALL INTELLIGENCE</div>
-      </div>
-    </a>
+  <div class="brand-copy">
+    <div class="brand-title">HABAO 賽事預測 AI</div>
+    <div class="brand-sub">SPORTS INTELLIGENCE</div>
+  </div>
+</a>
 
     <a class="back" href="football.html">
       <span class="back-arrow">←</span>
