@@ -3297,20 +3297,19 @@ h1{
 
 <script>
 
+const SUPABASE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co";
+
 const FUNCTION_URL =
-"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
+  SUPABASE_URL + "/functions/v1/member-login";
 
 const FIXTURES_PUBLISHABLE_KEY =
-"sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
-
-window.currentFixtureOffset = 1;
-
-verifyMember();
+  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
 
 const supabaseAuth =
   window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
+    FIXTURES_PUBLISHABLE_KEY,
     {
       auth: {
         persistSession: true,
@@ -3319,12 +3318,8 @@ const supabaseAuth =
       }
     }
   );
-  
-window.FUNCTION_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
 
-window.FIXTURES_PUBLISHABLE_KEY =
-  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+let currentFixtureOffset = 1;
 
 verifyMember();
   
