@@ -1399,7 +1399,7 @@ h1{
 
 <style>
 /* =========================
-   AI 額度用完彈窗
+   HABAO｜AI 積分不足彈窗
 ========================= */
 
 .quota-modal {
@@ -1410,9 +1410,11 @@ h1{
   align-items: center;
   justify-content: center;
   padding: 22px;
-  background: rgba(0, 8, 12, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+
+  background: rgba(0, 0, 0, 0.82);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .quota-modal.show {
@@ -1421,172 +1423,214 @@ h1{
 
 .quota-modal-card {
   position: relative;
+
   width: 100%;
   max-width: 390px;
+
   padding: 30px 22px 22px;
+
   overflow: hidden;
 
   background:
     radial-gradient(
       circle at 50% 0%,
-      rgba(34, 197, 94, 0.16),
+      rgba(212, 175, 55, 0.14),
       transparent 42%
     ),
     linear-gradient(
       160deg,
-      #0d1c1d 0%,
-      #071214 55%,
-      #081011 100%
+      #161616 0%,
+      #0d0d0d 55%,
+      #090909 100%
     );
 
-  border: 1px solid rgba(74, 222, 128, 0.35);
+  border:
+    1px solid rgba(212, 175, 55, 0.42);
+
   border-radius: 24px;
 
   box-shadow:
-    0 25px 70px rgba(0, 0, 0, 0.65),
-    0 0 35px rgba(34, 197, 94, 0.12);
+    0 25px 70px rgba(0, 0, 0, 0.72),
+    0 0 35px rgba(212, 175, 55, 0.10);
 
   text-align: center;
-  animation: quotaModalIn 0.28s ease-out;
+
+  animation:
+    quotaModalIn 0.28s ease-out;
 }
 
 .quota-modal-card::before {
   content: "";
+
   position: absolute;
+
   top: 0;
   left: 15%;
+
   width: 70%;
   height: 1px;
 
-  background: linear-gradient(
-    90deg,
-    transparent,
-    #4ade80,
-    transparent
-  );
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #d4af37,
+      transparent
+    );
 
-  box-shadow: 0 0 18px #22c55e;
+  box-shadow:
+    0 0 18px rgba(212, 175, 55, 0.7);
 }
 
 .quota-modal-close {
   position: absolute;
+
   top: 14px;
   right: 15px;
 
   width: 34px;
   height: 34px;
 
-  border: 1px solid rgba(255,255,255,0.1);
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+
   border-radius: 50%;
 
-  background: rgba(255,255,255,0.05);
-  color: #94a3b8;
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  color: #9ca3af;
 
   font-size: 16px;
+
   cursor: pointer;
 }
 
 .quota-modal-icon {
   width: 72px;
   height: 72px;
-  margin: 0 auto 16px;
+
+  margin:
+    0 auto 16px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   border-radius: 50%;
 
-  background: rgba(34,197,94,0.10);
-  border: 1px solid rgba(74,222,128,0.30);
+  background:
+    rgba(212, 175, 55, 0.08);
+
+  border:
+    1px solid rgba(212, 175, 55, 0.35);
 
   box-shadow:
-    0 0 30px rgba(34,197,94,0.20);
+    0 0 30px rgba(212, 175, 55, 0.14);
 
   font-size: 38px;
 }
 
 .quota-modal-title {
   color: #f8fafc;
+
   font-size: 21px;
   font-weight: 800;
+
   letter-spacing: 0.5px;
 }
 
 .quota-modal-subtitle {
   margin-top: 8px;
 
-  color: #8fa5a5;
+  color: #9ca3af;
+
   font-size: 13px;
   line-height: 1.6;
 }
 
 .quota-limit-box {
   margin-top: 20px;
+
   padding: 17px;
 
   border-radius: 17px;
 
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(212, 175, 55, 0.16);
 }
 
 .quota-limit-label {
-  color: #9fb0b0;
+  color: #9ca3af;
+
   font-size: 13px;
 }
 
 .quota-limit-value {
   margin-top: 3px;
 
-  color: #4ade80;
+  color: #e5c45a;
+
   font-size: 43px;
   line-height: 1.1;
   font-weight: 900;
 
   text-shadow:
-    0 0 20px rgba(74,222,128,0.25);
+    0 0 20px rgba(212, 175, 55, 0.20);
 }
 
 .quota-limit-value small {
   margin-left: 5px;
 
   color: #f1f5f9;
+
   font-size: 16px;
   font-weight: 700;
 }
 
 .quota-reset-text {
   margin-top: 14px;
+
   padding: 12px 10px;
 
   border-radius: 13px;
 
-  background: rgba(34,197,94,0.07);
+  background:
+    rgba(212, 175, 55, 0.07);
 
-  color: #cbd5e1;
+  color: #d1d5db;
+
   font-size: 13px;
 }
 
 .quota-reset-text strong {
-  color: #4ade80;
+  color: #e5c45a;
 }
 
 .quota-modal-confirm {
   width: 100%;
+
   margin-top: 18px;
+
   padding: 14px;
 
-  border: 0;
+  border:
+    1px solid rgba(212, 175, 55, 0.55);
+
   border-radius: 14px;
 
-  background: linear-gradient(
-    135deg,
-    #16a34a,
-    #4ade80
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #b8902e,
+      #e2c45c
+    );
 
-  color: #04120a;
+  color: #0b0b0b;
 
   font-size: 16px;
   font-weight: 900;
@@ -1594,7 +1638,7 @@ h1{
   cursor: pointer;
 
   box-shadow:
-    0 8px 25px rgba(34,197,94,0.20);
+    0 8px 25px rgba(212, 175, 55, 0.16);
 }
 
 .quota-modal-confirm:active {
@@ -4514,13 +4558,19 @@ function closeQuotaLimitModal() {
       🗓️ 明日 <strong>00:00</strong> 將自動恢復分析次數
     </div>
 
-    <button
-      type="button"
+   <a
       class="quota-modal-confirm"
-      onclick="closeQuotaLimitModal()"
+      href="https://lin.ee/xmU6Cn8"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="
+        display:block;
+        text-decoration:none;
+        box-sizing:border-box;
+      "
     >
-      知道了
-    </button>
+      聯絡哈寶增加積分 →
+    </a>
 
   </div>
 </div>
