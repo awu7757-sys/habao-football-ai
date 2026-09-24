@@ -5785,11 +5785,6 @@ function updateV2AccountPanel(member) {
       "v2AccountProvider"
     );
 
-  const expireEl =
-    document.getElementById(
-      "v2AccountExpire"
-    );
-
   const creditsEl =
     document.getElementById(
       "v2AccountCredits"
@@ -5829,64 +5824,6 @@ function updateV2AccountPanel(member) {
 
       providerEl.textContent =
         "HABAO 帳號";
-
-    }
-
-  }
-
-  if (expireEl) {
-
-    if (member.expire_at) {
-
-      const expire =
-        new Date(
-          member.expire_at
-        );
-
-      if (
-        Number.isNaN(
-          expire.getTime()
-        )
-      ) {
-
-        expireEl.textContent =
-          "--";
-
-      } else {
-
-        expireEl.textContent =
-          expire.toLocaleString(
-            "zh-TW",
-            {
-              timeZone:
-                "Asia/Taipei",
-
-              year:
-                "numeric",
-
-              month:
-                "2-digit",
-
-              day:
-                "2-digit",
-
-              hour:
-                "2-digit",
-
-              minute:
-                "2-digit",
-
-              hour12:
-                false
-            }
-          );
-
-      }
-
-    } else {
-
-      expireEl.textContent =
-        "長期有效";
 
     }
 
@@ -6208,7 +6145,6 @@ function showV2SignupBonus() {
     return;
   }
 
-
   const overlay =
     document.getElementById(
       "v2BonusOverlay"
@@ -6219,12 +6155,10 @@ function showV2SignupBonus() {
       "v2BonusAmount"
     );
 
-
   if (amountEl) {
     amountEl.textContent =
       String(bonus);
   }
-
 
   if (overlay) {
     overlay.classList.add(
@@ -6232,12 +6166,15 @@ function showV2SignupBonus() {
     );
   }
 
+  /*
+    通知一顯示就立即清除，
+    避免重新整理後再次跳出。
+  */
   sessionStorage.removeItem(
-  "habao_signup_bonus"
-);
+    "habao_signup_bonus"
+  );
 
 }
-
 
 function closeV2SignupBonus() {
 
