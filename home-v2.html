@@ -10,7 +10,7 @@
 
   <meta name="theme-color" content="#080b10">
 
-  <title>哈寶足球 AI｜V2</title>
+  <title>HABAO 賽事預測 AI</title>
 
   <style>
     :root {
@@ -185,35 +185,22 @@
       min-width: 0;
     }
 
-    .logo {
-      position: relative;
+   .logo {
+  position: relative;
 
-      width: 45px;
-      height: 45px;
+  width: 45px;
+  height: 45px;
 
-      flex: 0 0 auto;
+  flex: 0 0 45px;
 
-      display: grid;
-      place-items: center;
+  background:
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
 
-      border-radius: 15px;
-
-      color: #171006;
-
-      background:
-        linear-gradient(
-          145deg,
-          #ffe8ae,
-          #f2bd4b 54%,
-          #d9931d
-        );
-
-      box-shadow:
-        0 8px 28px rgba(242,189,75,.18);
-
-      font-size: 21px;
-      font-weight: 1000;
-    }
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,.38))
+    drop-shadow(0 0 10px rgba(214,181,111,.10));
+}
 
     .logo::after {
       content: "";
@@ -2726,23 +2713,6 @@
 
 
     /* =========================
-       LOGO 也增加厚度
-    ========================= */
-
-    .logo {
-      border:
-        1px solid rgba(255,236,182,.50);
-
-      box-shadow:
-        0 6px 0 rgba(110,67,5,.28),
-        0 13px 24px rgba(0,0,0,.30),
-        0 0 24px rgba(242,189,75,.20),
-        inset 0 2px 0 rgba(255,255,255,.55),
-        inset 0 -3px 5px rgba(128,75,3,.18);
-    }
-
-
-    /* =========================
        手機避免 3D 太誇張
     ========================= */
 
@@ -5048,9 +5018,7 @@
 
       <div class="brand">
 
-        <div class="logo">
-          H
-        </div>
+<div class="logo" aria-label="HABAO"></div>
 
         <div>
 
