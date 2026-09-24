@@ -4677,6 +4677,263 @@
   }
 
 }
+
+/* =========================================
+   V2 VIP MEMBER
+========================================= */
+
+.v2-total-credit-row {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(214, 177, 95, 0.18);
+}
+
+#v2MemberLevel {
+  color: #d7d7d7;
+  font-weight: 800;
+}
+
+#v2MemberLevel.is-vip {
+  color: #e9c66f;
+  text-shadow: 0 0 16px rgba(233, 198, 111, 0.22);
+}
+
+#v2DailyCredits {
+  color: #e9c66f;
+  font-weight: 800;
+}
+
+#v2AccountCredits {
+  color: #f3d98e;
+  font-weight: 900;
+}
+
+.v2-vip-status {
+  margin-top: 16px;
+}
+
+.v2-vip-upgrade-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(233, 198, 111, 0.48);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(233, 198, 111, 0.18),
+      rgba(143, 105, 38, 0.08)
+    );
+  color: #f0d48b;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.v2-vip-upgrade-button:active {
+  transform: scale(0.985);
+}
+
+.v2-vip-hint {
+  margin-top: 9px;
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 11px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.v2-vip-current {
+  padding: 13px 14px;
+  border: 1px solid rgba(233, 198, 111, 0.3);
+  border-radius: 14px;
+  background: rgba(233, 198, 111, 0.07);
+  text-align: center;
+}
+
+.v2-vip-current strong {
+  display: block;
+  color: #f0d48b;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.v2-vip-current span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+}
+
+.v2-vip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.v2-vip-overlay.show {
+  display: flex;
+}
+
+.v2-vip-modal {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 28px 20px 22px;
+  border: 1px solid rgba(233, 198, 111, 0.25);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(233, 198, 111, 0.09),
+      transparent 42%
+    ),
+    #111315;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.55);
+}
+
+.v2-vip-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.v2-vip-badge {
+  width: fit-content;
+  margin: 0 auto 12px;
+  padding: 5px 12px;
+  border: 1px solid rgba(233, 198, 111, 0.42);
+  border-radius: 999px;
+  background: rgba(233, 198, 111, 0.1);
+  color: #f0d48b;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.v2-vip-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.v2-vip-subtitle {
+  max-width: 320px;
+  margin: 9px auto 20px;
+  color: rgba(255, 255, 255, 0.53);
+  font-size: 12px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.v2-vip-benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.v2-vip-benefits > div {
+  padding: 13px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: center;
+}
+
+.v2-vip-benefits strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #e9c66f;
+  font-size: 13px;
+}
+
+.v2-vip-benefits span {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
+}
+
+.v2-vip-input-label {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.v2-vip-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.28);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.v2-vip-input:focus {
+  border-color: rgba(233, 198, 111, 0.55);
+  box-shadow: 0 0 0 3px rgba(233, 198, 111, 0.06);
+}
+
+.v2-vip-message {
+  min-height: 20px;
+  padding-top: 7px;
+  color: #ff8585;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.v2-vip-message.success {
+  color: #72d89a;
+}
+
+.v2-vip-submit {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      135deg,
+      #e8ca7c,
+      #b8893e
+    );
+  color: #111111;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.v2-vip-submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.v2-vip-notice {
+  margin-top: 11px;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 10px;
+  line-height: 1.55;
+  text-align: center;
+}
     
 </style>
 
@@ -5509,18 +5766,75 @@
         </div>
       </div>
 
-          <div class="v2-account-row">
-        <div class="v2-account-label">
-          可用積分
-        </div>
+<div class="v2-account-row">
+  <div class="v2-account-label">
+    會員等級
+  </div>
 
-        <div
-          class="v2-account-value v2-account-expire"
-          id="v2AccountCredits"
-        >
-          --
-        </div>
-      </div>  
+  <div
+    class="v2-account-value"
+    id="v2MemberLevel"
+  >
+    一般會員
+  </div>
+</div>
+
+<div class="v2-account-row">
+  <div class="v2-account-label">
+    每日免費積分
+  </div>
+
+  <div
+    class="v2-account-value"
+    id="v2DailyCredits"
+  >
+    0 積分
+  </div>
+</div>
+
+<div class="v2-account-row">
+  <div class="v2-account-label">
+    原有／儲值積分
+  </div>
+
+  <div
+    class="v2-account-value"
+    id="v2PaidCredits"
+  >
+    0 積分
+  </div>
+</div>
+
+<div class="v2-account-row v2-total-credit-row">
+  <div class="v2-account-label">
+    總可用積分
+  </div>
+
+  <div
+    class="v2-account-value"
+    id="v2AccountCredits"
+  >
+    0 積分
+  </div>
+</div>
+
+<div
+  class="v2-vip-status"
+  id="v2VipStatus"
+>
+  <button
+    type="button"
+    class="v2-vip-upgrade-button"
+    onclick="openV2VipUpgrade()"
+  >
+    升級 VIP 會員
+  </button>
+
+  <div class="v2-vip-hint">
+    綁定平台帳號後立即升級 VIP<br>
+    VIP 每日登入可獲得 2 點免費分析積分
+  </div>
+</div>
 
     </div>
 
@@ -5535,6 +5849,87 @@
 
   </div>
 </div>
+
+<!-- ===============================
+     VIP 升級視窗
+================================ -->
+<div
+  class="v2-vip-overlay"
+  id="v2VipOverlay"
+  onclick="closeV2VipUpgrade(event)"
+>
+  <div
+    class="v2-vip-modal"
+    onclick="event.stopPropagation()"
+  >
+    <button
+      type="button"
+      class="v2-vip-close"
+      onclick="closeV2VipUpgrade()"
+      aria-label="關閉"
+    >
+      ×
+    </button>
+
+    <div class="v2-vip-badge">
+      VIP
+    </div>
+
+    <div class="v2-vip-title">
+      升級 VIP 會員
+    </div>
+
+    <div class="v2-vip-subtitle">
+      完成平台註冊後，輸入您的平台帳號即可立即升級
+    </div>
+
+    <div class="v2-vip-benefits">
+      <div>
+        <strong>每日 2 點</strong>
+        <span>登入免費補充，不累積</span>
+      </div>
+
+      <div>
+        <strong>優先使用</strong>
+        <span>每日免費積分會優先扣除</span>
+      </div>
+    </div>
+
+    <label
+      class="v2-vip-input-label"
+      for="v2PlatformAccount"
+    >
+      平台帳號
+    </label>
+
+    <input
+      type="text"
+      id="v2PlatformAccount"
+      class="v2-vip-input"
+      placeholder="請輸入您的平台帳號"
+      autocomplete="off"
+      maxlength="80"
+    >
+
+    <div
+      class="v2-vip-message"
+      id="v2VipMessage"
+    ></div>
+
+    <button
+      type="button"
+      class="v2-vip-submit"
+      id="v2VipSubmit"
+      onclick="submitV2VipUpgrade()"
+    >
+      確認升級 VIP
+    </button>
+
+    <div class="v2-vip-notice">
+      每個平台帳號僅能綁定一個 HABAO AI 會員帳號
+    </div>
+  </div>
+</div>
   
 <script>
 /* =========================================
@@ -5543,6 +5938,9 @@
 
 const MEMBER_LOGIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
+
+const UPGRADE_VIP_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/upgrade-vip";  
 
 const AI_PERFORMANCE_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
@@ -5785,15 +6183,37 @@ function updateV2AccountPanel(member) {
       "v2AccountProvider"
     );
 
+  const levelEl =
+    document.getElementById(
+      "v2MemberLevel"
+    );
+
+  const dailyEl =
+    document.getElementById(
+      "v2DailyCredits"
+    );
+
+  const paidEl =
+    document.getElementById(
+      "v2PaidCredits"
+    );
+
   const creditsEl =
     document.getElementById(
       "v2AccountCredits"
     );
 
+  const vipStatusEl =
+    document.getElementById(
+      "v2VipStatus"
+    );
+
+
   if (nameEl) {
     nameEl.textContent =
       member.account || "--";
   }
+
 
   if (providerEl) {
 
@@ -5829,27 +6249,405 @@ function updateV2AccountPanel(member) {
 
   }
 
+
+  const isVip =
+    String(
+      member.member_level || "normal"
+    ).toLowerCase() === "vip";
+
+
+  if (levelEl) {
+
+    levelEl.textContent =
+      isVip
+        ? "VIP 會員"
+        : "一般會員";
+
+    levelEl.classList.toggle(
+      "is-vip",
+      isVip
+    );
+
+  }
+
+
+  const dailyCredits =
+    isVip
+      ? Math.max(
+          0,
+          Number(
+            member.daily_free_credits ?? 0
+          ) || 0
+        )
+      : 0;
+
+  const paidCredits =
+    Math.max(
+      0,
+      Number(
+        member.analysis_credits ?? 0
+      ) || 0
+    );
+
+
+  if (dailyEl) {
+
+    dailyEl.textContent =
+      member.analysis_unlimited === true
+        ? "無限制"
+        : `${dailyCredits} 積分`;
+
+  }
+
+
+  if (paidEl) {
+
+    paidEl.textContent =
+      member.analysis_unlimited === true
+        ? "無限制"
+        : `${paidCredits} 積分`;
+
+  }
+
+
   if (creditsEl) {
 
-    if (
+    creditsEl.textContent =
       member.analysis_unlimited === true
-    ) {
+        ? "無限制"
+        : `${dailyCredits + paidCredits} 積分`;
 
-      creditsEl.textContent =
-        "無限制";
+  }
+
+
+  if (vipStatusEl) {
+
+    if (isVip) {
+
+      const platformAccount =
+        String(
+          member.platform_account || ""
+        ).trim();
+
+      vipStatusEl.innerHTML = `
+        <div class="v2-vip-current">
+          <strong>VIP 會員權益已啟用</strong>
+          <span>
+            ${
+              platformAccount
+                ? `平台帳號：${escapeV2HTML(platformAccount)}`
+                : "每日登入免費補充 2 點分析積分"
+            }
+          </span>
+        </div>
+      `;
 
     } else {
 
-      const credits =
-        Number(
-          member.analysis_credits ?? 0
+      vipStatusEl.innerHTML = `
+        <button
+          type="button"
+          class="v2-vip-upgrade-button"
+          onclick="openV2VipUpgrade()"
+        >
+          升級 VIP 會員
+        </button>
+
+        <div class="v2-vip-hint">
+          綁定平台帳號後立即升級 VIP<br>
+          VIP 每日登入可獲得 2 點免費分析積分
+        </div>
+      `;
+
+    }
+
+  }
+
+}
+
+function openV2VipUpgrade() {
+
+  const overlay =
+    document.getElementById(
+      "v2VipOverlay"
+    );
+
+  const input =
+    document.getElementById(
+      "v2PlatformAccount"
+    );
+
+  const message =
+    document.getElementById(
+      "v2VipMessage"
+    );
+
+  if (message) {
+    message.textContent = "";
+    message.classList.remove(
+      "success"
+    );
+  }
+
+  if (input) {
+    input.value = "";
+  }
+
+  if (overlay) {
+    overlay.classList.add(
+      "show"
+    );
+  }
+
+  setTimeout(() => {
+    input?.focus();
+  }, 100);
+
+}
+
+
+function closeV2VipUpgrade(event) {
+
+  if (
+    event &&
+    event.target !== event.currentTarget
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.getElementById(
+      "v2VipOverlay"
+    );
+
+  if (overlay) {
+    overlay.classList.remove(
+      "show"
+    );
+  }
+
+}
+
+
+async function submitV2VipUpgrade() {
+
+  const input =
+    document.getElementById(
+      "v2PlatformAccount"
+    );
+
+  const message =
+    document.getElementById(
+      "v2VipMessage"
+    );
+
+  const button =
+    document.getElementById(
+      "v2VipSubmit"
+    );
+
+  const platformAccount =
+    String(
+      input?.value || ""
+    ).trim();
+
+
+  if (!platformAccount) {
+
+    if (message) {
+      message.textContent =
+        "請輸入平台帳號";
+    }
+
+    input?.focus();
+    return;
+
+  }
+
+
+  if (platformAccount.length < 3) {
+
+    if (message) {
+      message.textContent =
+        "平台帳號格式不正確";
+    }
+
+    input?.focus();
+    return;
+
+  }
+
+
+  if (message) {
+    message.textContent = "";
+    message.classList.remove(
+      "success"
+    );
+  }
+
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "升級處理中...";
+  }
+
+
+  try {
+
+    const {
+      data: sessionData,
+      error: sessionError
+    } =
+      await v2SupabaseAuth.auth
+        .getSession();
+
+
+    if (
+      sessionError ||
+      !sessionData?.session?.access_token
+    ) {
+      throw new Error(
+        "LOGIN_REQUIRED"
+      );
+    }
+
+
+    const response =
+      await fetch(
+        UPGRADE_VIP_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              "Bearer " +
+              sessionData.session
+                .access_token
+          },
+
+          body:
+            JSON.stringify({
+              platform_account:
+                platformAccount
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      data?.success !== true ||
+      !data?.member
+    ) {
+
+      if (
+        data?.error ===
+        "PLATFORM_ACCOUNT_USED"
+      ) {
+        throw new Error(
+          "PLATFORM_ACCOUNT_USED"
         );
+      }
 
-      creditsEl.textContent =
-        Number.isFinite(credits)
-          ? `${credits} 積分`
-          : "0 積分";
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        "UPGRADE_FAILED"
+      );
 
+    }
+
+
+    const member =
+      data.member;
+
+
+    sessionStorage.setItem(
+      "habao_member",
+      JSON.stringify(member)
+    );
+
+
+    updateV2Account(
+      member.account
+    );
+
+    updateV2AccountPanel(
+      member
+    );
+
+
+    if (message) {
+
+      message.textContent =
+        "VIP 升級成功";
+
+      message.classList.add(
+        "success"
+      );
+
+    }
+
+
+    setTimeout(() => {
+
+      closeV2VipUpgrade();
+
+    }, 700);
+
+
+  } catch (error) {
+
+    console.error(
+      "V2 VIP UPGRADE ERROR:",
+      error
+    );
+
+
+    if (message) {
+
+      if (
+        error?.message ===
+        "PLATFORM_ACCOUNT_USED"
+      ) {
+
+        message.textContent =
+          "此平台帳號已綁定其他會員";
+
+      } else if (
+        error?.message ===
+        "LOGIN_REQUIRED"
+      ) {
+
+        message.textContent =
+          "登入狀態已失效，請重新登入";
+
+      } else {
+
+        message.textContent =
+          "升級失敗，請稍後再試";
+
+      }
+
+    }
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "確認升級 VIP";
     }
 
   }
