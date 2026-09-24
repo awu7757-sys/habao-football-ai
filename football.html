@@ -1739,30 +1739,13 @@ h1{
   height:46px;
   flex:0 0 46px;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:15px;
-
-  font-size:22px;
-  font-weight:1000;
-  color:#16130b;
-
   background:
-    linear-gradient(
-      145deg,
-      #fff0a8 0%,
-      #f7c84f 42%,
-      #d99a17 100%
-    );
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
 
-  border:1px solid rgba(255,228,142,.9);
-
-  box-shadow:
-    0 0 0 4px rgba(219,165,42,.08),
-    0 10px 25px rgba(0,0,0,.35),
-    inset 0 1px 0 rgba(255,255,255,.65);
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,.38))
+    drop-shadow(0 0 10px rgba(214,181,111,.10));
 }
 
 .v2-brand-copy{
@@ -2200,13 +2183,11 @@ h1{
     min-height:70px;
   }
 
-  .v2-logo{
-    width:42px;
-    height:42px;
-    flex-basis:42px;
-    border-radius:13px;
-    font-size:20px;
-  }
+.v2-logo{
+  width:42px;
+  height:42px;
+  flex-basis:42px;
+}
 
   .v2-brand .brand-title{
     font-size:15px;
@@ -3087,9 +3068,7 @@ h1{
 
     <a href="home-v2.html" class="brand v2-brand">
 
-      <div class="v2-logo">
-        H
-      </div>
+  <div class="v2-logo" aria-label="HABAO"></div>
 
       <div class="v2-brand-copy">
         <div class="brand-title">
@@ -3483,225 +3462,615 @@ if (isOAuthMember) {
 const MATCH_ANALYSIS_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis";
 
-async function openMatch(fixtureId, button){
+const ANALYSIS_JOB_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/analysis-job";
 
-  if (!fixtureId) {
-    alert("找不到這場比賽的 fixtureId");
-    return;
-  }
-  const match =
-  window.habaoFixtureMap?.[String(fixtureId)] || null;
-  
-if (button) {
-    button.disabled = true;
-    button.dataset.originalText = button.textContent;
-    button.classList.add("loading");
+const HABAO_ANALYSIS_JOB_KEY =
+  "habao_active_analysis_job";
 
-    let progress = 8;
+let habaoAnalysisJobTimer = null;
 
-    button.textContent = `AI 分析中 ${progress}%`;
-    button.style.setProperty("--progress", `${progress}%`);
 
-    button._progressTimer = setInterval(() => {
-
-        if (progress < 90) {
-            progress += Math.floor(Math.random() * 7) + 2;
-
-            if (progress > 90) {
-                progress = 90;
-            }
-
-            button.textContent = `AI 分析中 ${progress}%`;
-            button.style.setProperty("--progress", `${progress}%`);
-        }
-
-    }, 600);
-}
-  try {
-
-    const response = await fetch(MATCH_ANALYSIS_URL, {
-      method: "POST",
-
-      headers: {
-  "Content-Type": "application/json"
-},
-
-body: JSON.stringify({
-    fixture_id: fixtureId,
-    account: JSON.parse(sessionStorage.getItem("habao_member"))?.account || ""
-})
-    });
-
-    const data = await response.json();
-
-   if (!response.ok || !data.success) {
-
-  if (data.error === "daily_limit_reached") {
-  showQuotaLimitModal(data.limit ?? data.daily_limit ?? 0);
-    
-if (button) {
-  clearInterval(button._progressTimer);
-  button.disabled = false;
-  button.textContent = button.dataset.originalText || "開始分析 →";
-  button.classList.remove("loading");
-}
-    
-    return;
-  }
-
- if (data.error === "analysis_credits_empty") {
-  showQuotaLimitModal("credits_empty");
-
-  if (button) {
-    clearInterval(button._progressTimer);
-    button.disabled = false;
-    button.textContent = button.dataset.originalText || "開始分析 →";
-    button.classList.remove("loading");
-  }
-
-  return;
-}
-     
- if (data.error === "member_expired") {
-  alert("使用權限已到期，請聯絡哈寶");
-
-  if (button) {
-    clearInterval(button._progressTimer);
-    button.disabled = false;
-    button.textContent = button.dataset.originalText || "開始分析 →";
-    button.classList.remove("loading");
-  }
-
-  return;
-}
-     
-if (data.error === "member_inactive") {
-  alert("AI 分析權限目前已停用，請聯絡哈寶");
-
-  if (button) {
-    clearInterval(button._progressTimer);
-    button.disabled = false;
-    button.textContent = button.dataset.originalText || "開始分析 →";
-    button.classList.remove("loading");
-  }
-
-  return;
-}
-
-  throw new Error(
-    data.message || data.error || "AI 賽事分析失敗"
+function saveActiveAnalysisJob(job) {
+  localStorage.setItem(
+    HABAO_ANALYSIS_JOB_KEY,
+    JSON.stringify(job)
   );
 }
 
-  sessionStorage.setItem(
-  "matchAnalysis",
-  JSON.stringify(data)
-);
 
-if (
-  data.remaining_credits !== null &&
-  data.remaining_credits !== undefined
+function getActiveAnalysisJob() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(
+        HABAO_ANALYSIS_JOB_KEY
+      ) || "null"
+    );
+  } catch {
+    return null;
+  }
+}
+
+
+function clearActiveAnalysisJob() {
+  localStorage.removeItem(
+    HABAO_ANALYSIS_JOB_KEY
+  );
+
+  if (habaoAnalysisJobTimer) {
+    clearTimeout(
+      habaoAnalysisJobTimer
+    );
+
+    habaoAnalysisJobTimer = null;
+  }
+}
+
+
+async function createAnalysisJob(
+  fixtureIds,
+  jobType
 ) {
-  try {
-    const member = JSON.parse(
-      sessionStorage.getItem("habao_member") || "null"
-    );
-
-    if (member) {
-      member.total_available_credits =
-        Number(data.remaining_credits);
-
-      if (
-        data.remaining_daily_credits !== null &&
-        data.remaining_daily_credits !== undefined
-      ) {
-        member.daily_free_credits =
-          Number(data.remaining_daily_credits);
-      }
-
-      if (
-        data.remaining_paid_credits !== null &&
-        data.remaining_paid_credits !== undefined
-      ) {
-        member.analysis_credits =
-          Number(data.remaining_paid_credits);
-      }
-
-      sessionStorage.setItem(
-        "habao_member",
-        JSON.stringify(member)
-      );
-    }
-  } catch (creditSyncError) {
-    console.error(
-      "會員積分同步失敗：",
-      creditSyncError
-    );
-  }
-}
-
-try {
   const member = JSON.parse(
-    sessionStorage.getItem("habao_member") || "null"
+    sessionStorage.getItem(
+      "habao_member"
+    ) || "null"
   );
 
-  if (member?.account && match) {
+  if (!member?.account) {
+    throw new Error(
+      "找不到會員登入資料"
+    );
+  }
+
+  const response =
     await fetch(
-      "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history",
+      ANALYSIS_JOB_URL,
       {
         method: "POST",
+
         headers: {
-          "Content-Type": "application/json",
-          "apikey": FIXTURES_PUBLISHABLE_KEY,
-          "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+          "Content-Type":
+            "application/json"
         },
+
         body: JSON.stringify({
-          account: member.account,
-          fixture_id: fixtureId,
-          analysis_id: data.analysis_id || fixtureId,
-          fixture_time: match.time || null,
-          home_team: match.home?.name || "",
-          away_team: match.away?.name || "",
-          home_logo: match.home?.logo || "",
-          away_logo: match.away?.logo || "",
-          league_name: match.league?.name || "",
-          league_logo: match.league?.logo || "",
-          match_status: match.status || "",
-          result_data: data
+          account:
+            member.account,
+
+          job_type:
+            jobType,
+
+          fixture_ids:
+            fixtureIds.map(Number)
         })
       }
     );
+
+  const data =
+    await response.json();
+
+  if (
+    response.status === 409 &&
+    data?.error ===
+      "job_already_running" &&
+    data?.job
+  ) {
+    return data.job;
   }
-} catch (historyError) {
-  console.error("分析紀錄寫入失敗：", historyError);
-}    
 
-if (button) {
-  clearInterval(button._progressTimer);
-  button.textContent = "AI 分析完成 100%";
-  button.style.setProperty("--progress", "100%");
+  if (
+    !response.ok ||
+    !data?.success ||
+    !data?.job
+  ) {
+    const error =
+      new Error(
+        data?.message ||
+        data?.error ||
+        "建立分析任務失敗"
+      );
 
-  setTimeout(() => {
-    window.location.href = "analysis.html?v=2";
-  }, 350);
-} else {
-  window.location.href = "analysis.html?v=2";
+    error.code =
+      data?.error || "";
+
+    error.data =
+      data;
+
+    throw error;
+  }
+
+  return data.job;
 }
-  } catch (error) {
 
-    console.error(error);
+async function fetchAnalysisJob(
+  jobId
+) {
+  const member = JSON.parse(
+    sessionStorage.getItem(
+      "habao_member"
+    ) || "null"
+  );
 
-    alert(
-      "AI 分析失敗：\n" +
-      error.message
+  if (
+    !member?.account ||
+    !jobId
+  ) {
+    return null;
+  }
+
+  const response =
+    await fetch(
+      ANALYSIS_JOB_URL +
+      "?job_id=" +
+      encodeURIComponent(
+        jobId
+      ) +
+      "&account=" +
+      encodeURIComponent(
+        member.account
+      ),
+      {
+        method: "GET"
+      }
     );
 
-    if (button) {
-  clearInterval(button._progressTimer);
-  button.disabled = false;
-  button.textContent = button.dataset.originalText || "開始分析 →";
-  button.classList.remove("loading");
+  const data =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !data?.success
+  ) {
+    console.error(
+      "背景分析進度讀取失敗：",
+      data
+    );
+
+    return null;
+  }
+
+  return data.job || null;
 }
+  
+function getAnalysisJobResults(job) {
+  return Array.isArray(
+    job?.results
+  )
+    ? job.results
+        .map(item =>
+          item?.data || null
+        )
+        .filter(Boolean)
+    : [];
+}
+
+
+function updateAnalysisJobUI(job) {
+  if (!job) return;
+
+  const total =
+    Number(
+      job.total_count || 0
+    );
+
+  const completed =
+    Number(
+      job.completed_count || 0
+    );
+
+  const failed =
+    Number(
+      job.failed_count || 0
+    );
+
+  const progress =
+    total > 0
+      ? Math.min(
+          99,
+          Math.max(
+            8,
+            Math.round(
+              (
+                (
+                  completed +
+                  failed
+                ) /
+                total
+              ) * 100
+            )
+          )
+        )
+      : 8;
+
+  if (
+    job.job_type === "batch"
+  ) {
+    const bar =
+      document.getElementById(
+        "batchAnalysisBar"
+      );
+
+    const count =
+      document.getElementById(
+        "batchAnalysisCount"
+      );
+
+    const sub =
+      document.getElementById(
+        "batchAnalysisSub"
+      );
+
+    const button =
+      document.getElementById(
+        "batchAnalysisStart"
+      );
+
+    if (bar) {
+      bar.classList.add("show");
+    }
+
+    if (count) {
+      count.textContent =
+        `分析進度 ${completed} / ${total}`;
+    }
+
+    if (sub) {
+      sub.textContent =
+        "背景分析中，可先離開此頁";
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        `${progress}%`;
+    }
+
+    return;
+  }
+
+  const fixtureId =
+    String(
+      job.fixture_ids?.[0] ||
+      job.current_fixture_id ||
+      ""
+    );
+
+  const card =
+    document.querySelector(
+      `.v2-match-card[data-fixture-id="${fixtureId}"]`
+    );
+
+  const button =
+    card?.querySelector(
+      ".analysis-btn"
+    );
+
+  if (button) {
+    button.disabled = true;
+    button.classList.add(
+      "loading"
+    );
+
+    button.textContent =
+      `AI 分析中 ${progress}%`;
+
+    button.style.setProperty(
+      "--progress",
+      `${progress}%`
+    );
+  }
+}
+
+
+async function finishAnalysisJob(
+  job
+) {
+  const results =
+    getAnalysisJobResults(job);
+
+  if (
+    job.status ===
+      "completed" ||
+    job.status ===
+      "partial"
+  ) {
+    if (results.length) {
+      results.forEach(data => {
+        syncMemberCreditsFromAnalysis(
+          data
+        );
+      });
+
+      if (
+        job.job_type ===
+          "batch"
+      ) {
+        sessionStorage.setItem(
+          "matchAnalysisBatch",
+          JSON.stringify({
+            results,
+            failures:
+              Array.isArray(
+                job.failures
+              )
+                ? job.failures
+                : [],
+
+            created_at:
+              job.created_at ||
+              new Date()
+                .toISOString()
+          })
+        );
+
+        sessionStorage.setItem(
+          "matchAnalysis",
+          JSON.stringify(
+            results[0]
+          )
+        );
+
+        clearActiveAnalysisJob();
+
+        window.location.href =
+          "analysis.html?v=2&batch=1";
+
+        return;
+      }
+
+      sessionStorage.setItem(
+        "matchAnalysis",
+        JSON.stringify(
+          results[0]
+        )
+      );
+
+      clearActiveAnalysisJob();
+
+      window.location.href =
+        "analysis.html?v=2";
+
+      return;
+    }
+  }
+
+  const firstFailure =
+    Array.isArray(
+      job.failures
+    )
+      ? job.failures[0]
+      : null;
+
+  clearActiveAnalysisJob();
+
+  if (
+    firstFailure?.error ===
+      "analysis_credits_empty"
+  ) {
+    showQuotaLimitModal(
+      "credits_empty"
+    );
+
+    return;
+  }
+
+  if (
+    firstFailure?.error ===
+      "daily_limit_reached"
+  ) {
+    showQuotaLimitModal(
+      0
+    );
+
+    return;
+  }
+
+  alert(
+    firstFailure?.message ||
+    job.error_message ||
+    "AI 賽事分析失敗"
+  );
+
+  resetAnalysisButtons();
+}
+
+
+async function pollAnalysisJob(
+  jobId
+) {
+  if (!jobId) return;
+
+  try {
+    const job =
+      await fetchAnalysisJob(
+        jobId
+      );
+
+    if (!job) {
+      return;
+    }
+
+    saveActiveAnalysisJob(
+      job
+    );
+
+    updateAnalysisJobUI(
+      job
+    );
+
+    if (
+      job.status ===
+        "completed" ||
+      job.status ===
+        "partial" ||
+      job.status ===
+        "failed"
+    ) {
+      await finishAnalysisJob(
+        job
+      );
+
+      return;
+    }
+
+  } catch (error) {
+    console.error(
+      "背景分析進度讀取失敗：",
+      error
+    );
+  }
+
+  habaoAnalysisJobTimer =
+    setTimeout(
+      () =>
+        pollAnalysisJob(
+          jobId
+        ),
+      2500
+    );
+}
+
+
+function resumeActiveAnalysisJob() {
+  const job =
+    getActiveAnalysisJob();
+
+  if (!job?.id) {
+    return;
+  }
+
+  updateAnalysisJobUI(job);
+
+  pollAnalysisJob(
+    job.id
+  );
+}
+  
+async function openMatch(
+  fixtureId,
+  button
+) {
+  if (!fixtureId) {
+    alert(
+      "找不到這場比賽的 fixtureId"
+    );
+    return;
+  }
+
+  const existingJob =
+    getActiveAnalysisJob();
+
+  if (
+    existingJob?.id &&
+    (
+      existingJob.status ===
+        "queued" ||
+      existingJob.status ===
+        "processing"
+    )
+  ) {
+    pollAnalysisJob(
+      existingJob.id
+    );
+
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+
+    button.dataset.originalText =
+      button.textContent;
+
+    button.classList.add(
+      "loading"
+    );
+
+    button.textContent =
+      "建立分析任務...";
+
+    button.style.setProperty(
+      "--progress",
+      "8%"
+    );
+  }
+
+  try {
+    const job =
+      await createAnalysisJob(
+        [fixtureId],
+        "single"
+      );
+
+    saveActiveAnalysisJob(
+      job
+    );
+
+    updateAnalysisJobUI(
+      job
+    );
+
+    pollAnalysisJob(
+      job.id
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    if (
+      error.code ===
+        "analysis_credits_empty"
+    ) {
+      showQuotaLimitModal(
+        "credits_empty"
+      );
+
+    } else if (
+      error.code ===
+        "daily_limit_reached"
+    ) {
+      showQuotaLimitModal(
+        error.data?.limit ??
+        error.data?.daily_limit ??
+        0
+      );
+
+    } else if (
+      error.code ===
+        "member_inactive"
+    ) {
+      alert(
+        "AI 分析權限目前已停用，請聯絡哈寶"
+      );
+
+    } else {
+      alert(
+        "AI 分析失敗：\n" +
+        (
+          error.message ||
+          "建立背景分析失敗"
+        )
+      );
+    }
+
+    if (button) {
+      button.disabled = false;
+
+      button.textContent =
+        button.dataset
+          .originalText ||
+        "開始分析 →";
+
+      button.classList.remove(
+        "loading"
+      );
+
+      button.style
+        .removeProperty(
+          "--progress"
+        );
+    }
   }
 }
 // ================================
@@ -4598,111 +4967,69 @@ async function startBatchAnalysis() {
 
   if (startButton) {
     startButton.disabled = true;
+
     startButton.textContent =
-      "準備分析...";
+      "建立分析任務...";
   }
 
-  checkboxes.forEach(input => {
-    input.disabled = true;
-  });
+  if (sub) {
+    sub.textContent =
+      `準備背景分析 ${fixtureIds.length} 場`;
+  }
 
-  const results = [];
-  const failures = [];
-
-  for (
-    let index = 0;
-    index < fixtureIds.length;
-    index++
-  ) {
-    const fixtureId =
-      fixtureIds[index];
-
-    const match =
-      window.habaoFixtureMap?.[
-        String(fixtureId)
-      ] || null;
-
-    if (sub) {
-      sub.textContent =
-        `正在分析 ${index + 1} / ${fixtureIds.length} 場`;
+  checkboxes.forEach(
+    input => {
+      input.disabled = true;
     }
+  );
 
-    if (startButton) {
-      startButton.textContent =
-        `${index + 1} / ${fixtureIds.length}`;
-    }
-
-    try {
-      const data =
-        await requestBatchAnalysis(
-          fixtureId
-        );
-
-      syncMemberCreditsFromAnalysis(
-        data
+  try {
+    const job =
+      await createAnalysisJob(
+        fixtureIds,
+        "batch"
       );
 
-      await saveBatchAnalysisHistory(
-        fixtureId,
-        data,
-        match
-      );
+    saveActiveAnalysisJob(
+      job
+    );
 
-      results.push(data);
+    updateAnalysisJobUI(
+      job
+    );
 
-    } catch (error) {
-      console.error(
-        "批次分析失敗：",
-        fixtureId,
-        error
-      );
+    pollAnalysisJob(
+      job.id
+    );
 
-      failures.push({
-        fixtureId,
-        code:
-          error.code || "",
-        message:
-          error.message ||
-          "分析失敗"
-      });
+  } catch (error) {
+    console.error(
+      "批次背景分析建立失敗：",
+      error
+    );
 
-      if (
-        error.code ===
-          "analysis_credits_empty" ||
-        error.code ===
-          "daily_limit_reached" ||
-        error.code ===
-          "member_expired" ||
-        error.code ===
-          "member_inactive"
-      ) {
-        break;
+    checkboxes.forEach(
+      input => {
+        input.disabled = false;
       }
-    }
-  }
+    );
 
-  checkboxes.forEach(input => {
-    input.disabled = false;
-  });
-
-  if (!results.length) {
     if (startButton) {
-      startButton.disabled = false;
+      startButton.disabled =
+        false;
+
       startButton.textContent =
         "開始批次分析";
     }
 
     if (sub) {
       sub.textContent =
-        "本次沒有完成任何分析";
+        "背景分析建立失敗";
     }
 
-    const firstFailure =
-      failures[0];
-
     if (
-      firstFailure?.code ===
-      "analysis_credits_empty"
+      error.code ===
+        "analysis_credits_empty"
     ) {
       showQuotaLimitModal(
         "credits_empty"
@@ -4712,12 +5039,12 @@ async function startBatchAnalysis() {
     }
 
     if (
-      firstFailure?.code ===
-      "daily_limit_reached"
+      error.code ===
+        "daily_limit_reached"
     ) {
       showQuotaLimitModal(
-        firstFailure?.data?.limit ??
-        firstFailure?.data?.daily_limit ??
+        error.data?.limit ??
+        error.data?.daily_limit ??
         0
       );
 
@@ -4725,44 +5052,10 @@ async function startBatchAnalysis() {
     }
 
     alert(
-      firstFailure?.message ||
-      "批次分析失敗"
+      error.message ||
+      "批次分析建立失敗"
     );
-
-    return;
   }
-
-  sessionStorage.setItem(
-    "matchAnalysisBatch",
-    JSON.stringify({
-      results,
-      failures,
-      created_at:
-        new Date().toISOString()
-    })
-  );
-
-  sessionStorage.setItem(
-    "matchAnalysis",
-    JSON.stringify(results[0])
-  );
-
-  if (sub) {
-    sub.textContent =
-      failures.length
-        ? `完成 ${results.length} 場・${failures.length} 場未完成`
-        : `全部 ${results.length} 場分析完成`;
-  }
-
-  if (startButton) {
-    startButton.textContent =
-      "分析完成 100%";
-  }
-
-  setTimeout(() => {
-    window.location.href =
-      "analysis.html?v=2&batch=1";
-  }, 450);
 }
   
 function resetAnalysisButtons() {
@@ -4792,13 +5085,18 @@ function resetAnalysisButtons() {
   });
 }
 
-window.addEventListener("pageshow", () => {
-  resetAnalysisButtons();
-
-  setTimeout(() => {
+window.addEventListener(
+  "pageshow",
+  () => {
     resetAnalysisButtons();
-  }, 300);
-});
+
+    setTimeout(() => {
+      resetAnalysisButtons();
+
+      resumeActiveAnalysisJob();
+    }, 300);
+  }
+);
   
 // 頁面開啟後自動取得賽事
 loadTomorrowFixtures();
