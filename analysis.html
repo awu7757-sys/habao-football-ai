@@ -2474,7 +2474,104 @@ h1{
   font-weight:900;
   letter-spacing:.4px;
 }
-  
+
+/* ===== 批次分析結果切換 ===== */
+
+.batch-result-nav{
+  display:none;
+
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:16px;
+  padding:12px 14px;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,31,42,.98),
+      rgba(7,22,32,.98)
+    );
+
+  border:
+    1px solid
+    rgba(245,196,81,.20);
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.20);
+}
+
+.batch-result-nav.show{
+  display:flex;
+}
+
+.batch-result-info{
+  min-width:0;
+  text-align:center;
+}
+
+.batch-result-count{
+  color:#f5c451;
+  font-size:12px;
+  font-weight:950;
+}
+
+.batch-result-team{
+  margin-top:3px;
+
+  color:#91a5b0;
+  font-size:9px;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.batch-nav-btn{
+  flex:0 0 auto;
+
+  min-width:74px;
+  min-height:36px;
+
+  padding:0 10px;
+
+  border-radius:9px;
+
+  border:
+    1px solid
+    rgba(245,196,81,.22);
+
+  background:
+    rgba(245,196,81,.06);
+
+  color:#f5c451;
+
+  font-size:10px;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.batch-nav-btn:disabled{
+  opacity:.3;
+  cursor:not-allowed;
+}
+
+@media(max-width:600px){
+  .batch-result-nav{
+    gap:7px;
+    padding:10px;
+  }
+
+  .batch-nav-btn{
+    min-width:62px;
+    font-size:9px;
+  }
+}
+   
 </style>
 </head>
 
@@ -2500,11 +2597,243 @@ h1{
   </div>
 </header>
 
+<div
+  id="batchResultNav"
+  class="batch-result-nav"
+  style="
+    width:min(1120px,calc(100% - 32px));
+    margin:18px auto 0;
+  "
+>
+  <button
+    id="batchPrevBtn"
+    class="batch-nav-btn"
+    type="button"
+    onclick="showPreviousBatchResult()"
+  >
+    ← 上一場
+  </button>
+
+  <div class="batch-result-info">
+    <div
+      id="batchResultCount"
+      class="batch-result-count"
+    >
+      第 1 / 1 場
+    </div>
+
+    <div
+      id="batchResultTeam"
+      class="batch-result-team"
+    ></div>
+  </div>
+
+  <button
+    id="batchNextBtn"
+    class="batch-nav-btn"
+    type="button"
+    onclick="showNextBatchResult()"
+  >
+    下一場 →
+  </button>
+</div>
+   
 <main id="app"></main>
 
 <script>
-const raw = sessionStorage.getItem("matchAnalysis");
-const app = document.getElementById("app");
+const app =
+  document.getElementById("app");
+
+const batchRaw =
+  sessionStorage.getItem(
+    "matchAnalysisBatch"
+  );
+
+const isBatchMode =
+  new URLSearchParams(
+    window.location.search
+  ).get("batch") === "1";
+
+let batchResults = [];
+let batchIndex = 0;
+
+if (
+  isBatchMode &&
+  batchRaw
+) {
+  try {
+    const batchData =
+      JSON.parse(batchRaw);
+
+    batchResults =
+      Array.isArray(
+        batchData?.results
+      )
+        ? batchData.results
+        : [];
+
+  } catch (error) {
+    console.error(
+      "批次結果解析失敗：",
+      error
+    );
+  }
+}
+
+let raw =
+  batchResults.length
+    ? JSON.stringify(
+        batchResults[0]
+      )
+    : sessionStorage.getItem(
+        "matchAnalysis"
+      );
+
+
+function updateBatchResultNav() {
+  const nav =
+    document.getElementById(
+      "batchResultNav"
+    );
+
+  if (
+    !nav ||
+    !batchResults.length
+  ) {
+    return;
+  }
+
+  nav.classList.add("show");
+
+  const data =
+    batchResults[batchIndex];
+
+  const fixture =
+    data?.fixture || {};
+
+  const count =
+    document.getElementById(
+      "batchResultCount"
+    );
+
+  const team =
+    document.getElementById(
+      "batchResultTeam"
+    );
+
+  const prev =
+    document.getElementById(
+      "batchPrevBtn"
+    );
+
+  const next =
+    document.getElementById(
+      "batchNextBtn"
+    );
+
+  if (count) {
+    count.textContent =
+      `第 ${batchIndex + 1} / ${batchResults.length} 場`;
+  }
+
+  if (team) {
+    const home =
+      fixture.home?.name ||
+      fixture.home?.api_name ||
+      "主隊";
+
+    const away =
+      fixture.away?.name ||
+      fixture.away?.api_name ||
+      "客隊";
+
+    team.textContent =
+      `${home} vs ${away}`;
+  }
+
+  if (prev) {
+    prev.disabled =
+      batchIndex === 0;
+  }
+
+  if (next) {
+    next.disabled =
+      batchIndex ===
+      batchResults.length - 1;
+  }
+}
+
+
+function showBatchResult(index) {
+  if (
+    index < 0 ||
+    index >= batchResults.length
+  ) {
+    return;
+  }
+
+  batchIndex = index;
+
+  sessionStorage.setItem(
+    "matchAnalysis",
+    JSON.stringify(
+      batchResults[batchIndex]
+    )
+  );
+
+  window.location.href =
+    `analysis.html?v=2&batch=1&item=${batchIndex}`;
+}
+
+
+function showPreviousBatchResult() {
+  showBatchResult(
+    batchIndex - 1
+  );
+}
+
+
+function showNextBatchResult() {
+  showBatchResult(
+    batchIndex + 1
+  );
+}
+
+
+if (
+  isBatchMode &&
+  batchResults.length
+) {
+  const requestedIndex =
+    Number(
+      new URLSearchParams(
+        window.location.search
+      ).get("item") || 0
+    );
+
+  if (
+    Number.isInteger(
+      requestedIndex
+    ) &&
+    requestedIndex >= 0 &&
+    requestedIndex <
+      batchResults.length
+  ) {
+    batchIndex =
+      requestedIndex;
+  }
+
+  raw =
+    JSON.stringify(
+      batchResults[batchIndex]
+    );
+
+  setTimeout(
+    updateBatchResultNav,
+    0
+  );
+}
+
 
 if (!raw) {
 
