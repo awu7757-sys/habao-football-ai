@@ -4839,6 +4839,102 @@
   text-align: center;
 }
 
+/* ===============================
+   VIP 合作平台
+================================ */
+
+.v2-vip-platform-section {
+  margin: 4px 0 18px;
+}
+
+.v2-vip-platform-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 13px;
+
+  border: 1px solid rgba(233, 198, 111, 0.22);
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(233, 198, 111, 0.08),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.v2-vip-platform-logo {
+  width: 54px;
+  height: 54px;
+
+  flex: 0 0 54px;
+
+  object-fit: cover;
+
+  border-radius: 13px;
+
+  border: 1px solid rgba(233, 198, 111, 0.22);
+}
+
+.v2-vip-platform-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.v2-vip-platform-info strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  margin-bottom: 4px;
+}
+
+.v2-vip-platform-info span {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.46);
+
+  font-size: 10px;
+}
+
+.v2-vip-register-button {
+  flex: 0 0 auto;
+
+  padding: 9px 11px;
+
+  border: 1px solid rgba(233, 198, 111, 0.42);
+  border-radius: 10px;
+
+  background: rgba(233, 198, 111, 0.1);
+
+  color: #f0d48b;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+}
+
+.v2-vip-register-button:active {
+  transform: scale(0.97);
+}
+
+.v2-vip-have-account {
+  margin: 18px 0 10px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+    
 .v2-vip-benefits {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -5849,7 +5945,7 @@
 
   </div>
 </div>
-
+  
 <!-- ===============================
      VIP 升級視窗
 ================================ -->
@@ -5876,23 +5972,57 @@
     </div>
 
     <div class="v2-vip-title">
-      升級 VIP 會員
+      免費升級 VIP 會員
     </div>
 
     <div class="v2-vip-subtitle">
-      完成平台註冊後，輸入您的平台帳號即可立即升級
+      綁定任一合作平台帳號，即可免費升級 VIP<br>
+      每日登入免費補充 2 點分析積分
+    </div>
+
+    <!-- 合作平台 -->
+    <div class="v2-vip-platform-section">
+
+      <div class="v2-vip-platform-card">
+
+        <img
+          src="hd-logo.png"
+          alt="HD 皇鼎"
+          class="v2-vip-platform-logo"
+        >
+
+        <div class="v2-vip-platform-info">
+          <strong>HD 皇鼎</strong>
+          <span>尚未有平台帳號？</span>
+        </div>
+
+        <a
+          href="https://hd5957.com/?aff=uy09zj"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="v2-vip-register-button"
+        >
+          前往免費註冊 ↗
+        </a>
+
+      </div>
+
     </div>
 
     <div class="v2-vip-benefits">
       <div>
         <strong>每日 2 點</strong>
-        <span>登入免費補充，不累積</span>
+        <span>登入補充・不累積</span>
       </div>
 
       <div>
         <strong>優先使用</strong>
-        <span>每日免費積分會優先扣除</span>
+        <span>每日積分優先扣除</span>
       </div>
+    </div>
+
+    <div class="v2-vip-have-account">
+      已經有平台帳號？
     </div>
 
     <label
@@ -5925,9 +6055,6 @@
       確認升級 VIP
     </button>
 
-    <div class="v2-vip-notice">
-      每個平台帳號僅能綁定一個 HABAO AI 會員帳號
-    </div>
   </div>
 </div>
   
@@ -6350,12 +6477,12 @@ function updateV2AccountPanel(member) {
           class="v2-vip-upgrade-button"
           onclick="openV2VipUpgrade()"
         >
-          升級 VIP 會員
+    免費升級 VIP 會員
         </button>
 
         <div class="v2-vip-hint">
-          綁定平台帳號後立即升級 VIP<br>
-          VIP 每日登入可獲得 2 點免費分析積分
+綁定任一合作平台帳號，即可免費升級 VIP<br>
+VIP 每日登入免費補充 2 點分析積分
         </div>
       `;
 
@@ -6552,7 +6679,8 @@ async function submitV2VipUpgrade() {
     ) {
 
       if (
-        data?.error ===
+if (
+        data?.code ===
         "PLATFORM_ACCOUNT_USED"
       ) {
         throw new Error(
