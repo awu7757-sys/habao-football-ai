@@ -3364,8 +3364,24 @@ if (
     );
 
     if (member) {
-      member.analysis_credits =
+      member.total_available_credits =
         Number(data.remaining_credits);
+
+      if (
+        data.remaining_daily_credits !== null &&
+        data.remaining_daily_credits !== undefined
+      ) {
+        member.daily_free_credits =
+          Number(data.remaining_daily_credits);
+      }
+
+      if (
+        data.remaining_paid_credits !== null &&
+        data.remaining_paid_credits !== undefined
+      ) {
+        member.analysis_credits =
+          Number(data.remaining_paid_credits);
+      }
 
       sessionStorage.setItem(
         "habao_member",
@@ -3378,7 +3394,7 @@ if (
       creditSyncError
     );
   }
-}    
+}
 
 try {
   const member = JSON.parse(
