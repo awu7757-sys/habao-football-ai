@@ -3293,14 +3293,28 @@ h1{
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-const SUPABASE_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co";
+const FUNCTION_URL =
+"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
 
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+const FIXTURES_PUBLISHABLE_KEY =
+"sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+
+const SUPABASE_URL =
+"https://oqtbsbohcfeghgnykwxy.supabase.co";
+
+const supabaseAuth =
+window.supabase.createClient(
+  SUPABASE_URL,
+  FIXTURES_PUBLISHABLE_KEY
+);
+
+let currentFixtureOffset = 1;
+
+verifyMember();
 
 const supabaseAuth =
   window.supabase.createClient(
@@ -3887,8 +3901,7 @@ const teamNameZH = {
 function getTeamNameZH(name) {
   return teamNameZH[name] || name;
 }
-
-let currentFixtureOffset = 1;
+  
   const HABAO_FIXTURE_CACHE_TTL =
   3 * 60 * 1000;
 
