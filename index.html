@@ -2994,6 +2994,64 @@ body.login-ready .app {
     height: 41px !important;
   }
 }  
+
+/* ===== HABAO Splash Loading ===== */
+
+.splash-loading {
+  width: min(260px, 68vw);
+  margin: 24px auto 0;
+}
+
+.splash-loading-track {
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.10);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255, 255, 255, 0.04);
+}
+
+.splash-loading-bar {
+  width: 0%;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #9f7a2e 0%,
+      #d6b86a 55%,
+      #f4df9c 100%
+    );
+
+  box-shadow:
+    0 0 14px
+    rgba(214, 184, 106, 0.55);
+
+  transition:
+    width 0.12s linear;
+}
+
+.splash-loading-text {
+  margin-top: 10px;
+
+  color:
+    rgba(255, 255, 255, 0.58);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.16em;
+
+  text-align: center;
+}
     
   </style>
 
@@ -3024,6 +3082,22 @@ body.login-ready .app {
     <div class="splash-subtitle">
       多維賽事數據・智能分析平台
     </div>
+    
+    <div class="splash-loading">
+  <div class="splash-loading-track">
+    <div
+      id="splashLoadingBar"
+      class="splash-loading-bar"
+    ></div>
+  </div>
+
+  <div
+    id="splashLoadingText"
+    class="splash-loading-text"
+  >
+    0%
+  </div>
+</div>
 
   </div>
 
@@ -3765,102 +3839,172 @@ window.addEventListener(
 
 <script>
 (() => {
-  const splash =
-    document.getElementById("splashScreen");
 
-  const body = document.body;
+  const splash =
+    document.getElementById(
+      "splashScreen"
+    );
+
+  const body =
+    document.body;
+
+  const loadingBar =
+    document.getElementById(
+      "splashLoadingBar"
+    );
+
+  const loadingText =
+    document.getElementById(
+      "splashLoadingText"
+    );
+
 
   if (!splash) {
-    body.classList.add("login-ready");
-    return;
-  }
-
-  body.classList.add("splash-active");
-
-  const MIN_SPLASH_TIME = 1500;
-  const MAX_SPLASH_TIME = 3000;
-
-  const startTime = Date.now();
-
-  let closed = false;
-  let ready = false;
-
-  function finishSplash(force = false) {
-
-    if (closed) return;
-
-    const elapsed =
-      Date.now() - startTime;
-
-    if (
-      !force &&
-      (!ready || elapsed < MIN_SPLASH_TIME)
-    ) {
-      return;
-    }
-
-    closed = true;
-
-    body.classList.remove(
-      "splash-active"
-    );
 
     body.classList.add(
       "login-ready"
     );
 
-    splash.remove();
+    return;
   }
 
-  /*
-   * 最少 1.5 秒後再次檢查。
-   */
-  setTimeout(() => {
-    finishSplash(false);
-  }, MIN_SPLASH_TIME);
 
-  /*
-   * 頁面完成載入後，
-   * 標記登入頁已準備完成。
-   */
-  if (document.readyState === "complete") {
+  body.classList.add(
+    "splash-active"
+  );
 
-    ready = true;
 
-  } else {
+  let closed = false;
 
-    window.addEventListener(
-      "load",
-      () => {
-        ready = true;
-        finishSplash(false);
-      },
-      { once: true }
-    );
+  let progress = 0;
+
+
+  function updateProgress(value) {
+
+    progress =
+      Math.min(
+        100,
+        Math.max(0, value)
+      );
+
+    if (loadingBar) {
+
+      loadingBar.style.width =
+        progress + "%";
+    }
+
+    if (loadingText) {
+
+      loadingText.textContent =
+        Math.round(progress) + "%";
+    }
   }
 
-  /*
-   * 最長 3 秒。
-   * 不論任何圖片、網路或事件異常，
-   * 一律強制關閉 Splash。
-   */
-  setTimeout(() => {
-    finishSplash(true);
-  }, MAX_SPLASH_TIME);
 
-  /*
-   * 點擊 Splash：
-   * 無條件立即跳過。
-   */
+  function closeSplash() {
+
+    if (closed) return;
+
+    closed = true;
+
+    updateProgress(100);
+
+    setTimeout(() => {
+
+      splash.remove();
+
+      body.classList.remove(
+        "splash-active"
+      );
+
+      body.classList.add(
+        "login-ready"
+      );
+
+    }, 180);
+  }
+
+
+  updateProgress(0);
+
+
+  const loadingTimer =
+    setInterval(() => {
+
+      if (closed) {
+
+        clearInterval(
+          loadingTimer
+        );
+
+        return;
+      }
+
+
+      if (progress < 70) {
+
+        progress +=
+          Math.random() * 5 + 2;
+
+      } else if (
+        progress < 90
+      ) {
+
+        progress +=
+          Math.random() * 2 + 0.8;
+
+      } else if (
+        progress < 98
+      ) {
+
+        progress += 0.35;
+      }
+
+
+      updateProgress(
+        Math.min(
+          progress,
+          98
+        )
+      );
+
+    }, 110);
+
+
+  const splashTimer =
+    setTimeout(() => {
+
+      clearInterval(
+        loadingTimer
+      );
+
+      closeSplash();
+
+    }, 4000);
+
+
   splash.addEventListener(
     "click",
     () => {
-      finishSplash(true);
+
+      clearTimeout(
+        splashTimer
+      );
+
+      clearInterval(
+        loadingTimer
+      );
+
+      closeSplash();
+
     },
-    { once: true }
+    {
+      once: true
+    }
   );
 
 })();
+  
 </script>
 
 <!-- 加入主畫面｜教學彈窗 -->
