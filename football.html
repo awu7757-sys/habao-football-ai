@@ -1698,6 +1698,65 @@ h1{
   pointer-events: none;
 }
 
+/* ===== 聯賽快捷篩選 ===== */
+.fixture-league-filter {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  margin: -6px 0 24px;
+  padding: 2px 1px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fixture-league-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.league-filter-btn {
+  flex: 0 0 auto;
+  min-width: 66px;
+  height: 38px;
+  padding: 0 15px;
+
+  border: 1px solid rgba(232, 184, 72, 0.20);
+  border-radius: 10px;
+
+  background: rgba(18, 20, 22, 0.92);
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition: 0.18s ease;
+}
+
+.league-filter-btn:hover {
+  border-color: rgba(232, 184, 72, 0.48);
+  color: #f4d77d;
+}
+
+.league-filter-btn.active {
+  border-color: #d9b54a;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 184, 72, 0.22),
+      rgba(232, 184, 72, 0.08)
+    );
+
+  color: #f4d77d;
+
+  box-shadow:
+    0 0 0 1px rgba(232, 184, 72, 0.08),
+    0 8px 22px rgba(0, 0, 0, 0.20);
+}  
+
 /* =========================================================
    HABAO FOOTBALL V2 - HEADER / HERO / DATE CONTROL
 ========================================================= */
@@ -3248,7 +3307,24 @@ h1{
     placeholder="搜尋球隊或聯賽..."
     autocomplete="off"
   >
-</div>  
+</div>
+
+<div class="fixture-league-filter" id="fixtureLeagueFilter">
+  <button type="button" class="league-filter-btn active" data-league="all">全部</button>
+  <button type="button" class="league-filter-btn" data-league="top5">五大聯賽</button>
+  <button type="button" class="league-filter-btn" data-league="UEFA Champions League">歐冠</button>
+  <button type="button" class="league-filter-btn" data-league="UEFA Europa League">歐聯杯</button>
+  <button type="button" class="league-filter-btn" data-league="Premier League">英超</button>
+  <button type="button" class="league-filter-btn" data-league="La Liga">西甲</button>
+  <button type="button" class="league-filter-btn" data-league="Bundesliga">德甲</button>
+  <button type="button" class="league-filter-btn" data-league="Serie A">義甲</button>
+  <button type="button" class="league-filter-btn" data-league="Ligue 1">法甲</button>
+  <button type="button" class="league-filter-btn" data-league="J1 League">日職</button>
+  <button type="button" class="league-filter-btn" data-league="K League 1">韓職</button>
+  <button type="button" class="league-filter-btn" data-league="Eredivisie">荷甲</button>
+  <button type="button" class="league-filter-btn" data-league="Chinese Super League">中超</button>
+  <button type="button" class="league-filter-btn" data-league="Serie A Brazil">巴甲</button>
+</div>
   
 <div id="matchesContainer"></div>
   <div class="ai-note line-group-card">
@@ -4399,6 +4475,7 @@ const leagueNameZH = {
 
   "J1 League": "日本職業足球甲級聯賽",
   "K League 1": "韓國職業足球甲級聯賽",
+  "Chinese Super League": "中國足球超級聯賽",
   "A-League": "澳洲職業足球聯賽",
   "Pro League": "沙烏地阿拉伯職業聯賽",
 
@@ -4669,23 +4746,34 @@ function renderFixtureData(
 
   currentFixtureOffset = offset;
 
-     const allowedLeagues = [
-  // 五大聯賽
-  { name: "Premier League", country: "England" },
-  { name: "La Liga", country: "Spain" },
-  { name: "Bundesliga", country: "Germany" },
-  { name: "Serie A", country: "Italy" },
-  { name: "Ligue 1", country: "France" },
+const allowedLeagueNames = new Set([
+  "UEFA Champions League",
+  "UEFA Europa League",
 
-  // 新增賽事
-  { name: "UEFA Champions League", country: "World" },
-  { name: "UEFA Europa League", country: "World" },
-  { name: "Championship", country: "England" },
-  { name: "Eredivisie", country: "Netherlands" },
-  { name: "Primeira Liga", country: "Portugal" }
-];
+  "Premier League",
+  "La Liga",
+  "Bundesliga",
+  "Serie A",
+  "Ligue 1",
 
-const fixtures = data.fixtures || [];
+  "J1 League",
+  "K League 1",
+  "Eredivisie",
+  "Chinese Super League",
+  "Serie A Brazil"
+]);
+
+const allFixtures =
+  Array.isArray(data.fixtures)
+    ? data.fixtures
+    : [];
+
+const fixtures =
+  allFixtures.filter(match =>
+    allowedLeagueNames.has(
+      match?.league?.name || ""
+    )
+  );
 
 if (fixtures.length === 0) {
   const emptyDateText =
@@ -4871,118 +4959,282 @@ return `
 `;
 }).join("");
 
-// ===== 賽事即時搜尋 =====
+// ===== 賽事搜尋 + 聯賽快捷篩選 =====
+
+let activeLeagueFilter = "all";
+
+const topFiveLeagues = new Set([
+  "Premier League",
+  "La Liga",
+  "Bundesliga",
+  "Serie A",
+  "Ligue 1"
+]);
+
+const leagueSearchAliases = {
+  "UEFA Champions League":
+    "歐冠 歐洲冠軍聯賽 冠軍聯賽 champions league",
+
+  "UEFA Europa League":
+    "歐聯杯 歐霸盃 歐霸 歐洲聯賽 europa league",
+
+  "Premier League":
+    "英超 英格蘭超級聯賽 premier league",
+
+  "La Liga":
+    "西甲 西班牙甲級聯賽 la liga",
+
+  "Bundesliga":
+    "德甲 德國甲級聯賽 bundesliga",
+
+  "Serie A":
+    "義甲 意甲 義大利甲級聯賽 serie a",
+
+  "Ligue 1":
+    "法甲 法國甲級聯賽 ligue 1",
+
+  "J1 League":
+    "日職 日職聯 日本 日本職業足球甲級聯賽 j1 league",
+
+  "K League 1":
+    "韓職 韓職聯 韓國 韓國職業足球甲級聯賽 k league",
+
+  "Eredivisie":
+    "荷甲 荷蘭甲級聯賽 eredivisie",
+
+  "Chinese Super League":
+    "中超 中國足球超級聯賽 chinese super league",
+
+  "Serie A Brazil":
+    "巴甲 巴西甲級聯賽 brasileirao serie a brazil"
+};
 
 const searchInput =
   document.getElementById(
     "fixtureSearchInput"
   );
 
+const leagueFilter =
+  document.getElementById(
+    "fixtureLeagueFilter"
+  );
+
+
+function applyFixtureFilters() {
+
+  const keyword =
+    searchInput?.value
+      ?.trim()
+      ?.toLowerCase() || "";
+
+  const cards =
+    container.querySelectorAll(
+      ".v2-match-card"
+    );
+
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+
+    const fixtureId =
+      String(
+        card.dataset.fixtureId || ""
+      );
+
+    const match =
+      window.habaoFixtureMap?.[
+        fixtureId
+      ];
+
+    if (!match) {
+      card.style.display = "none";
+      return;
+    }
+
+    const leagueName =
+      match?.league?.name || "";
+
+    const homeName =
+      match?.home?.name || "";
+
+    const awayName =
+      match?.away?.name || "";
+
+    const homeNameZH =
+      getTeamNameZH(homeName);
+
+    const awayNameZH =
+      getTeamNameZH(awayName);
+
+    const leagueNameZH =
+      getLeagueNameZH(
+        leagueName
+      );
+
+    const leagueAliases =
+      leagueSearchAliases[
+        leagueName
+      ] || "";
+
+    const searchText = [
+      homeName,
+      awayName,
+      homeNameZH,
+      awayNameZH,
+      leagueName,
+      leagueNameZH,
+      leagueAliases
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const keywordMatched =
+      !keyword ||
+      searchText.includes(
+        keyword
+      );
+
+    let leagueMatched = true;
+
+    if (
+      activeLeagueFilter ===
+      "top5"
+    ) {
+
+      leagueMatched =
+        topFiveLeagues.has(
+          leagueName
+        );
+
+    } else if (
+      activeLeagueFilter !==
+      "all"
+    ) {
+
+      leagueMatched =
+        leagueName ===
+        activeLeagueFilter;
+    }
+
+    const matched =
+      keywordMatched &&
+      leagueMatched;
+
+    card.style.display =
+      matched ? "" : "none";
+
+    if (matched) {
+      visibleCount++;
+    }
+  });
+
+
+  let emptyMessage =
+    container.querySelector(
+      ".fixture-search-empty"
+    );
+
+  if (visibleCount === 0) {
+
+    if (!emptyMessage) {
+
+      emptyMessage =
+        document.createElement(
+          "div"
+        );
+
+      emptyMessage.className =
+        "ai-note fixture-search-empty";
+
+      container.appendChild(
+        emptyMessage
+      );
+    }
+
+    if (keyword) {
+
+      emptyMessage.textContent =
+        `找不到「${searchInput.value.trim()}」相關賽事。`;
+
+    } else {
+
+      emptyMessage.textContent =
+        "目前沒有這個聯賽的賽事。";
+    }
+
+  } else if (emptyMessage) {
+
+    emptyMessage.remove();
+  }
+}
+
+
 if (searchInput) {
 
   searchInput.value = "";
 
-  searchInput.oninput = () => {
+  searchInput.oninput =
+    applyFixtureFilters;
+}
 
-    const keyword =
-      searchInput.value
-        .trim()
-        .toLowerCase();
 
-    const cards =
-      container.querySelectorAll(
-        ".v2-match-card"
+if (leagueFilter) {
+
+  activeLeagueFilter = "all";
+
+  leagueFilter
+    .querySelectorAll(
+      ".league-filter-btn"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.league ===
+          "all"
       );
-
-    let visibleCount = 0;
-
-    cards.forEach(card => {
-
-      const fixtureId =
-        card.dataset.fixtureId || "";
-
-      const match =
-        window.habaoFixtureMap?.[
-          String(fixtureId)
-        ];
-
-      if (!match) {
-        card.style.display =
-          keyword ? "none" : "";
-        return;
-      }
-
-      const searchText = [
-        match?.home?.name || "",
-        match?.away?.name || "",
-        getTeamNameZH(
-          match?.home?.name || ""
-        ),
-        getTeamNameZH(
-          match?.away?.name || ""
-        ),
-        match?.league?.name || "",
-        getLeagueNameZH(
-          match?.league?.name || ""
-        )
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matched =
-        keyword === "" ||
-        searchText.includes(keyword);
-
-      card.style.display =
-        matched ? "" : "none";
-
-      if (matched) {
-        visibleCount++;
-      }
 
     });
 
 
-    let emptyMessage =
-      container.querySelector(
-        ".fixture-search-empty"
-      );
+  leagueFilter.onclick =
+    event => {
 
-
-    if (
-      keyword &&
-      visibleCount === 0
-    ) {
-
-      if (!emptyMessage) {
-
-        emptyMessage =
-          document.createElement(
-            "div"
-          );
-
-        emptyMessage.className =
-          "ai-note fixture-search-empty";
-
-        emptyMessage.textContent =
-          "找不到符合的賽事。";
-
-        container.appendChild(
-          emptyMessage
+      const button =
+        event.target.closest(
+          ".league-filter-btn"
         );
 
+      if (!button) {
+        return;
       }
 
-    } else if (emptyMessage) {
+      activeLeagueFilter =
+        button.dataset.league ||
+        "all";
 
-      emptyMessage.remove();
+      leagueFilter
+        .querySelectorAll(
+          ".league-filter-btn"
+        )
+        .forEach(item => {
 
-    }
+          item.classList.remove(
+            "active"
+          );
 
-  };
+        });
 
+      button.classList.add(
+        "active"
+      );
+
+      applyFixtureFilters();
+    };
 }
- } 
+
+
+applyFixtureFilters();
 
 /* =========================
    HABAO 批次分析
