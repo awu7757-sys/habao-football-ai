@@ -6655,6 +6655,15 @@ if (
         );
       }
 
+           if (
+        data?.code ===
+        "VIP_REUPGRADE_BLOCKED"
+      ) {
+        throw new Error(
+          "VIP_REUPGRADE_BLOCKED"
+        );
+      } 
+
       throw new Error(
         data?.message ||
         data?.error ||
@@ -6719,6 +6728,14 @@ if (
 
         message.textContent =
           "此平台帳號已綁定其他會員";
+
+      } else if (
+        error?.message ===
+        "VIP_REUPGRADE_BLOCKED"
+      ) {
+
+        message.textContent =
+          "此帳號曾升級過 VIP，如需重新開通請聯絡客服";
 
       } else if (
         error?.message ===
