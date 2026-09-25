@@ -1723,8 +1723,8 @@ h1{
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 10px;
 
-  background: rgba(18, 20, 22, 0.92);
-  color: rgba(255, 255, 255, 0.72);
+  background: #151719;
+  color: rgba(255, 255, 255, 0.68);
 
   font-size: 13px;
   font-weight: 800;
@@ -1732,12 +1732,14 @@ h1{
   cursor: pointer;
   white-space: nowrap;
 
+  box-shadow: none;
   transition: 0.18s ease;
 }
 
-.league-filter-btn:hover {
-  border-color: rgba(232, 184, 72, 0.48);
+.league-filter-btn:hover:not(.active) {
+  border-color: rgba(232, 184, 72, 0.35);
   color: #f4d77d;
+  background: #191a1c;
 }
 
 .league-filter-btn.active {
@@ -1746,16 +1748,16 @@ h1{
   background:
     linear-gradient(
       135deg,
-      rgba(232, 184, 72, 0.22),
-      rgba(232, 184, 72, 0.08)
+      rgba(232, 184, 72, 0.26),
+      rgba(232, 184, 72, 0.10)
     );
 
   color: #f4d77d;
 
   box-shadow:
-    0 0 0 1px rgba(232, 184, 72, 0.08),
+    0 0 0 1px rgba(232, 184, 72, 0.10),
     0 8px 22px rgba(0, 0, 0, 0.20);
-}  
+}
 
 /* =========================================================
    HABAO FOOTBALL V2 - HEADER / HERO / DATE CONTROL
