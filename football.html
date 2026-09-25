@@ -3312,21 +3312,25 @@ h1{
 <div class="fixture-league-filter" id="fixtureLeagueFilter">
   <button type="button" class="league-filter-btn active" data-league="all">全部</button>
   <button type="button" class="league-filter-btn" data-league="top5">五大聯賽</button>
-  <button type="button" class="league-filter-btn" data-league="UEFA Champions League">歐冠</button>
-  <button type="button" class="league-filter-btn" data-league="UEFA Europa League">歐聯杯</button>
-  <button type="button" class="league-filter-btn" data-league="Premier League">英超</button>
-  <button type="button" class="league-filter-btn" data-league="La Liga">西甲</button>
-  <button type="button" class="league-filter-btn" data-league="Bundesliga">德甲</button>
-  <button type="button" class="league-filter-btn" data-league="Serie A">義甲</button>
-  <button type="button" class="league-filter-btn" data-league="Ligue 1">法甲</button>
-  <button type="button" class="league-filter-btn" data-league="J1 League">日職</button>
-  <button type="button" class="league-filter-btn" data-league="K League 1">韓職</button>
-  <button type="button" class="league-filter-btn" data-league="Eredivisie">荷甲</button>
-  <button type="button" class="league-filter-btn" data-league="Chinese Super League">中超</button>
-  <button type="button" class="league-filter-btn" data-league="Serie A Brazil">巴甲</button>
+
+  <button type="button" class="league-filter-btn" data-league="champions">歐冠</button>
+  <button type="button" class="league-filter-btn" data-league="europa">歐聯杯</button>
+
+  <button type="button" class="league-filter-btn" data-league="premier">英超</button>
+  <button type="button" class="league-filter-btn" data-league="laliga">西甲</button>
+  <button type="button" class="league-filter-btn" data-league="bundesliga">德甲</button>
+  <button type="button" class="league-filter-btn" data-league="italy-serie-a">義甲</button>
+  <button type="button" class="league-filter-btn" data-league="ligue1">法甲</button>
+
+  <button type="button" class="league-filter-btn" data-league="j1">日職</button>
+  <button type="button" class="league-filter-btn" data-league="kleague">韓職</button>
+  <button type="button" class="league-filter-btn" data-league="eredivisie">荷甲</button>
+  <button type="button" class="league-filter-btn" data-league="csl">中超</button>
+  <button type="button" class="league-filter-btn" data-league="brazil-serie-a">巴甲</button>
 </div>
-  
+
 <div id="matchesContainer"></div>
+  
   <div class="ai-note line-group-card">
   <div class="line-group-title">
     ⚽️ 一場球，不只看 AI 怎麼分析
@@ -3356,7 +3360,7 @@ const SUPABASE_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co";
 
 const FUNCTION_URL =
-  SUPABASE_URL + "/functions/v1/member-login";
+  SUPABASE_URL + "/functions/v1/member-login";  
 
 const FIXTURES_PUBLISHABLE_KEY =
   "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
@@ -4746,36 +4750,192 @@ function renderFixtureData(
 
   currentFixtureOffset = offset;
 
-const allowedLeagueNames = new Set([
-  "UEFA Champions League",
-  "UEFA Europa League",
+// ================================
+// HABAO 指定聯賽辨識
+// ================================
 
-  "Premier League",
-  "La Liga",
-  "Bundesliga",
-  "Serie A",
-  "Ligue 1",
+function normalizeLeagueText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.\-_]/g, " ")
+    .replace(/\s+/g, " ");
+}
 
-  "J1 League",
-  "K League 1",
-  "Eredivisie",
-  "Chinese Super League",
-  "Serie A Brazil"
-]);
+function getHabaoLeagueKey(match) {
+  const leagueName = normalizeLeagueText(
+    match?.league?.name || ""
+  );
+
+  const leagueCountry = normalizeLeagueText(
+    match?.league?.country ||
+    match?.country?.name ||
+    match?.country ||
+    ""
+  );
+
+  // ===== 歐洲盃賽 =====
+
+  if (
+    leagueName === "uefa champions league" ||
+    leagueName === "champions league"
+  ) {
+    return "champions";
+  }
+
+  if (
+    leagueName === "uefa europa league" ||
+    leagueName === "europa league"
+  ) {
+    return "europa";
+  }
+
+  // ===== 五大聯賽 =====
+
+  if (
+    leagueName === "premier league" &&
+    (
+      !leagueCountry ||
+      leagueCountry.includes("england")
+    )
+  ) {
+    return "premier";
+  }
+
+  if (
+    leagueName === "la liga" ||
+    leagueName === "laliga"
+  ) {
+    return "laliga";
+  }
+
+  if (leagueName === "bundesliga") {
+    return "bundesliga";
+  }
+
+  if (
+    leagueName === "ligue 1" ||
+    leagueName === "ligue1"
+  ) {
+    return "ligue1";
+  }
+
+  // 義甲
+  if (
+    (
+      leagueName === "serie a" &&
+      (
+        leagueCountry.includes("italy") ||
+        leagueCountry.includes("italia")
+      )
+    ) ||
+    leagueName === "serie a italy" ||
+    leagueName === "italy serie a"
+  ) {
+    return "italy-serie-a";
+  }
+
+  // ===== 亞洲 =====
+
+  if (
+    leagueName === "j1 league" ||
+    leagueName === "j league" ||
+    leagueName === "j league 1"
+  ) {
+    return "j1";
+  }
+
+  if (
+    leagueName === "k league 1" ||
+    leagueName === "k league"
+  ) {
+    return "kleague";
+  }
+
+  if (leagueName === "chinese super league") {
+    return "csl";
+  }
+
+  // ===== 其他指定主流聯賽 =====
+
+  if (leagueName === "eredivisie") {
+    return "eredivisie";
+  }
+
+  // 巴甲
+  if (
+    leagueName === "serie a brazil" ||
+    leagueName === "brasileirão série a" ||
+    leagueName === "brasileirao serie a" ||
+    leagueName === "brasileirão serie a" ||
+    leagueName === "brazil serie a" ||
+    (
+      leagueName === "serie a" &&
+      (
+        leagueCountry.includes("brazil") ||
+        leagueCountry.includes("brasil")
+      )
+    )
+  ) {
+    return "brazil-serie-a";
+  }
+
+  // 如果 API 只有 Serie A、沒有 country，
+  // 目前既有資料結構以義甲 Serie A 為主
+  if (
+    leagueName === "serie a" &&
+    !leagueCountry
+  ) {
+    return "italy-serie-a";
+  }
+
+  return "";
+}
+
+
+function getHabaoLeagueLabel(leagueKey) {
+
+  const labels = {
+    "champions": "歐洲冠軍聯賽",
+    "europa": "歐聯杯",
+
+    "premier": "英格蘭超級聯賽",
+    "laliga": "西班牙甲級聯賽",
+    "bundesliga": "德國甲級聯賽",
+    "italy-serie-a": "義大利甲級聯賽",
+    "ligue1": "法國甲級聯賽",
+
+    "j1": "日本職業足球甲級聯賽",
+    "kleague": "韓國職業足球甲級聯賽",
+    "eredivisie": "荷蘭甲級聯賽",
+    "csl": "中國足球超級聯賽",
+    "brazil-serie-a": "巴西甲級聯賽"
+  };
+
+  return labels[leagueKey] || "";
+}
+
 
 const allFixtures =
   Array.isArray(data.fixtures)
     ? data.fixtures
     : [];
 
+
+// ======================================
+// 前台永久只顯示 HABAO 指定聯賽
+// ======================================
+
 const fixtures =
-  allFixtures.filter(match =>
-    allowedLeagueNames.has(
-      match?.league?.name || ""
-    )
-  );
+  allFixtures.filter(match => {
+    return Boolean(
+      getHabaoLeagueKey(match)
+    );
+  });
+
 
 if (fixtures.length === 0) {
+
   const emptyDateText =
     offset === 0 ? "今日" :
     offset === 1 ? "明日" :
@@ -4786,18 +4946,28 @@ if (fixtures.length === 0) {
       ${emptyDateText}暫無符合條件的主要賽事。
     </div>
   `;
+
   return;
 }
 
-    window.habaoFixtureMap = Object.fromEntries(
-  fixtures.map(match => [String(match.fixtureId), match])
-);
-    
-    container.innerHTML = fixtures.map(match => {
 
-      const gameTime = new Date(match.time);
+window.habaoFixtureMap =
+  Object.fromEntries(
+    fixtures.map(match => [
+      String(match.fixtureId),
+      match
+    ])
+  );
 
-      const time = gameTime.toLocaleTimeString(
+
+container.innerHTML =
+  fixtures.map(match => {
+
+    const gameTime =
+      new Date(match.time);
+
+    const time =
+      gameTime.toLocaleTimeString(
         "zh-TW",
         {
           timeZone: "Asia/Taipei",
@@ -4807,212 +4977,201 @@ if (fixtures.length === 0) {
         }
       );
 
-const leagueText = getLeagueNameZH(match.league.name || "");
 
-const isFinished =
-  currentFixtureOffset === 0 &&
-  ["FT", "AET", "PEN", "AWD", "WO"].includes(match.status);
+    const leagueKey =
+      getHabaoLeagueKey(match);
 
-const isLocked =
-  currentFixtureOffset === 2;
-
-return `
-  <article
-  class="match-card v2-match-card"
-  data-fixture-id="${match.fixtureId}"
->
-
-    <div class="v2-match-card-top">
-
-      <div class="v2-match-league">
-        <span class="v2-league-dot"></span>
-        ${leagueText}
-      </div>
-
-      <div class="v2-match-time">
-        ${time}
-      </div>
-
-    </div>
+    const leagueText =
+      getHabaoLeagueLabel(leagueKey) ||
+      getLeagueNameZH(
+        match?.league?.name || ""
+      );
 
 
-    <div class="v2-match-teams">
-
-      <div class="v2-match-team">
-
-        <div class="v2-team-logo-box">
-          <img
-            class="team-logo"
-            src="${match.home.logo || ""}"
-            alt="${match.home.name}"
-          >
-        </div>
-
-        <div class="team-name">
-          ${getTeamNameZH(match.home.name)}
-        </div>
-
-         <div class="v2-team-side">
-         主隊
-         </div>
-
-      </div>
+    const isFinished =
+      currentFixtureOffset === 0 &&
+      [
+        "FT",
+        "AET",
+        "PEN",
+        "AWD",
+        "WO"
+      ].includes(match.status);
 
 
-      <div class="v2-match-vs-center">
-
-        <div class="v2-vs-ring">
-          VS
-        </div>
-
-        <div class="v2-match-line"></div>
-
-      </div>
+    const isLocked =
+      currentFixtureOffset === 2;
 
 
-      <div class="v2-match-team">
+    return `
+      <article
+        class="match-card v2-match-card"
+        data-fixture-id="${match.fixtureId}"
+        data-league-key="${leagueKey}"
+      >
 
-        <div class="v2-team-logo-box">
-          <img
-            class="team-logo"
-            src="${match.away.logo || ""}"
-            alt="${match.away.name}"
-          >
-        </div>
+        <div class="v2-match-card-top">
 
-        <div class="team-name">
-          ${getTeamNameZH(match.away.name)}
-        </div>
-
-<div class="v2-team-side">
-  客隊
-</div>
-
-      </div>
-
-    </div>
-
-
-    <div class="analysis v2-match-action">
-
-      ${
-        isFinished
-          ? `
-            <div class="ai-status v2-status finished">
-              <span></span>
-              MATCH FINISHED
-            </div>
-
-            <button
-              class="analysis-btn v2-analysis-btn finished"
-              disabled
-            >
-              ✓ 已完賽
-            </button>
-          `
-
-          : isLocked
-
-          ? `
-            <div class="ai-status v2-status locked">
-              <span></span>
-              AI ANALYSIS LOCKED
-            </div>
-
-            <button
-              class="analysis-btn v2-analysis-btn locked"
-              disabled
-            >
-              明日開放分析
-            </button>
-          `
-
-          : `
-            <div class="ai-status v2-status ready">
-          <span></span>
-           可分析
+          <div class="v2-match-league">
+            <span class="v2-league-dot"></span>
+            ${leagueText}
           </div>
 
-<label class="v2-batch-select">
-  <input
-    type="checkbox"
-    class="batch-analysis-checkbox"
-    value="${match.fixtureId}"
-    onchange="updateBatchSelection()"
-  >
-  <span>加入批次分析</span>
-</label>
+          <div class="v2-match-time">
+            ${time}
+          </div>
 
-            <button
-              class="analysis-btn v2-analysis-btn"
-              onclick="openMatch(${match.fixtureId}, this)"
-            >
-              <span>開始分析</span>
-              <strong>→</strong>
-            </button>
-          `
-      }
+        </div>
 
-    </div>
 
-  </article>
-`;
-}).join("");
+        <div class="v2-match-teams">
 
-// ===== 賽事搜尋 + 聯賽快捷篩選 =====
+          <div class="v2-match-team">
+
+            <div class="v2-team-logo-box">
+              <img
+                class="team-logo"
+                src="${match.home.logo || ""}"
+                alt="${match.home.name}"
+              >
+            </div>
+
+            <div class="team-name">
+              ${getTeamNameZH(match.home.name)}
+            </div>
+
+            <div class="v2-team-side">
+              主隊
+            </div>
+
+          </div>
+
+
+          <div class="v2-match-vs-center">
+
+            <div class="v2-vs-ring">
+              VS
+            </div>
+
+            <div class="v2-match-line"></div>
+
+          </div>
+
+
+          <div class="v2-match-team">
+
+            <div class="v2-team-logo-box">
+              <img
+                class="team-logo"
+                src="${match.away.logo || ""}"
+                alt="${match.away.name}"
+              >
+            </div>
+
+            <div class="team-name">
+              ${getTeamNameZH(match.away.name)}
+            </div>
+
+            <div class="v2-team-side">
+              客隊
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="analysis v2-match-action">
+
+          ${
+            isFinished
+
+              ? `
+                <div class="ai-status v2-status finished">
+                  <span></span>
+                  MATCH FINISHED
+                </div>
+
+                <button
+                  class="analysis-btn v2-analysis-btn finished"
+                  disabled
+                >
+                  ✓ 已完賽
+                </button>
+              `
+
+              : isLocked
+
+              ? `
+                <div class="ai-status v2-status locked">
+                  <span></span>
+                  AI ANALYSIS LOCKED
+                </div>
+
+                <button
+                  class="analysis-btn v2-analysis-btn locked"
+                  disabled
+                >
+                  明日開放分析
+                </button>
+              `
+
+              : `
+                <div class="ai-status v2-status ready">
+                  <span></span>
+                  可分析
+                </div>
+
+                <label class="v2-batch-select">
+                  <input
+                    type="checkbox"
+                    class="batch-analysis-checkbox"
+                    value="${match.fixtureId}"
+                    onchange="updateBatchSelection()"
+                  >
+                  <span>加入批次分析</span>
+                </label>
+
+                <button
+                  class="analysis-btn v2-analysis-btn"
+                  onclick="openMatch(${match.fixtureId}, this)"
+                >
+                  <span>開始分析</span>
+                  <strong>→</strong>
+                </button>
+              `
+          }
+
+        </div>
+
+      </article>
+    `;
+
+  }).join("");
+
+
+// ======================================
+// 賽事搜尋 + 聯賽快捷篩選
+// ======================================
 
 let activeLeagueFilter = "all";
 
-const topFiveLeagues = new Set([
-  "Premier League",
-  "La Liga",
-  "Bundesliga",
-  "Serie A",
-  "Ligue 1"
-]);
 
-const leagueSearchAliases = {
-  "UEFA Champions League":
-    "歐冠 歐洲冠軍聯賽 冠軍聯賽 champions league",
+const topFiveLeagueKeys =
+  new Set([
+    "premier",
+    "laliga",
+    "bundesliga",
+    "italy-serie-a",
+    "ligue1"
+  ]);
 
-  "UEFA Europa League":
-    "歐聯杯 歐霸盃 歐霸 歐洲聯賽 europa league",
-
-  "Premier League":
-    "英超 英格蘭超級聯賽 premier league",
-
-  "La Liga":
-    "西甲 西班牙甲級聯賽 la liga",
-
-  "Bundesliga":
-    "德甲 德國甲級聯賽 bundesliga",
-
-  "Serie A":
-    "義甲 意甲 義大利甲級聯賽 serie a",
-
-  "Ligue 1":
-    "法甲 法國甲級聯賽 ligue 1",
-
-  "J1 League":
-    "日職 日職聯 日本 日本職業足球甲級聯賽 j1 league",
-
-  "K League 1":
-    "韓職 韓職聯 韓國 韓國職業足球甲級聯賽 k league",
-
-  "Eredivisie":
-    "荷甲 荷蘭甲級聯賽 eredivisie",
-
-  "Chinese Super League":
-    "中超 中國足球超級聯賽 chinese super league",
-
-  "Serie A Brazil":
-    "巴甲 巴西甲級聯賽 brasileirao serie a brazil"
-};
 
 const searchInput =
   document.getElementById(
     "fixtureSearchInput"
   );
+
 
 const leagueFilter =
   document.getElementById(
@@ -5020,73 +5179,147 @@ const leagueFilter =
   );
 
 
+function normalizeSearchText(value) {
+
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+
 function applyFixtureFilters() {
 
   const keyword =
-    searchInput?.value
-      ?.trim()
-      ?.toLowerCase() || "";
+    normalizeSearchText(
+      searchInput?.value || ""
+    );
+
 
   const cards =
     container.querySelectorAll(
       ".v2-match-card"
     );
 
+
   let visibleCount = 0;
+
 
   cards.forEach(card => {
 
     const fixtureId =
-      String(
-        card.dataset.fixtureId || ""
-      );
+      card.dataset.fixtureId || "";
+
 
     const match =
       window.habaoFixtureMap?.[
-        fixtureId
+        String(fixtureId)
       ];
 
+
     if (!match) {
-      card.style.display = "none";
+
+      card.style.display =
+        "none";
+
       return;
     }
 
-    const leagueName =
+
+    const leagueKey =
+      card.dataset.leagueKey ||
+      getHabaoLeagueKey(match);
+
+
+    const originalLeagueName =
       match?.league?.name || "";
 
-    const homeName =
-      match?.home?.name || "";
 
-    const awayName =
-      match?.away?.name || "";
-
-    const homeNameZH =
-      getTeamNameZH(homeName);
-
-    const awayNameZH =
-      getTeamNameZH(awayName);
-
-    const leagueNameZH =
-      getLeagueNameZH(
-        leagueName
+    const leagueLabel =
+      getHabaoLeagueLabel(
+        leagueKey
       );
 
-    const leagueAliases =
-      leagueSearchAliases[
-        leagueName
-      ] || "";
 
-    const searchText = [
-      homeName,
-      awayName,
-      homeNameZH,
-      awayNameZH,
-      leagueName,
-      leagueNameZH,
-      leagueAliases
-    ]
-      .join(" ")
-      .toLowerCase();
+    const homeEnglish =
+      match?.home?.name || "";
+
+    const awayEnglish =
+      match?.away?.name || "";
+
+
+    const homeChinese =
+      getTeamNameZH(
+        homeEnglish
+      );
+
+    const awayChinese =
+      getTeamNameZH(
+        awayEnglish
+      );
+
+
+    // 搜尋別名：
+    // 中文簡稱、中文全名、英文聯賽名稱全部都可以搜尋
+    const leagueSearchAliases = {
+
+      "champions":
+        "歐冠 歐洲冠軍聯賽 champions league uefa champions league",
+
+      "europa":
+        "歐聯 歐聯杯 歐霸 歐霸盃 europa league uefa europa league",
+
+      "premier":
+        "英超 英格蘭超級聯賽 premier league",
+
+      "laliga":
+        "西甲 西班牙甲級聯賽 la liga laliga",
+
+      "bundesliga":
+        "德甲 德國甲級聯賽 bundesliga",
+
+      "italy-serie-a":
+        "義甲 意甲 義大利甲級聯賽 意大利甲級聯賽 serie a italy",
+
+      "ligue1":
+        "法甲 法國甲級聯賽 ligue 1 ligue1",
+
+      "j1":
+        "日職 日職聯 日本 日本職業足球甲級聯賽 j1 league j league",
+
+      "kleague":
+        "韓職 韓職聯 韓國 韓國職業足球甲級聯賽 k league k league 1",
+
+      "eredivisie":
+        "荷甲 荷蘭甲級聯賽 eredivisie",
+
+      "csl":
+        "中超 中國足球超級聯賽 chinese super league",
+
+      "brazil-serie-a":
+        "巴甲 巴西甲級聯賽 brasileirao brasileirão serie a brazil"
+
+    };
+
+
+    const searchText =
+      normalizeSearchText(
+        [
+          homeEnglish,
+          awayEnglish,
+
+          homeChinese,
+          awayChinese,
+
+          originalLeagueName,
+          leagueLabel,
+
+          leagueSearchAliases[
+            leagueKey
+          ] || ""
+        ].join(" ")
+      );
+
 
     const keywordMatched =
       !keyword ||
@@ -5094,7 +5327,9 @@ function applyFixtureFilters() {
         keyword
       );
 
+
     let leagueMatched = true;
+
 
     if (
       activeLeagueFilter ===
@@ -5102,8 +5337,8 @@ function applyFixtureFilters() {
     ) {
 
       leagueMatched =
-        topFiveLeagues.has(
-          leagueName
+        topFiveLeagueKeys.has(
+          leagueKey
         );
 
     } else if (
@@ -5112,16 +5347,21 @@ function applyFixtureFilters() {
     ) {
 
       leagueMatched =
-        leagueName ===
+        leagueKey ===
         activeLeagueFilter;
     }
+
 
     const matched =
       keywordMatched &&
       leagueMatched;
 
+
     card.style.display =
-      matched ? "" : "none";
+      matched
+        ? ""
+        : "none";
+
 
     if (matched) {
       visibleCount++;
@@ -5133,6 +5373,7 @@ function applyFixtureFilters() {
     container.querySelector(
       ".fixture-search-empty"
     );
+
 
   if (visibleCount === 0) {
 
@@ -5151,15 +5392,24 @@ function applyFixtureFilters() {
       );
     }
 
+
     if (keyword) {
 
       emptyMessage.textContent =
         `找不到「${searchInput.value.trim()}」相關賽事。`;
 
-    } else {
+    } else if (
+      activeLeagueFilter !==
+      "all"
+    ) {
 
       emptyMessage.textContent =
         "目前沒有這個聯賽的賽事。";
+
+    } else {
+
+      emptyMessage.textContent =
+        "目前暫無符合條件的主要賽事。";
     }
 
   } else if (emptyMessage) {
@@ -5169,33 +5419,22 @@ function applyFixtureFilters() {
 }
 
 
-if (searchInput) {
+// ======================================
+// 搜尋框
+// ======================================
 
-  searchInput.value = "";
+if (searchInput) {
 
   searchInput.oninput =
     applyFixtureFilters;
 }
 
 
+// ======================================
+// 聯賽快捷按鈕
+// ======================================
+
 if (leagueFilter) {
-
-  activeLeagueFilter = "all";
-
-  leagueFilter
-    .querySelectorAll(
-      ".league-filter-btn"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "active",
-        button.dataset.league ===
-          "all"
-      );
-
-    });
-
 
   leagueFilter.onclick =
     event => {
@@ -5205,13 +5444,16 @@ if (leagueFilter) {
           ".league-filter-btn"
         );
 
+
       if (!button) {
         return;
       }
 
+
       activeLeagueFilter =
         button.dataset.league ||
         "all";
+
 
       leagueFilter
         .querySelectorAll(
@@ -5222,12 +5464,13 @@ if (leagueFilter) {
           item.classList.remove(
             "active"
           );
-
         });
+
 
       button.classList.add(
         "active"
       );
+
 
       applyFixtureFilters();
     };
