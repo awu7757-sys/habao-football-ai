@@ -379,7 +379,7 @@ h1{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:900px;
+  min-width:1350px;
 }
 
 th{
@@ -759,17 +759,20 @@ td{
     <div class="table-scroll">
       <table id="memberTable">
 
-        <thead>
-          <tr>
-            <th>會員帳號</th>
-            <th>使用狀態</th>
-            <th>使用期限</th>
-            <th>剩餘 AI 次數</th>
-            <th>建立時間</th>
-            <th>最後登入時間</th>
-            <th>操作</th>
-          </tr>
-        </thead>
+<thead>
+  <tr>
+    <th>會員帳號</th>
+    <th>會員等級</th>
+    <th>使用狀態</th>
+    <th>使用期限</th>
+    <th>VIP 每日積分</th>
+    <th>原有積分</th>
+    <th>總可用積分</th>
+    <th>建立時間</th>
+    <th>最後登入時間</th>
+    <th>操作</th>
+  </tr>
+</thead>
 
         <tbody id="memberBody"></tbody>
 
@@ -1732,15 +1735,47 @@ function renderMembers(){
 
     tr.innerHTML=`
 
-      <td>
-        <div class="account">
-          ${escapeHtml(member.account || "")}
-        </div>
+<td>
+  <div class="account">
+    ${escapeHtml(member.account || "")}
+  </div>
 
-        <div class="id-text">
-          ID ${member.id}
+  <div class="id-text">
+    ID ${member.id}
+  </div>
+
+  ${
+    member.platform_account
+      ? `
+        <div class="id-text" style="margin-top:5px;color:#d5b86a;">
+          平台：${escapeHtml(member.platform_account)}
         </div>
-      </td>
+      `
+      : ""
+  }
+</td>
+
+<td>
+  ${
+    String(member.member_level || "").toLowerCase() === "vip"
+      ? `
+        <span
+          class="status"
+          style="
+            background:rgba(255,200,87,.12);
+            color:#ffc857;
+          "
+        >
+          VIP
+        </span>
+      `
+      : `
+        <span class="status" style="color:#9ca3af;">
+          一般會員
+        </span>
+      `
+  }
+</td>
 
       <td>
 
@@ -1769,26 +1804,62 @@ function renderMembers(){
 
       </td>
 
-      <td>
-      
-  <div style="line-height:1.6;">
-<strong>
-  剩餘：${
-    member.analysis_unlimited === true
-      ? "無限制"
-      : `${member.analysis_credits ?? 0} 次`
-  }
-</strong><br>
+<td>
+  <strong style="color:#ffc857;">
+    ${
+      String(member.member_level || "").toLowerCase() === "vip"
+        ? `${Number(member.daily_free_credits || 0)} 點`
+        : "—"
+    }
+  </strong>
 
-<span style="font-size:12px;color:#9ca3af;">
-  每日：${
-    member.daily_analysis_unlimited === true
-      ? "無限制"
-      : `${member.daily_analysis_limit ?? 3} 次`
+  ${
+    String(member.member_level || "").toLowerCase() === "vip" &&
+    member.daily_free_credits_date
+      ? `
+        <div class="id-text">
+          ${escapeHtml(member.daily_free_credits_date)}
+        </div>
+      `
+      : ""
   }
-</span>
-</div>
+</td>
 
+<td>
+  <strong>
+    ${
+      member.analysis_unlimited === true
+        ? "無限制"
+        : `${Number(member.analysis_credits || 0)} 點`
+    }
+  </strong>
+</td>
+
+<td>
+  <strong style="color:#39f0a0;">
+    ${
+      member.analysis_unlimited === true
+        ? "無限制"
+        : `${
+            Number(member.analysis_credits || 0) +
+            (
+              String(member.member_level || "").toLowerCase() === "vip"
+                ? Number(member.daily_free_credits || 0)
+                : 0
+            )
+          } 點`
+    }
+  </strong>
+
+  <div class="id-text">
+    ${
+      member.analysis_unlimited === true
+        ? "總次數無上限"
+        : member.daily_analysis_unlimited === true
+          ? "每日分析無上限"
+          : `每日分析上限 ${member.daily_analysis_limit ?? 3} 次`
+    }
+  </div>
 </td>
 
       <td class="expire">
