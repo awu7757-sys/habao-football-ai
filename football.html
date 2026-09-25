@@ -4763,6 +4763,7 @@ function normalizeLeagueText(value) {
 }
 
 function getHabaoLeagueKey(match) {
+
   const leagueName = normalizeLeagueText(
     match?.league?.name || ""
   );
@@ -4774,9 +4775,20 @@ function getHabaoLeagueKey(match) {
     ""
   );
 
-  // ===== 歐洲盃賽 =====
+  const leagueId = Number(
+    match?.league?.id ||
+    match?.league?.leagueId ||
+    match?.leagueId ||
+    0
+  );
+
+
+  // =========================
+  // 歐洲盃賽
+  // =========================
 
   if (
+    leagueId === 2 ||
     leagueName === "uefa champions league" ||
     leagueName === "champions league"
   ) {
@@ -4784,60 +4796,70 @@ function getHabaoLeagueKey(match) {
   }
 
   if (
+    leagueId === 3 ||
     leagueName === "uefa europa league" ||
     leagueName === "europa league"
   ) {
     return "europa";
   }
 
-  // ===== 五大聯賽 =====
+
+  // =========================
+  // 英超
+  // =========================
 
   if (
-    leagueName === "premier league" &&
-    (
-      !leagueCountry ||
-      leagueCountry.includes("england")
-    )
+    leagueId === 39 ||
+    leagueName === "premier league"
   ) {
     return "premier";
   }
 
+
+  // =========================
+  // 西甲
+  // =========================
+
   if (
+    leagueId === 140 ||
     leagueName === "la liga" ||
     leagueName === "laliga"
   ) {
     return "laliga";
   }
 
-  if (leagueName === "bundesliga") {
+
+  // =========================
+  // 德甲
+  // =========================
+
+  if (
+    leagueId === 78 ||
+    leagueName === "bundesliga"
+  ) {
     return "bundesliga";
   }
 
+
+  // =========================
+  // 法甲
+  // =========================
+
   if (
+    leagueId === 61 ||
     leagueName === "ligue 1" ||
     leagueName === "ligue1"
   ) {
     return "ligue1";
   }
 
-  // 義甲
-  if (
-    (
-      leagueName === "serie a" &&
-      (
-        leagueCountry.includes("italy") ||
-        leagueCountry.includes("italia")
-      )
-    ) ||
-    leagueName === "serie a italy" ||
-    leagueName === "italy serie a"
-  ) {
-    return "italy-serie-a";
-  }
 
-  // ===== 亞洲 =====
+  // =========================
+  // 日職 J1
+  // =========================
 
   if (
+    leagueId === 98 ||
     leagueName === "j1 league" ||
     leagueName === "j league" ||
     leagueName === "j league 1"
@@ -4845,30 +4867,57 @@ function getHabaoLeagueKey(match) {
     return "j1";
   }
 
+
+  // =========================
+  // 韓職 K League 1
+  // =========================
+
   if (
+    leagueId === 292 ||
     leagueName === "k league 1" ||
     leagueName === "k league"
   ) {
     return "kleague";
   }
 
-  if (leagueName === "chinese super league") {
-    return "csl";
-  }
 
-  // ===== 其他指定主流聯賽 =====
+  // =========================
+  // 荷甲
+  // =========================
 
-  if (leagueName === "eredivisie") {
+  if (
+    leagueId === 88 ||
+    leagueName === "eredivisie"
+  ) {
     return "eredivisie";
   }
 
-  // 巴甲
+
+  // =========================
+  // 中超
+  // =========================
+
   if (
+    leagueId === 169 ||
+    leagueName === "chinese super league"
+  ) {
+    return "csl";
+  }
+
+
+  // =========================
+  // 巴甲
+  // 必須放在義甲前面
+  // =========================
+
+  if (
+    leagueId === 71 ||
     leagueName === "serie a brazil" ||
-    leagueName === "brasileirão série a" ||
+    leagueName === "brazil serie a" ||
     leagueName === "brasileirao serie a" ||
     leagueName === "brasileirão serie a" ||
-    leagueName === "brazil serie a" ||
+    leagueName === "brasileirao série a" ||
+    leagueName === "brasileirão série a" ||
     (
       leagueName === "serie a" &&
       (
@@ -4880,14 +4929,24 @@ function getHabaoLeagueKey(match) {
     return "brazil-serie-a";
   }
 
-  // 如果 API 只有 Serie A、沒有 country，
-  // 目前既有資料結構以義甲 Serie A 為主
+
+  // =========================
+  // 義甲
+  // =========================
+
   if (
-    leagueName === "serie a" &&
-    !leagueCountry
+    leagueId === 135 ||
+    leagueName === "serie a italy" ||
+    leagueName === "italy serie a" ||
+    (
+      leagueName === "serie a" &&
+      !leagueCountry.includes("brazil") &&
+      !leagueCountry.includes("brasil")
+    )
   ) {
     return "italy-serie-a";
   }
+
 
   return "";
 }
@@ -5896,6 +5955,11 @@ const ANALYSIS_HISTORY_URL =
 
 async function openAnalysisHistory() {
   try {
+        // 進入「我的分析」時，取消今天／明天的選取狀態
+    document.querySelectorAll(".date").forEach(item => {
+      item.classList.remove("active");
+    });
+    
     const member = JSON.parse(
       sessionStorage.getItem("habao_member") || "null"
     );
