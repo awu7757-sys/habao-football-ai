@@ -705,35 +705,26 @@ td{
       ＋ 新增會員
     </div>
 
-    <div class="create-grid">
+<div class="create-grid">
 
-      <div>
-        <label class="label">會員帳號</label>
-        <input
-          id="newAccount"
-          class="input"
-          placeholder="例如：habao001"
-        >
-      </div>
+  <div>
+    <label class="label">會員帳號</label>
+    <input
+      id="newAccount"
+      class="input"
+      placeholder="例如：habao001"
+    >
+  </div>
 
-      <div>
-        <label class="label">使用期限</label>
-        <input
-          id="newExpire"
-          class="input"
-          type="datetime-local"
-        >
-      </div>
+  <button
+    id="createBtn"
+    class="btn green-btn"
+    onclick="createMember()"
+  >
+    新增會員
+  </button>
 
-      <button
-        id="createBtn"
-        class="btn green-btn"
-        onclick="createMember()"
-      >
-        新增會員
-      </button>
-
-    </div>
+</div>
 
     <div id="createMessage"></div>
 
@@ -764,7 +755,6 @@ td{
     <th>會員帳號</th>
     <th>會員等級</th>
     <th>使用狀態</th>
-    <th>使用期限</th>
     <th>VIP 每日積分</th>
     <th>原有積分</th>
     <th>總可用積分</th>
@@ -983,120 +973,7 @@ td{
 
   </div>
 </div>
-  
-<!-- 修改期限 Modal -->
-<div id="expireModal" class="modal hidden">
 
-  <div class="modal-card">
-
-    <div class="modal-title">
-      修改使用期限
-    </div>
-
-    <div id="modalAccount" class="modal-account"></div>
-
-    <label class="label">新的使用期限</label>
-
-    <input
-      id="editExpire"
-      class="input"
-      type="datetime-local"
-    >
-
-    <div class="modal-actions">
-
-      <button
-        class="btn small-btn"
-        onclick="closeExpireModal()"
-      >
-        取消
-      </button>
-
-      <button
-        class="btn green-btn"
-        onclick="saveExpire()"
-      >
-        儲存修改
-      </button>
-
-    </div>
-
-  </div>
-</div>
-
-<!-- 修改 AI 次數 Modal -->
-<div id="creditsModal" class="modal hidden">
-
-  <div class="modal-card">
-
-    <div class="modal-title">
-      修改 AI 分析次數
-    </div>
-
-    <div id="creditsModalAccount" class="modal-account"></div>
-
- <label class="label">剩餘分析次數</label>
-
-<input
-  id="editCredits"
-  class="input"
-  type="number"
-  min="0"
-  step="1"
-  placeholder="例如：3"
->
-
-<label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-  <input
-    type="checkbox"
-    id="editCreditsUnlimited"
-    onchange="toggleCreditsUnlimited()"
-  >
-  無限制總次數
-</label>
-
-<label class="label" style="margin-top:16px;">
-  每日分析上限
-</label>
-
-<input
-  id="editDailyLimit"
-  class="input"
-  type="number"
-  min="1"
-  step="1"
-  placeholder="例如：3"
->
-
-<label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-  <input
-    type="checkbox"
-    id="editDailyUnlimited"
-    onchange="toggleDailyUnlimited()"
-  >
-  每日無限制
-</label>
-    
-    <div class="modal-actions">
-
-      <button
-        class="btn small-btn"
-        onclick="closeCreditsModal()"
-      >
-        取消
-      </button>
-
-      <button
-        class="btn green-btn"
-        onclick="saveCredits()"
-      >
-        儲存修改
-      </button>
-
-    </div>
-
-  </div>
-</div>
   
 <script>
 
@@ -1798,12 +1675,6 @@ function renderMembers(){
 
       </td>
 
-      <td class="expire">
-
-        ${formatDate(member.expire_at)}
-
-      </td>
-
 <td>
   <strong style="color:#ffc857;">
     ${
@@ -1850,16 +1721,6 @@ function renderMembers(){
           } 點`
     }
   </strong>
-
-  <div class="id-text">
-    ${
-      member.analysis_unlimited === true
-        ? "總次數無上限"
-        : member.daily_analysis_unlimited === true
-          ? "每日分析無上限"
-          : `每日分析上限 ${member.daily_analysis_limit ?? 3} 次`
-    }
-  </div>
 </td>
 
       <td class="expire">
@@ -1876,46 +1737,50 @@ function renderMembers(){
 
       <td>
 
-        <div class="row-actions">
+<div class="row-actions">
 
-          <button
-            class="action-btn"
-            onclick="openExpireModal(${member.id})"
-          >
-            修改期限
-          </button>
-          
-          <button
-  class="action-btn"
-  onclick="openCreditsModal(${member.id})"
->
-  修改次數
-</button>
+  <button
+    class="action-btn"
+    onclick="openCreditsModal(${member.id})"
+  >
+    積分管理
+  </button>
 
-          <button
-            class="
-              action-btn
-              ${active
-                ? "danger-btn"
-                : "enable-btn"
-              }
-            "
-            onclick="
-              changeActive(
-                ${member.id},
-                ${!active}
-              )
-            "
-          >
+  <button
+    class="action-btn"
+    onclick="changeMemberLevel(${member.id})"
+  >
+    ${
+      String(member.member_level || "").toLowerCase() === "vip"
+        ? "降為一般會員"
+        : "升級 VIP"
+    }
+  </button>
 
-            ${active
-              ? "停權"
-              : "恢復"
-            }
+  <button
+    class="
+      action-btn
+      ${active
+        ? "danger-btn"
+        : "enable-btn"
+      }
+    "
+    onclick="
+      changeActive(
+        ${member.id},
+        ${!active}
+      )
+    "
+  >
 
-          </button>
+    ${active
+      ? "停權"
+      : "恢復"
+    }
 
-        </div>
+  </button>
+
+</div>
 
       </td>
 
@@ -1948,184 +1813,63 @@ function renderMembers(){
 
 async function createMember(){
 
-  const account=
+  const account =
     document
       .getElementById("newAccount")
       .value
       .trim();
 
-  const expireValue=
-    document
-      .getElementById("newExpire")
-      .value;
-
-  const message=
+  const message =
     document.getElementById("createMessage");
 
-  const button=
+  const button =
     document.getElementById("createBtn");
 
   if(!account){
 
-    message.className="error";
-    message.textContent="請輸入會員帳號。";
+    message.className = "error";
+    message.textContent = "請輸入會員帳號。";
     return;
 
   }
 
-  if(!expireValue){
-
-    message.className="error";
-    message.textContent="請設定使用期限。";
-    return;
-
-  }
-
-  button.disabled=true;
-  button.textContent="新增中...";
+  button.disabled = true;
+  button.textContent = "新增中...";
 
   try{
 
     await apiRequest({
-
       action:"create",
-
-      account,
-
-      expire_at:
-        new Date(expireValue).toISOString()
-
+      account
     });
 
-    message.className="success";
-    message.textContent="會員新增成功。";
+    message.className = "success";
+    message.textContent = "會員新增成功。";
 
     document
       .getElementById("newAccount")
-      .value="";
-
-    document
-      .getElementById("newExpire")
-      .value="";
+      .value = "";
 
     await loadMembers();
 
   }catch(error){
 
-    message.className="error";
-    message.textContent=error.message;
+    message.className = "error";
+    message.textContent = error.message;
 
   }finally{
 
-    button.disabled=false;
-    button.textContent="新增會員";
+    button.disabled = false;
+    button.textContent = "新增會員";
 
   }
 
 }
-
 
 /* =========================
-   修改期限
+   積分管理
 ========================= */
 
-function openExpireModal(id){
-
-  const member=
-    members.find(
-      item=>Number(item.id)===Number(id)
-    );
-
-  if(!member)return;
-
-  editingMemberId=id;
-
-  document
-    .getElementById("modalAccount")
-    .textContent=member.account;
-
-  document
-    .getElementById("editExpire")
-    .value=
-      toDateTimeLocal(member.expire_at);
-
-  document
-    .getElementById("expireModal")
-    .classList.remove("hidden");
-
-}
-
-
-function closeExpireModal(){
-
-  editingMemberId=null;
-
-  document
-    .getElementById("expireModal")
-    .classList.add("hidden");
-
-}
-
-
-async function saveExpire(){
-
-  if(!editingMemberId)return;
-
-  const value=
-    document
-      .getElementById("editExpire")
-      .value;
-
-  if(!value){
-
-    alert("請設定使用期限。");
-    return;
-
-  }
-
-  try{
-
-    await apiRequest({
-
-      action:"update_expire",
-
-      id:editingMemberId,
-
-      expire_at:
-        new Date(value).toISOString()
-
-    });
-
-    closeExpireModal();
-
-    await loadMembers();
-
-  }catch(error){
-
-    alert(error.message);
-
-  }
-
-}
-
-function toggleCreditsUnlimited(){
-  const checkbox = document.getElementById("editCreditsUnlimited");
-  const input = document.getElementById("editCredits");
-
-  if (!checkbox || !input) return;
-
-  input.disabled = checkbox.checked;
-}
-
-function toggleDailyUnlimited(){
-  const checkbox = document.getElementById("editDailyUnlimited");
-  const input = document.getElementById("editDailyLimit");
-
-  if (!checkbox || !input) return;
-
-  input.disabled = checkbox.checked;
-}
-  
 function openCreditsModal(id){
 
   const member =
@@ -2141,30 +1885,12 @@ function openCreditsModal(id){
     .getElementById("creditsModalAccount")
     .textContent = member.account;
 
-  document
-    .getElementById("editCredits")
-    .value = member.analysis_credits ?? 0;
-  
-  document
-  .getElementById("editDailyLimit")
-  .value = member.daily_analysis_limit ?? 3;
+  const input =
+    document.getElementById("editCredits");
 
-  const creditsUnlimitedEl =
-  document.getElementById("editCreditsUnlimited");
-
-const dailyUnlimitedEl =
-  document.getElementById("editDailyUnlimited");
-
-if (creditsUnlimitedEl) {
-  creditsUnlimitedEl.checked = member.analysis_unlimited === true;
-}
-
-if (dailyUnlimitedEl) {
-  dailyUnlimitedEl.checked = member.daily_analysis_unlimited === true;
-}
-
-toggleCreditsUnlimited();
-toggleDailyUnlimited();
+  if(input){
+    input.value = "";
+  }
 
   document
     .getElementById("creditsModal")
@@ -2182,37 +1908,67 @@ function closeCreditsModal(){
 }
 
 
-async function saveCredits(){
+async function adjustCredits(type){
 
   if(!editingMemberId) return;
 
-  const creditsUnlimited =
-    document.getElementById("editCreditsUnlimited")?.checked === true;
+  const member =
+    members.find(
+      item => Number(item.id) === Number(editingMemberId)
+    );
 
-  const dailyUnlimited =
-    document.getElementById("editDailyUnlimited")?.checked === true;
+  if(!member) return;
 
-  const value = Number(
-    document.getElementById("editCredits").value
-  );
+  const input =
+    document.getElementById("editCredits");
 
-  const dailyLimit = Number(
-    document.getElementById("editDailyLimit").value
-  );
+  const amount =
+    Number(input?.value);
 
   if(
-    !creditsUnlimited &&
-    (!Number.isInteger(value) || value < 0)
+    !Number.isInteger(amount) ||
+    amount <= 0
   ){
-    alert("請輸入 0 以上的整數。");
+    alert("請輸入 1 以上的整數積分。");
     return;
   }
 
+  const currentCredits =
+    Number(member.analysis_credits || 0);
+
+  let newCredits = currentCredits;
+
+  if(type === "add"){
+
+    newCredits =
+      currentCredits + amount;
+
+  }else if(type === "subtract"){
+
+    if(amount > currentCredits){
+      alert("扣除積分不能大於會員目前積分。");
+      return;
+    }
+
+    newCredits =
+      currentCredits - amount;
+
+  }else{
+
+    return;
+
+  }
+
+  const actionText =
+    type === "add"
+      ? "增加"
+      : "扣除";
+
   if(
-    !dailyUnlimited &&
-    (!Number.isInteger(dailyLimit) || dailyLimit < 1)
+    !confirm(
+      `確定為「${member.account}」${actionText} ${amount} 點積分？`
+    )
   ){
-    alert("每日分析上限請輸入 1 以上的整數。");
     return;
   }
 
@@ -2224,11 +1980,7 @@ async function saveCredits(){
 
       id:editingMemberId,
 
-      analysis_credits:value,
-      daily_analysis_limit:dailyLimit,
-
-      analysis_unlimited:creditsUnlimited,
-      daily_analysis_unlimited:dailyUnlimited
+      analysis_credits:newCredits
 
     });
 
@@ -2243,7 +1995,66 @@ async function saveCredits(){
   }
 
 }
-  
+
+
+/* =========================
+   會員等級
+========================= */
+
+async function changeMemberLevel(id){
+
+  const member =
+    members.find(
+      item => Number(item.id) === Number(id)
+    );
+
+  if(!member) return;
+
+  const isVip =
+    String(
+      member.member_level || ""
+    ).toLowerCase() === "vip";
+
+  const newLevel =
+    isVip
+      ? "normal"
+      : "vip";
+
+  const actionText =
+    isVip
+      ? "降為一般會員"
+      : "升級為 VIP";
+
+  if(
+    !confirm(
+      `確定將「${member.account}」${actionText}？`
+    )
+  ){
+    return;
+  }
+
+  try{
+
+    await apiRequest({
+
+      action:"update_member_level",
+
+      id,
+
+      member_level:newLevel
+
+    });
+
+    await loadMembers();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+}  
+ 
 /* =========================
    停權 / 恢復
 ========================= */
