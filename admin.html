@@ -1698,28 +1698,13 @@ function renderMembers(){
 
 <td>
   <strong>
-    ${
-      member.analysis_unlimited === true
-        ? "無限制"
-        : `${Number(member.analysis_credits || 0)} 點`
-    }
+    ${Number(member.analysis_credits || 0)} 點
   </strong>
 </td>
 
 <td>
-  <strong style="color:#39f0a0;">
-    ${
-      member.analysis_unlimited === true
-        ? "無限制"
-        : `${
-            Number(member.analysis_credits || 0) +
-            (
-              String(member.member_level || "").toLowerCase() === "vip"
-                ? Number(member.daily_free_credits || 0)
-                : 0
-            )
-          } 點`
-    }
+  <strong>
+    ${Number(member.analysis_credits || 0)} 點
   </strong>
 </td>
 
@@ -2318,5 +2303,59 @@ sendPushBtn?.addEventListener("click", async () => {
   
 </script>
 
+<!-- 積分管理 Modal -->
+<div id="creditsModal" class="modal hidden">
+  <div class="modal-card">
+
+    <h3>積分管理</h3>
+
+    <p>
+      會員：
+      <strong id="creditsModalAccount">—</strong>
+    </p>
+
+    <label for="editCredits">
+      輸入要增加或扣除的積分數量
+    </label>
+
+    <input
+      id="editCredits"
+      type="number"
+      min="1"
+      step="1"
+      placeholder="例如：5"
+    >
+
+    <div class="modal-actions">
+
+      <button
+        type="button"
+        class="btn small-btn danger-btn"
+        onclick="adjustCredits('subtract')"
+      >
+        - 扣除積分
+      </button>
+
+      <button
+        type="button"
+        class="btn small-btn green-btn"
+        onclick="adjustCredits('add')"
+      >
+        + 增加積分
+      </button>
+
+      <button
+        type="button"
+        class="btn small-btn"
+        onclick="closeCreditsModal()"
+      >
+        取消
+      </button>
+
+    </div>
+
+  </div>
+</div>
+  
 </body>
 </html>
