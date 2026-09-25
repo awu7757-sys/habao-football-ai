@@ -3472,9 +3472,24 @@ let habaoAnalysisJobTimer = null;
 
 
 function saveActiveAnalysisJob(job) {
+  if (!job) return;
+
+  const previous =
+    getActiveAnalysisJob();
+
+  const mergedJob = {
+    ...previous,
+    ...job,
+
+    fixture_matches:
+      job.fixture_matches ||
+      previous?.fixture_matches ||
+      {}
+  };
+
   localStorage.setItem(
     HABAO_ANALYSIS_JOB_KEY,
-    JSON.stringify(job)
+    JSON.stringify(mergedJob)
   );
 }
 
@@ -3506,6 +3521,119 @@ function clearActiveAnalysisJob() {
   }
 }
 
+function getAnalysisJobFixtureMatches(
+  fixtureIds
+) {
+  const result = {};
+
+  fixtureIds.forEach(
+    fixtureId => {
+      const match =
+        window.habaoFixtureMap?.[
+          String(fixtureId)
+        ];
+
+      if (!match) return;
+
+      result[String(fixtureId)] = {
+        fixtureId:
+          Number(fixtureId),
+
+        time:
+          match.time || null,
+
+        status:
+          match.status || "",
+
+        home:
+          {
+            name:
+              match.home?.name || "",
+
+            logo:
+              match.home?.logo || ""
+          },
+
+        away:
+          {
+            name:
+              match.away?.name || "",
+
+            logo:
+              match.away?.logo || ""
+          },
+
+        league:
+          {
+            name:
+              match.league?.name || "",
+
+            logo:
+              match.league?.logo || ""
+          }
+      };
+    }
+  );
+
+  return result;
+}
+
+
+async function saveAnalysisJobHistory(
+  job
+) {
+  if (
+    !job ||
+    !Array.isArray(job.results)
+  ) {
+    return;
+  }
+
+  const fixtureMatches =
+    job.fixture_matches || {};
+
+  for (
+    const item of job.results
+  ) {
+    const fixtureId =
+      Number(
+        item?.fixture_id || 0
+      );
+
+    const data =
+      item?.data;
+
+    if (
+      !fixtureId ||
+      !data
+    ) {
+      continue;
+    }
+
+    const match =
+      fixtureMatches[
+        String(fixtureId)
+      ] ||
+      window.habaoFixtureMap?.[
+        String(fixtureId)
+      ];
+
+    if (!match) {
+      console.warn(
+        "找不到分析紀錄賽事資料：",
+        fixtureId
+      );
+
+      continue;
+    }
+
+    await saveBatchAnalysisHistory(
+      fixtureId,
+      data,
+      match
+    );
+  }
+}  
 
 async function createAnalysisJob(
   fixtureIds,
@@ -3522,6 +3650,11 @@ async function createAnalysisJob(
       "找不到會員登入資料"
     );
   }
+
+  const fixtureMatches =
+    getAnalysisJobFixtureMatches(
+      fixtureIds
+    );
 
   const response =
     await fetch(
@@ -3556,7 +3689,12 @@ async function createAnalysisJob(
       "job_already_running" &&
     data?.job
   ) {
-    return data.job;
+    return {
+      ...data.job,
+
+      fixture_matches:
+        fixtureMatches
+    };
   }
 
   if (
@@ -3580,7 +3718,12 @@ async function createAnalysisJob(
     throw error;
   }
 
-  return data.job;
+  return {
+    ...data.job,
+
+    fixture_matches:
+      fixtureMatches
+  };
 }
 
 async function fetchAnalysisJob(
@@ -3645,6 +3788,85 @@ function getAnalysisJobResults(job) {
     : [];
 }
 
+function getAnalysisJobProgress(
+  job
+) {
+  if (!job) return 8;
+
+  const total =
+    Math.max(
+      1,
+      Number(
+        job.total_count || 1
+      )
+    );
+
+  const completed =
+    Number(
+      job.completed_count || 0
+    );
+
+  const failed =
+    Number(
+      job.failed_count || 0
+    );
+
+  if (
+    job.status === "completed" ||
+    job.status === "partial" ||
+    job.status === "failed"
+  ) {
+    return 100;
+  }
+
+  const finished =
+    completed + failed;
+
+  const baseProgress =
+    Math.round(
+      (
+        finished /
+        total
+      ) * 90
+    );
+
+  const startedAt =
+    new Date(
+      job.started_at ||
+      job.created_at ||
+      Date.now()
+    ).getTime();
+
+  const elapsedSeconds =
+    Math.max(
+      0,
+      (
+        Date.now() -
+        startedAt
+      ) / 1000
+    );
+
+  const currentStageProgress =
+    finished < total
+      ? Math.min(
+          18,
+          Math.floor(
+            elapsedSeconds / 2
+          )
+        )
+      : 0;
+
+  return Math.min(
+    95,
+    Math.max(
+      8,
+      baseProgress +
+      8 +
+      currentStageProgress
+    )
+  );
+}
+
 
 function updateAnalysisJobUI(job) {
   if (!job) return;
@@ -3665,23 +3887,9 @@ function updateAnalysisJobUI(job) {
     );
 
   const progress =
-    total > 0
-      ? Math.min(
-          99,
-          Math.max(
-            8,
-            Math.round(
-              (
-                (
-                  completed +
-                  failed
-                ) /
-                total
-              ) * 100
-            )
-          )
-        )
-      : 8;
+    getAnalysisJobProgress(
+      job
+    );
 
   if (
     job.job_type === "batch"
@@ -3707,7 +3915,9 @@ function updateAnalysisJobUI(job) {
       );
 
     if (bar) {
-      bar.classList.add("show");
+      bar.classList.add(
+        "show"
+      );
     }
 
     if (count) {
@@ -3716,12 +3926,36 @@ function updateAnalysisJobUI(job) {
     }
 
     if (sub) {
-      sub.textContent =
-        "背景分析中，可先離開此頁";
+      if (
+        job.status ===
+          "completed"
+      ) {
+        sub.textContent =
+          "分析完成";
+
+      } else if (
+        job.status ===
+          "partial"
+      ) {
+        sub.textContent =
+          `已完成 ${completed} 場，${failed} 場未完成`;
+
+      } else if (
+        job.status ===
+          "failed"
+      ) {
+        sub.textContent =
+          "分析未完成";
+
+      } else {
+        sub.textContent =
+          "背景分析中，可先離開此頁";
+      }
     }
 
     if (button) {
       button.disabled = true;
+
       button.textContent =
         `${progress}%`;
     }
@@ -3746,93 +3980,80 @@ function updateAnalysisJobUI(job) {
       ".analysis-btn"
     );
 
-  if (button) {
-    button.disabled = true;
-    button.classList.add(
-      "loading"
-    );
+  if (!button) {
+    return;
+  }
 
+  button.disabled = true;
+
+  button.classList.add(
+    "loading"
+  );
+
+  if (
+    job.status ===
+      "completed"
+  ) {
+    button.textContent =
+      "分析完成 100%";
+
+  } else if (
+    job.status ===
+      "partial" ||
+    job.status ===
+      "failed"
+  ) {
+    button.textContent =
+      "分析已結束";
+
+  } else {
     button.textContent =
       `AI 分析中 ${progress}%`;
-
-    button.style.setProperty(
-      "--progress",
-      `${progress}%`
-    );
   }
-}
 
+  button.style.setProperty(
+    "--progress",
+    `${progress}%`
+  );
+}
 
 async function finishAnalysisJob(
   job
 ) {
+  updateAnalysisJobUI({
+    ...job,
+    status:
+      job.status || "completed"
+  });
+
   const results =
     getAnalysisJobResults(job);
 
-  if (
-    job.status ===
-      "completed" ||
-    job.status ===
-      "partial"
-  ) {
-    if (results.length) {
-      results.forEach(data => {
+  /*
+    先保存所有已成功完成的分析紀錄。
+
+    即使批次做到一半因為次數不足，
+    前面成功的場次仍然必須留下紀錄。
+  */
+  if (results.length) {
+    try {
+      await saveAnalysisJobHistory(
+        job
+      );
+    } catch (error) {
+      console.error(
+        "背景分析紀錄保存失敗：",
+        error
+      );
+    }
+
+    results.forEach(
+      data => {
         syncMemberCreditsFromAnalysis(
           data
         );
-      });
-
-      if (
-        job.job_type ===
-          "batch"
-      ) {
-        sessionStorage.setItem(
-          "matchAnalysisBatch",
-          JSON.stringify({
-            results,
-            failures:
-              Array.isArray(
-                job.failures
-              )
-                ? job.failures
-                : [],
-
-            created_at:
-              job.created_at ||
-              new Date()
-                .toISOString()
-          })
-        );
-
-        sessionStorage.setItem(
-          "matchAnalysis",
-          JSON.stringify(
-            results[0]
-          )
-        );
-
-        clearActiveAnalysisJob();
-
-        window.location.href =
-          "analysis.html?v=2&batch=1";
-
-        return;
       }
-
-      sessionStorage.setItem(
-        "matchAnalysis",
-        JSON.stringify(
-          results[0]
-        )
-      );
-
-      clearActiveAnalysisJob();
-
-      window.location.href =
-        "analysis.html?v=2";
-
-      return;
-    }
+    );
   }
 
   const firstFailure =
@@ -3842,40 +4063,111 @@ async function finishAnalysisJob(
       ? job.failures[0]
       : null;
 
+  /*
+    先把背景任務清掉。
+
+    這樣即使次數不足，
+    使用者也能立即分析其他可用賽事，
+    不會一直被舊任務卡住。
+  */
   clearActiveAnalysisJob();
 
-  if (
-    firstFailure?.error ===
-      "analysis_credits_empty"
-  ) {
-    showQuotaLimitModal(
-      "credits_empty"
+  /*
+    完全沒有成功結果
+  */
+  if (!results.length) {
+    resetAnalysisButtons();
+
+    if (
+      firstFailure?.error ===
+        "analysis_credits_empty"
+    ) {
+      showQuotaLimitModal(
+        "credits_empty"
+      );
+
+      return;
+    }
+
+    if (
+      firstFailure?.error ===
+        "daily_limit_reached"
+    ) {
+      showQuotaLimitModal(
+        firstFailure?.limit ??
+        firstFailure?.daily_limit ??
+        0
+      );
+
+      return;
+    }
+
+    alert(
+      firstFailure?.message ||
+      job.error_message ||
+      "AI 賽事分析失敗"
     );
 
     return;
   }
 
+  /*
+    批次分析：
+    有成功結果就進結果頁。
+
+    如果後面的場次因為次數不足失敗，
+    成功的場次仍然可以正常查看。
+  */
   if (
-    firstFailure?.error ===
-      "daily_limit_reached"
+    job.job_type ===
+      "batch"
   ) {
-    showQuotaLimitModal(
-      0
+    sessionStorage.setItem(
+      "matchAnalysisBatch",
+      JSON.stringify({
+        results,
+
+        failures:
+          Array.isArray(
+            job.failures
+          )
+            ? job.failures
+            : [],
+
+        created_at:
+          job.created_at ||
+          new Date()
+            .toISOString()
+      })
     );
+
+    sessionStorage.setItem(
+      "matchAnalysis",
+      JSON.stringify(
+        results[0]
+      )
+    );
+
+    window.location.href =
+      "analysis.html?v=2&batch=1";
 
     return;
   }
 
-  alert(
-    firstFailure?.message ||
-    job.error_message ||
-    "AI 賽事分析失敗"
+  /*
+    單場分析
+  */
+  sessionStorage.setItem(
+    "matchAnalysis",
+    JSON.stringify(
+      results[0]
+    )
   );
 
-  resetAnalysisButtons();
+  window.location.href =
+    "analysis.html?v=2";
 }
-
-
+  
 async function pollAnalysisJob(
   jobId
 ) {
