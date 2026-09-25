@@ -1704,7 +1704,14 @@ function renderMembers(){
 
 <td>
   <strong>
-    ${Number(member.analysis_credits || 0)} 點
+    ${
+      Number(member.analysis_credits || 0) +
+      (
+        String(member.member_level || "").toLowerCase() === "vip"
+          ? Number(member.daily_free_credits || 0)
+          : 0
+      )
+    } 點
   </strong>
 </td>
 
@@ -2188,25 +2195,6 @@ function escapeHtml(value){
     .replaceAll("'","&#039;");
 
 }
-
-
-/* 關閉 Modal */
-
-document
-  .getElementById("expireModal")
-  .addEventListener(
-    "click",
-    event=>{
-
-      if(
-        event.target.id ===
-        "expireModal"
-      ){
-        closeExpireModal();
-      }
-
-    }
-  );
 
 /* =========================
    推播通知管理
