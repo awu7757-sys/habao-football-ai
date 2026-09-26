@@ -1674,7 +1674,7 @@ h1{
   outline: none;
   background: rgba(8, 24, 36, 0.88);
   color: #ffffff;
-  font-size: 15px;
+  font-size: 16px;
   transition: 0.2s ease;
 }
 
@@ -2925,6 +2925,14 @@ h1{
   transform: none;
 }
 
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}
+  
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}  
+
 #matchesContainer .v2-match-card:hover {
   transform: translateY(-2px);
 }
@@ -2948,6 +2956,10 @@ h1{
 
   box-sizing: border-box !important;
 }
+
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}  
 
 #matchesContainer .v2-match-card .v2-match-team {
   display: flex !important;
@@ -3117,12 +3129,58 @@ h1{
   font-size: 11px;
   font-weight: 800;
 }
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
   
 </style>
   
 </head>
 
 <body>
+
+<div id="habaoLanguageMount"></div>  
 
 <header class="header v2-header">
   <div class="header-inner">
@@ -3355,7 +3413,8 @@ h1{
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script src="./habao-i18n.js"></script>
+  
 <script>
 
 const SUPABASE_URL =
@@ -3949,9 +4008,17 @@ function getAnalysisJobProgress(
   );
 }
 
-
 function updateAnalysisJobUI(job) {
   if (!job) return;
+
+  const t = (
+    key,
+    fallback
+  ) =>
+    window.HabaoI18n?.t(
+      key,
+      fallback
+    ) || fallback;
 
   const total =
     Number(
@@ -4004,7 +4071,10 @@ function updateAnalysisJobUI(job) {
 
     if (count) {
       count.textContent =
-        `分析進度 ${completed} / ${total}`;
+        `${t(
+          "analysisProgress",
+          "分析進度"
+        )} ${completed} / ${total}`;
     }
 
     if (sub) {
@@ -4013,25 +4083,51 @@ function updateAnalysisJobUI(job) {
           "completed"
       ) {
         sub.textContent =
-          "分析完成";
+          t(
+            "analysisComplete",
+            "分析完成"
+          );
 
       } else if (
         job.status ===
           "partial"
       ) {
-        sub.textContent =
-          `已完成 ${completed} 場，${failed} 場未完成`;
+        const lang =
+          window.HabaoI18n
+            ?.getLanguage?.() ||
+          "zh-Hant";
+
+        if (lang === "en") {
+          sub.textContent =
+            `${completed} completed, ${failed} incomplete`;
+
+        } else if (
+          lang === "zh-Hans"
+        ) {
+          sub.textContent =
+            `已完成 ${completed} 场，${failed} 场未完成`;
+
+        } else {
+          sub.textContent =
+            `已完成 ${completed} 場，${failed} 場未完成`;
+        }
 
       } else if (
         job.status ===
           "failed"
       ) {
         sub.textContent =
-          "分析未完成";
+          t(
+            "analysisIncomplete",
+            "分析未完成"
+          );
 
       } else {
         sub.textContent =
-          "背景分析中，可先離開此頁";
+          t(
+            "backgroundAnalysis",
+            "背景分析中，可先離開此頁"
+          );
       }
     }
 
@@ -4077,7 +4173,10 @@ function updateAnalysisJobUI(job) {
       "completed"
   ) {
     button.textContent =
-      "分析完成 100%";
+      `${t(
+        "analysisComplete",
+        "分析完成"
+      )} 100%`;
 
   } else if (
     job.status ===
@@ -4086,11 +4185,17 @@ function updateAnalysisJobUI(job) {
       "failed"
   ) {
     button.textContent =
-      "分析已結束";
+      t(
+        "analysisFinished",
+        "分析已結束"
+      );
 
   } else {
     button.textContent =
-      `AI 分析中 ${progress}%`;
+      `${t(
+        "aiAnalyzing",
+        "AI 分析中"
+      )} ${progress}%`;
   }
 
   button.style.setProperty(
@@ -4184,11 +4289,17 @@ async function finishAnalysisJob(
       return;
     }
 
-    alert(
-      firstFailure?.message ||
-      job.error_message ||
+alert(
+  firstFailure?.message ||
+  job.error_message ||
+  (
+    window.HabaoI18n?.t(
+      "analysisFailed",
       "AI 賽事分析失敗"
-    );
+    ) ||
+    "AI 賽事分析失敗"
+  )
+);
 
     return;
   }
@@ -4325,12 +4436,17 @@ async function openMatch(
   fixtureId,
   button
 ) {
-  if (!fixtureId) {
-    alert(
-      "找不到這場比賽的 fixtureId"
-    );
-    return;
-  }
+  
+if (!fixtureId) {
+  alert(
+    window.HabaoI18n?.t(
+      "fixtureNotFound",
+      "找不到這場比賽資料"
+    ) ||
+    "找不到這場比賽資料"
+  );
+  return;
+}
 
   const existingJob =
     getActiveAnalysisJob();
@@ -4361,8 +4477,12 @@ async function openMatch(
       "loading"
     );
 
-    button.textContent =
-      "建立分析任務...";
+button.textContent =
+  window.HabaoI18n?.t(
+    "creatingAnalysis",
+    "建立分析任務..."
+  ) ||
+  "建立分析任務...";
 
     button.style.setProperty(
       "--progress",
@@ -4410,23 +4530,42 @@ async function openMatch(
         0
       );
 
-    } else if (
-      error.code ===
-        "member_inactive"
-    ) {
-      alert(
-        "AI 分析權限目前已停用，請聯絡哈寶"
-      );
+} else if (
+  error.code ===
+    "member_inactive"
+) {
+  alert(
+    window.HabaoI18n?.t(
+      "memberInactive",
+      "AI 分析權限目前已停用，請聯絡哈寶"
+    ) ||
+    "AI 分析權限目前已停用，請聯絡哈寶"
+  );
 
-    } else {
-      alert(
-        "AI 分析失敗：\n" +
-        (
-          error.message ||
-          "建立背景分析失敗"
-        )
-      );
-    }
+} else {
+  const failedTitle =
+    window.HabaoI18n?.t(
+      "analysisFailed",
+      "AI 分析失敗"
+    ) ||
+    "AI 分析失敗";
+
+  const failedFallback =
+    window.HabaoI18n?.t(
+      "backgroundCreateFailed",
+      "建立背景分析失敗"
+    ) ||
+    "建立背景分析失敗";
+
+  alert(
+    failedTitle +
+    "：\n" +
+    (
+      error.message ||
+      failedFallback
+    )
+  );
+}
 
     if (button) {
       button.disabled = false;
@@ -4654,10 +4793,28 @@ function switchDate(element, offset) {
 if (sectionTitle) {
   sectionTitle.textContent =
     offset === 0
-      ? "⚽️ 今日焦點賽事"
+      ? (
+          window.HabaoI18n?.t(
+            "todayFocus",
+            "⚽️ 今日焦點賽事"
+          ) ||
+          "⚽️ 今日焦點賽事"
+        )
       : offset === 1
-        ? "⚽️ 明日焦點賽事"
-        : "⚽️ 焦點賽事";
+        ? (
+            window.HabaoI18n?.t(
+              "tomorrowFocus",
+              "⚽️ 明日焦點賽事"
+            ) ||
+            "⚽️ 明日焦點賽事"
+          )
+        : (
+            window.HabaoI18n?.t(
+              "focusMatches",
+              "⚽️ 焦點賽事"
+            ) ||
+            "⚽️ 焦點賽事"
+          );
 }
 
   loadTomorrowFixtures(offset);
@@ -4684,12 +4841,30 @@ async function loadTomorrowFixtures(offset = 1) {
     return;
   }
 
-  const loadingText =
+const loadingText =
   offset === 0
-    ? "正在取得今日真實賽事..."
+    ? (
+        window.HabaoI18n?.t(
+          "loadingToday",
+          "正在取得今日真實賽事..."
+        ) ||
+        "正在取得今日真實賽事..."
+      )
     : offset === 1
-      ? "正在取得明日真實賽事..."
-      : "正在取得賽事資料...";
+      ? (
+          window.HabaoI18n?.t(
+            "loadingTomorrow",
+            "正在取得明日真實賽事..."
+          ) ||
+          "正在取得明日真實賽事..."
+        )
+      : (
+          window.HabaoI18n?.t(
+            "loadingMatches",
+            "正在取得賽事資料..."
+          ) ||
+          "正在取得賽事資料..."
+        );
 
 container.innerHTML = `
   <div class="ai-note">
@@ -4738,7 +4913,10 @@ renderFixtureData(
 
     container.innerHTML = `
       <div class="ai-note">
-        ⚠️ 賽事資料讀取失敗，請稍後再試。
+        ${window.HabaoI18n?.t(
+  "loadFailed",
+  "⚠️ 賽事資料讀取失敗，請稍後再試。"
+) || "⚠️ 賽事資料讀取失敗，請稍後再試。"}
       </div>
     `;
   }
@@ -4976,6 +5154,108 @@ function getHabaoLeagueLabel(leagueKey) {
   return labels[leagueKey] || "";
 }
 
+function getHabaoDisplayLeagueName(
+  leagueKey,
+  originalName = ""
+) {
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (lang === "en") {
+    const englishLabels = {
+      "champions": "UEFA Champions League",
+      "europa": "UEFA Europa League",
+      "premier": "Premier League",
+      "laliga": "La Liga",
+      "bundesliga": "Bundesliga",
+      "italy-serie-a": "Serie A",
+      "ligue1": "Ligue 1",
+      "j1": "J1 League",
+      "kleague": "K League 1",
+      "eredivisie": "Eredivisie",
+      "csl": "Chinese Super League",
+      "brazil-serie-a": "Brazil Serie A"
+    };
+
+    return (
+      englishLabels[leagueKey] ||
+      originalName ||
+      "Football Match"
+    );
+  }
+
+  if (lang === "zh-Hans") {
+    const simplifiedLabels = {
+      "champions": "欧洲冠军联赛",
+      "europa": "欧联杯",
+      "premier": "英格兰超级联赛",
+      "laliga": "西班牙甲级联赛",
+      "bundesliga": "德国甲级联赛",
+      "italy-serie-a": "意大利甲级联赛",
+      "ligue1": "法国甲级联赛",
+      "j1": "日本职业足球甲级联赛",
+      "kleague": "韩国职业足球甲级联赛",
+      "eredivisie": "荷兰甲级联赛",
+      "csl": "中国足球超级联赛",
+      "brazil-serie-a": "巴西甲级联赛"
+    };
+
+    return (
+      simplifiedLabels[leagueKey] ||
+      originalName ||
+      "足球赛事"
+    );
+  }
+
+  return (
+    getHabaoLeagueLabel(
+      leagueKey
+    ) ||
+    getLeagueNameZH(
+      originalName
+    ) ||
+    originalName ||
+    "足球賽事"
+  );
+}
+
+
+function getHabaoDisplayTeamName(
+  originalName = ""
+) {
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (lang === "en") {
+    return (
+      originalName ||
+      "--"
+    );
+  }
+
+  /*
+    目前原始資料只有：
+    1. API 英文隊名
+    2. 網站既有繁體中文隊名表
+
+    所以：
+    - English 顯示 API 原始英文
+    - 繁體中文顯示既有中文翻譯
+    - 简体中文先沿用既有中文隊名
+
+    不自動亂轉球隊專有名稱，
+    避免球隊名稱翻錯。
+  */
+  return (
+    getTeamNameZH(
+      originalName
+    ) ||
+    originalName ||
+    "--"
+  );
+}  
 
 const allFixtures =
   Array.isArray(data.fixtures)
@@ -4997,16 +5277,35 @@ const fixtures =
 
 if (fixtures.length === 0) {
 
-  const emptyDateText =
-    offset === 0 ? "今日" :
-    offset === 1 ? "明日" :
-    "";
+const emptyDateText =
+  offset === 0
+    ? (
+        window.HabaoI18n?.t(
+          "today",
+          "今天"
+        ) || "今天"
+      )
+    : offset === 1
+      ? (
+          window.HabaoI18n?.t(
+            "tomorrow",
+            "明天"
+          ) || "明天"
+        )
+      : "";
 
-  container.innerHTML = `
-    <div class="ai-note">
-      ${emptyDateText}暫無符合條件的主要賽事。
-    </div>
-  `;
+const noMatchesText =
+  window.HabaoI18n?.t(
+    "noMainMatches",
+    "暫無符合條件的主要賽事。"
+  ) ||
+  "暫無符合條件的主要賽事。";
+
+container.innerHTML = `
+  <div class="ai-note">
+    ${emptyDateText}${noMatchesText}
+  </div>
+`;
 }
 
 window.habaoFixtureMap =
@@ -5039,11 +5338,11 @@ container.innerHTML =
     const leagueKey =
       getHabaoLeagueKey(match);
 
-    const leagueText =
-      getHabaoLeagueLabel(leagueKey) ||
-      getLeagueNameZH(
-        match?.league?.name || ""
-      );
+const leagueText =
+  getHabaoDisplayLeagueName(
+    leagueKey,
+    match?.league?.name || ""
+  );
 
 
     const isFinished =
@@ -5095,12 +5394,12 @@ container.innerHTML =
             </div>
 
             <div class="team-name">
-              ${getTeamNameZH(match.home.name)}
+              ${getHabaoDisplayTeamName(match.home.name)}
             </div>
 
-            <div class="v2-team-side">
-              主隊
-            </div>
+<div class="v2-team-side">
+  ${window.HabaoI18n?.t("homeTeam", "主隊") || "主隊"}
+</div>
 
           </div>
 
@@ -5127,12 +5426,12 @@ container.innerHTML =
             </div>
 
             <div class="team-name">
-              ${getTeamNameZH(match.away.name)}
+              ${getHabaoDisplayTeamName(match.away.name)}
             </div>
 
-            <div class="v2-team-side">
-              客隊
-            </div>
+<div class="v2-team-side">
+  ${window.HabaoI18n?.t("awayTeam", "客隊") || "客隊"}
+</div>
 
           </div>
 
@@ -5154,7 +5453,7 @@ container.innerHTML =
                   class="analysis-btn v2-analysis-btn finished"
                   disabled
                 >
-                  ✓ 已完賽
+                  ${window.HabaoI18n?.t("matchFinished", "✓ 已完賽") || "✓ 已完賽"}
                 </button>
               `
 
@@ -5170,14 +5469,14 @@ container.innerHTML =
                   class="analysis-btn v2-analysis-btn locked"
                   disabled
                 >
-                  明日開放分析
+                  ${window.HabaoI18n?.t("analysisTomorrow", "明日開放分析") || "明日開放分析"}
                 </button>
               `
 
               : `
                 <div class="ai-status v2-status ready">
                   <span></span>
-                  可分析
+                  ${window.HabaoI18n?.t("analysisAvailable", "可分析") || "可分析"}
                 </div>
 
                 <label class="v2-batch-select">
@@ -5187,14 +5486,14 @@ container.innerHTML =
                     value="${match.fixtureId}"
                     onchange="updateBatchSelection()"
                   >
-                  <span>加入批次分析</span>
+                  <span>${window.HabaoI18n?.t("addBatch", "加入批次分析") || "加入批次分析"}</span>
                 </label>
 
                 <button
                   class="analysis-btn v2-analysis-btn"
                   onclick="openMatch(${match.fixtureId}, this)"
                 >
-                  <span>開始分析</span>
+                  <span>${window.HabaoI18n?.t("startAnalysis", "開始分析") || "開始分析"}</span>
                   <strong>→</strong>
                 </button>
               `
@@ -5275,13 +5574,23 @@ function applyFixtureFilters() {
       ];
 
 
-    if (!match) {
+if (!match) {
 
-      card.style.display =
-        "none";
+  card.hidden = true;
 
-      return;
-    }
+  card.setAttribute(
+    "hidden",
+    ""
+  );
+
+  card.style.setProperty(
+    "display",
+    "none",
+    "important"
+  );
+
+  return;
+}
 
 
     const leagueKey =
@@ -5415,15 +5724,20 @@ function applyFixtureFilters() {
       leagueMatched;
 
 
-    card.style.display =
-      matched
-        ? ""
-        : "none";
+card.hidden = !matched;
 
-
-    if (matched) {
-      visibleCount++;
-    }
+if (matched) {
+  card.removeAttribute("hidden");
+  card.style.removeProperty("display");
+  visibleCount++;
+} else {
+  card.setAttribute("hidden", "");
+  card.style.setProperty(
+    "display",
+    "none",
+    "important"
+  );
+}
   });
 
 
@@ -5451,24 +5765,44 @@ function applyFixtureFilters() {
     }
 
 
-    if (keyword) {
+if (keyword) {
 
-      emptyMessage.textContent =
-        `找不到「${searchInput.value.trim()}」相關賽事。`;
+  emptyMessage.textContent =
+    (
+      window.HabaoI18n?.t(
+        "searchNotFoundPrefix",
+        "找不到「"
+      ) || "找不到「"
+    ) +
+    searchInput.value.trim() +
+    (
+      window.HabaoI18n?.t(
+        "searchNotFoundSuffix",
+        "」相關賽事。"
+      ) || "」相關賽事。"
+    );
 
-    } else if (
-      activeLeagueFilter !==
-      "all"
-    ) {
+} else if (
+  activeLeagueFilter !==
+  "all"
+) {
 
-      emptyMessage.textContent =
-        "目前沒有這個聯賽的賽事。";
+  emptyMessage.textContent =
+    window.HabaoI18n?.t(
+      "noLeagueMatches",
+      "目前沒有這個聯賽的賽事。"
+    ) ||
+    "目前沒有這個聯賽的賽事。";
 
-    } else {
+} else {
 
-      emptyMessage.textContent =
-        "目前暫無符合條件的主要賽事。";
-    }
+  emptyMessage.textContent =
+    window.HabaoI18n?.t(
+      "noFilteredMatches",
+      "目前暫無符合條件的主要賽事。"
+    ) ||
+    "目前暫無符合條件的主要賽事。";
+}
 
   } else if (emptyMessage) {
 
@@ -5539,6 +5873,52 @@ applyFixtureFilters();
   
   }
 
+  /* =====================================
+   HABAO 語言切換｜重新渲染目前賽事
+   使用既有 Cache，不重新呼叫 API
+===================================== */
+
+function rerenderCurrentFixturesForLanguage() {
+
+  const container =
+    document.getElementById(
+      "matchesContainer"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const cacheKey =
+    `fixtures_${currentFixtureOffset}`;
+
+  const cached =
+    habaoFixtureCache.get(
+      cacheKey
+    );
+
+  if (
+    !cached ||
+    !cached.data
+  ) {
+    return;
+  }
+
+  renderFixtureData(
+    cached.data,
+    currentFixtureOffset,
+    container
+  );
+}
+
+
+window.addEventListener(
+  "habao:languagechange",
+  () => {
+    rerenderCurrentFixturesForLanguage();
+  }
+);
+
 /* =========================
    HABAO 批次分析
 ========================= */
@@ -5571,10 +5951,22 @@ function updateBatchSelection() {
       "batchAnalysisStart"
     );
 
-  if (count) {
-    count.textContent =
-      `已選 ${ids.length} 場`;
-  }
+if (count) {
+  const selectedPrefix =
+    window.HabaoI18n?.t(
+      "selectedPrefix",
+      "已選"
+    ) || "已選";
+
+  const selectedSuffix =
+    window.HabaoI18n?.t(
+      "selectedSuffix",
+      "場"
+    ) || "場";
+
+  count.textContent =
+    `${selectedPrefix} ${ids.length} ${selectedSuffix}`;
+}
 
   if (bar) {
     bar.classList.toggle(
@@ -5815,13 +6207,31 @@ async function startBatchAnalysis() {
   if (startButton) {
     startButton.disabled = true;
 
-    startButton.textContent =
-      "建立分析任務...";
+startButton.textContent =
+  window.HabaoI18n?.t(
+    "creatingAnalysis",
+    "建立分析任務..."
+  ) ||
+  "建立分析任務...";
   }
 
   if (sub) {
-    sub.textContent =
-      `準備背景分析 ${fixtureIds.length} 場`;
+const preparingText =
+  window.HabaoI18n?.t(
+    "preparingBackground",
+    "準備背景分析"
+  ) ||
+  "準備背景分析";
+
+const selectedSuffix =
+  window.HabaoI18n?.t(
+    "selectedSuffix",
+    "場"
+  ) ||
+  "場";
+
+sub.textContent =
+  `${preparingText} ${fixtureIds.length} ${selectedSuffix}`;
   }
 
   checkboxes.forEach(
@@ -5865,13 +6275,21 @@ async function startBatchAnalysis() {
       startButton.disabled =
         false;
 
-      startButton.textContent =
-        "開始批次分析";
+startButton.textContent =
+  window.HabaoI18n?.t(
+    "startBatch",
+    "開始批次分析"
+  ) ||
+  "開始批次分析";
     }
 
     if (sub) {
-      sub.textContent =
-        "背景分析建立失敗";
+sub.textContent =
+  window.HabaoI18n?.t(
+    "backgroundCreateFailed",
+    "建立背景分析失敗"
+  ) ||
+  "建立背景分析失敗";
     }
 
     if (
@@ -5898,38 +6316,91 @@ async function startBatchAnalysis() {
       return;
     }
 
-    alert(
-      error.message ||
+alert(
+  error.message ||
+  (
+    window.HabaoI18n?.t(
+      "batchCreateFailed",
       "批次分析建立失敗"
-    );
+    ) ||
+    "批次分析建立失敗"
+  )
+);
   }
 }
   
 function resetAnalysisButtons() {
-  document.querySelectorAll(".analysis-btn").forEach(button => {
-    clearInterval(button._progressTimer);
+  document
+    .querySelectorAll(
+      ".analysis-btn"
+    )
+    .forEach(button => {
 
-    // 後天保持鎖定
-    if (currentFixtureOffset === 2) {
-      button.disabled = true;
-      button.textContent = "明日開放分析";
-      button.classList.remove("loading");
-      button.style.removeProperty("--progress");
-      button.style.opacity = "0.45";
-      button.style.cursor = "not-allowed";
-      delete button.dataset.originalText;
-      return;
-    }
+      clearInterval(
+        button._progressTimer
+      );
 
-    // 今天、明天正常恢復
-    button.disabled = false;
-    button.textContent = "開始分析 →";
-    button.classList.remove("loading");
-    button.style.removeProperty("--progress");
-    button.style.opacity = "";
-    button.style.cursor = "";
-    delete button.dataset.originalText;
-  });
+      // 後天保持鎖定
+      if (
+        currentFixtureOffset === 2
+      ) {
+        button.disabled = true;
+
+        button.textContent =
+          window.HabaoI18n?.t(
+            "analysisTomorrow",
+            "明日開放分析"
+          ) ||
+          "明日開放分析";
+
+        button.classList.remove(
+          "loading"
+        );
+
+        button.style.removeProperty(
+          "--progress"
+        );
+
+        button.style.opacity =
+          "0.45";
+
+        button.style.cursor =
+          "not-allowed";
+
+        delete button.dataset
+          .originalText;
+
+        return;
+      }
+
+      // 今天、明天正常恢復
+      button.disabled = false;
+
+      const startText =
+        window.HabaoI18n?.t(
+          "startAnalysis",
+          "開始分析"
+        ) ||
+        "開始分析";
+
+      button.textContent =
+        `${startText} →`;
+
+      button.classList.remove(
+        "loading"
+      );
+
+      button.style.removeProperty(
+        "--progress"
+      );
+
+      button.style.opacity = "";
+
+      button.style.cursor = "";
+
+      delete button.dataset
+        .originalText;
+    });
 }
 
 window.addEventListener(
@@ -5964,7 +6435,13 @@ async function openAnalysisHistory() {
     );
 
     if (!member || !member.account) {
-      alert("找不到會員登入資料，請重新登入");
+      alert(
+  window.HabaoI18n?.t(
+    "memberDataNotFound",
+    "找不到會員登入資料，請重新登入"
+  ) ||
+  "找不到會員登入資料，請重新登入"
+);
       window.location.href = "index.html";
       return;
     }
@@ -5996,15 +6473,50 @@ const response = await fetch(
 
   } catch (error) {
     console.error(error);
-    alert("已分析賽事讀取失敗：" + error.message);
+    alert(
+  (
+    window.HabaoI18n?.t(
+      "historyLoadFailed",
+      "已分析賽事讀取失敗"
+    ) ||
+    "已分析賽事讀取失敗"
+  ) +
+  "：" +
+  error.message
+);
   }
 }
 function renderAnalysisHistory(matches) {
-  const container = document.getElementById("matchesContainer");
-  const title = document.getElementById("fixtureSectionTitle");
+  const container =
+    document.getElementById(
+      "matchesContainer"
+    );
+
+  const title =
+    document.getElementById(
+      "fixtureSectionTitle"
+    );
+
+  const t = (
+    key,
+    fallback
+  ) =>
+    window.HabaoI18n?.t(
+      key,
+      fallback
+    ) || fallback;
+
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
 
   if (title) {
-    title.textContent = "我的分析紀錄";
+    title.textContent =
+      t(
+        "historyTitle",
+        "我的分析紀錄"
+      );
   }
 
   if (!matches.length) {
@@ -6020,145 +6532,389 @@ function renderAnalysisHistory(matches) {
         </div>
 
         <div class="v2-history-empty-title">
-          尚無分析紀錄
+          ${t(
+            "noHistory",
+            "尚無分析紀錄"
+          )}
         </div>
 
         <div class="v2-history-empty-text">
-          完成賽事分析後，紀錄會自動保存在這裡。
+          ${t(
+            "noHistoryText",
+            "完成賽事分析後，紀錄會自動保存在這裡。"
+          )}
         </div>
 
       </div>
     `;
+
+    window.habaoAnalysisHistory =
+      {};
+
+    window.habaoCurrentHistoryMatches =
+      [];
+
     return;
   }
 
   const historyLeagueNameZH = {
-    "Premier League": "英格蘭超級聯賽",
-    "La Liga": "西班牙甲級聯賽",
-    "Bundesliga": "德國甲級聯賽",
-    "Serie A": "義大利甲級聯賽",
-    "Ligue 1": "法國甲級聯賽",
+    "Premier League":
+      "英格蘭超級聯賽",
 
-    "UEFA Champions League": "歐洲冠軍聯賽",
-    "UEFA Europa League": "歐霸盃",
-    "UEFA Europa Conference League": "歐洲協會聯賽",
-    "UEFA Conference League": "歐洲協會聯賽",
+    "La Liga":
+      "西班牙甲級聯賽",
 
-    "Championship": "英格蘭冠軍聯賽",
-    "Eredivisie": "荷蘭甲級聯賽",
-    "Primeira Liga": "葡萄牙超級聯賽",
+    "Bundesliga":
+      "德國甲級聯賽",
 
-    "Jupiler Pro League": "比利時甲級聯賽",
-    "Belgian Pro League": "比利時甲級聯賽",
+    "Serie A":
+      "義大利甲級聯賽",
 
-    "Super Lig": "土耳其超級聯賽",
-    "Süper Lig": "土耳其超級聯賽",
+    "Ligue 1":
+      "法國甲級聯賽",
 
-    "Major League Soccer": "美國職業足球大聯盟",
-    "Serie A Brazil": "巴西甲級聯賽",
-    "Liga Profesional Argentina": "阿根廷甲級聯賽",
+    "UEFA Champions League":
+      "歐洲冠軍聯賽",
 
-    "KNVB Beker": "荷蘭盃"
+    "UEFA Europa League":
+      "歐霸盃",
+
+    "UEFA Europa Conference League":
+      "歐洲協會聯賽",
+
+    "UEFA Conference League":
+      "歐洲協會聯賽",
+
+    "Championship":
+      "英格蘭冠軍聯賽",
+
+    "Eredivisie":
+      "荷蘭甲級聯賽",
+
+    "Primeira Liga":
+      "葡萄牙超級聯賽",
+
+    "Jupiler Pro League":
+      "比利時甲級聯賽",
+
+    "Belgian Pro League":
+      "比利時甲級聯賽",
+
+    "Super Lig":
+      "土耳其超級聯賽",
+
+    "Süper Lig":
+      "土耳其超級聯賽",
+
+    "Major League Soccer":
+      "美國職業足球大聯盟",
+
+    "Serie A Brazil":
+      "巴西甲級聯賽",
+
+    "Liga Profesional Argentina":
+      "阿根廷甲級聯賽",
+
+    "KNVB Beker":
+      "荷蘭盃"
   };
 
-  container.innerHTML = matches.map(match => {
-    const gameTime = match.fixture_time
-      ? new Date(match.fixture_time).toLocaleString("zh-TW", {
-          timeZone: "Asia/Taipei",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        })
-      : "--";
+  const historyLeagueNameHans = {
+    "Premier League":
+      "英格兰超级联赛",
 
-    const leagueName =
-      historyLeagueNameZH[match.league_name] ||
-      match.league_name ||
-      "足球賽事";
+    "La Liga":
+      "西班牙甲级联赛",
 
-    return `
-      <div class="history-match-card">
+    "Bundesliga":
+      "德国甲级联赛",
 
-        <div class="history-match-top">
+    "Serie A":
+      "意大利甲级联赛",
 
-          <span class="history-league">
-            ${leagueName}
-          </span>
+    "Ligue 1":
+      "法国甲级联赛",
 
-          <span class="history-time">
-            ${gameTime}
-          </span>
+    "UEFA Champions League":
+      "欧洲冠军联赛",
 
-        </div>
+    "UEFA Europa League":
+      "欧联杯",
 
-        <div class="history-teams">
+    "UEFA Europa Conference League":
+      "欧洲协会联赛",
 
-          <div class="history-team">
+    "UEFA Conference League":
+      "欧洲协会联赛",
 
-            <div class="history-team-side">
-              主隊
+    "Championship":
+      "英格兰冠军联赛",
+
+    "Eredivisie":
+      "荷兰甲级联赛",
+
+    "Primeira Liga":
+      "葡萄牙超级联赛",
+
+    "Jupiler Pro League":
+      "比利时甲级联赛",
+
+    "Belgian Pro League":
+      "比利时甲级联赛",
+
+    "Super Lig":
+      "土耳其超级联赛",
+
+    "Süper Lig":
+      "土耳其超级联赛",
+
+    "Major League Soccer":
+      "美国职业足球大联盟",
+
+    "Serie A Brazil":
+      "巴西甲级联赛",
+
+    "Liga Profesional Argentina":
+      "阿根廷甲级联赛",
+
+    "KNVB Beker":
+      "荷兰杯"
+  };
+
+  function getHistoryLeagueName(
+    originalName
+  ) {
+    if (lang === "en") {
+      return (
+        originalName ||
+        t(
+          "footballMatch",
+          "Football Match"
+        )
+      );
+    }
+
+    if (lang === "zh-Hans") {
+      return (
+        historyLeagueNameHans[
+          originalName
+        ] ||
+        originalName ||
+        t(
+          "footballMatch",
+          "足球赛事"
+        )
+      );
+    }
+
+    return (
+      historyLeagueNameZH[
+        originalName
+      ] ||
+      originalName ||
+      t(
+        "footballMatch",
+        "足球賽事"
+      )
+    );
+  }
+
+  function getHistoryTeamName(
+    originalName
+  ) {
+    if (lang === "en") {
+      return (
+        originalName ||
+        "--"
+      );
+    }
+
+    if (
+      typeof getTeamNameZH ===
+      "function"
+    ) {
+      return (
+        getTeamNameZH(
+          originalName
+        ) ||
+        originalName ||
+        "--"
+      );
+    }
+
+    return (
+      originalName ||
+      "--"
+    );
+  }
+
+  const locale =
+    lang === "en"
+      ? "en-US"
+      : lang === "zh-Hans"
+        ? "zh-CN"
+        : "zh-TW";
+
+  container.innerHTML =
+    matches
+      .map(match => {
+
+        const gameTime =
+          match.fixture_time
+            ? new Date(
+                match.fixture_time
+              ).toLocaleString(
+                locale,
+                {
+                  timeZone:
+                    "Asia/Taipei",
+
+                  month:
+                    "2-digit",
+
+                  day:
+                    "2-digit",
+
+                  hour:
+                    "2-digit",
+
+                  minute:
+                    "2-digit",
+
+                  hour12:
+                    false
+                }
+              )
+            : "--";
+
+        const leagueName =
+          getHistoryLeagueName(
+            match.league_name
+          );
+
+        const homeTeam =
+          getHistoryTeamName(
+            match.home_team
+          );
+
+        const awayTeam =
+          getHistoryTeamName(
+            match.away_team
+          );
+
+        return `
+          <div class="history-match-card">
+
+            <div class="history-match-top">
+
+              <span class="history-league">
+                ${leagueName}
+              </span>
+
+              <span class="history-time">
+                ${gameTime}
+              </span>
+
             </div>
 
-            <img
-              src="${match.home_logo || ""}"
-              alt="${match.home_team || ""}"
+            <div class="history-teams">
+
+              <div class="history-team">
+
+                <div class="history-team-side">
+                  ${t(
+                    "homeTeam",
+                    "主隊"
+                  )}
+                </div>
+
+                <img
+                  src="${match.home_logo || ""}"
+                  alt="${homeTeam}"
+                >
+
+                <div class="history-team-name">
+                  ${homeTeam}
+                </div>
+
+              </div>
+
+              <div class="history-vs">
+                ${t(
+                  "versus",
+                  "對戰"
+                )}
+              </div>
+
+              <div class="history-team">
+
+                <div class="history-team-side">
+                  ${t(
+                    "awayTeam",
+                    "客隊"
+                  )}
+                </div>
+
+                <img
+                  src="${match.away_logo || ""}"
+                  alt="${awayTeam}"
+                >
+
+                <div class="history-team-name">
+                  ${awayTeam}
+                </div>
+
+              </div>
+
+            </div>
+
+            <button
+              class="history-view-btn"
+              onclick="viewAnalysisHistory(${match.id})"
             >
-
-            <div class="history-team-name">
-              ${match.home_team || "--"}
-            </div>
-
-          </div>
-
-          <div class="history-vs">
-            對戰
-          </div>
-
-          <div class="history-team">
-
-            <div class="history-team-side">
-              客隊
-            </div>
-
-            <img
-              src="${match.away_logo || ""}"
-              alt="${match.away_team || ""}"
-            >
-
-            <div class="history-team-name">
-              ${match.away_team || "--"}
-            </div>
+              ${t(
+                "viewAnalysis",
+                "查看分析 →"
+              )}
+            </button>
 
           </div>
+        `;
+      })
+      .join("");
 
-        </div>
+  window.habaoAnalysisHistory =
+    Object.fromEntries(
+      matches.map(
+        match => [
+          String(match.id),
+          match
+        ]
+      )
+    );
 
-        <button
-          class="history-view-btn"
-          onclick="viewAnalysisHistory(${match.id})"
-        >
-          查看分析 →
-        </button>
-
-      </div>
-    `;
-  }).join("");
-
-  window.habaoAnalysisHistory = Object.fromEntries(
-    matches.map(match => [String(match.id), match])
-  );
+  window.habaoCurrentHistoryMatches =
+    matches;
 }
 
 function viewAnalysisHistory(historyId) {
   const history =
     window.habaoAnalysisHistory?.[String(historyId)];
 
-  if (!history || !history.result_data) {
-    alert("找不到這場分析結果");
-    return;
-  }
+if (
+  !history ||
+  !history.result_data
+) {
+  alert(
+    window.HabaoI18n?.t(
+      "analysisResultNotFound",
+      "找不到這場分析結果"
+    ) ||
+    "找不到這場分析結果"
+  );
+
+  return;
+}
 
   sessionStorage.setItem(
     "matchAnalysis",
@@ -6167,6 +6923,22 @@ function viewAnalysisHistory(historyId) {
 
   window.location.href = "analysis.html";
 }  
+
+window.addEventListener(
+  "habao:languagechange",
+  () => {
+    if (
+      Array.isArray(
+        window.habaoCurrentHistoryMatches
+      )
+    ) {
+      renderAnalysisHistory(
+        window.habaoCurrentHistoryMatches
+      );
+    }
+  }
+);
+  
 </script>
 
 <!-- 加入主畫面｜教學彈窗 -->
@@ -6424,28 +7196,73 @@ showPhoneGuide("iphone");
 })();
 
 function showQuotaLimitModal(limit) {
-  const modal = document.getElementById("quotaLimitModal");
-  const numberEl = document.getElementById("quotaLimitNumber");
+  const modal =
+    document.getElementById(
+      "quotaLimitModal"
+    );
+
+  const numberEl =
+    document.getElementById(
+      "quotaLimitNumber"
+    );
 
   if (!modal) return;
 
-  const titleEl = modal.querySelector(".quota-modal-title");
-  const subtitleEl = modal.querySelector(".quota-modal-subtitle");
-  const labelEl = modal.querySelector(".quota-limit-label");
-  const resetEl = modal.querySelector(".quota-reset-text");
+  const titleEl =
+    modal.querySelector(
+      ".quota-modal-title"
+    );
+
+  const subtitleEl =
+    modal.querySelector(
+      ".quota-modal-subtitle"
+    );
+
+  const labelEl =
+    modal.querySelector(
+      ".quota-limit-label"
+    );
+
+  const resetEl =
+    modal.querySelector(
+      ".quota-reset-text"
+    );
+
+  const t = (
+    key,
+    fallback
+  ) =>
+    window.HabaoI18n?.t(
+      key,
+      fallback
+    ) || fallback;
 
   // 總剩餘分析次數已用完
-  if (limit === "credits_empty") {
+  if (
+    limit === "credits_empty"
+  ) {
     if (titleEl) {
-      titleEl.textContent = "AI 分析次數已用完";
+      titleEl.textContent =
+        t(
+          "creditsUsed",
+          "AI 分析次數已用完"
+        );
     }
 
     if (subtitleEl) {
-      subtitleEl.textContent = "您的剩餘 AI 分析次數已全部使用完畢";
+      subtitleEl.textContent =
+        t(
+          "creditsUsedSub",
+          "您的剩餘 AI 分析次數已全部使用完畢"
+        );
     }
 
     if (labelEl) {
-      labelEl.textContent = "剩餘分析次數";
+      labelEl.textContent =
+        t(
+          "remainingAnalysis",
+          "剩餘分析次數"
+        );
     }
 
     if (numberEl) {
@@ -6453,38 +7270,60 @@ function showQuotaLimitModal(limit) {
     }
 
     if (resetEl) {
-      resetEl.innerHTML =
-        "💬 請聯絡哈寶增加 AI 分析次數";
+      resetEl.textContent =
+        t(
+          "contactAddAnalysis",
+          "💬 請聯絡哈寶增加 AI 分析次數"
+        );
     }
   }
 
   // 每日分析上限已用完
   else {
     if (titleEl) {
-      titleEl.textContent = "今日 AI 分析額度已用完";
+      titleEl.textContent =
+        t(
+          "quotaUsed",
+          "今日 AI 分析額度已用完"
+        );
     }
 
     if (subtitleEl) {
       subtitleEl.textContent =
-        "您今天的 AI 分析次數已全部使用完畢";
+        t(
+          "quotaUsedSub",
+          "您今天的 AI 分析次數已全部使用完畢"
+        );
     }
 
     if (labelEl) {
-      labelEl.textContent = "每日可分析";
+      labelEl.textContent =
+        t(
+          "dailyAvailable",
+          "每日可分析"
+        );
     }
 
     if (numberEl) {
-      numberEl.textContent = limit;
+      numberEl.textContent =
+        limit;
     }
 
     if (resetEl) {
-      resetEl.innerHTML =
-        "🗓️ 明日 <strong>00:00</strong> 將自動恢復分析次數";
+      resetEl.textContent =
+        t(
+          "quotaReset",
+          "🗓️ 明日 00:00 將自動恢復分析次數"
+        );
     }
   }
 
-  modal.classList.add("show");
-  document.body.style.overflow = "hidden";
+  modal.classList.add(
+    "show"
+  );
+
+  document.body.style.overflow =
+    "hidden";
 }
 
 function closeQuotaLimitModal() {
@@ -6583,6 +7422,679 @@ function closeQuotaLimitModal() {
 
   </div>
 </div>
+
+<script>
+/* =========================================================
+   HABAO FOOTBALL I18N
+========================================================= */
+
+(() => {
+  const I18N =
+    window.HabaoI18n;
+
+  if (!I18N) return;
+
+  I18N.registerTranslations({
+    "zh-Hant": {
+      footballTitle: "足球分析｜哈寶足球 AI",
+
+      loggedIn: "已登入",
+      backHome: "← 返回首頁",
+
+      matchCenter: "賽事中心",
+      matchDescription:
+        "整合賽事資訊、近期數據與市場資料，快速查看賽前量化分析。",
+
+      selectDate: "選擇賽事日期",
+      myAnalysis: "我的分析",
+
+      today: "今天",
+      tomorrow: "明天",
+      dayAfterTomorrow: "後天",
+
+      todayFocus: "⚽️ 今日焦點賽事",
+      tomorrowFocus: "⚽️ 明日焦點賽事",
+      focusMatches: "⚽️ 焦點賽事",
+
+      searchPlaceholder: "搜尋球隊或聯賽...",
+
+      leagueAll: "全部",
+      leagueTop5: "五大聯賽",
+      leagueChampions: "歐冠",
+      leagueEuropa: "歐聯杯",
+      leaguePremier: "英超",
+      leagueLaLiga: "西甲",
+      leagueBundesliga: "德甲",
+      leagueSerieA: "義甲",
+      leagueLigue1: "法甲",
+      leagueJ1: "日職",
+      leagueKLeague: "韓職",
+      leagueEredivisie: "荷甲",
+      leagueCSL: "中超",
+      leagueBrazil: "巴甲",
+
+      homeTeam: "主隊",
+      awayTeam: "客隊",
+
+      matchFinished: "✓ 已完賽",
+      analysisTomorrow: "明日開放分析",
+      analysisAvailable: "可分析",
+      addBatch: "加入批次分析",
+      startAnalysis: "開始分析",
+
+      loadingToday: "正在取得今日真實賽事...",
+      loadingTomorrow: "正在取得明日真實賽事...",
+      loadingMatches: "正在取得賽事資料...",
+      loadFailed: "⚠️ 賽事資料讀取失敗，請稍後再試。",
+
+      noMainMatches: "暫無符合條件的主要賽事。",
+      noLeagueMatches: "目前沒有這個聯賽的賽事。",
+      noFilteredMatches: "目前暫無符合條件的主要賽事。",
+      searchNotFoundPrefix: "找不到「",
+      searchNotFoundSuffix: "」相關賽事。",
+
+      selectedPrefix: "已選",
+      selectedSuffix: "場",
+      batchSequence: "將依序進行 AI 分析",
+      startBatch: "開始批次分析",
+
+      analysisProgress: "分析進度",
+      analysisComplete: "分析完成",
+      analysisIncomplete: "分析未完成",
+      backgroundAnalysis: "背景分析中，可先離開此頁",
+      analysisFinished: "分析已結束",
+      aiAnalyzing: "AI 分析中",
+      creatingAnalysis: "建立分析任務...",
+      preparingBackground: "準備背景分析",
+
+      historyTitle: "我的分析紀錄",
+      noHistory: "尚無分析紀錄",
+      noHistoryText:
+        "完成賽事分析後，紀錄會自動保存在這裡。",
+      viewAnalysis: "查看分析 →",
+      versus: "對戰",
+      footballMatch: "足球賽事",
+
+      groupTitle: "⚽️ 一場球，不只看 AI 怎麼分析",
+      groupText: "群內老玩家每天分享賽事看法與推薦",
+      groupButton: "看看老玩家怎麼選 →",
+
+      installApp: "加入主畫面",
+      installTitle: "加入主畫面",
+      close: "關閉",
+
+      iphoneStep1: "點擊 Safari 下方的「分享」按鈕",
+      iphoneStep2: "選擇「加入主畫面」",
+      iphoneFinish:
+        "✓ 確認名稱後點擊「加入」即可從手機主畫面快速開啟哈寶足球AI",
+
+      androidStep1: "點擊 Chrome 右上角的「⋮」選單按鈕",
+      androidStep2: "選擇「加入主畫面」",
+      androidFinish:
+        "✓ 完成後即可從手機主畫面快速開啟哈寶足球AI",
+
+      quotaUsed: "今日 AI 分析額度已用完",
+      quotaUsedSub: "您今天的 AI 分析次數已全部使用完畢",
+      dailyAvailable: "每日可分析",
+      matchesUnit: "場賽事",
+      quotaReset: "🗓️ 明日 00:00 將自動恢復分析次數",
+
+      creditsUsed: "AI 分析次數已用完",
+      creditsUsedSub: "您的剩餘 AI 分析次數已全部使用完畢",
+      remainingAnalysis: "剩餘分析次數",
+      contactAddCredits: "聯絡哈寶增加積分 →",
+      contactAddAnalysis: "💬 請聯絡哈寶增加 AI 分析次數",
+      batchCreateFailed: "批次分析建立失敗",
+memberInactive: "AI 分析權限目前已停用，請聯絡哈寶",
+analysisFailed: "AI 分析失敗",
+backgroundCreateFailed: "建立背景分析失敗",
+fixtureNotFound: "找不到這場比賽資料",
+memberDataNotFound: "找不到會員登入資料，請重新登入",
+historyLoadFailed: "已分析賽事讀取失敗",
+analysisResultNotFound: "找不到這場分析結果"
+    },
+
+    "zh-Hans": {
+      footballTitle: "足球分析｜哈宝足球 AI",
+
+      loggedIn: "已登录",
+      backHome: "← 返回首页",
+
+      matchCenter: "赛事中心",
+      matchDescription:
+        "整合赛事信息、近期数据与市场资料，快速查看赛前量化分析。",
+
+      selectDate: "选择赛事日期",
+      myAnalysis: "我的分析",
+
+      today: "今天",
+      tomorrow: "明天",
+      dayAfterTomorrow: "后天",
+
+      todayFocus: "⚽️ 今日焦点赛事",
+      tomorrowFocus: "⚽️ 明日焦点赛事",
+      focusMatches: "⚽️ 焦点赛事",
+
+      searchPlaceholder: "搜索球队或联赛...",
+
+      leagueAll: "全部",
+      leagueTop5: "五大联赛",
+      leagueChampions: "欧冠",
+      leagueEuropa: "欧联杯",
+      leaguePremier: "英超",
+      leagueLaLiga: "西甲",
+      leagueBundesliga: "德甲",
+      leagueSerieA: "意甲",
+      leagueLigue1: "法甲",
+      leagueJ1: "日职",
+      leagueKLeague: "韩职",
+      leagueEredivisie: "荷甲",
+      leagueCSL: "中超",
+      leagueBrazil: "巴甲",
+
+      homeTeam: "主队",
+      awayTeam: "客队",
+
+      matchFinished: "✓ 已完赛",
+      analysisTomorrow: "明日开放分析",
+      analysisAvailable: "可分析",
+      addBatch: "加入批量分析",
+      startAnalysis: "开始分析",
+
+      loadingToday: "正在获取今日真实赛事...",
+      loadingTomorrow: "正在获取明日真实赛事...",
+      loadingMatches: "正在获取赛事数据...",
+      loadFailed: "⚠️ 赛事数据读取失败，请稍后再试。",
+
+      noMainMatches: "暂无符合条件的主要赛事。",
+      noLeagueMatches: "目前没有这个联赛的赛事。",
+      noFilteredMatches: "目前暂无符合条件的主要赛事。",
+      searchNotFoundPrefix: "找不到“",
+      searchNotFoundSuffix: "”相关赛事。",
+
+      selectedPrefix: "已选",
+      selectedSuffix: "场",
+      batchSequence: "将依序进行 AI 分析",
+      startBatch: "开始批量分析",
+
+      analysisProgress: "分析进度",
+      analysisComplete: "分析完成",
+      analysisIncomplete: "分析未完成",
+      backgroundAnalysis: "后台分析中，可先离开此页面",
+      analysisFinished: "分析已结束",
+      aiAnalyzing: "AI 分析中",
+      creatingAnalysis: "建立分析任务...",
+      preparingBackground: "准备后台分析",
+
+      historyTitle: "我的分析记录",
+      noHistory: "暂无分析记录",
+      noHistoryText:
+        "完成赛事分析后，记录会自动保存在这里。",
+      viewAnalysis: "查看分析 →",
+      versus: "对战",
+      footballMatch: "足球赛事",
+
+      groupTitle: "⚽️ 一场球，不只看 AI 怎么分析",
+      groupText: "群内老玩家每天分享赛事看法与推荐",
+      groupButton: "看看老玩家怎么选 →",
+
+      installApp: "加入主屏幕",
+      installTitle: "加入主屏幕",
+      close: "关闭",
+
+      iphoneStep1: "点击 Safari 下方的“分享”按钮",
+      iphoneStep2: "选择“添加到主屏幕”",
+      iphoneFinish:
+        "✓ 确认名称后点击“添加”，即可从手机主屏幕快速打开哈宝足球AI",
+
+      androidStep1: "点击 Chrome 右上角的“⋮”菜单按钮",
+      androidStep2: "选择“添加到主屏幕”",
+      androidFinish:
+        "✓ 完成后即可从手机主屏幕快速打开哈宝足球AI",
+
+      quotaUsed: "今日 AI 分析额度已用完",
+      quotaUsedSub: "您今天的 AI 分析次数已全部使用完毕",
+      dailyAvailable: "每日可分析",
+      matchesUnit: "场赛事",
+      quotaReset: "🗓️ 明日 00:00 将自动恢复分析次数",
+
+      creditsUsed: "AI 分析次数已用完",
+      creditsUsedSub: "您的剩余 AI 分析次数已全部使用完毕",
+      remainingAnalysis: "剩余分析次数",
+      contactAddCredits: "联系哈宝增加积分 →",
+      contactAddAnalysis: "💬 请联系哈宝增加 AI 分析次数",
+      batchCreateFailed: "批量分析建立失败",
+memberInactive: "AI 分析权限目前已停用，请联系哈宝",
+analysisFailed: "AI 分析失败",
+backgroundCreateFailed: "建立后台分析失败",
+fixtureNotFound: "找不到这场比赛数据",
+memberDataNotFound: "找不到会员登录数据，请重新登录",
+historyLoadFailed: "已分析赛事读取失败",
+analysisResultNotFound: "找不到这场分析结果"
+    },
+
+    "en": {
+      footballTitle: "Football Analysis | HABAO AI",
+
+      loggedIn: "Logged in",
+      backHome: "← Home",
+
+      matchCenter: "Match Center",
+      matchDescription:
+        "View match information, recent data and market insights for quantitative pre-match analysis.",
+
+      selectDate: "Select Match Date",
+      myAnalysis: "My Analysis",
+
+      today: "Today",
+      tomorrow: "Tomorrow",
+      dayAfterTomorrow: "Day After Tomorrow",
+
+      todayFocus: "⚽️ Today's Featured Matches",
+      tomorrowFocus: "⚽️ Tomorrow's Featured Matches",
+      focusMatches: "⚽️ Featured Matches",
+
+      searchPlaceholder: "Search teams or leagues...",
+
+      leagueAll: "All",
+      leagueTop5: "Top 5 Leagues",
+      leagueChampions: "UCL",
+      leagueEuropa: "Europa",
+      leaguePremier: "Premier League",
+      leagueLaLiga: "La Liga",
+      leagueBundesliga: "Bundesliga",
+      leagueSerieA: "Serie A",
+      leagueLigue1: "Ligue 1",
+      leagueJ1: "J1 League",
+      leagueKLeague: "K League",
+      leagueEredivisie: "Eredivisie",
+      leagueCSL: "CSL",
+      leagueBrazil: "Brazil Serie A",
+
+      homeTeam: "HOME",
+      awayTeam: "AWAY",
+
+      matchFinished: "✓ Finished",
+      analysisTomorrow: "Analysis Available Tomorrow",
+      analysisAvailable: "Analysis Available",
+      addBatch: "Add to Batch",
+      startAnalysis: "Start Analysis",
+
+      loadingToday: "Loading today's matches...",
+      loadingTomorrow: "Loading tomorrow's matches...",
+      loadingMatches: "Loading matches...",
+      loadFailed: "⚠️ Unable to load match data. Please try again later.",
+
+      noMainMatches: "No major matches available.",
+      noLeagueMatches: "No matches are currently available for this league.",
+      noFilteredMatches: "No matching major events are currently available.",
+      searchNotFoundPrefix: "No matches found for “",
+      searchNotFoundSuffix: "”.",
+
+      selectedPrefix: "Selected",
+      selectedSuffix: "matches",
+      batchSequence: "AI analyses will run sequentially",
+      startBatch: "Start Batch Analysis",
+
+      analysisProgress: "Analysis Progress",
+      analysisComplete: "Analysis Complete",
+      analysisIncomplete: "Analysis Incomplete",
+      backgroundAnalysis: "Analysis is running in the background. You may leave this page.",
+      analysisFinished: "Analysis Ended",
+      aiAnalyzing: "AI Analyzing",
+      creatingAnalysis: "Creating analysis task...",
+      preparingBackground: "Preparing background analysis",
+
+      historyTitle: "My Analysis History",
+      noHistory: "No Analysis History",
+      noHistoryText:
+        "Completed match analyses will be saved here automatically.",
+      viewAnalysis: "View Analysis →",
+      versus: "VS",
+      footballMatch: "Football Match",
+
+      groupTitle: "⚽️ There's more to a match than AI analysis",
+      groupText: "Experienced members share their match views and picks every day",
+      groupButton: "See Their Picks →",
+
+      installApp: "Add to Home Screen",
+      installTitle: "Add to Home Screen",
+      close: "Close",
+
+      iphoneStep1: "Tap the Share button at the bottom of Safari",
+      iphoneStep2: "Select “Add to Home Screen”",
+      iphoneFinish:
+        "✓ Confirm the name and tap “Add” to launch HABAO quickly from your Home Screen",
+
+      androidStep1: "Tap the “⋮” menu in the top-right corner of Chrome",
+      androidStep2: "Select “Add to Home screen”",
+      androidFinish:
+        "✓ Once added, you can quickly launch HABAO from your Home Screen",
+
+      quotaUsed: "Today's AI Analysis Limit Reached",
+      quotaUsedSub: "You have used all AI analyses available today",
+      dailyAvailable: "Daily Analysis Limit",
+      matchesUnit: "matches",
+      quotaReset: "🗓️ Analysis access will reset automatically tomorrow at 00:00",
+
+      creditsUsed: "No AI Analysis Credits Remaining",
+      creditsUsedSub: "You have used all of your remaining AI analysis credits",
+      remainingAnalysis: "Remaining Analyses",
+      contactAddCredits: "Contact HABAO for More Credits →",
+      contactAddAnalysis: "💬 Contact HABAO to add more AI analysis credits",
+      batchCreateFailed: "Failed to create batch analysis",
+memberInactive: "AI analysis access is currently disabled. Please contact HABAO",
+analysisFailed: "AI analysis failed",
+backgroundCreateFailed: "Failed to create background analysis",
+fixtureNotFound: "Match data not found",
+memberDataNotFound: "Member login data not found. Please sign in again",
+historyLoadFailed: "Failed to load analysis history",
+analysisResultNotFound: "Analysis result not found"
+    }
+  });
+
+  function text(
+    selector,
+    key
+  ) {
+    const element =
+      document.querySelector(
+        selector
+      );
+
+    if (!element) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent
+      );
+  }
+
+  function applyFootballLanguage() {
+    document.title =
+      I18N.t(
+        "footballTitle",
+        document.title
+      );
+
+    text(
+      ".v2-back",
+      "backHome"
+    );
+
+    text(
+      ".v2-match-hero h1",
+      "matchCenter"
+    );
+
+    text(
+      ".v2-control-title",
+      "selectDate"
+    );
+
+    text(
+      ".v2-history-btn",
+      "myAnalysis"
+    );
+
+    const description =
+      document.querySelector(
+        ".v2-match-hero .description"
+      );
+
+    if (description) {
+      description.textContent =
+        I18N.t(
+          "matchDescription",
+          description.textContent
+        );
+    }
+
+    const dateDays =
+      document.querySelectorAll(
+        ".v2-date-bar .date-day"
+      );
+
+    const dateKeys = [
+      "today",
+      "tomorrow",
+      "dayAfterTomorrow"
+    ];
+
+    dateDays.forEach(
+      (element, index) => {
+        if (!dateKeys[index]) return;
+
+        element.textContent =
+          I18N.t(
+            dateKeys[index],
+            element.textContent
+          );
+      }
+    );
+
+    const search =
+      document.getElementById(
+        "fixtureSearchInput"
+      );
+
+    if (search) {
+      search.placeholder =
+        I18N.t(
+          "searchPlaceholder",
+          "搜尋球隊或聯賽..."
+        );
+    }
+
+    const leagueKeys = {
+      all: "leagueAll",
+      top5: "leagueTop5",
+      champions: "leagueChampions",
+      europa: "leagueEuropa",
+      premier: "leaguePremier",
+      laliga: "leagueLaLiga",
+      bundesliga: "leagueBundesliga",
+      "italy-serie-a": "leagueSerieA",
+      ligue1: "leagueLigue1",
+      j1: "leagueJ1",
+      kleague: "leagueKLeague",
+      eredivisie: "leagueEredivisie",
+      csl: "leagueCSL",
+      "brazil-serie-a": "leagueBrazil"
+    };
+
+    document
+      .querySelectorAll(
+        ".league-filter-btn"
+      )
+      .forEach(button => {
+        const key =
+          leagueKeys[
+            button.dataset.league
+          ];
+
+        if (!key) return;
+
+        button.textContent =
+          I18N.t(
+            key,
+            button.textContent
+          );
+      });
+
+    text(
+      ".line-group-title",
+      "groupTitle"
+    );
+
+    text(
+      ".line-group-text",
+      "groupText"
+    );
+
+    text(
+      ".line-group-btn",
+      "groupButton"
+    );
+
+    const floatText =
+      document.querySelector(
+        "#addHomeFloatBtn span"
+      );
+
+    if (floatText) {
+      floatText.textContent =
+        I18N.t(
+          "installApp",
+          floatText.textContent
+        );
+    }
+
+    text(
+      "#addHomeModal h2",
+      "installTitle"
+    );
+
+    document
+      .querySelectorAll(
+        ".add-home-close, .quota-modal-close"
+      )
+      .forEach(button => {
+        button.setAttribute(
+          "aria-label",
+          I18N.t(
+            "close",
+            "關閉"
+          )
+        );
+      });
+
+    const iphoneSteps =
+      document.querySelectorAll(
+        "#iphoneGuide .add-home-step-title"
+      );
+
+    if (iphoneSteps[0]) {
+      iphoneSteps[0].innerHTML =
+        `<span>1</span>${I18N.t(
+          "iphoneStep1"
+        )}`;
+    }
+
+    if (iphoneSteps[1]) {
+      iphoneSteps[1].innerHTML =
+        `<span>2</span>${I18N.t(
+          "iphoneStep2"
+        )}`;
+    }
+
+    const iphoneFinish =
+      document.querySelector(
+        "#iphoneGuide .add-home-finish"
+      );
+
+    if (iphoneFinish) {
+      iphoneFinish.textContent =
+        I18N.t(
+          "iphoneFinish",
+          iphoneFinish.textContent
+        );
+    }
+
+    const androidSteps =
+      document.querySelectorAll(
+        "#androidGuide .add-home-step-title"
+      );
+
+    if (androidSteps[0]) {
+      androidSteps[0].innerHTML =
+        `<span>1</span>${I18N.t(
+          "androidStep1"
+        )}`;
+    }
+
+    if (androidSteps[1]) {
+      androidSteps[1].innerHTML =
+        `<span>2</span>${I18N.t(
+          "androidStep2"
+        )}`;
+    }
+
+    const androidFinish =
+      document.querySelector(
+        "#androidGuide .add-home-finish"
+      );
+
+    if (androidFinish) {
+      androidFinish.textContent =
+        I18N.t(
+          "androidFinish",
+          androidFinish.textContent
+        );
+    }
+
+    text(
+      "#batchAnalysisSub",
+      "batchSequence"
+    );
+
+    text(
+      "#batchAnalysisStart",
+      "startBatch"
+    );
+
+    text(
+      ".quota-modal-confirm",
+      "contactAddCredits"
+    );
+  }
+
+  window.applyFootballLanguage =
+    applyFootballLanguage;
+
+  window.addEventListener(
+    "habao:languagechange",
+    applyFootballLanguage
+  );
+
+  window.addEventListener(
+    "habao:translationsapplied",
+    applyFootballLanguage
+  );
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      applyFootballLanguage
+    );
+  } else {
+    applyFootballLanguage();
+  }
+})();
+</script>
+
+<script>
+(() => {
+  const mount =
+    document.getElementById(
+      "habaoLanguageMount"
+    );
+
+  if (
+    mount &&
+    window.HabaoI18n
+  ) {
+    mount.appendChild(
+      window.HabaoI18n
+        .createLanguageSelector()
+    );
+  }
+})();
+</script>
   
 </body>
 </html>
