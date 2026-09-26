@@ -6,6 +6,8 @@
 
 <title>AI 賽事分析｜哈寶足球 AI</title>
 
+<script src="./habao-i18n.js"></script>
+   
 <style>   
 
 /* ========================================
@@ -2553,12 +2555,58 @@ h1{
     font-size:9px;
   }
 }
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
    
 </style>
 </head>
 
 <body>
 
+<div id="habaoLanguageMount"></div>
+   
 <header class="header">
   <div class="header-inner">
 
@@ -2621,8 +2669,175 @@ h1{
 </div>
    
 <main id="app"></main>
-
+   
 <script>
+
+/* =====================================
+   HABAO ANALYSIS I18N
+===================================== */
+
+const analysisTranslations = {
+  "zh-Hant": {
+    pageTitle: "AI 賽事分析｜哈寶足球 AI",
+    matchCenter: "賽事中心",
+
+    previousMatch: "← 上一場",
+    nextMatch: "下一場 →",
+    batchCountPrefix: "第",
+    batchCountMiddle: "/",
+    batchCountSuffix: "場",
+
+    noAnalysisData: "找不到賽事分析資料",
+    noAnalysisText: "請先從足球賽事列表選擇一場比賽進行分析。",
+    backFootball: "返回足球賽事分析",
+
+    analysisTitle: "賽事深度分析",
+    analysisSubtitle: "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析",
+
+    homeTeam: "主隊",
+    awayTeam: "客隊",
+    timeUnavailable: "時間未提供",
+
+    moneyline: "獨贏",
+    handicap: "讓分",
+    overUnder: "大小球",
+    btts: "BTTS",
+    doubleChance: "雙重機會",
+
+    noRecommendation: "暫不推薦",
+    insufficientData: "資料不足",
+    aiConfidence: "AI 信心",
+    marketLine: "盤口",
+
+    betNow: "立即投注 →",
+    expertAnalysis: "專人分析 →",
+
+    intelligenceTitle: "深度賽事情報",
+    analysisFocus: "AI 分析重點",
+    noSummary: "目前沒有摘要資料。",
+    marketAnalysis: "市場與賠率分析",
+    predictedScore: "AI 預測比分",
+    risk: "本場風險",
+    notEvaluated: "未評估",
+    finalNote: "AI 最終提醒",
+    finalFallback: "請綜合即時資訊判斷。",
+
+    analysisReadFailed: "分析資料讀取失敗",
+    analysisReadFailedText: "請返回賽事列表重新進行分析。"
+  },
+
+  "zh-Hans": {
+    pageTitle: "AI 赛事分析｜哈宝足球 AI",
+    matchCenter: "赛事中心",
+
+    previousMatch: "← 上一场",
+    nextMatch: "下一场 →",
+    batchCountPrefix: "第",
+    batchCountMiddle: "/",
+    batchCountSuffix: "场",
+
+    noAnalysisData: "找不到赛事分析资料",
+    noAnalysisText: "请先从足球赛事列表选择一场比赛进行分析。",
+    backFootball: "返回足球赛事分析",
+
+    analysisTitle: "赛事深度分析",
+    analysisSubtitle: "整合近期数据、赛事资讯与市场资料，提供多维赛事量化分析",
+
+    homeTeam: "主队",
+    awayTeam: "客队",
+    timeUnavailable: "时间未提供",
+
+    moneyline: "独赢",
+    handicap: "让分",
+    overUnder: "大小球",
+    btts: "BTTS",
+    doubleChance: "双重机会",
+
+    noRecommendation: "暂不推荐",
+    insufficientData: "资料不足",
+    aiConfidence: "AI 信心",
+    marketLine: "盘口",
+
+    betNow: "立即投注 →",
+    expertAnalysis: "专人分析 →",
+
+    intelligenceTitle: "深度赛事情报",
+    analysisFocus: "AI 分析重点",
+    noSummary: "目前没有摘要资料。",
+    marketAnalysis: "市场与赔率分析",
+    predictedScore: "AI 预测比分",
+    risk: "本场风险",
+    notEvaluated: "未评估",
+    finalNote: "AI 最终提醒",
+    finalFallback: "请综合即时资讯判断。",
+
+    analysisReadFailed: "分析资料读取失败",
+    analysisReadFailedText: "请返回赛事列表重新进行分析。"
+  },
+
+  "en": {
+    pageTitle: "AI Match Analysis | HABAO Football AI",
+    matchCenter: "Match Center",
+
+    previousMatch: "← Previous",
+    nextMatch: "Next →",
+    batchCountPrefix: "Match",
+    batchCountMiddle: "of",
+    batchCountSuffix: "",
+
+    noAnalysisData: "Analysis Data Not Found",
+    noAnalysisText: "Please select a match from the football match list to start an analysis.",
+    backFootball: "Back to Match Center",
+
+    analysisTitle: "In-Depth Match Analysis",
+    analysisSubtitle: "Combining recent performance, match information and market data for multidimensional quantitative analysis.",
+
+    homeTeam: "HOME",
+    awayTeam: "AWAY",
+    timeUnavailable: "Time unavailable",
+
+    moneyline: "Moneyline",
+    handicap: "Handicap",
+    overUnder: "Over / Under",
+    btts: "BTTS",
+    doubleChance: "Double Chance",
+
+    noRecommendation: "No Recommendation",
+    insufficientData: "Insufficient data",
+    aiConfidence: "AI Confidence",
+    marketLine: "Line",
+
+    betNow: "Bet Now →",
+    expertAnalysis: "Expert Analysis →",
+
+    intelligenceTitle: "Match Intelligence",
+    analysisFocus: "AI Analysis Highlights",
+    noSummary: "No summary is currently available.",
+    marketAnalysis: "Market & Odds Analysis",
+    predictedScore: "AI Score Prediction",
+    risk: "Match Risk",
+    notEvaluated: "Not Evaluated",
+    finalNote: "AI Final Note",
+    finalFallback: "Please consider the latest available information before making a decision.",
+
+    analysisReadFailed: "Failed to Load Analysis",
+    analysisReadFailedText: "Please return to the match list and run the analysis again."
+  }
+};
+
+window.HabaoI18n?.registerTranslations(
+  analysisTranslations
+);
+
+const analysisT = (
+  key,
+  fallback
+) =>
+  window.HabaoI18n?.t(
+    key,
+    fallback
+  ) || fallback;
+   
 const app =
   document.getElementById("app");
 
@@ -2713,32 +2928,67 @@ function updateBatchResultNav() {
       "batchNextBtn"
     );
 
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
   if (count) {
-    count.textContent =
-      `第 ${batchIndex + 1} / ${batchResults.length} 場`;
+    if (lang === "en") {
+      count.textContent =
+        `${analysisT("batchCountPrefix", "Match")} ` +
+        `${batchIndex + 1} ` +
+        `${analysisT("batchCountMiddle", "of")} ` +
+        `${batchResults.length}`;
+    } else {
+      count.textContent =
+        `${analysisT("batchCountPrefix", "第")} ` +
+        `${batchIndex + 1} ` +
+        `${analysisT("batchCountMiddle", "/")} ` +
+        `${batchResults.length} ` +
+        `${analysisT("batchCountSuffix", "場")}`;
+    }
   }
 
   if (team) {
     const home =
       fixture.home?.name ||
       fixture.home?.api_name ||
-      "主隊";
+      analysisT(
+        "homeTeam",
+        "主隊"
+      );
 
     const away =
       fixture.away?.name ||
       fixture.away?.api_name ||
-      "客隊";
+      analysisT(
+        "awayTeam",
+        "客隊"
+      );
 
     team.textContent =
       `${home} vs ${away}`;
   }
 
   if (prev) {
+    prev.textContent =
+      analysisT(
+        "previousMatch",
+        "← 上一場"
+      );
+
     prev.disabled =
       batchIndex === 0;
   }
 
   if (next) {
+    next.textContent =
+      analysisT(
+        "nextMatch",
+        "下一場 →"
+      );
+
     next.disabled =
       batchIndex ===
       batchResults.length - 1;
@@ -2782,6 +3032,72 @@ function showNextBatchResult() {
 }
 
 
+function getAnalysisLeagueName(
+  leagueName = ""
+) {
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (lang === "en") {
+    return leagueName;
+  }
+
+  const traditional = {
+    "Premier League": "英超",
+    "La Liga": "西甲",
+    "Bundesliga": "德甲",
+    "Serie A": "義甲",
+    "Ligue 1": "法甲",
+    "UEFA Champions League": "歐洲冠軍聯賽",
+    "UEFA Europa League": "歐洲聯賽",
+    "Championship": "英格蘭冠軍聯賽",
+    "Eredivisie": "荷蘭甲級聯賽",
+    "Primeira Liga": "葡萄牙超級聯賽",
+    "Jupiler Pro League": "比利時甲級聯賽",
+    "Belgian Pro League": "比利時甲級聯賽",
+    "UEFA Conference League": "歐洲協會聯賽",
+    "Europa Conference League": "歐洲協會聯賽",
+    "Super Lig": "土耳其超級聯賽",
+    "Süper Lig": "土耳其超級聯賽",
+    "KNVB Beker": "荷蘭盃"
+  };
+
+  const simplified = {
+    "Premier League": "英超",
+    "La Liga": "西甲",
+    "Bundesliga": "德甲",
+    "Serie A": "意甲",
+    "Ligue 1": "法甲",
+    "UEFA Champions League": "欧洲冠军联赛",
+    "UEFA Europa League": "欧洲联赛",
+    "Championship": "英格兰冠军联赛",
+    "Eredivisie": "荷兰甲级联赛",
+    "Primeira Liga": "葡萄牙超级联赛",
+    "Jupiler Pro League": "比利时甲级联赛",
+    "Belgian Pro League": "比利时甲级联赛",
+    "UEFA Conference League": "欧洲协会联赛",
+    "Europa Conference League": "欧洲协会联赛",
+    "Super Lig": "土耳其超级联赛",
+    "Süper Lig": "土耳其超级联赛",
+    "KNVB Beker": "荷兰杯"
+  };
+
+  if (lang === "zh-Hans") {
+    return (
+      simplified[leagueName] ||
+      leagueName
+    );
+  }
+
+  return (
+    traditional[leagueName] ||
+    leagueName
+  );
+}
+
+
 if (
   isBatchMode &&
   batchResults.length
@@ -2819,13 +3135,26 @@ if (
 
 if (!raw) {
 
-  app.innerHTML = `
-    <div class="empty">
-      <h2>找不到賽事分析資料</h2>
-      <p>請先從足球賽事列表選擇一場比賽進行分析。</p>
-      <a href="football.html">返回足球賽事分析</a>
-    </div>
-  `;
+app.innerHTML = `
+  <div class="empty">
+    <h2>${analysisT(
+      "noAnalysisData",
+      "找不到賽事分析資料"
+    )}</h2>
+
+    <p>${analysisT(
+      "noAnalysisText",
+      "請先從足球賽事列表選擇一場比賽進行分析。"
+    )}</p>
+
+    <a href="football.html">
+      ${analysisT(
+        "backFootball",
+        "返回足球賽事分析"
+      )}
+    </a>
+  </div>
+`;
 
 } else {
 
@@ -2848,16 +3177,34 @@ const scores = analysis.predicted_scores || [];
       ? new Date(fixture.date)
       : null;
 
-    const timeText = gameDate
-      ? gameDate.toLocaleString("zh-TW", {
-          timeZone: "Asia/Taipei",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        })
-      : "時間未提供";
+const currentAnalysisLang =
+  window.HabaoI18n
+    ?.getLanguage?.() ||
+  "zh-Hant";
+
+const analysisLocale =
+  currentAnalysisLang === "en"
+    ? "en-US"
+    : currentAnalysisLang === "zh-Hans"
+      ? "zh-CN"
+      : "zh-TW";
+
+const timeText = gameDate
+  ? gameDate.toLocaleString(
+      analysisLocale,
+      {
+        timeZone: "Asia/Taipei",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }
+    )
+  : analysisT(
+      "timeUnavailable",
+      "時間未提供"
+    );
 
     const confidenceBar = value =>
       Math.max(0, Math.min(100, Number(value || 0)));
@@ -2885,10 +3232,13 @@ const scores = analysis.predicted_scores || [];
 
   <div class="eyebrow">AI MATCH ANALYSIS</div>
 
-  <h1>賽事深度分析</h1>
+  <h1>${analysisT("analysisTitle", "賽事深度分析")}</h1>
 
   <div class="sub">
-    整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析
+    ${analysisT(
+  "analysisSubtitle",
+  "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析"
+)}
   </div>
 
 </div>
@@ -2896,14 +3246,14 @@ const scores = analysis.predicted_scores || [];
      <div class="match-card">
 
   <div class="team">
-    <div class="team-side">主隊</div>
+    <div class="team-side">${analysisT("homeTeam", "主隊")}</div>
 
     <div class="team-logo-box">
       <img src="${fixture.home?.logo || ""}" alt="">
     </div>
 
     <div class="team-name">
-      ${fixture.home?.name || fixture.home?.api_name || "主隊"}
+      ${fixture.home?.name || fixture.home?.api_name || analysisT("homeTeam", "主隊")}
     </div>
   </div>
 
@@ -2914,40 +3264,24 @@ const scores = analysis.predicted_scores || [];
   </div>
 
   <div class="team">
-    <div class="team-side">客隊</div>
+    <div class="team-side">${analysisT("awayTeam", "客隊")}</div>
 
     <div class="team-logo-box">
       <img src="${fixture.away?.logo || ""}" alt="">
     </div>
 
     <div class="team-name">
-      ${fixture.away?.name || fixture.away?.api_name || "客隊"}
+      ${fixture.away?.name || fixture.away?.api_name || analysisT("awayTeam", "客隊")}
     </div>
   </div>
 
 </div>
 
       <div class="meta">
-      ${({
-  "Premier League": "英超",
-  "La Liga": "西甲",
-  "Bundesliga": "德甲",
-  "Serie A": "義甲",
-  "Ligue 1": "法甲",
-  "UEFA Champions League": "歐洲冠軍聯賽",
-  "UEFA Europa League": "歐洲聯賽",
-  "Championship": "英格蘭冠軍聯賽",
-  "Eredivisie": "荷蘭甲級聯賽",
-  "Primeira Liga": "葡萄牙超級聯賽",
-  "Jupiler Pro League": "比利時甲級聯賽",
-  "Belgian Pro League": "比利時甲級聯賽",
-  "UEFA Conference League": "歐洲協會聯賽",
-  "Europa Conference League": "歐洲協會聯賽",
-"Super Lig": "土耳其超級聯賽",
-"Süper Lig": "土耳其超級聯賽",
-"KNVB Beker": "荷蘭盃"
-          
-})[fixture.league] || fixture.league || ""}<br>
+${getAnalysisLeagueName(
+  fixture.league || ""
+)}
+<br>
         ${timeText}<br>
         ${fixture.venue?.name || ""}${fixture.venue?.city ? "・" + fixture.venue.city : ""}
       </div>
@@ -2956,14 +3290,14 @@ const scores = analysis.predicted_scores || [];
 
         <!-- 獨贏 -->
         <div class="pick-card">
-          <div class="pick-label">獨贏</div>
+          <div class="pick-label">${analysisT("moneyline", "獨贏")}</div>
 
           <div class="pick-value">
-            ${moneyline.pick || "暫不推薦"}
+            ${moneyline.pick || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
-            AI 信心 ${moneyline.confidence || 0}%
+            ${analysisT("aiConfidence", "AI 信心")} ${moneyline.confidence || 0}%
             ${confidenceFire(moneyline.confidence, moneyline.pick)}
           </div>
 
@@ -2972,31 +3306,34 @@ const scores = analysis.predicted_scores || [];
           </div>
 
           <div class="reason">
-            ${moneyline.reason || "資料不足"}
+            ${moneyline.reason || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
 
         <!-- 讓分 -->
         <div class="pick-card">
-          <div class="pick-label">讓分</div>
+          <div class="pick-label">${analysisT("handicap", "讓分")}</div>
 
           <div class="pick-value">
-            ${handicap.pick || "暫不推薦"}
+            ${handicap.pick || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           ${
-            handicap.line && handicap.pick !== "暫不推薦"
+            handicap.line &&
+handicap.pick !== "暫不推薦" &&
+handicap.pick !== "暂不推荐" &&
+handicap.pick !== "No Recommendation"
               ? `
                 <div class="market-line">
-                  盤口 ${handicap.line}
+                  ${analysisT("marketLine", "盤口")} ${handicap.line}
                 </div>
               `
               : ""
           }
 
           <div class="confidence">
-            AI 信心 ${handicap.confidence || 0}%
+            ${analysisT("aiConfidence", "AI 信心")} ${handicap.confidence || 0}%
             ${confidenceFire(handicap.confidence, handicap.pick)}
           </div>
 
@@ -3005,21 +3342,21 @@ const scores = analysis.predicted_scores || [];
           </div>
 
           <div class="reason">
-            ${handicap.reason || "資料不足"}
+            ${handicap.reason || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
 
         <!-- 大小球 -->
         <div class="pick-card">
-          <div class="pick-label">大小球</div>
+          <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
 
           <div class="pick-value">
-            ${overUnder.pick || "暫不推薦"}
+            ${overUnder.pick || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
-            AI 信心 ${overUnder.confidence || 0}%
+            ${analysisT("aiConfidence", "AI 信心")} ${overUnder.confidence || 0}%
             ${confidenceFire(overUnder.confidence, overUnder.pick)}
           </div>
 
@@ -3028,7 +3365,7 @@ const scores = analysis.predicted_scores || [];
           </div>
 
           <div class="reason">
-            ${overUnder.reason || "資料不足"}
+            ${overUnder.reason || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3038,11 +3375,11 @@ const scores = analysis.predicted_scores || [];
           <div class="pick-label">BTTS</div>
 
           <div class="pick-value">
-            ${btts.pick || "暫不推薦"}
+            ${btts.pick || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
-            AI 信心 ${btts.confidence || 0}%
+            ${analysisT("aiConfidence", "AI 信心")} ${btts.confidence || 0}%
             ${confidenceFire(btts.confidence, btts.pick)}
           </div>
 
@@ -3051,21 +3388,21 @@ const scores = analysis.predicted_scores || [];
           </div>
 
           <div class="reason">
-            ${btts.reason || "資料不足"}
+            ${btts.reason || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
 
         <!-- 雙重機會 -->
         <div class="pick-card">
-          <div class="pick-label">雙重機會</div>
+          <div class="pick-label">${analysisT("doubleChance", "雙重機會")}</div>
 
           <div class="pick-value">
-            ${doubleChance.pick || "暫不推薦"}
+            ${doubleChance.pick || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
-            AI 信心 ${doubleChance.confidence || 0}%
+            ${analysisT("aiConfidence", "AI 信心")} ${doubleChance.confidence || 0}%
             ${confidenceFire(
               doubleChance.confidence,
               doubleChance.pick
@@ -3077,7 +3414,7 @@ const scores = analysis.predicted_scores || [];
           </div>
 
           <div class="reason">
-            ${doubleChance.reason || "資料不足"}
+            ${doubleChance.reason || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3090,7 +3427,7 @@ const scores = analysis.predicted_scores || [];
     rel="noopener noreferrer"
     class="bet-btn"
   >
-    立即投注 →
+    ${analysisT("betNow", "立即投注 →")}
   </a>
 
 <a
@@ -3099,7 +3436,7 @@ const scores = analysis.predicted_scores || [];
   rel="noopener noreferrer"
   class="expert-btn"
 >
-  專人分析 →
+  ${analysisT("expertAnalysis", "專人分析 →")}
 </a>
 </div>
       <div class="v2-analysis-detail">
@@ -3107,7 +3444,7 @@ const scores = analysis.predicted_scores || [];
         <div class="v2-detail-head">
           <div>
             <div class="v2-detail-kicker">HABAO MATCH INTELLIGENCE</div>
-            <div class="v2-detail-title">深度賽事情報</div>
+            <div class="v2-detail-title">${analysisT("intelligenceTitle", "深度賽事情報")}</div>
           </div>
 
           <div class="v2-detail-badge">
@@ -3120,10 +3457,10 @@ const scores = analysis.predicted_scores || [];
 
           <div class="v2-insight-content">
             <div class="v2-insight-label">MATCH INSIGHT</div>
-            <div class="v2-insight-title">AI 分析重點</div>
+            <div class="v2-insight-title">${analysisT("analysisFocus", "AI 分析重點")}</div>
 
             <p>
-              ${analysis.summary || "目前沒有摘要資料。"}
+              ${analysis.summary || analysisT("noSummary", "目前沒有摘要資料。")}
             </p>
           </div>
         </div>
@@ -3134,10 +3471,10 @@ const scores = analysis.predicted_scores || [];
 
           <div class="v2-insight-content">
             <div class="v2-insight-label">MARKET INTELLIGENCE</div>
-            <div class="v2-insight-title">市場與賠率分析</div>
+            <div class="v2-insight-title">${analysisT("marketAnalysis", "市場與賠率分析")}</div>
 
             <p>
-              ${analysis.market_analysis || "資料不足"}
+              ${analysis.market_analysis || analysisT("insufficientData", "資料不足")}
             </p>
           </div>
         </div>
@@ -3148,7 +3485,7 @@ const scores = analysis.predicted_scores || [];
           <div class="v2-score-head">
             <div>
               <div class="v2-insight-label">SCORE PROJECTION</div>
-              <div class="v2-insight-title">AI 預測比分</div>
+              <div class="v2-insight-title">${analysisT("predictedScore", "AI 預測比分")}</div>
             </div>
 
             <div class="v2-score-tag">
@@ -3170,7 +3507,7 @@ const scores = analysis.predicted_scores || [];
                 </div>
 
                 <div class="v2-score-confidence">
-                  AI 信心 ${item.confidence || 0}%
+                  ${analysisT("aiConfidence", "AI 信心")} ${item.confidence || 0}%
                 </div>
 
                 <div class="v2-score-bar">
@@ -3191,11 +3528,11 @@ const scores = analysis.predicted_scores || [];
 
           <div class="v2-risk-left">
             <div class="v2-insight-label">RISK ASSESSMENT</div>
-            <div class="v2-insight-title">本場風險</div>
+            <div class="v2-insight-title">${analysisT("risk", "本場風險")}</div>
           </div>
 
           <div class="v2-risk-value">
-            ${analysis.risk_level || "未評估"}
+            ${analysis.risk_level || analysisT("notEvaluated", "未評估")}
           </div>
 
         </div>
@@ -3207,10 +3544,10 @@ const scores = analysis.predicted_scores || [];
 
           <div class="v2-final-content">
             <div class="v2-insight-label">FINAL NOTE</div>
-            <div class="v2-insight-title">AI 最終提醒</div>
+            <div class="v2-insight-title">${analysisT("finalNote", "AI 最終提醒")}</div>
 
             <p>
-              ${analysis.final_note || "請綜合即時資訊判斷。"}
+              ${analysis.final_note || analysisT("finalFallback", "請綜合即時資訊判斷。")}
             </p>
           </div>
 
@@ -3223,17 +3560,105 @@ const scores = analysis.predicted_scores || [];
 
     console.error(error);
 
-    app.innerHTML = `
-      <div class="empty">
-        <h2>分析資料讀取失敗</h2>
-        <p>請返回賽事列表重新進行分析。</p>
-        <a href="football.html">返回足球賽事分析</a>
-      </div>
-    `;
+app.innerHTML = `
+  <div class="empty">
+    <h2>${analysisT(
+      "analysisReadFailed",
+      "分析資料讀取失敗"
+    )}</h2>
 
+    <p>${analysisT(
+      "analysisReadFailedText",
+      "請返回賽事列表重新進行分析。"
+    )}</p>
+
+    <a href="football.html">
+      ${analysisT(
+        "backFootball",
+        "返回足球賽事分析"
+      )}
+    </a>
+  </div>
+`;
   }
 }
+
+function applyAnalysisStaticLanguage() {
+  document.title =
+    analysisT(
+      "pageTitle",
+      "AI 賽事分析｜哈寶足球 AI"
+    );
+
+  const backText =
+    document.querySelector(
+      ".back span:last-child"
+    );
+
+  if (backText) {
+    backText.textContent =
+      analysisT(
+        "matchCenter",
+        "賽事中心"
+      );
+  }
+
+  const prev =
+    document.getElementById(
+      "batchPrevBtn"
+    );
+
+  if (prev) {
+    prev.textContent =
+      analysisT(
+        "previousMatch",
+        "← 上一場"
+      );
+  }
+
+  const next =
+    document.getElementById(
+      "batchNextBtn"
+    );
+
+  if (next) {
+    next.textContent =
+      analysisT(
+        "nextMatch",
+        "下一場 →"
+      );
+  }
+}
+
+applyAnalysisStaticLanguage();   
+
+window.addEventListener(
+  "habao:languagechange",
+  () => {
+    window.location.reload();
+  }
+);
+   
 </script>
+
+<script>
+(() => {
+  const mount =
+    document.getElementById(
+      "habaoLanguageMount"
+    );
+
+  if (
+    mount &&
+    window.HabaoI18n
+  ) {
+    mount.appendChild(
+      window.HabaoI18n
+        .createLanguageSelector()
+    );
+  }
+})();
+</script>   
 
 </body>
 </html>
