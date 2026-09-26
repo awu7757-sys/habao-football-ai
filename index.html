@@ -3399,6 +3399,82 @@ const SUPABASE_URL =
 const OAUTH_MEMBER_URL =
   `${SUPABASE_URL}/functions/v1/oauth-member-login`;
 
+const PUBLIC_SETTINGS_URL =
+  `${SUPABASE_URL}/functions/v1/admin-benefits`;
+
+let habaoPublicSettings = null;
+let maintenanceModeActive = false;
+
+async function loadHabaoPublicSettings() {
+
+  const message =
+    document.getElementById("message");
+
+  try {
+
+    const response = await fetch(
+      PUBLIC_SETTINGS_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          action: "get_public_settings"
+        }),
+        cache: "no-store"
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message ||
+        "讀取系統設定失敗"
+      );
+    }
+
+    habaoPublicSettings =
+      data.settings || {};
+
+    maintenanceModeActive =
+      habaoPublicSettings
+        .maintenance_enabled === true;
+
+    if (maintenanceModeActive) {
+
+      if (message) {
+        message.textContent =
+          habaoPublicSettings
+            .maintenance_announcement ||
+          "系統維護中，請稍後再試。";
+      }
+
+      return false;
+    }
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "PUBLIC SETTINGS ERROR:",
+      error
+    );
+
+    /*
+     * 公告 API 暫時異常時，
+     * 不讓它誤鎖整個登入頁。
+     */
+    maintenanceModeActive = false;
+
+    return true;
+  }
+}    
+
 const supabaseAuth =
   window.supabase.createClient(
     SUPABASE_URL,
@@ -3486,12 +3562,24 @@ async function prepareLINELogin() {
 
 async function loginWithGoogle() {
 
-localStorage.removeItem(
-  "habao_manual_logout"
-);
-  
   const message =
     document.getElementById("message");
+
+  if (maintenanceModeActive) {
+
+    if (message) {
+      message.textContent =
+        habaoPublicSettings
+          ?.maintenance_announcement ||
+        "系統維護中，請稍後再試。";
+    }
+
+    return;
+  }
+
+  localStorage.removeItem(
+    "habao_manual_logout"
+  );
 
   try {
     message.textContent =
@@ -3537,12 +3625,30 @@ const googleLoginBtn =
  * 使用者真正點擊時走原生 <a href>，
  * 不使用 JavaScript redirect。
  */
-prepareLINELogin();  
 
 if (lineLoginBtn) {
   lineLoginBtn.addEventListener(
     "click",
     (event) => {
+
+            if (maintenanceModeActive) {
+
+        event.preventDefault();
+
+        const message =
+          document.getElementById(
+            "message"
+          );
+
+        if (message) {
+          message.textContent =
+            habaoPublicSettings
+              ?.maintenance_announcement ||
+            "系統維護中，請稍後再試。";
+        }
+
+        return;
+      }
 
       if (
         lineLoginBtn.dataset.ready !== "1"
@@ -3742,6 +3848,10 @@ async function restoreHabaoLogin() {
     return;
   }
 
+    if (maintenanceModeActive) {
+    return;
+  }
+
   try {
 
     const {
@@ -3812,11 +3922,23 @@ supabaseAuth.auth.onAuthStateChange(
       return;
     }
 
+    /*
+     * OAuth 狀態事件可能比 DOMContentLoaded 更早發生。
+     * 因此在處理 SIGNED_IN 前，
+     * 再確認一次目前公開系統設定，
+     * 避免維護模式尚未載入就被繞過。
+     */
+    const canLogin =
+      await loadHabaoPublicSettings();
+
+    if (!canLogin) {
+      return;
+    }
+
     if (
       event === "SIGNED_IN" &&
       session
     ) {
-
       await verifyHabaoOAuthMember(
         session
       );
@@ -3830,8 +3952,18 @@ supabaseAuth.auth.onAuthStateChange(
  */
 window.addEventListener(
   "DOMContentLoaded",
-  () => {
-    restoreHabaoLogin();
+  async () => {
+
+    const canLogin =
+      await loadHabaoPublicSettings();
+
+    if (!canLogin) {
+      return;
+    }
+
+    await prepareLINELogin();
+
+    await restoreHabaoLogin();
   }
 );
 
