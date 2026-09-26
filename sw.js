@@ -1,7 +1,7 @@
 // HABAO 賽事預測 AI - Service Worker
 
 const CACHE_NAME =
-  "habao-static-v5"
+  "habao-static-v6"
 
 const CORE_ASSETS = [
   "./",
