@@ -234,18 +234,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 
-  width: 76px;
+  width: 78px;
   padding: 0;
 
   background: transparent;
   border: none;
-  box-shadow: none;
 
-  color: #ffffff;
+  color: #f5e5ad;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
   white-space: nowrap;
 
@@ -253,6 +252,9 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+
+  filter:
+    drop-shadow(0 5px 12px rgba(0, 0, 0, 0.55));
 }
 
 #addHomeFloatBtn:active {
@@ -260,16 +262,28 @@
 }
 
 #addHomeFloatBtn img {
-  width: 60px;
-  height: 60px;
+  width: 58px;
+  height: 58px;
 
   display: block;
-  object-fit: contain;
+  object-fit: cover;
 
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+  padding: 3px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(229, 199, 126, 0.20),
+      rgba(7, 9, 11, 0.94)
+    );
+
+  border: 1px solid rgba(229, 199, 126, 0.72);
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.48),
+    0 0 18px rgba(229, 199, 126, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 
   pointer-events: none;
 }
@@ -279,10 +293,12 @@
   line-height: 1.2;
   pointer-events: none;
 
+  color: #f1d88f;
+
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.95),
-    0 0 6px rgba(0, 0, 0, 0.75);
-}    
+    0 1px 4px rgba(0, 0, 0, 1),
+    0 0 8px rgba(0, 0, 0, 0.85);
+}
 
 /* 加入主畫面｜教學彈窗 */
 .add-home-modal {
@@ -492,6 +508,68 @@
   line-height: 1.6;
 } 
 
+/* 加入主畫面｜新版簡易步驟 */
+.add-home-simple-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 10px;
+  padding: 13px 14px;
+
+  text-align: left;
+
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(229, 199, 126, 0.12);
+  border-radius: 14px;
+}
+
+.add-home-simple-icon {
+  flex: 0 0 34px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e5c77e,
+      #b9934c
+    );
+
+  color: #08090a;
+  font-size: 15px;
+  font-weight: 900;
+
+  box-shadow:
+    0 5px 14px rgba(214, 181, 111, 0.16);
+}
+
+.add-home-simple-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.add-home-simple-content strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.add-home-simple-content span {
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 12px;
+  line-height: 1.55;
+}
+    
 /* =========================================================
    HABAO LOGIN V4
    Mobile Data Intelligence / Glass Interface
@@ -4164,71 +4242,83 @@ window.addEventListener(
   </button>
 </div>
       
-  <div id="iphoneGuide">     
-  <div class="add-home-step">
-    <div class="add-home-step-title">
-      <span>1</span>
-      點擊 Safari 下方的「分享」按鈕
-    </div>
+<div id="iphoneGuide">
 
-    <img
-      src="./add-home-step-1.png"
-      alt="Safari 分享按鈕教學"
-      class="add-home-step-image"
-    >
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">1</div>
+    <div class="add-home-simple-content">
+      <strong>使用 Safari 開啟網站</strong>
+      <span>請先確認目前是使用 Safari 瀏覽器。</span>
+    </div>
   </div>
 
-  <div class="add-home-step">
-    <div class="add-home-step-title">
-      <span>2</span>
-      選擇「加入主畫面」
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">2</div>
+    <div class="add-home-simple-content">
+      <strong>點擊「分享」</strong>
+      <span>點擊 Safari 工具列的分享按鈕。</span>
     </div>
-
-    <img
-      src="./add-home-step-2.png"
-      alt="加入主畫面教學"
-      class="add-home-step-image"
-    >
   </div>
 
-<div class="add-home-finish">
-  ✓ 確認名稱後點擊「加入」<br>
-  即可從手機主畫面快速開啟 HABAO 賽事預測 AI
-</div>
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">3</div>
+    <div class="add-home-simple-content">
+      <strong>選擇「加入主畫面」</strong>
+      <span>在分享選單中找到「加入主畫面」。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">4</div>
+    <div class="add-home-simple-content">
+      <strong>點擊「加入」</strong>
+      <span>完成後即可從 iPhone 主畫面直接開啟。</span>
+    </div>
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 安裝完成後，點擊主畫面的 HABAO 圖示即可使用
+  </div>
+
 </div>
 
 <div id="androidGuide" style="display:none;">
 
-  <div class="add-home-step">
-    <div class="add-home-step-title">
-      <span>1</span>
-      點擊 Chrome 右上角的「⋮」選單按鈕
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">1</div>
+    <div class="add-home-simple-content">
+      <strong>使用 Chrome 開啟網站</strong>
+      <span>請先確認目前是使用 Chrome 瀏覽器。</span>
     </div>
-
-    <img
-      src="./add-home-android-step-1.png"
-      alt="Android Chrome 選單教學"
-      class="add-home-step-image"
-    >
   </div>
 
-  <div class="add-home-step">
-    <div class="add-home-step-title">
-      <span>2</span>
-      選擇「加入主畫面」
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">2</div>
+    <div class="add-home-simple-content">
+      <strong>開啟瀏覽器選單</strong>
+      <span>點擊 Chrome 右上角的「⋮」。</span>
     </div>
-
-    <img
-      src="./add-home-android-step-2.png"
-      alt="Android 加入主畫面教學"
-      class="add-home-step-image"
-    >
   </div>
 
-<div class="add-home-finish">
-  ✓ 完成後即可從手機主畫面<br>
-  快速開啟 HABAO 賽事預測 AI
-</div>
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">3</div>
+    <div class="add-home-simple-content">
+      <strong>選擇安裝選項</strong>
+      <span>點擊「安裝應用程式」或「加到主畫面」。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">4</div>
+    <div class="add-home-simple-content">
+      <strong>確認安裝</strong>
+      <span>完成後即可從 Android 主畫面直接開啟。</span>
+    </div>
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 安裝完成後，點擊主畫面的 HABAO 圖示即可使用
+  </div>
 
 </div>
 
@@ -4240,8 +4330,8 @@ window.addEventListener(
   
 <!-- 加入主畫面｜浮動按鈕 -->
 <div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
-  <img src="./add-home-icon.png" alt="">
-  <span>加入主畫面</span>
+  <img src="./football_icon_192x192.png" alt="HABAO">
+  <span>下載APP</span>
 </div>
 <script>
 (() => {
@@ -4299,22 +4389,57 @@ window.addEventListener(
     btn.style.top = newTop + "px";
   });
 
-  btn.addEventListener("pointerup", (e) => {
-    dragging = false;
+btn.addEventListener("pointerup", (e) => {
+  dragging = false;
 
-    if (btn.hasPointerCapture(e.pointerId)) {
-      btn.releasePointerCapture(e.pointerId);
+  if (btn.hasPointerCapture(e.pointerId)) {
+    btn.releasePointerCapture(e.pointerId);
+  }
+
+  if (!moved) {
+    const modal = document.getElementById("addHomeModal");
+
+    if (modal) {
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
     }
 
-    if (!moved) {
-  const modal = document.getElementById("addHomeModal");
-
-  if (modal) {
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
+    return;
   }
-}
-  });
+
+  /*
+   * 拖曳結束後自動吸附左右兩側
+   */
+  const rect = btn.getBoundingClientRect();
+
+  const btnCenter =
+    rect.left + rect.width / 2;
+
+  const screenCenter =
+    window.innerWidth / 2;
+
+  const edgeGap = 10;
+
+  btn.style.transition =
+    "left 0.22s ease, top 0.22s ease";
+
+  if (btnCenter < screenCenter) {
+    btn.style.left =
+      edgeGap + "px";
+  } else {
+    btn.style.left =
+      Math.max(
+        edgeGap,
+        window.innerWidth -
+          rect.width -
+          edgeGap
+      ) + "px";
+  }
+
+  setTimeout(() => {
+    btn.style.transition = "";
+  }, 230);
+});
 
   btn.addEventListener("pointercancel", () => {
     dragging = false;
