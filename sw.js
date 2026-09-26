@@ -1,7 +1,7 @@
 // HABAO 賽事預測 AI - Service Worker
 
 const CACHE_NAME =
-  "habao-static-v3"
+  "habao-static-v4"
 
 const CORE_ASSETS = [
   "./",
@@ -9,7 +9,9 @@ const CORE_ASSETS = [
   "./manifest.json",
   "./habao-login-bg-v2.png",
   "./habao-hb-logo.png",
-  "./football_icon_192x192.png"
+  "./habao-icon-192.png",
+  "./habao-icon-512.png",
+  "./habao-football-spin.png"
 ];
 
 
@@ -230,10 +232,10 @@ self.addEventListener(
         "您有一則新通知",
 
       icon:
-        "./football_icon_192x192.png",
+        "./habao-icon-192.png"
 
       badge:
-        "./football_icon_192x192.png",
+        "./habao-icon-192.png"
 
       data: {
         url:
