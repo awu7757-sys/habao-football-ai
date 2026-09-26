@@ -5000,6 +5000,41 @@
   line-height: 1.55;
   text-align: center;
 }
+
+/* ===============================
+   HABAO｜一般公告
+================================ */
+
+.v2-announcement {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0 18px;
+  padding: 12px 15px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.v2-announcement.show {
+  display: flex;
+}
+
+.v2-announcement-label {
+  flex: 0 0 auto;
+  color: #d9b85f;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.v2-announcement-text {
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
     
 </style>
 
@@ -5044,7 +5079,21 @@
       </div>
 
     </header>
+    
+        <!-- 一般公告 -->
+    <div
+      class="v2-announcement"
+      id="v2Announcement"
+    >
+      <div class="v2-announcement-label">
+        公告
+      </div>
 
+      <div
+        class="v2-announcement-text"
+        id="v2AnnouncementText"
+      ></div>
+    </div>
 
     <!-- HERO -->
 
@@ -6046,6 +6095,150 @@ const PUBLISHABLE_KEY =
   const V2_SUPABASE_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co";
 
+  const V2_PUBLIC_SETTINGS_URL =
+  `${V2_SUPABASE_URL}/functions/v1/admin-benefits`;
+
+async function loadV2Announcement() {
+
+  try {
+
+    const response = await fetch(
+      V2_PUBLIC_SETTINGS_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          action: "get_public_settings"
+        }),
+        cache: "no-store"
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message ||
+        "讀取公告失敗"
+      );
+    }
+
+    const settings =
+      data.settings || {};
+
+    const announcement =
+      document.getElementById(
+        "v2Announcement"
+      );
+
+    const announcementText =
+      document.getElementById(
+        "v2AnnouncementText"
+      );
+
+    if (
+      settings.normal_enabled === true &&
+      settings.normal_announcement &&
+      settings.normal_announcement.trim()
+    ) {
+
+      if (announcementText) {
+        announcementText.textContent =
+          settings.normal_announcement.trim();
+      }
+
+      if (announcement) {
+        announcement.classList.add(
+          "show"
+        );
+      }
+
+      return;
+    }
+
+    if (announcement) {
+      announcement.classList.remove(
+        "show"
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      "V2 ANNOUNCEMENT ERROR:",
+      error
+    );
+
+    /*
+     * 公告讀取失敗不影響會員使用首頁。
+     */
+  }
+}
+
+async function checkV2Maintenance() {
+
+  try {
+
+    const response = await fetch(
+      V2_PUBLIC_SETTINGS_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          action: "get_public_settings"
+        }),
+        cache: "no-store"
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.message ||
+        "讀取維護設定失敗"
+      );
+    }
+
+    const settings =
+      data.settings || {};
+
+    if (
+      settings.maintenance_enabled === true
+    ) {
+
+      window.location.replace(
+        "index.html"
+      );
+
+      return false;
+    }
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "V2 MAINTENANCE ERROR:",
+      error
+    );
+
+    /*
+     * 設定 API 暫時異常時，
+     * 不誤鎖會員首頁。
+     */
+    return true;
+  }
+}
+  
 const v2SupabaseAuth =
   window.supabase.createClient(
     V2_SUPABASE_URL,
@@ -7107,6 +7300,13 @@ function closeV2SignupBonus() {
 
 async function startV2Home() {
 
+  const canEnter =
+    await checkV2Maintenance();
+
+  if (!canEnter) {
+    return;
+  }
+
   const member =
     await verifyV2Member();
 
@@ -7117,6 +7317,7 @@ async function startV2Home() {
   showV2SignupBonus();
 
   await Promise.all([
+    loadV2Announcement(),
     loadV2Performance(),
     loadV2HomeStats()
   ]);
