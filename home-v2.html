@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+  
   <meta charset="UTF-8">
 
   <meta
@@ -5035,14 +5036,413 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* 加入主畫面｜浮動按鈕 */
+#addHomeFloatBtn {
+  position: fixed;
+  right: 16px;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  width: 78px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  color: #f5e5ad;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+
+  filter:
+    drop-shadow(0 5px 12px rgba(0, 0, 0, 0.55));
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 66px;
+  height: 66px;
+
+  display: block;
+  object-fit: contain;
+
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  filter:
+    drop-shadow(0 5px 10px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 8px rgba(229, 199, 126, 0.25));
+
+  animation:
+    habaoFootballSpin 3s linear infinite;
+
+  pointer-events: none;
+}
+
+@keyframes habaoFootballSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+    
+#addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+
+  color: #f1d88f;
+
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 1),
+    0 0 8px rgba(0, 0, 0, 0.85);
+}
+
+/* 加入主畫面｜教學彈窗 */
+.add-home-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    radial-gradient(
+      circle at 85% 0%,
+      rgba(214, 181, 111, 0.09),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(22, 24, 27, 0.99),
+      rgba(7, 9, 11, 0.99)
+    );
+
+  border: 1px solid rgba(214, 181, 111, 0.22);
+  border-radius: 22px;
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.65),
+    0 0 30px rgba(214, 181, 111, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  color: #f7f4ed;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 850;
+  color: #e5c77e;
+}
+    
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 8px;
+
+  width: 100%;
+  max-width: 300px;
+
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(214, 181, 111, 0.12);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background:
+    linear-gradient(
+      135deg,
+      #e5c77e,
+      #b9934c
+    );
+
+  color: #090a0b;
+
+  box-shadow:
+    0 5px 16px rgba(214, 181, 111, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+} 
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #e5c77e;
+  color: #090a0b;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+
+  background: rgba(214, 181, 111, 0.055);
+  border: 1px solid rgba(214, 181, 111, 0.16);
+
+  color: #dfc47e;
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+} 
+
+/* 加入主畫面｜新版簡易步驟 */
+.add-home-simple-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 10px;
+  padding: 13px 14px;
+
+  text-align: left;
+
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(229, 199, 126, 0.12);
+  border-radius: 14px;
+}
+
+.add-home-simple-icon {
+  flex: 0 0 34px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e5c77e,
+      #b9934c
+    );
+
+  color: #08090a;
+  font-size: 15px;
+  font-weight: 900;
+
+  box-shadow:
+    0 5px 14px rgba(214, 181, 111, 0.16);
+}
+
+.add-home-simple-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.add-home-simple-content strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.add-home-simple-content span {
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
     
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./habao-i18n.js"></script>
   
 </head>    
 
 <body>
+
+  <div id="habaoLanguageMount"></div>
 
   <main class="app">
 
@@ -6546,10 +6946,16 @@ function updateV2AccountPanel(member) {
 
   if (levelEl) {
 
-    levelEl.textContent =
-      isVip
-        ? "VIP 會員"
-        : "一般會員";
+levelEl.textContent =
+  isVip
+    ? window.HabaoI18n?.t(
+        "vipMember",
+        "VIP 會員"
+      )
+    : window.HabaoI18n?.t(
+        "normalMember",
+        "一般會員"
+      );
 
     levelEl.classList.toggle(
       "is-vip",
@@ -6580,74 +6986,160 @@ function updateV2AccountPanel(member) {
 
   if (dailyEl) {
 
-    dailyEl.textContent =
-      member.analysis_unlimited === true
-        ? "無限制"
-        : `${dailyCredits} 積分`;
+dailyEl.textContent =
+  member.analysis_unlimited === true
+    ? (
+        window.HabaoI18n?.t(
+          "unlimited",
+          "無限制"
+        ) || "無限制"
+      )
+    : `${dailyCredits} ${
+        window.HabaoI18n?.t(
+          "creditsUnit",
+          "積分"
+        ) || "積分"
+      }`;
 
   }
 
 
   if (paidEl) {
 
-    paidEl.textContent =
-      member.analysis_unlimited === true
-        ? "無限制"
-        : `${paidCredits} 積分`;
+paidEl.textContent =
+  member.analysis_unlimited === true
+    ? (
+        window.HabaoI18n?.t(
+          "unlimited",
+          "無限制"
+        ) || "無限制"
+      )
+    : `${paidCredits} ${
+        window.HabaoI18n?.t(
+          "creditsUnit",
+          "積分"
+        ) || "積分"
+      }`;
 
   }
 
 
   if (creditsEl) {
 
-    creditsEl.textContent =
-      member.analysis_unlimited === true
-        ? "無限制"
-        : `${dailyCredits + paidCredits} 積分`;
+creditsEl.textContent =
+  member.analysis_unlimited === true
+    ? (
+        window.HabaoI18n?.t(
+          "unlimited",
+          "無限制"
+        ) || "無限制"
+      )
+    : `${dailyCredits + paidCredits} ${
+        window.HabaoI18n?.t(
+          "creditsUnit",
+          "積分"
+        ) || "積分"
+      }`;
 
   }
 
 
-  if (vipStatusEl) {
+if (vipStatusEl) {
 
-    if (isVip) {
+  if (isVip) {
 
-      const platformAccount =
-        String(
-          member.platform_account || ""
-        ).trim();
+    const platformAccount =
+      String(
+        member.platform_account || ""
+      ).trim();
 
-      vipStatusEl.innerHTML = `
-        <div class="v2-vip-current">
-          <strong>VIP 會員權益已啟用</strong>
-          <span>
-            ${
-              platformAccount
-                ? `平台帳號：${escapeV2HTML(platformAccount)}`
-                : "每日登入免費補充 2 點分析積分"
-            }
-          </span>
-        </div>
-      `;
+    const platformName =
+      String(
+        member.platform_name ||
+        (platformAccount ? "皇鼎" : "")
+      ).trim();
 
-    } else {
+    const vipActive =
+      window.HabaoI18n?.t(
+        "vipActive",
+        "VIP 會員權益已啟用"
+      ) ||
+      "VIP 會員權益已啟用";
 
-      vipStatusEl.innerHTML = `
-        <button
-          type="button"
-          class="v2-vip-upgrade-button"
-          onclick="openV2VipUpgrade()"
-        >
-    免費升級 VIP 會員
-        </button>
+    const boundPlatform =
+      window.HabaoI18n?.t(
+        "boundPlatform",
+        "綁定平台："
+      ) ||
+      "綁定平台：";
 
-        <div class="v2-vip-hint">
-綁定任一合作平台帳號，即可免費升級 VIP<br>
-VIP 每日登入免費補充 2 點分析積分
-        </div>
-      `;
+    const platformAccountLabel =
+      window.HabaoI18n?.t(
+        "platformAccount",
+        "平台帳號："
+      ) ||
+      "平台帳號：";
 
-    }
+    const vipDailyBenefit =
+      window.HabaoI18n?.t(
+        "vipDailyBenefit",
+        "每日登入免費補充 2 點分析積分"
+      ) ||
+      "每日登入免費補充 2 點分析積分";
+
+    vipStatusEl.innerHTML = `
+      <div class="v2-vip-current">
+        <strong>
+          ${vipActive}
+        </strong>
+
+        <span>
+          ${
+            platformAccount
+              ? `${boundPlatform}${escapeV2HTML(platformName)}<br>${platformAccountLabel}${escapeV2HTML(platformAccount)}`
+              : vipDailyBenefit
+          }
+        </span>
+      </div>
+    `;
+
+  } else {
+
+    const upgradeVip =
+      window.HabaoI18n?.t(
+        "upgradeVip",
+        "免費升級 VIP 會員"
+      ) ||
+      "免費升級 VIP 會員";
+
+    const vipHint1 =
+      window.HabaoI18n?.t(
+        "vipHint1",
+        "綁定任一合作平台帳號，即可免費升級 VIP"
+      ) ||
+      "綁定任一合作平台帳號，即可免費升級 VIP";
+
+    const vipHint2 =
+      window.HabaoI18n?.t(
+        "vipHint2",
+        "VIP 每日登入免費補充 2 點分析積分"
+      ) ||
+      "VIP 每日登入免費補充 2 點分析積分";
+
+    vipStatusEl.innerHTML = `
+      <button
+        type="button"
+        class="v2-vip-upgrade-button"
+        onclick="openV2VipUpgrade()"
+      >
+        ${upgradeVip}
+      </button>
+
+      <div class="v2-vip-hint">
+        ${vipHint1}<br>
+        ${vipHint2}
+      </div>
+    `;
 
   }
 
@@ -6734,17 +7226,21 @@ async function submitV2VipUpgrade() {
       "v2VipSubmit"
     );
 
-  const platformAccount =
-    String(
-      input?.value || ""
-    ).trim();
+const platformAccount =
+  String(
+    input?.value || ""
+  ).trim();
+  
 
 
   if (!platformAccount) {
 
     if (message) {
-      message.textContent =
-        "請輸入平台帳號";
+message.textContent =
+  window.HabaoI18n?.t(
+    "enterPlatformAccount",
+    "請輸入平台帳號"
+  ) || "請輸入平台帳號";
     }
 
     input?.focus();
@@ -6756,8 +7252,11 @@ async function submitV2VipUpgrade() {
   if (platformAccount.length < 3) {
 
     if (message) {
-      message.textContent =
-        "平台帳號格式不正確";
+message.textContent =
+  window.HabaoI18n?.t(
+    "invalidPlatformAccount",
+    "平台帳號格式不正確"
+  ) || "平台帳號格式不正確";
     }
 
     input?.focus();
@@ -6776,8 +7275,11 @@ async function submitV2VipUpgrade() {
 
   if (button) {
     button.disabled = true;
-    button.textContent =
-      "升級處理中...";
+button.textContent =
+  window.HabaoI18n?.t(
+    "upgradingVip",
+    "升級處理中..."
+  ) || "升級處理中...";
   }
 
 
@@ -6887,8 +7389,11 @@ if (
 
     if (message) {
 
-      message.textContent =
-        "VIP 升級成功";
+message.textContent =
+  window.HabaoI18n?.t(
+    "vipUpgradeSuccess",
+    "VIP 升級成功"
+  ) || "VIP 升級成功";
 
       message.classList.add(
         "success"
@@ -6919,29 +7424,44 @@ if (
         "PLATFORM_ACCOUNT_USED"
       ) {
 
-        message.textContent =
-          "此平台帳號已綁定其他會員";
+message.textContent =
+  window.HabaoI18n?.t(
+    "platformUsed",
+    "此平台帳號已綁定其他會員"
+  ) || "此平台帳號已綁定其他會員";
 
       } else if (
         error?.message ===
         "VIP_REUPGRADE_BLOCKED"
       ) {
 
-        message.textContent =
-          "此帳號曾升級過 VIP，如需重新開通請聯絡客服";
+message.textContent =
+  window.HabaoI18n?.t(
+    "vipReupgradeBlocked",
+    "此帳號曾升級過 VIP，如需重新開通請聯絡客服"
+  ) ||
+  "此帳號曾升級過 VIP，如需重新開通請聯絡客服";
 
       } else if (
         error?.message ===
         "LOGIN_REQUIRED"
       ) {
 
-        message.textContent =
-          "登入狀態已失效，請重新登入";
+message.textContent =
+  window.HabaoI18n?.t(
+    "loginExpired",
+    "登入狀態已失效，請重新登入"
+  ) ||
+  "登入狀態已失效，請重新登入";
 
       } else {
 
-        message.textContent =
-          "升級失敗，請稍後再試";
+message.textContent =
+  window.HabaoI18n?.t(
+    "upgradeFailed",
+    "升級失敗，請稍後再試"
+  ) ||
+  "升級失敗，請稍後再試";
 
       }
 
@@ -6951,8 +7471,12 @@ if (
 
     if (button) {
       button.disabled = false;
-      button.textContent =
-        "確認升級 VIP";
+button.textContent =
+  window.HabaoI18n?.t(
+    "confirmVip",
+    "確認升級 VIP"
+  ) ||
+  "確認升級 VIP";
     }
 
   }
@@ -7663,22 +8187,42 @@ function renderV2FocusMatchCards(
         <div class="match-top">
 
           <div class="league">
-            ${mode === "tomorrow"
-              ? "明日焦點"
-              : "今日焦點"}
+${mode === "tomorrow"
+  ? (
+      window.HabaoI18n?.t(
+        "tomorrowFocus",
+        "明日焦點"
+      ) || "明日焦點"
+    )
+  : (
+      window.HabaoI18n?.t(
+        "todayFocus",
+        "今日焦點"
+      ) || "今日焦點"
+    )}
           </div>
 
-          <div class="match-time">
-            暫無賽事
-          </div>
+<div class="match-time">
+  ${
+    window.HabaoI18n?.t(
+      "noMatches",
+      "暫無賽事"
+    ) || "暫無賽事"
+  }
+</div>
 
         </div>
 
         <div class="teams">
 
-          <div class="team">
-            尚無焦點賽事
-          </div>
+<div class="team">
+  ${
+    window.HabaoI18n?.t(
+      "noFocusMatches",
+      "尚無焦點賽事"
+    ) || "尚無焦點賽事"
+  }
+</div>
 
         </div>
 
@@ -7696,7 +8240,12 @@ function renderV2FocusMatchCards(
         match?.league?.name ||
         match?.league_name ||
         match?.league ||
-        "足球賽事";
+        (
+  window.HabaoI18n?.t(
+    "footballMatch",
+    "足球賽事"
+  ) || "足球賽事"
+);
 
 
       const homeName =
@@ -7704,7 +8253,12 @@ function renderV2FocusMatchCards(
         match?.home_name ||
         match?.homeTeam ||
         match?.home_team ||
-        "主隊";
+        (
+  window.HabaoI18n?.t(
+    "homeTeam",
+    "主隊"
+  ) || "主隊"
+);
 
 
       const awayName =
@@ -7712,7 +8266,12 @@ function renderV2FocusMatchCards(
         match?.away_name ||
         match?.awayTeam ||
         match?.away_team ||
-        "客隊";
+        (
+  window.HabaoI18n?.t(
+    "awayTeam",
+    "客隊"
+  ) || "客隊"
+);
 
 
       const homeLogo =
@@ -7739,7 +8298,11 @@ function renderV2FocusMatchCards(
         kickoff &&
         !Number.isNaN(kickoff.getTime())
           ? kickoff.toLocaleTimeString(
-              "zh-TW",
+              window.HabaoI18n?.getLanguage?.() === "en"
+  ? "en-US"
+  : window.HabaoI18n?.getLanguage?.() === "zh-Hans"
+    ? "zh-CN"
+    : "zh-TW",
               {
                 timeZone:
                   "Asia/Taipei",
@@ -7780,18 +8343,43 @@ function renderV2FocusMatchCards(
         liveStatuses.has(status);
 
 
-      const label =
-        isLive
-          ? "比賽進行中"
-          : mode === "tomorrow"
-            ? "明日賽事"
-            : "即將開賽";
+const label =
+  isLive
+    ? (
+        window.HabaoI18n?.t(
+          "liveMatch",
+          "比賽進行中"
+        ) || "比賽進行中"
+      )
+    : mode === "tomorrow"
+      ? (
+          window.HabaoI18n?.t(
+            "tomorrowMatch",
+            "明日賽事"
+          ) || "明日賽事"
+        )
+      : (
+          window.HabaoI18n?.t(
+            "startingSoon",
+            "即將開賽"
+          ) || "即將開賽"
+        );
 
 
-      const buttonText =
-        isLive
-          ? "查看賽事"
-          : "開始分析";
+const buttonText =
+  isLive
+    ? (
+        window.HabaoI18n?.t(
+          "viewMatch",
+          "查看賽事"
+        ) || "查看賽事"
+      )
+    : (
+        window.HabaoI18n?.t(
+          "startAnalysis",
+          "開始分析"
+        ) || "開始分析"
+      );
 
 
       return `
@@ -7915,9 +8503,15 @@ function renderV2FocusMatchCards(
 /* =========================================
    HABAO V2｜今日焦點真實賽事
 ========================================= */
-
+  
+let v2LatestFocusFixtures = [];
+  
 function renderV2FocusMatches(fixtures) {  
 
+  if (Array.isArray(fixtures)) {
+    v2LatestFocusFixtures = fixtures;
+  }
+  
   const container = document.getElementById("v2FocusMatches");
 
   if (!container) {
@@ -8043,13 +8637,23 @@ container.innerHTML = `
 
     <div class="match-top">
 
-      <div class="league">
-        明日焦點
-      </div>
+<div class="league">
+  ${
+    window.HabaoI18n?.t(
+      "tomorrowFocus",
+      "明日焦點"
+    ) || "明日焦點"
+  }
+</div>
 
-      <div class="match-time">
-        賽事載入中...
-      </div>
+<div class="match-time">
+  ${
+    window.HabaoI18n?.t(
+      "loadingMatches",
+      "賽事載入中..."
+    ) || "賽事載入中..."
+  }
+</div>
 
     </div>
 
@@ -8086,21 +8690,36 @@ loadV2TomorrowFocusMatches()
 
           <div class="match-top">
 
-            <div class="league">
-              明日焦點
-            </div>
+<div class="league">
+  ${
+    window.HabaoI18n?.t(
+      "tomorrowFocus",
+      "明日焦點"
+    ) || "明日焦點"
+  }
+</div>
 
-            <div class="match-time">
-              暫無賽事
-            </div>
+<div class="match-time">
+  ${
+    window.HabaoI18n?.t(
+      "noMatches",
+      "暫無賽事"
+    ) || "暫無賽事"
+  }
+</div>
 
           </div>
 
           <div class="teams">
 
-            <div class="team">
-              尚無焦點賽事
-            </div>
+<div class="team">
+  ${
+    window.HabaoI18n?.t(
+      "noFocusMatches",
+      "尚無焦點賽事"
+    ) || "尚無焦點賽事"
+  }
+</div>
 
           </div>
 
@@ -8178,7 +8797,11 @@ function createV2FocusMatchCard(match) {
       gameTime.getTime()
     )
       ? gameTime.toLocaleTimeString(
-          "zh-TW",
+          window.HabaoI18n?.getLanguage?.() === "en"
+  ? "en-US"
+  : window.HabaoI18n?.getLanguage?.() === "zh-Hans"
+    ? "zh-CN"
+    : "zh-TW",
           {
             timeZone:
               "Asia/Taipei",
@@ -8196,25 +8819,40 @@ function createV2FocusMatchCard(match) {
       : "--:--";
 
 
-  const leagueText =
-    escapeV2HTML(
-      league.name ||
-      "足球賽事"
-    );
+const leagueText =
+  escapeV2HTML(
+    league.name ||
+    (
+      window.HabaoI18n?.t(
+        "footballMatch",
+        "足球賽事"
+      ) || "足球賽事"
+    )
+  );
 
 
-  const homeName =
-    escapeV2HTML(
-      home.name ||
-      "主隊"
-    );
+const homeName =
+  escapeV2HTML(
+    home.name ||
+    (
+      window.HabaoI18n?.t(
+        "homeTeam",
+        "主隊"
+      ) || "主隊"
+    )
+  );
 
 
-  const awayName =
-    escapeV2HTML(
-      away.name ||
-      "客隊"
-    );
+const awayName =
+  escapeV2HTML(
+    away.name ||
+    (
+      window.HabaoI18n?.t(
+        "awayTeam",
+        "客隊"
+      ) || "客隊"
+    )
+  );
 
 
   const homeLogo =
@@ -8342,12 +8980,21 @@ function createV2FocusMatchCard(match) {
 
           <span class="mini-dot"></span>
 
-          ${
-            finished
-              ? "賽事已結束"
-              : "AI 分析可用"
-          }
-
+${
+  finished
+    ? (
+        window.HabaoI18n?.t(
+          "matchEnded",
+          "賽事已結束"
+        ) || "賽事已結束"
+      )
+    : (
+        window.HabaoI18n?.t(
+          "analysisAvailable",
+          "AI 分析可用"
+        ) || "AI 分析可用"
+      )
+}
         </div>
 
 
@@ -8356,11 +9003,21 @@ function createV2FocusMatchCard(match) {
           class="analyse"
         >
 
-          ${
-            finished
-              ? "查看賽事"
-              : "開始分析"
-          }
+${
+  finished
+    ? (
+        window.HabaoI18n?.t(
+          "viewMatch",
+          "查看賽事"
+        ) || "查看賽事"
+      )
+    : (
+        window.HabaoI18n?.t(
+          "startAnalysis",
+          "開始分析"
+        ) || "開始分析"
+      )
+}
 
           <span>→</span>
 
@@ -8420,6 +9077,1795 @@ function safeV2ImageURL(value) {
 
 startV2Home();
   
+</script>
+
+<div id="addHomeModal" class="add-home-modal" aria-hidden="true">
+  <div class="add-home-modal-card">
+
+    <button id="closeAddHomeModal"
+            class="add-home-close"
+            type="button"
+            aria-label="關閉">
+      ×
+    </button>
+
+    <h2>加入主畫面</h2>
+
+    <div class="add-home-modal-content">
+      
+    <div class="add-home-tabs">
+  <button type="button" class="add-home-tab active" id="iphoneGuideBtn">
+    iPhone
+  </button>
+
+  <button type="button" class="add-home-tab" id="androidGuideBtn">
+    Android
+  </button>
+</div>
+      
+<div id="iphoneGuide">
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">1</div>
+    <div class="add-home-simple-content">
+      <strong>使用 Safari 開啟網站</strong>
+      <span>請先確認目前是使用 Safari 瀏覽器。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">2</div>
+    <div class="add-home-simple-content">
+      <strong>點擊「分享」</strong>
+      <span>點擊 Safari 工具列的分享按鈕。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">3</div>
+    <div class="add-home-simple-content">
+      <strong>選擇「加入主畫面」</strong>
+      <span>在分享選單中找到「加入主畫面」。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">4</div>
+    <div class="add-home-simple-content">
+      <strong>點擊「加入」</strong>
+      <span>完成後即可從 iPhone 主畫面直接開啟。</span>
+    </div>
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 安裝完成後，點擊主畫面的 HABAO 圖示即可使用
+  </div>
+
+</div>
+
+<div id="androidGuide" style="display:none;">
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">1</div>
+    <div class="add-home-simple-content">
+      <strong>使用 Chrome 開啟網站</strong>
+      <span>請先確認目前是使用 Chrome 瀏覽器。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">2</div>
+    <div class="add-home-simple-content">
+      <strong>開啟瀏覽器選單</strong>
+      <span>點擊 Chrome 右上角的「⋮」。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">3</div>
+    <div class="add-home-simple-content">
+      <strong>選擇安裝選項</strong>
+      <span>點擊「安裝應用程式」或「加到主畫面」。</span>
+    </div>
+  </div>
+
+  <div class="add-home-simple-step">
+    <div class="add-home-simple-icon">4</div>
+    <div class="add-home-simple-content">
+      <strong>確認安裝</strong>
+      <span>完成後即可從 Android 主畫面直接開啟。</span>
+    </div>
+  </div>
+
+  <div class="add-home-finish">
+    ✓ 安裝完成後，點擊主畫面的 HABAO 圖示即可使用
+  </div>
+
+</div>
+
+</div>    
+
+</div>
+
+  </div>
+  
+<!-- 加入主畫面｜浮動按鈕 -->
+<div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
+  <img src="./habao-football-spin.png" alt="HABAO Football">
+  <span>下載APP</span>
+</div>
+<script>
+(() => {
+  const btn = document.getElementById("addHomeFloatBtn");
+  if (!btn) return;
+
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let startTop = 0;
+
+  btn.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    moved = false;
+
+    const rect = btn.getBoundingClientRect();
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+
+    btn.style.left = rect.left + "px";
+    btn.style.top = rect.top + "px";
+    btn.style.right = "auto";
+    btn.style.bottom = "auto";
+
+    btn.setPointerCapture(e.pointerId);
+  });
+
+  btn.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      moved = true;
+    }
+
+    const rect = btn.getBoundingClientRect();
+
+    let newLeft = startLeft + dx;
+    let newTop = startTop + dy;
+
+    const maxLeft = window.innerWidth - rect.width - 6;
+    const maxTop = window.innerHeight - rect.height - 6;
+
+    newLeft = Math.max(6, Math.min(newLeft, maxLeft));
+    newTop = Math.max(6, Math.min(newTop, maxTop));
+
+    btn.style.left = newLeft + "px";
+    btn.style.top = newTop + "px";
+  });
+
+btn.addEventListener("pointerup", (e) => {
+  dragging = false;
+
+  if (btn.hasPointerCapture(e.pointerId)) {
+    btn.releasePointerCapture(e.pointerId);
+  }
+
+  if (!moved) {
+    const modal = document.getElementById("addHomeModal");
+
+    if (modal) {
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    return;
+  }
+
+  /*
+   * 拖曳結束後自動吸附左右兩側
+   */
+  const rect = btn.getBoundingClientRect();
+
+  const btnCenter =
+    rect.left + rect.width / 2;
+
+  const screenCenter =
+    window.innerWidth / 2;
+
+  const edgeGap = 10;
+
+  btn.style.transition =
+    "left 0.22s ease, top 0.22s ease";
+
+  if (btnCenter < screenCenter) {
+    btn.style.left =
+      edgeGap + "px";
+  } else {
+    btn.style.left =
+      Math.max(
+        edgeGap,
+        window.innerWidth -
+          rect.width -
+          edgeGap
+      ) + "px";
+  }
+
+  setTimeout(() => {
+    btn.style.transition = "";
+  }, 230);
+});
+
+  btn.addEventListener("pointercancel", () => {
+    dragging = false;
+  });
+  const modal = document.getElementById("addHomeModal");
+const closeBtn = document.getElementById("closeAddHomeModal");
+
+function closeAddHomeModal() {
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener("click", closeAddHomeModal);
+}
+
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeAddHomeModal();
+    }
+  });
+}
+// iPhone / Android 教學切換
+const iphoneGuideBtn = document.getElementById("iphoneGuideBtn");
+const androidGuideBtn = document.getElementById("androidGuideBtn");
+const iphoneGuide = document.getElementById("iphoneGuide");
+const androidGuide = document.getElementById("androidGuide");
+
+function showPhoneGuide(type) {
+  if (!iphoneGuide || !androidGuide) return;
+
+  if (type === "android") {
+    iphoneGuide.style.display = "none";
+    androidGuide.style.display = "block";
+
+    iphoneGuideBtn?.classList.remove("active");
+    androidGuideBtn?.classList.add("active");
+  } else {
+    iphoneGuide.style.display = "block";
+    androidGuide.style.display = "none";
+
+    iphoneGuideBtn?.classList.add("active");
+    androidGuideBtn?.classList.remove("active");
+  }
+}
+
+iphoneGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("iphone");
+});
+
+androidGuideBtn?.addEventListener("click", () => {
+  showPhoneGuide("android");
+});
+
+// 預設顯示 iPhone
+showPhoneGuide("iphone");
+  
+})();
+</script>
+
+<script>
+/* =========================================================
+   HABAO HOME V2 I18N
+========================================================= */
+
+(() => {
+
+  if (!window.HabaoI18n) {
+    return;
+  }
+
+  const I18N =
+    window.HabaoI18n;
+
+
+  I18N.registerTranslations({
+
+    "zh-Hant": {
+      homeTitle:
+        "HABAO 賽事預測 AI",
+
+      loggedIn:
+        "已登入",
+
+      announcement:
+        "公告",
+
+      heroLine1:
+        "今天的比賽，",
+
+      heroLine2:
+        "讓",
+
+      heroHighlight:
+        "數據先說話。",
+
+      heroDesc:
+        "整合賽事資訊、近期表現與市場數據，透過 AI 建立多維度賽前分析，快速掌握每場比賽的關鍵資訊。",
+
+      todayMatches:
+        "查看今日賽事",
+
+      myAccount:
+        "我的帳號",
+
+      accountLoggedIn:
+        "帳號已登入",
+
+      memberAccount:
+        "會員帳號",
+
+      loginMethod:
+        "登入方式",
+
+      memberLevel:
+        "會員等級",
+
+      dailyCredits:
+        "每日免費積分",
+
+      paidCredits:
+        "原有／儲值積分",
+
+      totalCredits:
+        "總可用積分",
+
+      upgradeVip:
+        "免費升級 VIP 會員",
+
+      vipHint1:
+        "綁定任一合作平台帳號，即可免費升級 VIP",
+
+      vipHint2:
+        "VIP 每日登入免費補充 2 點分析積分",
+
+      logout:
+        "登出帳號",
+
+close:
+  "關閉",
+
+normalMember:
+  "一般會員",
+
+vipMember:
+  "VIP 會員",
+
+unlimited:
+  "無限制",
+
+creditsUnit:
+  "積分",
+
+vipActive:
+  "VIP 會員權益已啟用",
+
+boundPlatform:
+  "綁定平台：",
+
+platformAccount:
+  "平台帳號：",
+
+vipDailyBenefit:
+  "每日登入免費補充 2 點分析積分",
+
+noPlatformAccount:
+  "尚未有平台帳號？",
+
+freeRegister:
+  "前往免費註冊 ↗",
+
+dailyTwoCredits:
+  "每日 2 點",
+
+dailyNoCarry:
+  "登入補充・不累積",
+
+priorityUse:
+  "優先使用",
+
+dailyPriority:
+  "每日積分優先扣除",
+
+alreadyHaveAccount:
+  "已經有平台帳號？",
+
+platformAccountLabel:
+  "平台帳號",
+
+platformPlaceholder:
+  "請輸入您的平台帳號",
+
+confirmVip:
+  "確認升級 VIP",
+
+enterPlatformAccount:
+  "請輸入平台帳號",
+
+invalidPlatformAccount:
+  "平台帳號格式不正確",
+
+upgradingVip:
+  "升級處理中...",
+
+vipUpgradeSuccess:
+  "VIP 升級成功",
+
+platformUsed:
+  "此平台帳號已綁定其他會員",
+
+vipReupgradeBlocked:
+  "此帳號曾升級過 VIP，如需重新開通請聯絡客服",
+
+loginExpired:
+  "登入狀態已失效，請重新登入",
+
+upgradeFailed: "升級失敗，請稍後再試",
+bonusTitle: "新會員登入禮",
+creditsUnit: "積分",
+bonusAddedPrefix: "已贈送 ",
+bonusAddedSuffix: " 積分",
+bonusAnalysisPrefix: "可進行 ",
+bonusAnalysisSuffix: " 次賽事分析",
+bonusStart: "立即體驗",
+navHome: "首頁",
+navMatches: "賽事",
+navPerformance: "AI 戰績",
+navAccount: "我的",
+todayFocus: "今日焦點",
+viewPerformance: "查看 AI 戰績",
+analysisAvailable: "AI 分析可用",
+matchEnded: "賽事已結束",
+startAnalysis: "開始分析",
+viewMatch: "查看賽事",
+downloadApp: "下載APP",
+installTitle: "加入主畫面",
+iphone1Title: "使用 Safari 開啟網站",
+iphone1Text: "請先確認目前是使用 Safari 瀏覽器。",
+iphone2Title: "點擊「分享」",
+iphone2Text: "點擊 Safari 工具列的分享按鈕。",
+iphone3Title: "選擇「加入主畫面」",
+iphone3Text: "在分享選單中找到「加入主畫面」。",
+iphone4Title: "點擊「加入」",
+iphone4Text: "完成後即可從 iPhone 主畫面直接開啟。",
+
+android1Title: "使用 Chrome 開啟網站",
+android1Text: "請先確認目前是使用 Chrome 瀏覽器。",
+android2Title: "開啟瀏覽器選單",
+android2Text: "點擊 Chrome 右上角的「⋮」。",
+android3Title: "選擇安裝選項",
+android3Text: "點擊「安裝應用程式」或「加到主畫面」。",
+android4Title: "確認安裝",
+android4Text: "完成後即可從 Android 主畫面直接開啟。",
+installFinish:
+  "安裝完成後，點擊主畫面的 HABAO 圖示即可使用",
+liveMatch: "比賽進行中",
+tomorrowMatch: "明日賽事",
+startingSoon: "即將開賽",
+tomorrowFocus: "明日焦點",
+noMatches: "暫無賽事",
+noFocusMatches: "尚無焦點賽事",
+loadingMatches: "賽事載入中...",
+footballMatch: "足球賽事",
+homeTeam: "主隊",
+awayTeam: "客隊",
+
+aiTools: "AI 工具",
+matchCenter: "賽事中心",
+matchCenterDesc: "今日、明日賽程與多聯賽賽事資料",
+liveMatchData: "即時賽事資料",
+
+aiPerformance: "AI 戰績",
+aiPerformanceDesc: "公開驗證預測結果與市場命中表現",
+autoVerifySystem: "自動驗證系統",
+
+myAnalysis: "我的分析",
+myAnalysisDesc: "查看 AI 賽前分析與個人分析內容",
+personalAnalysisCenter: "個人分析中心",
+
+moreFeatures: "更多功能",
+moreFeaturesDesc: "更多聯賽、數據與運動項目持續擴充",
+systemUpgrading: "系統持續升級"
+    },
+
+
+    "zh-Hans": {
+      homeTitle:
+        "HABAO 赛事预测 AI",
+
+      loggedIn:
+        "已登录",
+
+      announcement:
+        "公告",
+
+      heroLine1:
+        "今天的比赛，",
+
+      heroLine2:
+        "让",
+
+      heroHighlight:
+        "数据先说话。",
+
+      heroDesc:
+        "整合赛事信息、近期表现与市场数据，通过 AI 建立多维度赛前分析，快速掌握每场比赛的关键信息。",
+
+      todayMatches:
+        "查看今日赛事",
+
+      myAccount:
+        "我的账号",
+
+      accountLoggedIn:
+        "账号已登录",
+
+      memberAccount:
+        "会员账号",
+
+      loginMethod:
+        "登录方式",
+
+      memberLevel:
+        "会员等级",
+
+      dailyCredits:
+        "每日免费积分",
+
+      paidCredits:
+        "原有／充值积分",
+
+      totalCredits:
+        "总可用积分",
+
+      upgradeVip:
+        "免费升级 VIP 会员",
+
+      vipHint1:
+        "绑定任一合作平台账号，即可免费升级 VIP",
+
+      vipHint2:
+        "VIP 每日登录免费补充 2 点分析积分",
+
+      logout:
+        "退出登录",
+
+close:
+  "关闭",
+
+normalMember:
+  "普通会员",
+
+vipMember:
+  "VIP 会员",
+
+unlimited:
+  "无限制",
+
+creditsUnit:
+  "积分",
+
+vipActive:
+  "VIP 会员权益已启用",
+
+boundPlatform:
+  "绑定平台：",
+
+platformAccount:
+  "平台账号：",
+
+vipDailyBenefit:
+  "每日登录免费补充 2 点分析积分",
+
+noPlatformAccount:
+  "还没有平台账号？",
+
+freeRegister:
+  "前往免费注册 ↗",
+
+dailyTwoCredits:
+  "每日 2 点",
+
+dailyNoCarry:
+  "登录补充・不累积",
+
+priorityUse:
+  "优先使用",
+
+dailyPriority:
+  "每日积分优先扣除",
+
+alreadyHaveAccount:
+  "已经有平台账号？",
+
+platformAccountLabel:
+  "平台账号",
+
+platformPlaceholder:
+  "请输入您的平台账号",
+
+confirmVip:
+  "确认升级 VIP",
+
+enterPlatformAccount:
+  "请输入平台账号",
+
+invalidPlatformAccount:
+  "平台账号格式不正确",
+
+upgradingVip:
+  "升级处理中...",
+
+vipUpgradeSuccess:
+  "VIP 升级成功",
+
+platformUsed:
+  "此平台账号已绑定其他会员",
+
+vipReupgradeBlocked:
+  "此账号曾升级过 VIP，如需重新开通请联系客服",
+
+loginExpired:
+  "登录状态已失效，请重新登录",
+
+upgradeFailed: "升级失败，请稍后再试",
+bonusTitle: "新会员登录礼",
+bonusAddedPrefix: "已赠送 ",
+bonusAddedSuffix: " 积分",
+bonusAnalysisPrefix: "可进行 ",
+bonusAnalysisSuffix: " 次赛事分析",
+bonusStart: "立即体验",
+navHome: "首页",
+navMatches: "赛事",
+navPerformance: "AI 战绩",
+navAccount: "我的",
+todayFocus: "今日焦点",
+viewPerformance: "查看 AI 战绩",
+analysisAvailable: "AI 分析可用",
+matchEnded: "赛事已结束",
+startAnalysis: "开始分析",
+viewMatch: "查看赛事",
+downloadApp: "下载APP",
+installTitle: "添加到主屏幕",
+iphone1Title: "使用 Safari 打开网站",
+iphone1Text: "请先确认目前使用的是 Safari 浏览器。",
+iphone2Title: "点击「分享」",
+iphone2Text: "点击 Safari 工具栏的分享按钮。",
+iphone3Title: "选择「添加到主屏幕」",
+iphone3Text: "在分享菜单中找到「添加到主屏幕」。",
+iphone4Title: "点击「添加」",
+iphone4Text: "完成后即可从 iPhone 主屏幕直接打开。",
+
+android1Title: "使用 Chrome 打开网站",
+android1Text: "请先确认目前使用的是 Chrome 浏览器。",
+android2Title: "打开浏览器菜单",
+android2Text: "点击 Chrome 右上角的「⋮」。",
+android3Title: "选择安装选项",
+android3Text: "点击「安装应用」或「添加到主屏幕」。",
+android4Title: "确认安装",
+android4Text: "完成后即可从 Android 主屏幕直接打开。",
+installFinish:
+  "安装完成后，点击主屏幕的 HABAO 图标即可使用",
+liveMatch: "比赛进行中",
+tomorrowMatch: "明日赛事",
+startingSoon: "即将开赛",
+tomorrowFocus: "明日焦点",
+noMatches: "暂无赛事",
+noFocusMatches: "暂无焦点赛事",
+loadingMatches: "赛事加载中...",
+footballMatch: "足球赛事",
+homeTeam: "主队",
+awayTeam: "客队",
+
+aiTools: "AI 工具",
+matchCenter: "赛事中心",
+matchCenterDesc: "今日、明日赛程与多联赛赛事数据",
+liveMatchData: "实时赛事数据",
+
+aiPerformance: "AI 战绩",
+aiPerformanceDesc: "公开验证预测结果与市场命中表现",
+autoVerifySystem: "自动验证系统",
+
+myAnalysis: "我的分析",
+myAnalysisDesc: "查看 AI 赛前分析与个人分析内容",
+personalAnalysisCenter: "个人分析中心",
+
+moreFeatures: "更多功能",
+moreFeaturesDesc: "更多联赛、数据与运动项目持续扩充",
+systemUpgrading: "系统持续升级"
+    },
+
+
+    "en": {
+      homeTitle:
+        "HABAO Sports Prediction AI",
+
+      loggedIn:
+        "Signed In",
+
+      announcement:
+        "Notice",
+
+      heroLine1:
+        "Today's matches,",
+
+      heroLine2:
+        "let ",
+
+      heroHighlight:
+        "the data speak first.",
+
+      heroDesc:
+        "Combining match information, recent performance and market data, HABAO uses AI to build multi-dimensional pre-match analysis and highlight the key information for every match.",
+
+      todayMatches:
+        "View Today's Matches",
+
+      myAccount:
+        "My Account",
+
+      accountLoggedIn:
+        "Account Signed In",
+
+      memberAccount:
+        "Member Account",
+
+      loginMethod:
+        "Sign-in Method",
+
+      memberLevel:
+        "Membership",
+
+      dailyCredits:
+        "Daily Free Credits",
+
+      paidCredits:
+        "Purchased Credits",
+
+      totalCredits:
+        "Total Available Credits",
+
+      upgradeVip:
+        "Upgrade to VIP for Free",
+
+      vipHint1:
+        "Link an account from any partner platform to upgrade to VIP for free",
+
+      vipHint2:
+        "VIP members receive 2 free analysis credits each day",
+
+      logout:
+        "Sign Out",
+
+close:
+  "Close",
+
+normalMember:
+  "Standard Member",
+
+vipMember:
+  "VIP Member",
+
+unlimited:
+  "Unlimited",
+
+creditsUnit:
+  "Credits",
+
+vipActive:
+  "VIP Benefits Active",
+
+boundPlatform:
+  "Linked Platform: ",
+
+platformAccount:
+  "Platform Account: ",
+
+vipDailyBenefit:
+  "Receive 2 free analysis credits each day",
+
+noPlatformAccount:
+  "Don't have a platform account?",
+
+freeRegister:
+  "Register for Free ↗",
+
+dailyTwoCredits:
+  "2 Credits Daily",
+
+dailyNoCarry:
+  "Refilled daily・No rollover",
+
+priorityUse:
+  "Priority Use",
+
+dailyPriority:
+  "Daily credits are used first",
+
+alreadyHaveAccount:
+  "Already have a platform account?",
+
+platformAccountLabel:
+  "Platform Account",
+
+platformPlaceholder:
+  "Enter your platform account",
+
+confirmVip:
+  "Confirm VIP Upgrade",
+
+enterPlatformAccount:
+  "Please enter your platform account",
+
+invalidPlatformAccount:
+  "Invalid platform account format",
+
+upgradingVip:
+  "Upgrading...",
+
+vipUpgradeSuccess:
+  "VIP upgrade successful",
+
+platformUsed:
+  "This platform account is already linked to another member",
+
+vipReupgradeBlocked:
+  "This account was previously upgraded to VIP. Please contact support to reactivate VIP.",
+
+loginExpired:
+  "Your session has expired. Please sign in again.",
+
+upgradeFailed: "Upgrade failed. Please try again later.",
+bonusTitle: "New Member Bonus",
+bonusAddedPrefix: "",
+bonusAddedSuffix: " credits have been added",
+bonusAnalysisPrefix: "Use them for ",
+bonusAnalysisSuffix: " match analyses",
+bonusStart: "Start Now",
+navHome: "Home",
+navMatches: "Matches",
+navPerformance: "AI Results",
+navAccount: "Account",
+todayFocus: "Today's Matches",
+viewPerformance: "View AI Results",
+analysisAvailable: "AI Analysis Available",
+matchEnded: "Match Ended",
+startAnalysis: "Start Analysis",
+viewMatch: "View Match",
+downloadApp: "Download App",
+installTitle: "Add to Home Screen",
+iphone1Title: "Open the Website in Safari",
+iphone1Text: "Make sure you are using Safari.",
+iphone2Title: "Tap Share",
+iphone2Text: "Tap the Share button in the Safari toolbar.",
+iphone3Title: "Add to Home Screen",
+iphone3Text: "Select “Add to Home Screen” from the Share menu.",
+iphone4Title: "Tap Add",
+iphone4Text: "You can then open HABAO directly from your iPhone Home Screen.",
+
+android1Title: "Open the Website in Chrome",
+android1Text: "Make sure you are using Chrome.",
+android2Title: "Open the Browser Menu",
+android2Text: "Tap the “⋮” menu in the top-right corner.",
+android3Title: "Choose Install",
+android3Text: "Select “Install app” or “Add to Home screen”.",
+android4Title: "Confirm Installation",
+android4Text: "You can then open HABAO directly from your Android Home Screen.",
+installFinish:
+  "After installation, open HABAO directly from your Home Screen",
+liveMatch: "Match in Progress",
+tomorrowMatch: "Tomorrow's Match",
+startingSoon: "Starting Soon",
+tomorrowFocus: "Tomorrow's Matches",
+noMatches: "No Matches",
+noFocusMatches: "No Featured Matches",
+loadingMatches: "Loading Matches...",
+footballMatch: "Football Match",
+homeTeam: "Home",
+awayTeam: "Away",
+
+aiTools: "AI Tools",
+matchCenter: "Match Center",
+matchCenterDesc: "Today's and tomorrow's fixtures across multiple leagues",
+liveMatchData: "Live Match Data",
+
+aiPerformance: "AI Results",
+aiPerformanceDesc: "Verified predictions and market performance",
+autoVerifySystem: "Automatic Verification",
+
+myAnalysis: "My Analysis",
+myAnalysisDesc: "View AI pre-match analysis and your analysis history",
+personalAnalysisCenter: "Personal Analysis Center",
+
+moreFeatures: "More Features",
+moreFeaturesDesc: "More leagues, data and sports are coming",
+systemUpgrading: "System Upgrading"
+    }
+
+  });
+
+
+  function setText(
+    selector,
+    key
+  ) {
+
+    const element =
+      document.querySelector(
+        selector
+      );
+
+    if (!element) {
+      return;
+    }
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+  }
+
+
+  function applyHomeLanguage() {
+
+    document.title =
+      I18N.t(
+        "homeTitle",
+        document.title
+      );
+
+
+    setText(
+      ".brand-title",
+      "homeTitle"
+    );
+
+
+    setText(
+      ".v2-announcement-label",
+      "announcement"
+    );
+
+
+    /*
+     * HERO
+     * 這裡保留原本 br + span 結構
+     */
+
+    const heroTitle =
+      document.querySelector(
+        ".hero h1"
+      );
+
+    if (heroTitle) {
+
+      heroTitle.innerHTML =
+        `${I18N.t("heroLine1")}` +
+        `<br>` +
+        `${I18N.t("heroLine2")}` +
+        `<span>${I18N.t(
+          "heroHighlight"
+        )}</span>`;
+    }
+
+
+    setText(
+      ".hero-desc",
+      "heroDesc"
+    );
+
+
+    /*
+     * 首頁主要按鈕
+     * 保留 SVG，不直接改整個按鈕 textContent
+     */
+
+    const primaryButton =
+      document.querySelector(
+        ".hero-actions .primary-btn"
+      );
+
+    if (primaryButton) {
+
+      const svg =
+        primaryButton.querySelector(
+          "svg"
+        );
+
+      primaryButton.childNodes
+        .forEach(node => {
+
+          if (
+            node.nodeType ===
+            Node.TEXT_NODE
+          ) {
+            node.textContent = "";
+          }
+
+        });
+
+      primaryButton.append(
+        document.createTextNode(
+          " " +
+          I18N.t(
+            "todayMatches"
+          )
+        )
+      );
+
+      if (
+        svg &&
+        svg.parentNode !==
+          primaryButton
+      ) {
+        primaryButton.prepend(
+          svg
+        );
+      }
+    }
+
+
+    /*
+     * 帳號面板
+     */
+
+    setText(
+      ".v2-account-title",
+      "myAccount"
+    );
+
+
+    const accountStatus =
+      document.querySelector(
+        ".v2-account-status"
+      );
+
+    if (accountStatus) {
+
+      const dot =
+        accountStatus.querySelector(
+          ".v2-account-status-dot"
+        );
+
+      accountStatus.childNodes
+        .forEach(node => {
+
+          if (
+            node.nodeType ===
+            Node.TEXT_NODE
+          ) {
+            node.textContent = "";
+          }
+
+        });
+
+      accountStatus.append(
+        document.createTextNode(
+          I18N.t(
+            "accountLoggedIn"
+          )
+        )
+      );
+
+      if (
+        dot &&
+        dot.parentNode !==
+          accountStatus
+      ) {
+        accountStatus.prepend(
+          dot
+        );
+      }
+    }
+
+
+    const labels =
+      document.querySelectorAll(
+        ".v2-account-label"
+      );
+
+    const labelKeys = [
+      "memberAccount",
+      "loginMethod",
+      "memberLevel",
+      "dailyCredits",
+      "paidCredits",
+      "totalCredits"
+    ];
+
+    labels.forEach(
+      (element, index) => {
+
+        const key =
+          labelKeys[index];
+
+        if (!key) {
+          return;
+        }
+
+        element.textContent =
+          I18N.t(
+            key,
+            element.textContent.trim()
+          );
+      }
+    );
+
+
+    setText(
+      ".v2-account-logout",
+      "logout"
+    );
+
+
+    /*
+     * 尚未升級 VIP 時的靜態內容
+     */
+
+    const vipUpgrade =
+      document.querySelector(
+        "#v2VipStatus .v2-vip-upgrade-button"
+      );
+
+    if (vipUpgrade) {
+      vipUpgrade.textContent =
+        I18N.t(
+          "upgradeVip",
+          vipUpgrade.textContent.trim()
+        );
+    }
+
+
+    const vipHint =
+      document.querySelector(
+        "#v2VipStatus .v2-vip-hint"
+      );
+
+    if (vipHint) {
+
+      vipHint.innerHTML =
+        `${I18N.t("vipHint1")}<br>` +
+        `${I18N.t("vipHint2")}`;
+    }
+
+
+    /*
+     * 關閉按鈕 aria-label
+     */
+
+    document
+      .querySelectorAll(
+        ".v2-account-close, .v2-vip-close"
+      )
+      .forEach(button => {
+
+        button.setAttribute(
+          "aria-label",
+          I18N.t(
+            "close",
+            "關閉"
+          )
+        );
+
+      });
+
+setText(
+  ".v2-vip-title",
+  "upgradeVip"
+);
+
+const vipSubtitle =
+  document.querySelector(
+    ".v2-vip-subtitle"
+  );
+
+if (vipSubtitle) {
+  vipSubtitle.innerHTML =
+    `${I18N.t("vipHint1")}<br>` +
+    `${I18N.t("vipDailyBenefit")}`;
+}
+
+setText(
+  ".v2-vip-platform-info span",
+  "noPlatformAccount"
+);
+
+setText(
+  ".v2-vip-register-button",
+  "freeRegister"
+);
+
+const benefitBoxes =
+  document.querySelectorAll(
+    ".v2-vip-benefits > div"
+  );
+
+if (benefitBoxes[0]) {
+  const strong =
+    benefitBoxes[0]
+      .querySelector("strong");
+
+  const span =
+    benefitBoxes[0]
+      .querySelector("span");
+
+  if (strong) {
+    strong.textContent =
+      I18N.t("dailyTwoCredits");
+  }
+
+  if (span) {
+    span.textContent =
+      I18N.t("dailyNoCarry");
+  }
+}
+
+if (benefitBoxes[1]) {
+  const strong =
+    benefitBoxes[1]
+      .querySelector("strong");
+
+  const span =
+    benefitBoxes[1]
+      .querySelector("span");
+
+  if (strong) {
+    strong.textContent =
+      I18N.t("priorityUse");
+  }
+
+  if (span) {
+    span.textContent =
+      I18N.t("dailyPriority");
+  }
+}
+
+setText(
+  ".v2-vip-have-account",
+  "alreadyHaveAccount"
+);
+
+setText(
+  ".v2-vip-input-label",
+  "platformAccountLabel"
+);
+
+const platformInput =
+  document.getElementById(
+    "v2PlatformAccount"
+  );
+
+if (platformInput) {
+  platformInput.placeholder =
+    I18N.t(
+      "platformPlaceholder"
+    );
+}
+
+setText(
+  "#v2VipSubmit",
+  "confirmVip"
+);
+
+setText(
+  ".v2-bonus-title",
+  "bonusTitle"
+);
+
+setText(
+  ".v2-bonus-button",
+  "bonusStart"
+);
+
+const bonusAmount =
+  document.getElementById(
+    "v2BonusAmount"
+  );
+
+if (bonusAmount) {
+
+  const amount =
+    bonusAmount.textContent.trim() ||
+    "3";
+
+  const bonusAmountBox =
+    document.querySelector(
+      ".v2-bonus-amount"
+    );
+
+  if (bonusAmountBox) {
+    bonusAmountBox.innerHTML =
+      `+<span id="v2BonusAmount">${amount}</span> ` +
+      `${I18N.t("creditsUnit", "積分")}`;
+  }
+
+  const bonusText =
+    document.querySelector(
+      ".v2-bonus-text"
+    );
+
+  if (bonusText) {
+    bonusText.innerHTML =
+      `${I18N.t("bonusAddedPrefix")}` +
+      `${amount}` +
+      `${I18N.t("bonusAddedSuffix")}` +
+      `<br>` +
+      `${I18N.t("bonusAnalysisPrefix")}` +
+      `${amount}` +
+      `${I18N.t("bonusAnalysisSuffix")}`;
+  }
+
+}    
+
+const bottomNavItems =
+  document.querySelectorAll(
+    ".bottom-nav .nav-item"
+  );
+
+const bottomNavKeys = [
+  "navHome",
+  "navMatches",
+  "navPerformance",
+  "navAccount"
+];
+
+bottomNavItems.forEach(
+  (item, index) => {
+
+    const key =
+      bottomNavKeys[index];
+
+    if (!key) return;
+
+    item.childNodes.forEach(
+      node => {
+
+        if (
+          node.nodeType ===
+          Node.TEXT_NODE
+        ) {
+          node.textContent = "";
+        }
+
+      }
+    );
+
+    item.append(
+      document.createTextNode(
+        I18N.t(key)
+      )
+    );
+
+  }
+);
+
+setText(
+  ".section-title",
+  "todayFocus"
+);   
+
+/*
+ * AI 工具區
+ */
+
+const sectionTitles =
+  document.querySelectorAll(
+    ".section-title"
+  );
+
+if (sectionTitles[1]) {
+  sectionTitles[1].textContent =
+    I18N.t(
+      "aiTools",
+      "AI 工具"
+    );
+}
+
+
+/*
+ * AI 工具標題
+ */
+
+const toolTitles =
+  document.querySelectorAll(
+    ".v2-tool-title"
+  );
+
+const toolTitleKeys = [
+  "matchCenter",
+  "aiPerformance",
+  "myAnalysis",
+  "moreFeatures"
+];
+
+toolTitles.forEach(
+  (element, index) => {
+
+    const key =
+      toolTitleKeys[index];
+
+    if (!key) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+
+  }
+);
+
+
+/*
+ * AI 工具說明
+ */
+
+const toolDescriptions =
+  document.querySelectorAll(
+    ".v2-tool-desc"
+  );
+
+const toolDescriptionKeys = [
+  "matchCenterDesc",
+  "aiPerformanceDesc",
+  "myAnalysisDesc",
+  "moreFeaturesDesc"
+];
+
+toolDescriptions.forEach(
+  (element, index) => {
+
+    const key =
+      toolDescriptionKeys[index];
+
+    if (!key) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+
+  }
+);
+
+
+/*
+ * AI 工具底部文字
+ */
+
+const toolFooters =
+  document.querySelectorAll(
+    ".v2-tool-footer"
+  );
+
+const toolFooterKeys = [
+  "liveMatchData",
+  "autoVerifySystem",
+  "personalAnalysisCenter",
+  "systemUpgrading"
+];
+
+toolFooters.forEach(
+  (element, index) => {
+
+    const key =
+      toolFooterKeys[index];
+
+    if (!key) return;
+
+    const dot =
+      element.querySelector(
+        ".v2-tool-dot"
+      );
+
+    element.childNodes.forEach(
+      node => {
+
+        if (
+          node.nodeType ===
+          Node.TEXT_NODE
+        ) {
+          node.textContent = "";
+        }
+
+      }
+    );
+
+    element.append(
+      document.createTextNode(
+        I18N.t(key)
+      )
+    );
+
+    if (
+      dot &&
+      dot.parentNode !== element
+    ) {
+      element.prepend(dot);
+    }
+
+  }
+);    
+
+  const performanceButton =
+  document.querySelector(
+    ".hero-actions .secondary-btn"
+  );
+
+if (performanceButton) {
+
+  performanceButton.childNodes
+    .forEach(node => {
+
+      if (
+        node.nodeType ===
+        Node.TEXT_NODE
+      ) {
+        node.textContent = "";
+      }
+
+    });
+
+  performanceButton.append(
+    document.createTextNode(
+      " " +
+      I18N.t(
+        "viewPerformance",
+        "查看 AI 戰績"
+      )
+    )
+  );
+
+}  
+
+/*
+ * 下載 APP / 加入主畫面
+ */
+
+setText(
+  "#addHomeFloatBtn span",
+  "downloadApp"
+);
+
+setText(
+  "#addHomeModal h2",
+  "installTitle"
+);
+
+const installStepTitles =
+  document.querySelectorAll(
+    "#addHomeModal .add-home-simple-step strong"
+  );
+
+const installStepTexts =
+  document.querySelectorAll(
+    "#addHomeModal .add-home-simple-step span"
+  );
+
+const installTitleKeys = [
+  "iphone1Title",
+  "iphone2Title",
+  "iphone3Title",
+  "iphone4Title",
+  "android1Title",
+  "android2Title",
+  "android3Title",
+  "android4Title"
+];
+
+const installTextKeys = [
+  "iphone1Text",
+  "iphone2Text",
+  "iphone3Text",
+  "iphone4Text",
+  "android1Text",
+  "android2Text",
+  "android3Text",
+  "android4Text"
+];
+
+installStepTitles.forEach(
+  (element, index) => {
+
+    const key =
+      installTitleKeys[index];
+
+    if (!key) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+  }
+);
+
+installStepTexts.forEach(
+  (element, index) => {
+
+    const key =
+      installTextKeys[index];
+
+    if (!key) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+  }
+);
+
+document
+  .querySelectorAll(
+    ".add-home-finish"
+  )
+  .forEach(element => {
+
+    element.textContent =
+      "✓ " +
+      I18N.t(
+        "installFinish",
+        "安裝完成後，點擊主畫面的 HABAO 圖示即可使用"
+      );
+
+  });
+
+const addHomeClose =
+  document.getElementById(
+    "closeAddHomeModal"
+  );
+
+if (addHomeClose) {
+  addHomeClose.setAttribute(
+    "aria-label",
+    I18N.t(
+      "close",
+      "關閉"
+    )
+  );
+}    
+    
+  }
+
+
+window.addEventListener(
+  "habao:languagechange",
+  () => {
+    applyHomeLanguage();
+
+    const tomorrowFixtures =
+      Array.isArray(
+        window.v2TomorrowFixtures
+      )
+        ? window.v2TomorrowFixtures
+        : [];
+
+    if (
+      tomorrowFixtures.length > 0
+    ) {
+      const container =
+        document.getElementById(
+          "v2FocusMatches"
+        );
+
+if (container) {
+
+  const finishedStatuses =
+    new Set([
+      "FT",
+      "AET",
+      "PEN",
+      "AWD",
+      "WO"
+    ]);
+
+  const tomorrowUpcoming =
+    [...tomorrowFixtures]
+      .filter(match => {
+        const status =
+          String(
+            match?.status || ""
+          ).toUpperCase();
+
+        return !finishedStatuses.has(
+          status
+        );
+      })
+      .sort((a, b) =>
+        new Date(a.time).getTime() -
+        new Date(b.time).getTime()
+      )
+      .slice(0, 2);
+
+  renderV2FocusMatchCards(
+    container,
+    tomorrowUpcoming,
+    "tomorrow"
+  );
+}
+
+      return;
+    }
+
+    if (
+      Array.isArray(
+        v2LatestFocusFixtures
+      ) &&
+      v2LatestFocusFixtures.length > 0
+    ) {
+      renderV2FocusMatches(
+        v2LatestFocusFixtures
+      );
+    }
+  }
+);
+
+
+  window.addEventListener(
+    "habao:translationsapplied",
+    applyHomeLanguage
+  );
+
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      applyHomeLanguage
+    );
+
+  } else {
+
+    applyHomeLanguage();
+    
+  }
+
+})();
+</script>
+  
+<script>
+(() => {
+  const mount =
+    document.getElementById(
+      "habaoLanguageMount"
+    );
+
+  if (
+    mount &&
+    window.HabaoI18n
+  ) {
+    mount.appendChild(
+      window.HabaoI18n
+        .createLanguageSelector()
+    );
+  }
+})();
 </script>
   
 </body>
