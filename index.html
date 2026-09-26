@@ -6,7 +6,7 @@
   <title>HABAO 賽事預測 AI</title>
   <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#07090b">
-<link rel="apple-touch-icon" href="./football_icon_192x192.png">
+<link rel="apple-touch-icon" href="./habao-icon-192.png">
 <!-- HABAO 登入頁核心資源預載 -->
 <link rel="preload" href="./habao-login-bg-v2.png" as="image" fetchpriority="high">
 <link rel="preload" href="./habao-hb-logo.png" as="image" fetchpriority="high">
@@ -262,32 +262,38 @@
 }
 
 #addHomeFloatBtn img {
-  width: 58px;
-  height: 58px;
+  width: 66px;
+  height: 66px;
 
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 
-  padding: 3px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(229, 199, 126, 0.20),
-      rgba(7, 9, 11, 0.94)
-    );
+  filter:
+    drop-shadow(0 5px 10px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 8px rgba(229, 199, 126, 0.25));
 
-  border: 1px solid rgba(229, 199, 126, 0.72);
-  border-radius: 18px;
-
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.48),
-    0 0 18px rgba(229, 199, 126, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  animation:
+    habaoFootballSpin 3s linear infinite;
 
   pointer-events: none;
 }
 
+@keyframes habaoFootballSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+    
 #addHomeFloatBtn span {
   display: block;
   line-height: 1.2;
@@ -4330,7 +4336,7 @@ window.addEventListener(
   
 <!-- 加入主畫面｜浮動按鈕 -->
 <div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
-  <img src="./football_icon_192x192.png" alt="HABAO">
+  <img src="./habao-football-spin.png" alt="HABAO Football">
   <span>下載APP</span>
 </div>
 <script>
