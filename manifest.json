@@ -1,6 +1,6 @@
 {
-  "name": "HABAO",
-  "short_name": "HABAO",
+  "name": "HB賽事AI",
+  "short_name": "HB賽事AI",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
