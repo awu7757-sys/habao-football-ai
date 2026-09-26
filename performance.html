@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#080b10" />
 
   <title>HABAO 賽事預測 AI｜公開戰績</title>
+  <script src="./habao-i18n.js"></script>
 
   <style>
     :root {
@@ -1935,11 +1936,56 @@ body{
   }
 
 }    
+
+/* ===== HABAO LANGUAGE SELECTOR ===== */
+
+#habaoLanguageMount{
+  position:fixed;
+  top:calc(10px + env(safe-area-inset-top));
+  right:10px;
+  z-index:9998;
+}
+
+#habaoLanguageMount select{
+  min-width:118px;
+  height:34px;
+  padding:0 28px 0 10px;
+
+  border:1px solid rgba(244,185,66,.28);
+  border-radius:10px;
+
+  background:#0b1c27;
+  color:#f4c95d;
+
+  font-size:11px;
+  font-weight:900;
+
+  outline:none;
+  cursor:pointer;
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.24);
+}
+
+@media(max-width:520px){
+  #habaoLanguageMount{
+    top:calc(7px + env(safe-area-inset-top));
+    right:8px;
+  }
+
+  #habaoLanguageMount select{
+    min-width:108px;
+    height:32px;
+    font-size:10px;
+  }
+}
     
   </style>
 </head>
 
 <body>
+
+  <div id="habaoLanguageMount"></div>
 
   <main class="app">
 
@@ -1967,7 +2013,7 @@ body{
         type="button"
         onclick="goBack()"
       >
-        返回
+        <span data-i18n="back">返回</span>
       </button>
 
     </header>
@@ -1979,22 +2025,25 @@ body{
         ● AI PERFORMANCE
       </div>
 
-      <h1>
-        公開戰績
-      </h1>
+<h1 data-i18n="heroTitle">
+  公開戰績
+</h1>
 
-      <p>
-        AI 賽前預測於比賽結束後自動比對正式賽果，
-        公開呈現已驗證的分析結果。
-      </p>
+<p data-i18n="heroText">
+  AI 賽前預測於比賽結束後自動比對正式賽果，
+  公開呈現已驗證的分析結果。
+</p>
 
       <div class="verified-box">
 
         <div>
 
-          <div class="verified-label">
-            已驗證賽事
-          </div>
+<div
+  class="verified-label"
+  data-i18n="verifiedMatches"
+>
+  已驗證賽事
+</div>
 
           <div>
 
@@ -2005,18 +2054,23 @@ body{
               --
             </span>
 
-            <span class="verified-unit">
-              場
-            </span>
+<span
+  class="verified-unit"
+  data-i18n="matchesUnit"
+>
+  場
+</span>
 
           </div>
 
         </div>
 
-        <div class="live-status">
-          <span class="live-dot"></span>
-          自動更新
-        </div>
+<div class="live-status">
+  <span class="live-dot"></span>
+  <span data-i18n="autoUpdate">
+    自動更新
+  </span>
+</div>
 
       </div>
 
@@ -2029,6 +2083,7 @@ body{
             type="button"
             class="filter-btn active"
             data-days=""
+            data-i18n="all"
             onclick="changeFilter(this)"
           >
             全部
@@ -2038,6 +2093,7 @@ body{
             type="button"
             class="filter-btn"
             data-days="7"
+            data-i18n="last7Days"
             onclick="changeFilter(this)"
           >
             近 7 天
@@ -2047,6 +2103,7 @@ body{
             type="button"
             class="filter-btn"
             data-days="30"
+            data-i18n="last30Days"
             onclick="changeFilter(this)"
           >
             近 30 天
@@ -2063,9 +2120,12 @@ body{
 
       <div class="section-head">
 
-        <h2 class="section-title">
-          AI 市場表現
-        </h2>
+<h2
+  class="section-title"
+  data-i18n="marketPerformance"
+>
+  AI 市場表現
+</h2>
 
         <div
           class="section-note"
@@ -2085,9 +2145,12 @@ body{
             1X2
           </div>
 
-          <div class="stat-name">
-            獨贏
-          </div>
+<div
+  class="stat-name"
+  data-i18n="moneyline"
+>
+  獨贏
+</div>
 
           <div
             class="stat-rate"
@@ -2112,9 +2175,12 @@ body{
             O/U
           </div>
 
-          <div class="stat-name">
-            大小分
-          </div>
+<div
+  class="stat-name"
+  data-i18n="overUnder"
+>
+  大小分
+</div>
 
           <div
             class="stat-rate"
@@ -2139,9 +2205,12 @@ body{
             BTTS
           </div>
 
-          <div class="stat-name">
-            雙方進球
-          </div>
+<div
+  class="stat-name"
+  data-i18n="btts"
+>
+  雙方進球
+</div>
 
           <div
             class="stat-rate"
@@ -2172,12 +2241,12 @@ body{
           ⓘ
         </div>
 
-        <div>
-          戰績依 AI 賽前保存的預測快照與正式完場比分自動驗證。
-          尚未完賽的賽事不計入命中率；
-          亞洲大小盤走盤不列入勝負命中率，
-          半贏與半輸依半注結果計算。
-        </div>
+<div data-i18n="infoText">
+  戰績依 AI 賽前保存的預測快照與正式完場比分自動驗證。
+  尚未完賽的賽事不計入命中率；
+  亞洲大小盤走盤不列入勝負命中率，
+  半贏與半輸依半注結果計算。
+</div>
 
       </div>
 
@@ -2192,9 +2261,12 @@ body{
 
       <div class="section-head">
 
-        <h2 class="section-title">
-          聯賽表現
-        </h2>
+<h2
+  class="section-title"
+  data-i18n="leaguePerformance"
+>
+  聯賽表現
+</h2>
 
         <div
           class="section-note"
@@ -2217,9 +2289,12 @@ body{
 
       <div class="section-head">
 
-        <h2 class="section-title">
-          賽事驗證紀錄
-        </h2>
+<h2
+  class="section-title"
+  data-i18n="matchRecords"
+>
+  賽事驗證紀錄
+</h2>
 
         <div
           class="section-note"
@@ -2254,18 +2329,235 @@ body{
 
     </section>
 
-
-    <footer class="footer">
-      哈寶足球 AI｜數據僅呈現系統歷史分析與驗證結果
-      <br />
-      過往結果不代表未來表現
-    </footer>
-
   </main>
 
 
   <script>
 
+const PERFORMANCE_I18N = {
+  "zh-Hant": {
+    pageTitle:
+      "HABAO 賽事預測 AI｜公開戰績",
+
+    back: "返回",
+
+    heroTitle: "公開戰績",
+    heroText:
+      "AI 賽前預測於比賽結束後自動比對正式賽果，公開呈現已驗證的分析結果。",
+
+    verifiedMatches: "已驗證賽事",
+    matchesUnit: "場",
+    autoUpdate: "自動更新",
+
+    all: "全部",
+    last7Days: "近 7 天",
+    last30Days: "近 30 天",
+
+    marketPerformance: "AI 市場表現",
+
+    moneyline: "獨贏",
+    overUnder: "大小分",
+    btts: "雙方進球",
+
+    verificationCount: "次驗證",
+
+    infoText:
+      "戰績依 AI 賽前保存的預測快照與正式完場比分自動驗證。尚未完賽的賽事不計入命中率；亞洲大小盤走盤不列入勝負命中率，半贏與半輸依半注結果計算。",
+
+    leaguePerformance: "聯賽表現",
+    leaguesUnit: "個聯賽",
+    otherLeague: "其他聯賽",
+
+    matchRecords: "賽事驗證紀錄",
+
+    loadingTitle: "正在讀取 AI 戰績",
+    loadingText: "正在同步最新驗證資料...",
+
+    emptyTitle: "此區間尚無已驗證賽事",
+    emptyText:
+      "AI 賽前預測會先保存快照，比賽正式完賽並完成自動驗證後，戰績會自動顯示在這裡。",
+
+    errorTitle: "戰績資料暫時無法讀取",
+    retry: "重新整理",
+    retryLater: "請稍後再試",
+
+    homeTeam: "主隊",
+    awayTeam: "客隊",
+    footballMatch: "足球賽事",
+
+    push: "走",
+    halfWin: "半贏",
+    halfLoss: "半輸",
+    pending: "待"
+  },
+
+  "zh-Hans": {
+    pageTitle:
+      "HABAO 赛事预测 AI｜公开战绩",
+
+    back: "返回",
+
+    heroTitle: "公开战绩",
+    heroText:
+      "AI 赛前预测会在比赛结束后自动比对正式赛果，公开呈现已验证的分析结果。",
+
+    verifiedMatches: "已验证赛事",
+    matchesUnit: "场",
+    autoUpdate: "自动更新",
+
+    all: "全部",
+    last7Days: "近 7 天",
+    last30Days: "近 30 天",
+
+    marketPerformance: "AI 市场表现",
+
+    moneyline: "独赢",
+    overUnder: "大小分",
+    btts: "双方进球",
+
+    verificationCount: "次验证",
+
+    infoText:
+      "战绩依 AI 赛前保存的预测快照与正式完场比分自动验证。尚未完赛的赛事不计入命中率；亚洲大小盘走盘不列入胜负命中率，半赢与半输依半注结果计算。",
+
+    leaguePerformance: "联赛表现",
+    leaguesUnit: "个联赛",
+    otherLeague: "其他联赛",
+
+    matchRecords: "赛事验证纪录",
+
+    loadingTitle: "正在读取 AI 战绩",
+    loadingText: "正在同步最新验证资料...",
+
+    emptyTitle: "此区间尚无已验证赛事",
+    emptyText:
+      "AI 赛前预测会先保存快照，比赛正式完赛并完成自动验证后，战绩会自动显示在这里。",
+
+    errorTitle: "战绩资料暂时无法读取",
+    retry: "重新整理",
+    retryLater: "请稍后再试",
+
+    homeTeam: "主队",
+    awayTeam: "客队",
+    footballMatch: "足球赛事",
+
+    push: "走",
+    halfWin: "半赢",
+    halfLoss: "半输",
+    pending: "待"
+  },
+
+  en: {
+    pageTitle:
+      "HABAO Sports Prediction AI | Performance",
+
+    back: "Back",
+
+    heroTitle: "Public Performance",
+    heroText:
+      "AI pre-match predictions are automatically verified against official final results after each match.",
+
+    verifiedMatches: "Verified Matches",
+    matchesUnit: "matches",
+    autoUpdate: "Auto Update",
+
+    all: "All",
+    last7Days: "Last 7 Days",
+    last30Days: "Last 30 Days",
+
+    marketPerformance: "AI Market Performance",
+
+    moneyline: "1X2",
+    overUnder: "Over / Under",
+    btts: "Both Teams to Score",
+
+    verificationCount: "verifications",
+
+    infoText:
+      "Performance is automatically verified using saved AI pre-match prediction snapshots and official final scores. Unfinished matches are excluded from hit rates. Asian total pushes are excluded from win-loss hit rates, while half wins and half losses are calculated as half-stake results.",
+
+    leaguePerformance: "League Performance",
+    leaguesUnit: "leagues",
+    otherLeague: "Other Leagues",
+
+    matchRecords: "Match Verification Records",
+
+    loadingTitle: "Loading AI Performance",
+    loadingText: "Syncing the latest verified data...",
+
+    emptyTitle: "No Verified Matches",
+    emptyText:
+      "AI pre-match predictions are saved first. Results will appear here automatically after the match is completed and verified.",
+
+    errorTitle:
+      "Performance Data Temporarily Unavailable",
+
+    retry: "Refresh",
+    retryLater: "Please try again later",
+
+    homeTeam: "Home",
+    awayTeam: "Away",
+    footballMatch: "Football Match",
+
+    push: "Push",
+    halfWin: "Half Win",
+    halfLoss: "Half Loss",
+    pending: "Pending"
+  }
+};
+
+
+if (window.HabaoI18n) {
+  window.HabaoI18n
+    .registerTranslations(
+      PERFORMANCE_I18N
+    );
+}
+
+
+function performanceT(
+  key,
+  fallback = ""
+) {
+  return (
+    window.HabaoI18n
+      ?.t?.(
+        key,
+        fallback
+      ) ??
+    fallback
+  );
+}
+
+
+function getPerformanceLocale() {
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (lang === "en") {
+    return "en-US";
+  }
+
+  if (lang === "zh-Hans") {
+    return "zh-CN";
+  }
+
+  return "zh-TW";
+}
+
+function applyPerformanceLanguage() {
+  document.title =
+    performanceT(
+      "pageTitle",
+      "HABAO 賽事預測 AI｜公開戰績"
+    );
+
+  window.HabaoI18n
+    ?.applyTranslations?.();
+}
+    
     const AI_PERFORMANCE_API =
       "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
 
@@ -2282,7 +2574,7 @@ body{
       }
 
       window.location.href =
-        "home.html";
+        "home-v2.html";
     }
 
 
@@ -2328,35 +2620,34 @@ body{
     }
 
 
-    function formatDate(value) {
+function formatDate(value) {
+  if (!value) {
+    return "--";
+  }
 
-      if (!value) {
-        return "--";
-      }
+  const date =
+    new Date(value);
 
-      const date =
-        new Date(value);
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "--";
+  }
 
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "--";
-      }
-
-      return new Intl.DateTimeFormat(
-        "zh-TW",
-        {
-          timeZone: "Asia/Taipei",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        }
-      ).format(date);
+  return new Intl.DateTimeFormat(
+    getPerformanceLocale(),
+    {
+      timeZone: "Asia/Taipei",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
     }
+  ).format(date);
+}
 
 
     function normalizeResult(value) {
@@ -2403,22 +2694,41 @@ body{
     }
 
 
-    function resultLabel(value) {
+function resultLabel(value) {
+  const result =
+    normalizeResult(value);
 
-      const result =
-        normalizeResult(value);
+  const labels = {
+    win: "✓",
+    loss: "✕",
 
-      const labels = {
-        win: "✓",
-        loss: "✕",
-        push: "走",
-        half_win: "半贏",
-        half_loss: "半輸",
-        pending: "待"
-      };
+    push:
+      performanceT(
+        "push",
+        "走"
+      ),
 
-      return labels[result];
-    }
+    half_win:
+      performanceT(
+        "halfWin",
+        "半贏"
+      ),
+
+    half_loss:
+      performanceT(
+        "halfLoss",
+        "半輸"
+      ),
+
+    pending:
+      performanceT(
+        "pending",
+        "待"
+      )
+  };
+
+  return labels[result];
+}
 
 
     function getSettlementResult(
@@ -2561,7 +2871,10 @@ body{
       document.getElementById(
         totalElementId
       ).textContent =
-        `${total} 次驗證`;
+        `${total} ${performanceT(
+  "verificationCount",
+  "次驗證"
+)}`;
     }
 
 
@@ -2650,20 +2963,29 @@ body{
        * 新 ai-performance API：
        * home / away / league
        */
-      const home =
-        match?.home ||
-        match?.home_team ||
-        "主隊";
+const home =
+  match?.home ||
+  match?.home_team ||
+  performanceT(
+    "homeTeam",
+    "主隊"
+  );
 
-      const away =
-        match?.away ||
-        match?.away_team ||
-        "客隊";
+const away =
+  match?.away ||
+  match?.away_team ||
+  performanceT(
+    "awayTeam",
+    "客隊"
+  );
 
-      const league =
-        match?.league ||
-        match?.league_name ||
-        "足球賽事";
+const league =
+  match?.league ||
+  match?.league_name ||
+  performanceT(
+    "footballMatch",
+    "足球賽事"
+  );
 
       const finalScore =
         getFinalScore(match);
@@ -2755,23 +3077,29 @@ body{
 
           <div class="markets">
 
-            ${createMarketHtml(
-              "獨贏",
-              moneylinePick,
-              moneylineResult
-            )}
+${createMarketHtml(
+  performanceT(
+    "moneyline",
+    "獨贏"
+  ),
+  moneylinePick,
+  moneylineResult
+)}
 
-            ${createMarketHtml(
-              "大小分",
-              overUnderPick,
-              overUnderResult
-            )}
+${createMarketHtml(
+  performanceT(
+    "overUnder",
+    "大小分"
+  ),
+  overUnderPick,
+  overUnderResult
+)}
 
-            ${createMarketHtml(
-              "BTTS",
-              bttsPick,
-              bttsResult
-            )}
+${createMarketHtml(
+  "BTTS",
+  bttsPick,
+  bttsResult
+)}
 
           </div>
 
@@ -2800,15 +3128,21 @@ body{
 
             <div class="league-card-name">
               ${escapeHtml(
-                league?.league ||
-                "其他聯賽"
+league?.league ||
+performanceT(
+  "otherLeague",
+  "其他聯賽"
+)
               )}
             </div>
 
             <div class="league-card-count">
-              ${safeNumber(
-                league?.matches
-              )} 場
+${safeNumber(
+  league?.matches
+)} ${performanceT(
+  "matchesUnit",
+  "場"
+)}
             </div>
 
           </div>
@@ -2819,7 +3153,10 @@ body{
             <div class="league-market">
 
               <div class="league-market-name">
-                獨贏
+                ${performanceT(
+  "moneyline",
+  "獨贏"
+)}
               </div>
 
               <div class="league-market-rate">
@@ -2839,7 +3176,10 @@ body{
             <div class="league-market">
 
               <div class="league-market-name">
-                大小分
+                ${performanceT(
+  "overUnder",
+  "大小分"
+)}
               </div>
 
               <div class="league-market-rate">
@@ -2892,11 +3232,17 @@ body{
           <div class="loader"></div>
 
           <div class="state-title">
-            正在讀取 AI 戰績
+            ${performanceT(
+  "loadingTitle",
+  "正在讀取 AI 戰績"
+)}
           </div>
 
           <div class="state-text">
-            正在同步最新驗證資料...
+            ${performanceT(
+  "loadingText",
+  "正在同步最新驗證資料..."
+)}
           </div>
 
         </div>
@@ -2916,13 +3262,17 @@ body{
           </div>
 
           <div class="state-title">
-            此區間尚無已驗證賽事
+            ${performanceT(
+  "emptyTitle",
+  "此區間尚無已驗證賽事"
+)}
           </div>
 
           <div class="state-text">
-            AI 賽前預測會先保存快照，
-            比賽正式完賽並完成自動驗證後，
-            戰績會自動顯示在這裡。
+${performanceT(
+  "emptyText",
+  "AI 賽前預測會先保存快照，比賽正式完賽並完成自動驗證後，戰績會自動顯示在這裡。"
+)}
           </div>
 
         </div>
@@ -2942,7 +3292,10 @@ body{
           </div>
 
           <div class="state-title">
-            戰績資料暫時無法讀取
+            ${performanceT(
+  "errorTitle",
+  "戰績資料暫時無法讀取"
+)}
           </div>
 
           <div class="state-text">
@@ -2954,7 +3307,10 @@ body{
             class="retry-btn"
             onclick="loadPerformance()"
           >
-            重新整理
+            ${performanceT(
+  "retry",
+  "重新整理"
+)}
           </button>
 
         </div>
@@ -3003,10 +3359,13 @@ body{
 
       section.hidden = false;
 
-      document.getElementById(
-        "leagueCountText"
-      ).textContent =
-        `${leagues.length} 個聯賽`;
+document.getElementById(
+  "leagueCountText"
+).textContent =
+  `${leagues.length} ${performanceT(
+    "leaguesUnit",
+    "個聯賽"
+  )}`;
 
       list.innerHTML =
         leagues
@@ -3134,11 +3493,23 @@ body{
           verifiedMatches;
 
 
-        document.getElementById(
-          "currentFilterText"
-        ).textContent =
-          data?.filter?.label ||
-          "全部";
+document.getElementById(
+  "currentFilterText"
+).textContent =
+  currentDays === "7"
+    ? performanceT(
+        "last7Days",
+        "近 7 天"
+      )
+    : currentDays === "30"
+      ? performanceT(
+          "last30Days",
+          "近 30 天"
+        )
+      : performanceT(
+          "all",
+          "全部"
+        );
 
 
         updateMarketCard(
@@ -3175,10 +3546,13 @@ body{
             : [];
 
 
-        document.getElementById(
-          "matchCountText"
-        ).textContent =
-          `${matches.length} 場`;
+document.getElementById(
+  "matchCountText"
+).textContent =
+  `${matches.length} ${performanceT(
+    "matchesUnit",
+    "場"
+  )}`;
 
 
         if (
@@ -3223,17 +3597,48 @@ body{
 
         resetLeagueSection();
 
-        showErrorState(
-          error?.message ||
-          "請稍後再試"
-        );
+showErrorState(
+  error?.message ||
+  performanceT(
+    "retryLater",
+    "請稍後再試"
+  )
+);
       }
     }
 
+window.addEventListener(
+  "habao:languagechange",
+  () => {
+    applyPerformanceLanguage();
+    loadPerformance();
+  }
+);
 
+applyPerformanceLanguage();
+    
     loadPerformance();
 
   </script>
 
+<script>
+(() => {
+  const mount =
+    document.getElementById(
+      "habaoLanguageMount"
+    );
+
+  if (
+    mount &&
+    window.HabaoI18n
+  ) {
+    mount.appendChild(
+      window.HabaoI18n
+        .createLanguageSelector()
+    );
+  }
+})();
+</script>
+  
 </body>
 </html>
