@@ -3136,14 +3136,61 @@ body.login-ready .app {
 
   text-align: center;
 }
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
     
   </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./habao-i18n.js"></script>
   
 </head>
 
 <body>
+  
+  <div id="habaoLanguageMount"></div>
 
 <!-- ===== HABAO 啟動畫面 ===== -->
 <div id="splashScreen" class="splash-screen">
@@ -3636,10 +3683,14 @@ async function prepareLINELogin() {
 
     lineLoginBtn.href = "#";
 
-    if (message) {
-      message.textContent =
-        "LINE 登入準備失敗，請重新整理頁面";
-    }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "linePrepareFailed",
+      "LINE 登入準備失敗，請重新整理頁面"
+    ) ||
+    "LINE 登入準備失敗，請重新整理頁面";
+}
   }
 }
 
@@ -3653,9 +3704,13 @@ async function loginWithGoogle() {
 
     if (message) {
       message.textContent =
-        habaoPublicSettings
-          ?.maintenance_announcement ||
-        "系統維護中，請稍後再試。";
+habaoPublicSettings
+  ?.maintenance_announcement ||
+window.HabaoI18n?.t(
+  "systemMaintenance",
+  "系統維護中，請稍後再試。"
+) ||
+"系統維護中，請稍後再試。";
     }
 
     return;
@@ -3666,8 +3721,12 @@ async function loginWithGoogle() {
   );
 
   try {
-    message.textContent =
-      "正在前往 Google 登入...";
+message.textContent =
+  window.HabaoI18n?.t(
+    "googleRedirecting",
+    "正在前往 Google 登入..."
+  ) ||
+  "正在前往 Google 登入...";
 
     const { error } =
   await supabaseAuth.auth.signInWithOAuth({
@@ -3694,8 +3753,12 @@ async function loginWithGoogle() {
       error
     );
 
-    message.textContent =
-      "Google 登入失敗，請重新嘗試";
+message.textContent =
+  window.HabaoI18n?.t(
+    "googleLoginFailed",
+    "Google 登入失敗，請重新嘗試"
+  ) ||
+  "Google 登入失敗，請重新嘗試";
   }
 }   
 
@@ -3726,9 +3789,13 @@ if (lineLoginBtn) {
 
         if (message) {
           message.textContent =
-            habaoPublicSettings
-              ?.maintenance_announcement ||
-            "系統維護中，請稍後再試。";
+habaoPublicSettings
+  ?.maintenance_announcement ||
+window.HabaoI18n?.t(
+  "systemMaintenance",
+  "系統維護中，請稍後再試。"
+) ||
+"系統維護中，請稍後再試。";
         }
 
         return;
@@ -3742,10 +3809,14 @@ if (lineLoginBtn) {
         const message =
           document.getElementById("message");
 
-        if (message) {
-          message.textContent =
-            "LINE 登入準備中，請稍候再點一次";
-        }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "linePreparing",
+      "LINE 登入準備中，請稍候再點一次"
+    ) ||
+    "LINE 登入準備中，請稍候再點一次";
+}
 
         return;
       }
@@ -3787,10 +3858,14 @@ async function verifyHabaoOAuthMember(session) {
 
   try {
 
-    if (message) {
-      message.textContent =
-        "正在確認會員資料...";
-    }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "checkingMember",
+      "正在確認會員資料..."
+    ) ||
+    "正在確認會員資料...";
+}
 
     const response = await fetch(
       OAUTH_MEMBER_URL,
@@ -3829,18 +3904,26 @@ async function verifyHabaoOAuthMember(session) {
           "habao_member"
         );
 
-        if (message) {
-          message.textContent =
-            "此帳號目前無法使用，請聯絡哈寶";
-        }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "accountDisabled",
+      "此帳號目前無法使用，請聯絡哈寶"
+    ) ||
+    "此帳號目前無法使用，請聯絡哈寶";
+}
 
         return false;
       }
 
-      throw new Error(
-        data.message ||
-        "會員驗證失敗"
-      );
+throw new Error(
+  data.message ||
+  window.HabaoI18n?.t(
+    "memberVerifyFailed",
+    "會員驗證失敗"
+  ) ||
+  "會員驗證失敗"
+);
     }
 
     /*
@@ -3878,10 +3961,14 @@ async function verifyHabaoOAuthMember(session) {
       );
     }
 
-    if (message) {
-      message.textContent =
-        "登入成功，正在進入 HABAO...";
-    }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "loginSuccess",
+      "登入成功，正在進入 HABAO..."
+    ) ||
+    "登入成功，正在進入 HABAO...";
+}
 
 /*
  * V2 功能遷移測試期間，
@@ -3902,10 +3989,14 @@ window.location.replace(
       error
     );
 
-    if (message) {
-      message.textContent =
-        "會員登入驗證失敗，請重新嘗試";
-    }
+if (message) {
+  message.textContent =
+    window.HabaoI18n?.t(
+      "memberLoginFailed",
+      "會員登入驗證失敗，請重新嘗試"
+    ) ||
+    "會員登入驗證失敗，請重新嘗試";
+}
 
     return false;
 
@@ -4525,6 +4616,582 @@ showPhoneGuide("iphone");
       }
     );
   }
+</script>
+
+<script>
+/* =========================================================
+   HABAO INDEX I18N
+========================================================= */
+
+(() => {
+
+  if (!window.HabaoI18n) {
+    return;
+  }
+
+  const I18N = window.HabaoI18n;
+
+  I18N.registerTranslations({
+
+    "zh-Hant": {
+      splashTitle: "HABAO 賽事預測 AI",
+      splashSubtitle: "多維賽事數據・智能分析平台",
+      splashSkip: "點擊畫面跳過",
+
+      loginTitle: "HABAO 賽事預測 AI",
+      loginSubtitle: "多維賽事數據・智能分析平台",
+
+      onlinePrefix: "目前",
+      onlineSuffix: "人正在使用",
+
+      loginMethod: "選擇登入方式",
+      lineLogin: "LINE 登入",
+      lineLoginSub: "快速登入・立即開始分析",
+
+      googleLogin: "Google 登入",
+      googleLoginSub: "使用 Google 帳號快速登入",
+      installApp: "下載APP",
+      installTitle: "加入主畫面",
+      close: "關閉",
+
+      iphone1Title: "使用 Safari 開啟網站",
+      iphone1Text: "請先確認目前是使用 Safari 瀏覽器。",
+      iphone2Title: "點擊「分享」",
+      iphone2Text: "點擊 Safari 工具列的分享按鈕。",
+      iphone3Title: "選擇「加入主畫面」",
+      iphone3Text: "在分享選單中找到「加入主畫面」。",
+      iphone4Title: "點擊「加入」",
+      iphone4Text: "完成後即可從 iPhone 主畫面直接開啟。",
+
+      android1Title: "使用 Chrome 開啟網站",
+      android1Text: "請先確認目前是使用 Chrome 瀏覽器。",
+      android2Title: "開啟瀏覽器選單",
+      android2Text: "點擊 Chrome 右上角的「⋮」。",
+      android3Title: "選擇安裝選項",
+      android3Text: "點擊「安裝應用程式」或「加到主畫面」。",
+      android4Title: "確認安裝",
+      android4Text: "完成後即可從 Android 主畫面直接開啟。",
+
+installFinish:
+  "✓ 安裝完成後，點擊主畫面的 HABAO 圖示即可使用",
+
+systemMaintenance:
+  "系統維護中，請稍後再試。",
+
+linePrepareFailed:
+  "LINE 登入準備失敗，請重新整理頁面",
+
+linePreparing:
+  "LINE 登入準備中，請稍候再點一次",
+
+googleRedirecting:
+  "正在前往 Google 登入...",
+
+googleLoginFailed:
+  "Google 登入失敗，請重新嘗試",
+
+checkingMember:
+  "正在確認會員資料...",
+
+accountDisabled:
+  "此帳號目前無法使用，請聯絡哈寶",
+
+memberVerifyFailed:
+  "會員驗證失敗",
+
+loginSuccess:
+  "登入成功，正在進入 HABAO...",
+
+memberLoginFailed:
+  "會員登入驗證失敗，請重新嘗試",
+
+securityText:
+  "安全驗證・保護您的帳號",
+
+lineSupport:
+  "LINE 客服",
+
+contactUs:
+  "有問題？立即聯絡我們"
+    },
+
+
+    "zh-Hans": {
+      splashTitle: "HABAO 赛事预测 AI",
+      splashSubtitle: "多维赛事数据・智能分析平台",
+      splashSkip: "点击画面跳过",
+
+      loginTitle: "HABAO 赛事预测 AI",
+      loginSubtitle: "多维赛事数据・智能分析平台",
+
+      onlinePrefix: "目前",
+      onlineSuffix: "人正在使用",
+
+      loginMethod: "选择登录方式",
+      lineLogin: "LINE 登录",
+lineLoginSub: "快速登录・立即开始分析",
+
+googleLogin: "Google 登录",
+googleLoginSub: "使用 Google 账号快速登录",
+      installApp: "下载APP",
+      installTitle: "添加到主屏幕",
+      close: "关闭",
+
+      iphone1Title: "使用 Safari 打开网站",
+      iphone1Text: "请先确认目前使用的是 Safari 浏览器。",
+      iphone2Title: "点击「分享」",
+      iphone2Text: "点击 Safari 工具栏的分享按钮。",
+      iphone3Title: "选择「添加到主屏幕」",
+      iphone3Text: "在分享菜单中找到「添加到主屏幕」。",
+      iphone4Title: "点击「添加」",
+      iphone4Text: "完成后即可从 iPhone 主屏幕直接打开。",
+
+      android1Title: "使用 Chrome 打开网站",
+      android1Text: "请先确认目前使用的是 Chrome 浏览器。",
+      android2Title: "打开浏览器菜单",
+      android2Text: "点击 Chrome 右上角的「⋮」。",
+      android3Title: "选择安装选项",
+      android3Text: "点击「安装应用」或「添加到主屏幕」。",
+      android4Title: "确认安装",
+      android4Text: "完成后即可从 Android 主屏幕直接打开。",
+
+installFinish:
+  "✓ 安装完成后，点击主屏幕上的 HABAO 图标即可使用",
+
+systemMaintenance:
+  "系统维护中，请稍后再试。",
+
+linePrepareFailed:
+  "LINE 登录准备失败，请刷新页面",
+
+linePreparing:
+  "LINE 登录准备中，请稍候再点击一次",
+
+googleRedirecting:
+  "正在前往 Google 登录...",
+
+googleLoginFailed:
+  "Google 登录失败，请重新尝试",
+
+checkingMember:
+  "正在确认会员资料...",
+
+accountDisabled:
+  "此账号目前无法使用，请联系哈宝",
+
+memberVerifyFailed:
+  "会员验证失败",
+
+loginSuccess:
+  "登录成功，正在进入 HABAO...",
+
+memberLoginFailed:
+  "会员登录验证失败，请重新尝试",
+
+securityText:
+  "安全验证・保护您的账号",
+
+lineSupport:
+  "LINE 客服",
+
+contactUs:
+  "有问题？立即联系我们"
+    },
+
+
+    "en": {
+      splashTitle: "HABAO Sports Prediction AI",
+      splashSubtitle: "Multi-Dimensional Sports Data & Intelligent Analysis",
+      splashSkip: "Tap anywhere to skip",
+
+      loginTitle: "HABAO Sports Prediction AI",
+      loginSubtitle: "Multi-Dimensional Sports Data & Intelligent Analysis",
+
+      onlinePrefix: "Currently",
+      onlineSuffix: "users online",
+
+      loginMethod: "Choose a sign-in method",
+      lineLogin: "Sign in with LINE",
+lineLoginSub: "Quick sign-in・Start analyzing",
+
+googleLogin: "Sign in with Google",
+googleLoginSub: "Use your Google account to sign in",
+      installApp: "Download APP",
+      installTitle: "Add to Home Screen",
+      close: "Close",
+
+      iphone1Title: "Open with Safari",
+      iphone1Text: "Make sure you are using the Safari browser.",
+      iphone2Title: "Tap Share",
+      iphone2Text: "Tap the Share button in the Safari toolbar.",
+      iphone3Title: "Select Add to Home Screen",
+      iphone3Text: "Find Add to Home Screen in the Share menu.",
+      iphone4Title: "Tap Add",
+      iphone4Text: "You can then open HABAO directly from your iPhone Home Screen.",
+
+      android1Title: "Open with Chrome",
+      android1Text: "Make sure you are using the Chrome browser.",
+      android2Title: "Open the browser menu",
+      android2Text: "Tap the ⋮ menu in the top-right corner of Chrome.",
+      android3Title: "Select the install option",
+      android3Text: "Tap Install app or Add to Home screen.",
+      android4Title: "Confirm installation",
+      android4Text: "You can then open HABAO directly from your Android Home Screen.",
+
+installFinish:
+  "✓ After installation, tap the HABAO icon on your Home Screen to launch the app",
+
+systemMaintenance:
+  "System maintenance in progress. Please try again later.",
+
+linePrepareFailed:
+  "LINE sign-in could not be prepared. Please refresh the page.",
+
+linePreparing:
+  "LINE sign-in is being prepared. Please try again in a moment.",
+
+googleRedirecting:
+  "Redirecting to Google sign-in...",
+
+googleLoginFailed:
+  "Google sign-in failed. Please try again.",
+
+checkingMember:
+  "Verifying your membership...",
+
+accountDisabled:
+  "This account is currently unavailable. Please contact HABAO.",
+
+memberVerifyFailed:
+  "Membership verification failed",
+
+loginSuccess:
+  "Sign-in successful. Entering HABAO...",
+
+memberLoginFailed:
+  "Membership verification failed. Please try again.",
+
+securityText:
+  "Secure verification・Protecting your account",
+
+lineSupport:
+  "LINE Support",
+
+contactUs:
+  "Need help? Contact us now"
+    }
+
+  });
+
+
+  function setText(
+    selector,
+    key
+  ) {
+    const element =
+      document.querySelector(
+        selector
+      );
+
+    if (!element) return;
+
+    element.textContent =
+      I18N.t(
+        key,
+        element.textContent.trim()
+      );
+  }
+
+
+  function applyIndexLanguage() {
+
+    document.title =
+      I18N.t(
+        "loginTitle",
+        document.title
+      );
+
+
+    setText(
+      ".splash-title",
+      "splashTitle"
+    );
+
+    setText(
+      ".splash-subtitle",
+      "splashSubtitle"
+    );
+
+    setText(
+      ".splash-skip",
+      "splashSkip"
+    );
+
+
+    setText(
+      ".habao-login-brand h1",
+      "loginTitle"
+    );
+
+    setText(
+      ".habao-login-brand p",
+      "loginSubtitle"
+    );
+
+    setText(
+      ".secure-sub",
+      "loginMethod"
+    );
+
+    setText(
+  "#lineLoginBtn .oauth-btn-text strong",
+  "lineLogin"
+);
+
+setText(
+  "#lineLoginBtn .oauth-btn-text small",
+  "lineLoginSub"
+);
+
+setText(
+  "#googleLoginBtn .oauth-btn-text strong",
+  "googleLogin"
+);
+
+setText(
+  "#googleLoginBtn .oauth-btn-text small",
+  "googleLoginSub"
+);
+
+   setText(
+  ".v5-security span",
+  "securityText"
+);
+
+setText(
+  ".shortcut-title",
+  "lineSupport"
+);
+
+setText(
+  ".shortcut-sub",
+  "contactUs"
+); 
+
+    const online =
+      document.querySelector(
+        ".online-users"
+      );
+
+    const onlineCount =
+      document.getElementById(
+        "onlineCount"
+      );
+
+    if (
+      online &&
+      onlineCount
+    ) {
+      const count =
+        onlineCount.textContent;
+
+      online.innerHTML =
+        `<span class="online-dot"></span>` +
+        `${I18N.t("onlinePrefix")} ` +
+        `<strong id="onlineCount">${count}</strong> ` +
+        `${I18N.t("onlineSuffix")}`;
+    }
+
+
+    const modal =
+      document.getElementById(
+        "addHomeModal"
+      );
+
+    if (modal) {
+
+      const title =
+        modal.querySelector("h2");
+
+      if (title) {
+        title.textContent =
+          I18N.t(
+            "installTitle",
+            title.textContent
+          );
+      }
+
+
+      const close =
+        document.getElementById(
+          "closeAddHomeModal"
+        );
+
+      if (close) {
+        close.setAttribute(
+          "aria-label",
+          I18N.t("close")
+        );
+      }
+
+
+      const iphone =
+        document.querySelectorAll(
+          "#iphoneGuide .add-home-simple-content"
+        );
+
+      const iphoneKeys = [
+        ["iphone1Title", "iphone1Text"],
+        ["iphone2Title", "iphone2Text"],
+        ["iphone3Title", "iphone3Text"],
+        ["iphone4Title", "iphone4Text"]
+      ];
+
+      iphone.forEach(
+        (item, index) => {
+
+          const keys =
+            iphoneKeys[index];
+
+          if (!keys) return;
+
+          const strong =
+            item.querySelector(
+              "strong"
+            );
+
+          const span =
+            item.querySelector(
+              "span"
+            );
+
+          if (strong) {
+            strong.textContent =
+              I18N.t(keys[0]);
+          }
+
+          if (span) {
+            span.textContent =
+              I18N.t(keys[1]);
+          }
+        }
+      );
+
+
+      const android =
+        document.querySelectorAll(
+          "#androidGuide .add-home-simple-content"
+        );
+
+      const androidKeys = [
+        ["android1Title", "android1Text"],
+        ["android2Title", "android2Text"],
+        ["android3Title", "android3Text"],
+        ["android4Title", "android4Text"]
+      ];
+
+      android.forEach(
+        (item, index) => {
+
+          const keys =
+            androidKeys[index];
+
+          if (!keys) return;
+
+          const strong =
+            item.querySelector(
+              "strong"
+            );
+
+          const span =
+            item.querySelector(
+              "span"
+            );
+
+          if (strong) {
+            strong.textContent =
+              I18N.t(keys[0]);
+          }
+
+          if (span) {
+            span.textContent =
+              I18N.t(keys[1]);
+          }
+        }
+      );
+
+
+      modal
+        .querySelectorAll(
+          ".add-home-finish"
+        )
+        .forEach(element => {
+          element.textContent =
+            I18N.t(
+              "installFinish"
+            );
+        });
+    }
+
+
+    const floatText =
+      document.querySelector(
+        "#addHomeFloatBtn span"
+      );
+
+    if (floatText) {
+      floatText.textContent =
+        I18N.t(
+          "installApp",
+          floatText.textContent
+        );
+    }
+  }
+
+
+  window.addEventListener(
+    "habao:languagechange",
+    applyIndexLanguage
+  );
+
+  window.addEventListener(
+    "habao:translationsapplied",
+    applyIndexLanguage
+  );
+
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      applyIndexLanguage
+    );
+  } else {
+    applyIndexLanguage();
+  }
+
+})();
+</script>
+  
+<script>
+(() => {
+  const mount =
+    document.getElementById(
+      "habaoLanguageMount"
+    );
+
+  if (
+    mount &&
+    window.HabaoI18n
+  ) {
+    mount.appendChild(
+      window.HabaoI18n
+        .createLanguageSelector()
+    );
+  }
+})();
 </script>
   
 </body>
