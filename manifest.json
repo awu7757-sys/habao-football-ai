@@ -1,12 +1,12 @@
 {
-  "name": "哈寶足球 AI",
-  "short_name": "哈寶足球AI",
+  "name": "HABAO 賽事預測 AI",
+  "short_name": "HABAO",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#061923",
   "theme_color": "#061923",
-  "description": "哈寶足球 AI 智能賽事分析平台",
+  "description": "HABAO 賽事預測 AI｜多維賽事量化分析平台",
   "icons": [
     {
       "src": "./football_icon_192x192.png",
