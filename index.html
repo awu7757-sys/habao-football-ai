@@ -3475,10 +3475,11 @@ body.login-ready .app {
 
   <script>
 
-    // Supabase Public Stats
+// Supabase Public Stats
 const STATS_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/public-stats";
-  async function loadPublicStats() {
+
+async function loadPublicStats() {
   const countEl =
     document.getElementById("onlineCount");
 
@@ -3486,7 +3487,7 @@ const STATS_URL =
 
   try {
     const response = await fetch(
-      STATS_URL,
+      STATS_URL + "?t=" + Date.now(),
       {
         method: "GET",
         cache: "no-store"
@@ -3499,13 +3500,18 @@ const STATS_URL =
       );
     }
 
-    const data = await response.json();
+    const data =
+      await response.json();
+
+    const userCount =
+      Number(data?.user_count);
 
     if (
-      typeof data.user_count === "number"
+      Number.isFinite(userCount) &&
+      userCount >= 200
     ) {
       countEl.textContent =
-        String(data.user_count);
+        String(userCount);
     }
 
   } catch (error) {
@@ -3513,12 +3519,13 @@ const STATS_URL =
       "PUBLIC STATS ERROR:",
       error
     );
-
-    // API 暫時失敗時保留 HTML 預設 200
   }
 }
 
-loadPublicStats();  
+window.addEventListener(
+  "DOMContentLoaded",
+  loadPublicStats
+);
 
 // Supabase Publishable Key
 const PUBLISHABLE_KEY =
