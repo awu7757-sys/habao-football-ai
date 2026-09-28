@@ -4120,11 +4120,50 @@ async function resumePWAHandoff() {
 
   try {
 
-    const claimed =
-      await claimPWAHandoff();
+    /*
+     * iPhone 從 Safari 回到 PWA 時，
+     * Safari 雖然已顯示登入完成，
+     * handoff 資料仍可能有極短延遲。
+     *
+     * 最多自動嘗試 10 次，
+     * 每次間隔 500ms。
+     */
+    for (
+      let attempt = 0;
+      attempt < 10;
+      attempt++
+    ) {
 
-    if (claimed) {
-      return;
+      if (
+        document.visibilityState !==
+        "visible"
+      ) {
+        return;
+      }
+
+      const stillSaved =
+        localStorage.getItem(
+          PWA_HANDOFF_STORAGE_KEY
+        );
+
+      if (!stillSaved) {
+        return;
+      }
+
+      const claimed =
+        await claimPWAHandoff();
+
+      if (claimed) {
+        return;
+      }
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            500
+          )
+      );
     }
 
   } catch (error) {
