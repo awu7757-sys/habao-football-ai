@@ -5230,21 +5230,17 @@ if (session) {
 
   /*
    * 已找到既有登入 Session。
-   * 先完成會員驗證與跳頁。
    *
-   * 若因網路或驗證異常沒有成功跳頁，
-   * 不允許 Splash 永久卡在 98%。
+   * 保持 Splash 顯示，
+   * 直接完成會員驗證與跳頁。
+   *
+   * 不要在這裡先關閉 Splash，
+   * 避免 home-v2 真正載入前，
+   * index 登入畫面短暫露出。
    */
-  try {
-
-    await verifyHabaoOAuthMember(
-      session
-    );
-
-  } finally {
-
-    window.habaoCloseSplash?.();
-  }
+  await verifyHabaoOAuthMember(
+    session
+  );
 
   return;
 }
