@@ -1985,8 +1985,6 @@ body{
 
 <body>
 
-  <div id="habaoLanguageMount"></div>
-
   <main class="app">
 
     <header class="topbar">
@@ -3622,22 +3620,7 @@ applyPerformanceLanguage();
   </script>
 
 <script>
-(() => {
-  const mount =
-    document.getElementById(
-      "habaoLanguageMount"
-    );
 
-  if (
-    mount &&
-    window.HabaoI18n
-  ) {
-    mount.appendChild(
-      window.HabaoI18n
-        .createLanguageSelector()
-    );
-  }
-})();
 </script>
   
 </body>
