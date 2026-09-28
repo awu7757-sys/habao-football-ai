@@ -3668,6 +3668,38 @@ const supabaseAuth =
     }
   );
 
+  async function getHabaoSessionWithTimeout() {
+
+  return await Promise.race([
+
+    supabaseAuth.auth.getSession(),
+
+    new Promise((resolve) => {
+
+      setTimeout(() => {
+
+        console.warn(
+          "HABAO GET SESSION TIMEOUT"
+        );
+
+        resolve({
+          data: {
+            session: null
+          },
+
+          error:
+            new Error(
+              "GET_SESSION_TIMEOUT"
+            )
+        });
+
+      }, 5000);
+
+    })
+
+  ]);
+}  
+
 /* ========================================
    HABAO PWA LINE Login Handoff
    ======================================== */
@@ -3991,32 +4023,51 @@ async function claimPWAHandoff() {
 
   try {
 
-    const response =
-      await fetch(
-        PWA_HANDOFF_CLAIM_URL,
-        {
-          method: "POST",
+const controller =
+  new AbortController();
 
-          headers: {
-            "Content-Type":
-              "application/json",
+const timeoutId =
+  setTimeout(() => {
+    controller.abort();
+  }, 5000);
 
-            "apikey":
-              PUBLISHABLE_KEY
-          },
+let response;
 
-          body:
-            JSON.stringify({
-              request_id:
-                handoff.request_id,
+try {
 
-              request_secret:
-                handoff.request_secret
-            }),
+  response = await fetch(
+    PWA_HANDOFF_CLAIM_URL,
+    {
+      method: "POST",
 
-          cache: "no-store"
-        }
-      );
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        "apikey":
+          PUBLISHABLE_KEY
+      },
+
+      body:
+        JSON.stringify({
+          request_id:
+            handoff.request_id,
+
+          request_secret:
+            handoff.request_secret
+        }),
+
+      cache: "no-store",
+
+      signal:
+        controller.signal
+    }
+  );
+
+} finally {
+
+  clearTimeout(timeoutId);
+}
 
     const data =
       await response.json();
@@ -5027,8 +5078,7 @@ window.addEventListener(
       const {
         data: { session }
       } =
-        await supabaseAuth.auth
-          .getSession();
+await getHabaoSessionWithTimeout();
 
       if (session) {
         await completePWAHandoff(
@@ -5078,8 +5128,7 @@ window.addEventListener(
       const {
         data: { session }
       } =
-        await supabaseAuth.auth
-          .getSession();
+await getHabaoSessionWithTimeout();
 
 if (session) {
 
@@ -5124,13 +5173,32 @@ if (!canLogin) {
   return;
 }
 
-await prepareLINELogin();
+try {
 
-/*
- * LINE 登入按鈕準備完成後，
- * 才把 Splash 關掉。
- */
-window.habaoCloseSplash?.();
+  await Promise.race([
+
+    prepareLINELogin(),
+
+    new Promise((resolve) => {
+      setTimeout(
+        resolve,
+        5000
+      );
+    })
+
+  ]);
+
+} catch (error) {
+
+  console.error(
+    "HABAO LOGIN PREPARE ERROR:",
+    error
+  );
+
+} finally {
+
+  window.habaoCloseSplash?.();
+}
     
   }
 );
