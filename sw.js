@@ -231,13 +231,13 @@ self.addEventListener(
         data.body ||
         "您有一則新通知",
 
-      icon:
-        "./habao-icon-192.png"
+icon:
+  "./habao-icon-192.png",
 
-      badge:
-        "./habao-icon-192.png"
+badge:
+  "./habao-icon-192.png",
 
-      data: {
+data: {
         url:
           data.url ||
           "./football.html"
