@@ -2604,8 +2604,6 @@ h1{
 </head>
 
 <body>
-
-<div id="habaoLanguageMount"></div>
    
 <header class="header">
   <div class="header-inner">
@@ -3642,22 +3640,7 @@ window.addEventListener(
 </script>
 
 <script>
-(() => {
-  const mount =
-    document.getElementById(
-      "habaoLanguageMount"
-    );
 
-  if (
-    mount &&
-    window.HabaoI18n
-  ) {
-    mount.appendChild(
-      window.HabaoI18n
-        .createLanguageSelector()
-    );
-  }
-})();
 </script>   
 
 </body>
