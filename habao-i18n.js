@@ -228,7 +228,7 @@
             value
           );
         }
-      );
+      });
 
 
     document
