@@ -1394,6 +1394,11 @@ h1{
   font-weight: 700;
   line-height: 1.6;
 }    
+
+#addHomeFloatBtn,
+#addHomeModal {
+  display: none !important;
+}
   
 </style>
 
@@ -3179,8 +3184,6 @@ h1{
 </head>
 
 <body>
-
-<div id="habaoLanguageMount"></div>  
 
 <header class="header v2-header">
   <div class="header-inner">
@@ -8078,22 +8081,7 @@ analysisResultNotFound: "Analysis result not found"
 </script>
 
 <script>
-(() => {
-  const mount =
-    document.getElementById(
-      "habaoLanguageMount"
-    );
 
-  if (
-    mount &&
-    window.HabaoI18n
-  ) {
-    mount.appendChild(
-      window.HabaoI18n
-        .createLanguageSelector()
-    );
-  }
-})();
 </script>
   
 </body>
