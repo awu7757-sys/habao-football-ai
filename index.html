@@ -225,7 +225,8 @@
 }    
 
 /* 加入主畫面｜浮動按鈕 */
-body.splash-active #addHomeFloatBtn {
+body.splash-active #addHomeFloatBtn,
+body.pwa-handoff-loading-active #addHomeFloatBtn {
   display: none !important;
 }
     
@@ -3750,12 +3751,12 @@ function getPWAHandoffCallback() {
 
 async function startPWAHandoff() {
 
-  const language =
-    window.HabaoI18n?.getLanguage?.() ||
-    localStorage.getItem(
-      "habao_language"
-    ) ||
-    "zh-Hant";
+const language =
+  localStorage.getItem(
+    "habao_language"
+  ) ||
+  window.HabaoI18n?.getLanguage?.() ||
+  "zh-Hant";
 
   const response =
     await fetch(
@@ -4219,6 +4220,10 @@ function showPWAHandoffLoading() {
     return;
   }
 
+    document.body.classList.add(
+    "pwa-handoff-loading-active"
+  );
+
   const overlay =
     document.createElement("div");
 
@@ -4331,6 +4336,10 @@ progress =
 }
 
 function hidePWAHandoffLoading() {
+
+    document.body.classList.remove(
+    "pwa-handoff-loading-active"
+  );
 
   clearInterval(
     window.habaoPWAHandoffLoadingTimer
@@ -4499,13 +4508,18 @@ async function prepareLINELogin() {
 
   try {
 
-    const language =
-      window.HabaoI18n
-        ?.getLanguage?.() ||
-      localStorage.getItem(
-        "habao_language"
-      ) ||
-      "zh-Hant";
+const language =
+  localStorage.getItem(
+    "habao_language"
+  ) ||
+  window.HabaoI18n
+    ?.getLanguage?.() ||
+  "zh-Hant";
+
+localStorage.setItem(
+  "habao_language",
+  language
+);
 
     let redirectTo =
       window.location.origin +
@@ -4909,10 +4923,10 @@ if (message) {
  * 才正式升級為 home.html。
  */
 const currentLanguage =
-  window.HabaoI18n?.getLanguage?.() ||
   localStorage.getItem(
     "habao_language"
   ) ||
+  window.HabaoI18n?.getLanguage?.() ||
   "zh-Hant";
 
 window.location.replace(
