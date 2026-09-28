@@ -4008,8 +4008,18 @@ if (message) {
  * 等 V2 全部 QA 完成後，
  * 才正式升級為 home.html。
  */
+const currentLanguage =
+  window.HabaoI18n?.getLanguage?.() ||
+  localStorage.getItem(
+    "habao_language"
+  ) ||
+  "zh-Hant";
+
 window.location.replace(
-  "home-v2.html"
+  "home-v2.html?lang=" +
+  encodeURIComponent(
+    currentLanguage
+  )
 );
 
     return true;
