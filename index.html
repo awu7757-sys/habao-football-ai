@@ -5062,12 +5062,28 @@ window.addEventListener(
         await supabaseAuth.auth
           .getSession();
 
-      if (session) {
-        await verifyHabaoOAuthMember(
-          session
-        );
-        return;
-      }
+if (session) {
+
+  /*
+   * 已找到既有登入 Session。
+   * 先完成會員驗證與跳頁。
+   *
+   * 若因網路或驗證異常沒有成功跳頁，
+   * 不允許 Splash 永久卡在 98%。
+   */
+  try {
+
+    await verifyHabaoOAuthMember(
+      session
+    );
+
+  } finally {
+
+    window.habaoCloseSplash?.();
+  }
+
+  return;
+}
     }
 
 /*
