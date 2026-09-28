@@ -3849,19 +3849,59 @@ async function completePWAHandoff(
       );
     }
 
-    pwaHandoffCompleted = true;
+pwaHandoffCompleted = true;
 
-    const message =
-      document.getElementById(
-        "message"
-      );
+/*
+ * LINE 已在 Safari 完成登入。
+ * 不再顯示原本 index 登入畫面，
+ * 避免會員再次點 LINE / Google。
+ */
+document.body.innerHTML = `
+  <div
+    style="
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+      background: #061923;
+      color: #ffffff;
+      text-align: center;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    "
+  >
+    <div
+      style="
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.4;
+        margin-bottom: 14px;
+      "
+    >
+      ✓ LINE 登入成功
+    </div>
 
-    if (message) {
-      message.textContent =
-        "LINE 登入完成，請返回 HB賽事AI APP";
-    }
+    <div
+      style="
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.5;
+      "
+    >
+      請返回 HB賽事AI APP
+    </div>
+  </div>
+`;
 
-    return true;
+return true;
 
   } catch (error) {
 
@@ -4042,6 +4082,94 @@ async function claimPWAHandoff() {
   }
 }    
 
+/*
+ * 安裝版 PWA 從 LINE / Safari
+ * 回到前景時，自動領取登入 Session。
+ *
+ * 這樣使用者不需要關閉 APP 再重開。
+ */
+let pwaHandoffResumeChecking = false;
+
+async function resumePWAHandoff() {
+
+  if (!isHabaoStandalonePWA()) {
+    return;
+  }
+
+  if (
+    document.visibilityState !==
+    "visible"
+  ) {
+    return;
+  }
+
+  if (pwaHandoffResumeChecking) {
+    return;
+  }
+
+  const saved =
+    localStorage.getItem(
+      PWA_HANDOFF_STORAGE_KEY
+    );
+
+  if (!saved) {
+    return;
+  }
+
+  pwaHandoffResumeChecking = true;
+
+  try {
+
+    const claimed =
+      await claimPWAHandoff();
+
+    if (claimed) {
+      return;
+    }
+
+  } catch (error) {
+
+    console.error(
+      "PWA HANDOFF RESUME ERROR:",
+      error
+    );
+
+  } finally {
+
+    pwaHandoffResumeChecking = false;
+  }
+}
+
+
+/*
+ * iPhone 從 LINE / Safari
+ * 切回 HB PWA 時會觸發。
+ */
+document.addEventListener(
+  "visibilitychange",
+  async () => {
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      await resumePWAHandoff();
+    }
+  }
+);
+
+
+/*
+ * iOS 某些情況會以 pageshow
+ * 恢復已經存在的 PWA 頁面。
+ */
+window.addEventListener(
+  "pageshow",
+  async () => {
+    await resumePWAHandoff();
+  }
+);
+    
 async function prepareLINELogin() {
 
   const lineLoginBtn =
@@ -4710,19 +4838,33 @@ window.addEventListener(
       }
     }
 
-    /*
-     * 沒有既有登入，
-     * 或會員自己按過登出，
-     * 才正常準備登入頁。
-     */
-    const canLogin =
-      await loadHabaoPublicSettings();
+/*
+ * 已經走到這裡，代表：
+ *
+ * 1. 沒有可恢復的登入 Session
+ * 或
+ * 2. 使用者自己按過登出
+ *
+ * 現在才允許顯示真正的登入頁。
+ */
+const canLogin =
+  await loadHabaoPublicSettings();
 
-    if (!canLogin) {
-      return;
-    }
+if (!canLogin) {
 
-    await prepareLINELogin();
+  window.habaoCloseSplash?.();
+
+  return;
+}
+
+await prepareLINELogin();
+
+/*
+ * LINE 登入按鈕準備完成後，
+ * 才把 Splash 關掉。
+ */
+window.habaoCloseSplash?.();
+    
   }
 );
 
@@ -4862,37 +5004,23 @@ window.addEventListener(
     }, 110);
 
 
-  const splashTimer =
-    setTimeout(() => {
+/*
+ * Splash 不再固定 4 秒強制關閉。
+ *
+ * 登入狀態尚未確認完成以前，
+ * 只顯示 HABAO Logo + Loading Bar。
+ *
+ * 確認為未登入會員後，
+ * 才由登入流程主動關閉 Splash。
+ */
+window.habaoCloseSplash = () => {
 
-      clearInterval(
-        loadingTimer
-      );
-
-      closeSplash();
-
-    }, 4000);
-
-
-  splash.addEventListener(
-    "click",
-    () => {
-
-      clearTimeout(
-        splashTimer
-      );
-
-      clearInterval(
-        loadingTimer
-      );
-
-      closeSplash();
-
-    },
-    {
-      once: true
-    }
+  clearInterval(
+    loadingTimer
   );
+
+  closeSplash();
+};
 
 })();
   
