@@ -225,6 +225,10 @@
 }    
 
 /* 加入主畫面｜浮動按鈕 */
+body.splash-active #addHomeFloatBtn {
+  display: none !important;
+}
+    
 #addHomeFloatBtn {
   position: fixed;
   right: 16px;
@@ -3202,38 +3206,24 @@ body.login-ready .app {
       <span class="splash-logo-ai">AI</span>
     </div>
 
-    <div class="splash-en">
-      HABAO SPORTS AI
-    </div>
-
-    <div class="splash-title">
-      HABAO 賽事預測 AI
-    </div>
-
-    <div class="splash-subtitle">
-      多維賽事數據・智能分析平台
-    </div>
-    
     <div class="splash-loading">
-  <div class="splash-loading-track">
-    <div
-      id="splashLoadingBar"
-      class="splash-loading-bar"
-    ></div>
-  </div>
 
-  <div
-    id="splashLoadingText"
-    class="splash-loading-text"
-  >
-    0%
-  </div>
-</div>
+      <div class="splash-loading-track">
+        <div
+          id="splashLoadingBar"
+          class="splash-loading-bar"
+        ></div>
+      </div>
 
-  </div>
+      <div
+        id="splashLoadingText"
+        class="splash-loading-text"
+      >
+        0%
+      </div>
 
-  <div class="splash-skip">
-    點擊畫面跳過
+    </div>
+
   </div>
 
 </div>
@@ -3807,13 +3797,16 @@ async function startPWAHandoff() {
 
   localStorage.setItem(
     PWA_HANDOFF_STORAGE_KEY,
-    JSON.stringify({
-      request_id:
-        data.request_id,
+JSON.stringify({
+  request_id:
+    data.request_id,
 
-      request_secret:
-        data.request_secret
-    })
+  request_secret:
+    data.request_secret,
+
+  language:
+    language
+})
   );
 
   return {
@@ -3905,7 +3898,29 @@ async function completePWAHandoff(
     }
 
 pwaHandoffCompleted = true;
+const handoffLanguage =
+  new URLSearchParams(
+    window.location.search
+  ).get("lang") ||
+  localStorage.getItem(
+    "habao_language"
+  ) ||
+  "zh-Hant";
 
+const handoffSuccessText =
+  handoffLanguage === "en"
+    ? "✓ LINE Sign-in Successful"
+    : handoffLanguage === "zh-Hans"
+      ? "✓ LINE 登录成功"
+      : "✓ LINE 登入成功";
+
+const handoffReturnText =
+  handoffLanguage === "en"
+    ? "Please return to the HB Sports AI app"
+    : handoffLanguage === "zh-Hans"
+      ? "请返回 HB赛事AI APP"
+      : "請返回 HB賽事AI APP";
+    
 /*
  * LINE 已在 Safari 完成登入。
  * 不再顯示原本 index 登入畫面，
@@ -3940,9 +3955,9 @@ document.body.innerHTML = `
         line-height: 1.4;
         margin-bottom: 14px;
       "
-    >
-      ✓ LINE 登入成功
-    </div>
+>
+  ${handoffSuccessText}
+</div>
 
     <div
       style="
@@ -3950,9 +3965,10 @@ document.body.innerHTML = `
         font-weight: 700;
         line-height: 1.5;
       "
-    >
-      請返回 HB賽事AI APP
-    </div>
+>
+  ${handoffReturnText}
+</div>
+
   </div>
 `;
 
@@ -4113,16 +4129,41 @@ try {
         "habao_manual_logout"
       );
 
-      if (
-        data.language === "zh-Hant" ||
-        data.language === "zh-Hans" ||
-        data.language === "en"
-      ) {
-        localStorage.setItem(
-          "habao_language",
-          data.language
-        );
-      }
+const restoredLanguage =
+  (
+    data.language === "zh-Hant" ||
+    data.language === "zh-Hans" ||
+    data.language === "en"
+  )
+    ? data.language
+    : (
+        handoff.language === "zh-Hant" ||
+        handoff.language === "zh-Hans" ||
+        handoff.language === "en"
+      )
+      ? handoff.language
+      : localStorage.getItem(
+          "habao_language"
+        ) || "zh-Hant";
+
+localStorage.setItem(
+  "habao_language",
+  restoredLanguage
+);
+
+try {
+
+  window.HabaoI18n?.setLanguage?.(
+    restoredLanguage
+  );
+
+} catch (error) {
+
+  console.warn(
+    "HABAO LANGUAGE RESTORE ERROR:",
+    error
+  );
+}
 
       if (sessionData?.session) {
         await verifyHabaoOAuthMember(
@@ -4191,46 +4232,34 @@ function showPWAHandoffLoading() {
   overlay.className =
     "splash-screen";
 
-  overlay.innerHTML = `
-    <div class="splash-content">
+overlay.innerHTML = `
+  <div class="splash-content">
 
-      <div class="splash-logo">
-        <span class="splash-logo-h">H</span>
-        <span class="splash-logo-ai">AI</span>
-      </div>
+    <div class="splash-logo">
+      <span class="splash-logo-h">H</span>
+      <span class="splash-logo-ai">AI</span>
+    </div>
 
-      <div class="splash-en">
-        HABAO SPORTS AI
-      </div>
+    <div class="splash-loading">
 
-      <div class="splash-title">
-        HABAO 賽事預測 AI
-      </div>
-
-      <div class="splash-subtitle">
-        多維賽事數據・智能分析平台
-      </div>
-
-      <div class="splash-loading">
-
-        <div class="splash-loading-track">
-          <div
-            id="pwaHandoffLoadingBar"
-            class="splash-loading-bar"
-          ></div>
-        </div>
-
+      <div class="splash-loading-track">
         <div
-          id="pwaHandoffLoadingText"
-          class="splash-loading-text"
-        >
-          0%
-        </div>
+          id="pwaHandoffLoadingBar"
+          class="splash-loading-bar"
+        ></div>
+      </div>
 
+      <div
+        id="pwaHandoffLoadingText"
+        class="splash-loading-text"
+      >
+        0%
       </div>
 
     </div>
-  `;
+
+  </div>
+`;
 
   document.body.appendChild(
     overlay
@@ -4257,26 +4286,26 @@ function showPWAHandoffLoading() {
         return;
       }
 
-      if (progress < 70) {
+if (progress < 55) {
 
-        progress +=
-          Math.random() * 5 + 2;
+  progress +=
+    Math.random() * 2.2 + 0.8;
 
-      } else if (progress < 90) {
+} else if (progress < 80) {
 
-        progress +=
-          Math.random() * 2 + 0.8;
+  progress +=
+    Math.random() * 0.9 + 0.3;
 
-      } else if (progress < 98) {
+} else if (progress < 94) {
 
-        progress += 0.35;
-      }
+  progress += 0.18;
+}
 
-      progress =
-        Math.min(
-          progress,
-          98
-        );
+progress =
+  Math.min(
+    progress,
+    94
+  );
 
       const bar =
         document.getElementById(
@@ -5309,30 +5338,29 @@ try {
       }
 
 
-      if (progress < 70) {
+if (progress < 55) {
 
-        progress +=
-          Math.random() * 5 + 2;
+  progress +=
+    Math.random() * 2.2 + 0.8;
 
-      } else if (
-        progress < 90
-      ) {
+} else if (
+  progress < 80
+) {
 
-        progress +=
-          Math.random() * 2 + 0.8;
+  progress +=
+    Math.random() * 0.9 + 0.3;
 
-      } else if (
-        progress < 98
-      ) {
+} else if (
+  progress < 94
+) {
 
-        progress += 0.35;
-      }
-
+  progress += 0.18;
+}
 
       updateProgress(
         Math.min(
           progress,
-          98
+          94
         )
       );
 
