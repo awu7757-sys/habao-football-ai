@@ -4136,6 +4136,43 @@ window.addEventListener(
   "DOMContentLoaded",
   async () => {
 
+    const manualLogout =
+      localStorage.getItem(
+        "habao_manual_logout"
+      );
+
+    /*
+     * 已登入會員重新開啟 PWA：
+     * 優先恢復既有登入，
+     * 不先等待 LINE 登入按鈕初始化。
+     */
+    if (manualLogout !== "1") {
+
+      const canLogin =
+        await loadHabaoPublicSettings();
+
+      if (!canLogin) {
+        return;
+      }
+
+      const {
+        data: { session }
+      } =
+        await supabaseAuth.auth.getSession();
+
+      if (session) {
+        await verifyHabaoOAuthMember(
+          session
+        );
+        return;
+      }
+    }
+
+    /*
+     * 沒有既有登入，
+     * 或會員自己按過登出，
+     * 才正常準備登入頁。
+     */
     const canLogin =
       await loadHabaoPublicSettings();
 
@@ -4144,8 +4181,6 @@ window.addEventListener(
     }
 
     await prepareLINELogin();
-
-    await restoreHabaoLogin();
   }
 );
 
