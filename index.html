@@ -3900,13 +3900,37 @@ async function completePWAHandoff(
 
 pwaHandoffCompleted = true;
 const handoffLanguage =
-  new URLSearchParams(
-    window.location.search
-  ).get("lang") ||
-  localStorage.getItem(
-    "habao_language"
-  ) ||
-  "zh-Hant";
+  (
+    data.language === "zh-Hant" ||
+    data.language === "zh-Hans" ||
+    data.language === "en"
+  )
+    ? data.language
+    : (
+        new URLSearchParams(
+          window.location.search
+        ).get("lang") ||
+        localStorage.getItem(
+          "habao_language"
+        ) ||
+        "zh-Hant"
+      );
+
+localStorage.setItem(
+  "habao_language",
+  handoffLanguage
+);
+
+try {
+  window.HabaoI18n?.setLanguage?.(
+    handoffLanguage
+  );
+} catch (error) {
+  console.warn(
+    "HABAO HANDOFF LANGUAGE ERROR:",
+    error
+  );
+}
 
 const handoffSuccessText =
   handoffLanguage === "en"
