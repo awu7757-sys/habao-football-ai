@@ -3527,6 +3527,25 @@ window.addEventListener(
   loadPublicStats
 );
 
+/*
+ * OAuth 跨 PWA / Safari 保存語言
+ */
+const oauthLanguage =
+  new URLSearchParams(
+    window.location.search
+  ).get("lang");
+
+if (
+  oauthLanguage === "zh-Hant" ||
+  oauthLanguage === "zh-Hans" ||
+  oauthLanguage === "en"
+) {
+  localStorage.setItem(
+    "habao_language",
+    oauthLanguage
+  );
+}
+    
 // Supabase Publishable Key
 const PUBLISHABLE_KEY =
   "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
@@ -3645,9 +3664,19 @@ async function prepareLINELogin() {
         provider: "custom:line-oauth",
 
         options: {
-          redirectTo:
-            window.location.origin +
-            window.location.pathname,
+redirectTo:
+  window.location.origin +
+  window.location.pathname +
+  "?lang=" +
+  encodeURIComponent(
+    localStorage.getItem(
+      "habao_language"
+    ) || "zh-Hant"
+  ),
+
+scopes: "openid profile",
+
+skipBrowserRedirect: true
 
           scopes: "openid profile",
 
