@@ -9394,6 +9394,38 @@ showPhoneGuide("iphone");
     window.HabaoI18n;
 
 
+  /*
+   * LINE / OAuth 登入後，
+   * 優先沿用網址帶回來的語言。
+   */
+  const urlLanguage =
+    new URLSearchParams(
+      window.location.search
+    ).get("lang");
+
+  const validLanguage =
+    (
+      urlLanguage === "zh-Hant" ||
+      urlLanguage === "zh-Hans" ||
+      urlLanguage === "en"
+    )
+      ? urlLanguage
+      : null;
+
+  if (validLanguage) {
+
+    localStorage.setItem(
+      "habao_language",
+      validLanguage
+    );
+
+    I18N.setLanguage(
+      validLanguage
+    );
+
+  }
+
+
   I18N.registerTranslations({
 
     "zh-Hant": {
