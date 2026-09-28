@@ -3569,20 +3569,43 @@ async function loadHabaoPublicSettings() {
 
   try {
 
-    const response = await fetch(
-      PUBLIC_SETTINGS_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-        body: JSON.stringify({
-          action: "get_public_settings"
-        }),
-        cache: "no-store"
-      }
-    );
+const controller =
+  new AbortController();
+
+const timeoutId =
+  setTimeout(() => {
+    controller.abort();
+  }, 5000);
+
+let response;
+
+try {
+
+  response = await fetch(
+    PUBLIC_SETTINGS_URL,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+
+      body: JSON.stringify({
+        action: "get_public_settings"
+      }),
+
+      cache: "no-store",
+
+      signal:
+        controller.signal
+    }
+  );
+
+} finally {
+
+  clearTimeout(timeoutId);
+}
 
     const data =
       await response.json();
@@ -4700,26 +4723,46 @@ if (message) {
     "正在確認會員資料...";
 }
 
-    const response = await fetch(
-      OAUTH_MEMBER_URL,
-      {
-        method: "POST",
+const controller =
+  new AbortController();
 
-        headers: {
-          "Content-Type":
-            "application/json",
+const timeoutId =
+  setTimeout(() => {
+    controller.abort();
+  }, 10000);
 
-          "apikey":
-            PUBLISHABLE_KEY,
+let response;
 
-          "Authorization":
-            `Bearer ${session.access_token}`
-        },
+try {
 
-        body:
-          JSON.stringify({})
-      }
-    );
+  response = await fetch(
+    OAUTH_MEMBER_URL,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        "apikey":
+          PUBLISHABLE_KEY,
+
+        "Authorization":
+          `Bearer ${session.access_token}`
+      },
+
+      body:
+        JSON.stringify({}),
+
+      signal:
+        controller.signal
+    }
+  );
+
+} finally {
+
+  clearTimeout(timeoutId);
+}
 
     const data =
       await response.json();
