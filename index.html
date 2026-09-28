@@ -3663,25 +3663,21 @@ async function prepareLINELogin() {
       await supabaseAuth.auth.signInWithOAuth({
         provider: "custom:line-oauth",
 
-        options: {
-redirectTo:
-  window.location.origin +
-  window.location.pathname +
-  "?lang=" +
-  encodeURIComponent(
-    localStorage.getItem(
-      "habao_language"
-    ) || "zh-Hant"
-  ),
+options: {
+  redirectTo:
+    window.location.origin +
+    window.location.pathname +
+    "?lang=" +
+    encodeURIComponent(
+      localStorage.getItem(
+        "habao_language"
+      ) || "zh-Hant"
+    ),
 
-scopes: "openid profile",
+  scopes: "openid profile",
 
-skipBrowserRedirect: true
-
-          scopes: "openid profile",
-
-          skipBrowserRedirect: true
-        }
+  skipBrowserRedirect: true
+}
       });
 
     if (error) {
