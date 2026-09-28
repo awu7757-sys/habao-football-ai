@@ -5432,6 +5432,11 @@
     font-size: 11px;
   }
 }
+
+#addHomeFloatBtn,
+#addHomeModal {
+  display: none !important;
+}
     
 </style>
 
@@ -5441,8 +5446,6 @@
 </head>    
 
 <body>
-
-  <div id="habaoLanguageMount"></div>
 
   <main class="app">
 
@@ -7053,12 +7056,22 @@ if (vipStatusEl) {
         member.platform_account || ""
       ).trim();
 
-    const platformName =
-      String(
-        member.platform_name ||
-        (platformAccount ? "皇鼎" : "")
-      ).trim();
+const rawPlatformName =
+  String(
+    member.platform_name ||
+    (platformAccount ? "皇鼎" : "")
+  ).trim();
 
+const currentLanguage =
+  window.HabaoI18n?.getLanguage?.() ||
+  "zh-Hant";
+
+const platformName =
+  currentLanguage === "en" &&
+  rawPlatformName === "皇鼎"
+    ? "HD"
+    : rawPlatformName;
+    
     const vipActive =
       window.HabaoI18n?.t(
         "vipActive",
@@ -9535,6 +9548,12 @@ navMatches: "賽事",
 navPerformance: "AI 戰績",
 navAccount: "我的",
 todayFocus: "今日焦點",
+
+statTodayMatches: "今日賽事",
+statAnalyzed: "已分析",
+statPublicVerified: "公開驗證",
+viewAll: "查看全部",
+
 viewPerformance: "查看 AI 戰績",
 analysisAvailable: "AI 分析可用",
 matchEnded: "賽事已結束",
@@ -9742,6 +9761,11 @@ navMatches: "赛事",
 navPerformance: "AI 战绩",
 navAccount: "我的",
 todayFocus: "今日焦点",
+statTodayMatches: "今日赛事",
+statAnalyzed: "已分析",
+statPublicVerified: "公开验证",
+viewAll: "查看全部",
+      
 viewPerformance: "查看 AI 战绩",
 analysisAvailable: "AI 分析可用",
 matchEnded: "赛事已结束",
@@ -9949,6 +9973,12 @@ navMatches: "Matches",
 navPerformance: "AI Results",
 navAccount: "Account",
 todayFocus: "Today's Matches",
+
+statTodayMatches: "Today's Matches",
+statAnalyzed: "Analyzed",
+statPublicVerified: "Public Verification",
+viewAll: "View All",
+      
 viewPerformance: "View AI Results",
 analysisAvailable: "AI Analysis Available",
 matchEnded: "Match Ended",
@@ -10462,6 +10492,48 @@ bottomNavItems.forEach(
   }
 );
 
+const quickLabels =
+  document.querySelectorAll(
+    ".quick-dashboard .quick-label"
+  );
+
+if (quickLabels[0]) {
+  quickLabels[0].textContent =
+    I18N.t(
+      "statTodayMatches",
+      "今日賽事"
+    );
+}
+
+if (quickLabels[1]) {
+  quickLabels[1].textContent =
+    I18N.t(
+      "statAnalyzed",
+      "已分析"
+    );
+}
+
+if (quickLabels[2]) {
+  quickLabels[2].textContent =
+    I18N.t(
+      "statPublicVerified",
+      "公開驗證"
+    );
+}
+
+const viewAllLink =
+  document.querySelector(
+    ".section-more"
+  );
+
+if (viewAllLink) {
+  viewAllLink.innerHTML =
+    `${I18N.t(
+      "viewAll",
+      "查看全部"
+    )}<span>→</span>`;
+}
+    
 setText(
   ".section-title",
   "todayFocus"
@@ -10852,22 +10924,7 @@ if (container) {
 </script>
   
 <script>
-(() => {
-  const mount =
-    document.getElementById(
-      "habaoLanguageMount"
-    );
 
-  if (
-    mount &&
-    window.HabaoI18n
-  ) {
-    mount.appendChild(
-      window.HabaoI18n
-        .createLanguageSelector()
-    );
-  }
-})();
 </script>
   
 </body>
