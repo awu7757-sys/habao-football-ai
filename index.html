@@ -3645,13 +3645,414 @@ const supabaseAuth =
     }
   );
 
+/* ========================================
+   HABAO PWA LINE Login Handoff
+   ======================================== */
+
+const PWA_HANDOFF_START_URL =
+  `${SUPABASE_URL}/functions/v1/pwa-handoff-start`;
+
+const PWA_HANDOFF_COMPLETE_URL =
+  `${SUPABASE_URL}/functions/v1/pwa-handoff-complete`;
+
+const PWA_HANDOFF_CLAIM_URL =
+  `${SUPABASE_URL}/functions/v1/pwa-handoff-claim`;
+
+const PWA_HANDOFF_STORAGE_KEY =
+  "habao_pwa_line_handoff";
+
+
+function isHabaoStandalonePWA() {
+  return (
+    window.matchMedia(
+      "(display-mode: standalone)"
+    ).matches ||
+    window.navigator.standalone === true
+  );
+}
+
+
+function getPWAHandoffCallback() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestId =
+    params.get(
+      "pwa_handoff_id"
+    );
+
+  const handoffToken =
+    params.get(
+      "pwa_handoff_token"
+    );
+
+  if (
+    !requestId ||
+    !handoffToken
+  ) {
+    return null;
+  }
+
+  return {
+    requestId,
+    handoffToken
+  };
+}
+
+
+async function startPWAHandoff() {
+
+  const language =
+    window.HabaoI18n?.getLanguage?.() ||
+    localStorage.getItem(
+      "habao_language"
+    ) ||
+    "zh-Hant";
+
+  const response =
+    await fetch(
+      PWA_HANDOFF_START_URL,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "apikey":
+            PUBLISHABLE_KEY
+        },
+
+        body:
+          JSON.stringify({
+            language
+          }),
+
+        cache: "no-store"
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !data.success ||
+    !data.request_id ||
+    !data.request_secret ||
+    !data.handoff_token
+  ) {
+    throw new Error(
+      "Unable to start PWA handoff"
+    );
+  }
+
+  localStorage.setItem(
+    PWA_HANDOFF_STORAGE_KEY,
+    JSON.stringify({
+      request_id:
+        data.request_id,
+
+      request_secret:
+        data.request_secret
+    })
+  );
+
+  return {
+    requestId:
+      data.request_id,
+
+    handoffToken:
+      data.handoff_token,
+
+    language
+  };
+}
+
+
+let pwaHandoffCompleting = false;
+let pwaHandoffCompleted = false;
+
+
+async function completePWAHandoff(
+  session
+) {
+
+  const callback =
+    getPWAHandoffCallback();
+
+  if (
+    !callback ||
+    !session?.access_token ||
+    !session?.refresh_token
+  ) {
+    return false;
+  }
+
+  if (
+    pwaHandoffCompleting ||
+    pwaHandoffCompleted
+  ) {
+    return true;
+  }
+
+  pwaHandoffCompleting = true;
+
+  try {
+
+    const response =
+      await fetch(
+        PWA_HANDOFF_COMPLETE_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY,
+
+            "Authorization":
+              `Bearer ${session.access_token}`
+          },
+
+          body:
+            JSON.stringify({
+              request_id:
+                callback.requestId,
+
+              handoff_token:
+                callback.handoffToken,
+
+              refresh_token:
+                session.refresh_token
+            }),
+
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+        "Unable to complete PWA handoff"
+      );
+    }
+
+    pwaHandoffCompleted = true;
+
+    const message =
+      document.getElementById(
+        "message"
+      );
+
+    if (message) {
+      message.textContent =
+        "LINE 登入完成，請返回 HB賽事AI APP";
+    }
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "PWA HANDOFF COMPLETE ERROR:",
+      error
+    );
+
+    const message =
+      document.getElementById(
+        "message"
+      );
+
+    if (message) {
+      message.textContent =
+        "LINE 登入交接失敗，請返回 APP 後重新登入";
+    }
+
+    return false;
+
+  } finally {
+
+    pwaHandoffCompleting = false;
+  }
+}
+
+
+async function claimPWAHandoff() {
+
+  if (!isHabaoStandalonePWA()) {
+    return false;
+  }
+
+  const saved =
+    localStorage.getItem(
+      PWA_HANDOFF_STORAGE_KEY
+    );
+
+  if (!saved) {
+    return false;
+  }
+
+  let handoff;
+
+  try {
+    handoff =
+      JSON.parse(saved);
+  } catch (error) {
+    localStorage.removeItem(
+      PWA_HANDOFF_STORAGE_KEY
+    );
+    return false;
+  }
+
+  if (
+    !handoff?.request_id ||
+    !handoff?.request_secret
+  ) {
+    localStorage.removeItem(
+      PWA_HANDOFF_STORAGE_KEY
+    );
+    return false;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        PWA_HANDOFF_CLAIM_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "apikey":
+              PUBLISHABLE_KEY
+          },
+
+          body:
+            JSON.stringify({
+              request_id:
+                handoff.request_id,
+
+              request_secret:
+                handoff.request_secret
+            }),
+
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      response.ok &&
+      data.success &&
+      data.status === "pending"
+    ) {
+      return false;
+    }
+
+    if (
+      response.ok &&
+      data.success &&
+      data.status === "ready" &&
+      data.access_token &&
+      data.refresh_token
+    ) {
+
+      const {
+        data: sessionData,
+        error
+      } =
+        await supabaseAuth.auth
+          .setSession({
+            access_token:
+              data.access_token,
+
+            refresh_token:
+              data.refresh_token
+          });
+
+      if (error) {
+        throw error;
+      }
+
+      localStorage.removeItem(
+        PWA_HANDOFF_STORAGE_KEY
+      );
+
+      localStorage.removeItem(
+        "habao_manual_logout"
+      );
+
+      if (
+        data.language === "zh-Hant" ||
+        data.language === "zh-Hans" ||
+        data.language === "en"
+      ) {
+        localStorage.setItem(
+          "habao_language",
+          data.language
+        );
+      }
+
+      if (sessionData?.session) {
+        await verifyHabaoOAuthMember(
+          sessionData.session
+        );
+
+        return true;
+      }
+    }
+
+    if (
+      data.status === "expired" ||
+      data.status === "invalid" ||
+      data.status === "consumed"
+    ) {
+      localStorage.removeItem(
+        PWA_HANDOFF_STORAGE_KEY
+      );
+    }
+
+    return false;
+
+  } catch (error) {
+
+    console.error(
+      "PWA HANDOFF CLAIM ERROR:",
+      error
+    );
+
+    return false;
+  }
+}    
+
 async function prepareLINELogin() {
 
   const lineLoginBtn =
-    document.getElementById("lineLoginBtn");
+    document.getElementById(
+      "lineLoginBtn"
+    );
 
   const message =
-    document.getElementById("message");
+    document.getElementById(
+      "message"
+    );
 
   if (!lineLoginBtn) {
     return;
@@ -3659,26 +4060,76 @@ async function prepareLINELogin() {
 
   try {
 
-    const { data, error } =
-      await supabaseAuth.auth.signInWithOAuth({
-        provider: "custom:line-oauth",
-
-options: {
-  redirectTo:
-    window.location.origin +
-    window.location.pathname +
-    "?lang=" +
-    encodeURIComponent(
+    const language =
+      window.HabaoI18n
+        ?.getLanguage?.() ||
       localStorage.getItem(
         "habao_language"
-      ) || "zh-Hant"
-    ),
+      ) ||
+      "zh-Hant";
 
-  scopes: "openid profile",
+    let redirectTo =
+      window.location.origin +
+      window.location.pathname +
+      "?lang=" +
+      encodeURIComponent(
+        language
+      );
 
-  skipBrowserRedirect: true
-}
-      });
+    /*
+     * 只有從安裝版 PWA 點 LINE
+     * 才建立 Safari → PWA handoff。
+     *
+     * 一般 Safari / Chrome 登入
+     * 保持原本流程。
+     */
+    if (isHabaoStandalonePWA()) {
+
+      try {
+
+        const handoff =
+          await startPWAHandoff();
+
+        redirectTo +=
+          "&pwa_handoff_id=" +
+          encodeURIComponent(
+            handoff.requestId
+          ) +
+          "&pwa_handoff_token=" +
+          encodeURIComponent(
+            handoff.handoffToken
+          );
+
+      } catch (handoffError) {
+
+        console.error(
+          "PWA HANDOFF START ERROR:",
+          handoffError
+        );
+
+        /*
+         * handoff 暫時失敗時，
+         * 不破壞原本 LINE 登入。
+         */
+      }
+    }
+
+    const { data, error } =
+      await supabaseAuth.auth
+        .signInWithOAuth({
+          provider:
+            "custom:line-oauth",
+
+          options: {
+            redirectTo,
+
+            scopes:
+              "openid profile",
+
+            skipBrowserRedirect:
+              true
+          }
+        });
 
     if (error) {
       throw error;
@@ -3690,21 +4141,11 @@ options: {
       );
     }
 
-    /*
-     * 重要：
-     * 不使用 JavaScript 把使用者導向 LINE。
-     *
-     * 頁面載入時只先取得 Supabase
-     * 產生的安全 OAuth URL，
-     * 再放進真正的 <a href>。
-     *
-     * 使用者之後親自點擊連結，
-     * Safari / iOS 才有較好的機會
-     * 正常觸發 LINE Universal Link / Auto Login。
-     */
-    lineLoginBtn.href = data.url;
+    lineLoginBtn.href =
+      data.url;
 
-    lineLoginBtn.dataset.ready = "1";
+    lineLoginBtn.dataset.ready =
+      "1";
 
   } catch (error) {
 
@@ -3715,14 +4156,14 @@ options: {
 
     lineLoginBtn.href = "#";
 
-if (message) {
-  message.textContent =
-    window.HabaoI18n?.t(
-      "linePrepareFailed",
-      "LINE 登入準備失敗，請重新整理頁面"
-    ) ||
-    "LINE 登入準備失敗，請重新整理頁面";
-}
+    if (message) {
+      message.textContent =
+        window.HabaoI18n?.t(
+          "linePrepareFailed",
+          "LINE 登入準備失敗，請重新整理頁面"
+        ) ||
+        "LINE 登入準備失敗，請重新整理頁面";
+    }
   }
 }
 
@@ -4122,6 +4563,7 @@ async function restoreHabaoLogin() {
  * 這裡不需要再次跳頁，
  * restoreHabaoLogin 已負責頁面載入。
  */
+
 supabaseAuth.auth.onAuthStateChange(
   async (event, session) => {
 
@@ -4135,16 +4577,37 @@ supabaseAuth.auth.onAuthStateChange(
         "habao_manual_logout"
       );
 
+    /*
+     * Safari 收到 LINE OAuth callback，
+     * 優先完成 Safari → PWA handoff。
+     *
+     * 這裡不能先跳 home-v2，
+     * 否則 PWA 會拿不到 session。
+     */
+    const handoffCallback =
+      getPWAHandoffCallback();
+
+    if (
+      event === "SIGNED_IN" &&
+      session &&
+      handoffCallback
+    ) {
+
+      localStorage.removeItem(
+        "habao_manual_logout"
+      );
+
+      await completePWAHandoff(
+        session
+      );
+
+      return;
+    }
+
     if (manualLogout === "1") {
       return;
     }
 
-    /*
-     * OAuth 狀態事件可能比 DOMContentLoaded 更早發生。
-     * 因此在處理 SIGNED_IN 前，
-     * 再確認一次目前公開系統設定，
-     * 避免維護模式尚未載入就被繞過。
-     */
     const canLogin =
       await loadHabaoPublicSettings();
 
@@ -4161,8 +4624,7 @@ supabaseAuth.auth.onAuthStateChange(
       );
     }
   }
-);
-
+);    
 
 /*
  * 頁面 DOM 完成後檢查既有登入。
@@ -4171,15 +4633,59 @@ window.addEventListener(
   "DOMContentLoaded",
   async () => {
 
+    const handoffCallback =
+      getPWAHandoffCallback();
+
+    /*
+     * Safari 的 LINE OAuth callback：
+     * 不走一般會員跳頁。
+     *
+     * 等 Supabase 還原 callback session，
+     * 再完成 Safari → PWA handoff。
+     */
+    if (handoffCallback) {
+
+      const {
+        data: { session }
+      } =
+        await supabaseAuth.auth
+          .getSession();
+
+      if (session) {
+        await completePWAHandoff(
+          session
+        );
+      }
+
+      return;
+    }
+
     const manualLogout =
       localStorage.getItem(
         "habao_manual_logout"
       );
 
     /*
-     * 已登入會員重新開啟 PWA：
-     * 優先恢復既有登入，
-     * 不先等待 LINE 登入按鈕初始化。
+     * 使用者重新開啟安裝版 PWA：
+     * 如果之前已從 PWA 發起 LINE 登入，
+     * 先向後端領取 Safari 完成的 session。
+     */
+    if (
+      manualLogout !== "1" &&
+      isHabaoStandalonePWA()
+    ) {
+
+      const claimed =
+        await claimPWAHandoff();
+
+      if (claimed) {
+        return;
+      }
+    }
+
+    /*
+     * 原本已驗證正常的 PWA
+     * session 恢復流程保留。
      */
     if (manualLogout !== "1") {
 
@@ -4193,7 +4699,8 @@ window.addEventListener(
       const {
         data: { session }
       } =
-        await supabaseAuth.auth.getSession();
+        await supabaseAuth.auth
+          .getSession();
 
       if (session) {
         await verifyHabaoOAuthMember(
