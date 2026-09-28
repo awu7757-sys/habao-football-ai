@@ -4527,23 +4527,27 @@ async function prepareLINELogin() {
     );
 
   if (!lineLoginBtn) {
-    return;
+    return false;
   }
 
   try {
 
-const language =
-  localStorage.getItem(
-    "habao_language"
-  ) ||
-  window.HabaoI18n
-    ?.getLanguage?.() ||
-  "zh-Hant";
+    /*
+     * 每次真正點 LINE 時，
+     * 才讀取當下最新語言。
+     */
+    const language =
+      window.HabaoI18n
+        ?.getLanguage?.() ||
+      localStorage.getItem(
+        "habao_language"
+      ) ||
+      "zh-Hant";
 
-localStorage.setItem(
-  "habao_language",
-  language
-);
+    localStorage.setItem(
+      "habao_language",
+      language
+    );
 
     let redirectTo =
       window.location.origin +
@@ -4554,41 +4558,35 @@ localStorage.setItem(
       );
 
     /*
-     * 只有從安裝版 PWA 點 LINE
-     * 才建立 Safari → PWA handoff。
-     *
-     * 一般 Safari / Chrome 登入
-     * 保持原本流程。
+     * 安裝版 PWA：
+     * 每次點擊都重新建立一組
+     * 全新的 LINE handoff。
      */
     if (isHabaoStandalonePWA()) {
 
-      try {
+      /*
+       * 清掉 PWA 端上一輪尚未完成的
+       * 本機 handoff，避免再次 claim 舊資料。
+       *
+       * 接著 startPWAHandoff()
+       * 會立即寫入本次新的 handoff。
+       */
+      localStorage.removeItem(
+        PWA_HANDOFF_STORAGE_KEY
+      );
 
-        const handoff =
-          await startPWAHandoff();
+      const handoff =
+        await startPWAHandoff();
 
-        redirectTo +=
-          "&pwa_handoff_id=" +
-          encodeURIComponent(
-            handoff.requestId
-          ) +
-          "&pwa_handoff_token=" +
-          encodeURIComponent(
-            handoff.handoffToken
-          );
-
-      } catch (handoffError) {
-
-        console.error(
-          "PWA HANDOFF START ERROR:",
-          handoffError
+      redirectTo +=
+        "&pwa_handoff_id=" +
+        encodeURIComponent(
+          handoff.requestId
+        ) +
+        "&pwa_handoff_token=" +
+        encodeURIComponent(
+          handoff.handoffToken
         );
-
-        /*
-         * handoff 暫時失敗時，
-         * 不破壞原本 LINE 登入。
-         */
-      }
     }
 
     const { data, error } =
@@ -4618,11 +4616,14 @@ localStorage.setItem(
       );
     }
 
-    lineLoginBtn.href =
+    /*
+     * 不再把 OAuth URL 預先塞進 href。
+     * 本次建立完成後立即前往 LINE。
+     */
+    window.location.href =
       data.url;
 
-    lineLoginBtn.dataset.ready =
-      "1";
+    return true;
 
   } catch (error) {
 
@@ -4631,19 +4632,18 @@ localStorage.setItem(
       error
     );
 
-    lineLoginBtn.href = "#";
-
     if (message) {
       message.textContent =
         window.HabaoI18n?.t(
           "linePrepareFailed",
-          "LINE 登入準備失敗，請重新整理頁面"
+          "LINE 登入準備失敗，請重新嘗試"
         ) ||
-        "LINE 登入準備失敗，請重新整理頁面";
+        "LINE 登入準備失敗，請重新嘗試";
     }
+
+    return false;
   }
 }
-
 
 async function loginWithGoogle() {
 
@@ -4724,13 +4724,18 @@ const googleLoginBtn =
  */
 
 if (lineLoginBtn) {
+
   lineLoginBtn.addEventListener(
     "click",
-    (event) => {
+    async (event) => {
 
-            if (maintenanceModeActive) {
+      /*
+       * LINE OAuth URL 必須在這次點擊時
+       * 現場建立，所以阻止舊 href 執行。
+       */
+      event.preventDefault();
 
-        event.preventDefault();
+      if (maintenanceModeActive) {
 
         const message =
           document.getElementById(
@@ -4739,44 +4744,68 @@ if (lineLoginBtn) {
 
         if (message) {
           message.textContent =
-habaoPublicSettings
-  ?.maintenance_announcement ||
-window.HabaoI18n?.t(
-  "systemMaintenance",
-  "系統維護中，請稍後再試。"
-) ||
-"系統維護中，請稍後再試。";
+            habaoPublicSettings
+              ?.maintenance_announcement ||
+            window.HabaoI18n?.t(
+              "systemMaintenance",
+              "系統維護中，請稍後再試。"
+            ) ||
+            "系統維護中，請稍後再試。";
         }
 
         return;
       }
 
+      /*
+       * 防止使用者連點 LINE，
+       * 同時建立兩組 handoff。
+       */
       if (
-        lineLoginBtn.dataset.ready !== "1"
+        lineLoginBtn.dataset
+          .loggingIn === "1"
       ) {
-        event.preventDefault();
-
-        const message =
-          document.getElementById("message");
-
-if (message) {
-  message.textContent =
-    window.HabaoI18n?.t(
-      "linePreparing",
-      "LINE 登入準備中，請稍候再點一次"
-    ) ||
-    "LINE 登入準備中，請稍候再點一次";
-}
-
         return;
       }
+
+      lineLoginBtn.dataset.loggingIn =
+        "1";
 
       localStorage.removeItem(
         "habao_manual_logout"
       );
+
+      const message =
+        document.getElementById(
+          "message"
+        );
+
+      if (message) {
+        message.textContent =
+          window.HabaoI18n?.t(
+            "linePreparing",
+            "LINE 登入準備中，請稍候"
+          ) ||
+          "LINE 登入準備中，請稍候";
+      }
+
+      try {
+
+        await prepareLINELogin();
+
+      } finally {
+
+        /*
+         * 若 prepare 發生錯誤，
+         * 使用者仍可以再次點擊。
+         *
+         * 成功時頁面會直接前往 LINE。
+         */
+        lineLoginBtn.dataset.loggingIn =
+          "0";
+      }
     }
   );
-}  
+}
 
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener(
@@ -5241,19 +5270,6 @@ if (!canLogin) {
 }
 
 try {
-
-  await Promise.race([
-
-    prepareLINELogin(),
-
-    new Promise((resolve) => {
-      setTimeout(
-        resolve,
-        5000
-      );
-    })
-
-  ]);
 
 } catch (error) {
 
