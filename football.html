@@ -3416,6 +3416,7 @@ h1{
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
   
 <script>
@@ -5157,108 +5158,69 @@ function getHabaoLeagueLabel(leagueKey) {
   return labels[leagueKey] || "";
 }
 
-function getHabaoDisplayLeagueName(
-  leagueKey,
-  originalName = ""
+function getHabaoLocalizedName(
+  item,
+  fallback = ""
 ) {
+  if (!item) {
+    return fallback;
+  }
+
   const lang =
     window.HabaoI18n?.getLanguage?.() ||
     "zh-Hant";
 
   if (lang === "en") {
-    const englishLabels = {
-      "champions": "UEFA Champions League",
-      "europa": "UEFA Europa League",
-      "premier": "Premier League",
-      "laliga": "La Liga",
-      "bundesliga": "Bundesliga",
-      "italy-serie-a": "Serie A",
-      "ligue1": "Ligue 1",
-      "j1": "J1 League",
-      "kleague": "K League 1",
-      "eredivisie": "Eredivisie",
-      "csl": "Chinese Super League",
-      "brazil-serie-a": "Brazil Serie A"
-    };
-
     return (
-      englishLabels[leagueKey] ||
-      originalName ||
-      "Football Match"
+      item.api_name ||
+      item.name ||
+      fallback
     );
   }
 
   if (lang === "zh-Hans") {
-    const simplifiedLabels = {
-      "champions": "欧洲冠军联赛",
-      "europa": "欧联杯",
-      "premier": "英格兰超级联赛",
-      "laliga": "西班牙甲级联赛",
-      "bundesliga": "德国甲级联赛",
-      "italy-serie-a": "意大利甲级联赛",
-      "ligue1": "法国甲级联赛",
-      "j1": "日本职业足球甲级联赛",
-      "kleague": "韩国职业足球甲级联赛",
-      "eredivisie": "荷兰甲级联赛",
-      "csl": "中国足球超级联赛",
-      "brazil-serie-a": "巴西甲级联赛"
-    };
-
-    return (
-      simplifiedLabels[leagueKey] ||
-      originalName ||
-      "足球赛事"
-    );
+    return window.HabaoI18n?.toSimplified
+      ? window.HabaoI18n.toSimplified(
+          item.name ||
+          item.api_name ||
+          fallback
+        )
+      : (
+          item.name ||
+          item.api_name ||
+          fallback
+        );
   }
 
   return (
-    getHabaoLeagueLabel(
-      leagueKey
-    ) ||
-    getLeagueNameZH(
-      originalName
-    ) ||
-    originalName ||
-    "足球賽事"
+    item.name ||
+    item.api_name ||
+    fallback
+  );
+}
+
+
+function getHabaoDisplayLeagueName(
+  match
+) {
+  return getHabaoLocalizedName(
+    match?.league,
+    window.HabaoI18n?.t(
+      "footballMatch",
+      "足球賽事"
+    ) || "足球賽事"
   );
 }
 
 
 function getHabaoDisplayTeamName(
-  originalName = ""
+  team
 ) {
-  const lang =
-    window.HabaoI18n?.getLanguage?.() ||
-    "zh-Hant";
-
-  if (lang === "en") {
-    return (
-      originalName ||
-      "--"
-    );
-  }
-
-  /*
-    目前原始資料只有：
-    1. API 英文隊名
-    2. 網站既有繁體中文隊名表
-
-    所以：
-    - English 顯示 API 原始英文
-    - 繁體中文顯示既有中文翻譯
-    - 简体中文先沿用既有中文隊名
-
-    不自動亂轉球隊專有名稱，
-    避免球隊名稱翻錯。
-  */
-  return (
-    getTeamNameZH(
-      originalName
-    ) ||
-    originalName ||
+  return getHabaoLocalizedName(
+    team,
     "--"
   );
-}  
+}
 
 const allFixtures =
   Array.isArray(data.fixtures)
@@ -5343,8 +5305,7 @@ container.innerHTML =
 
 const leagueText =
   getHabaoDisplayLeagueName(
-    leagueKey,
-    match?.league?.name || ""
+    match
   );
 
 
@@ -5397,7 +5358,7 @@ const leagueText =
             </div>
 
             <div class="team-name">
-              ${getHabaoDisplayTeamName(match.home.name)}
+              ${getHabaoDisplayTeamName(match.home)}
             </div>
 
 <div class="v2-team-side">
@@ -5429,7 +5390,7 @@ const leagueText =
             </div>
 
             <div class="team-name">
-              ${getHabaoDisplayTeamName(match.away.name)}
+              ${getHabaoDisplayTeamName(match.away)}
             </div>
 
 <div class="v2-team-side">
