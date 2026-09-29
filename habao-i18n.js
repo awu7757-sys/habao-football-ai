@@ -401,7 +401,7 @@ window.HabaoI18n = {
   createLanguageSelector,
   toSimplified,
   t,
-  languages: LANGUAGES
+  languages: SUPPORTED_LANGS
 };
 
   if (
