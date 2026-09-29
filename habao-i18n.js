@@ -339,23 +339,70 @@
     applyTranslations();
   }
 
+ /* =========================================================
+   繁體中文 → 簡體中文
+   使用 OpenCC 完整字典轉換
+========================================================= */
+
+let simplifiedConverter = null;
+
+function toSimplified(text) {
+
+  const value = String(text ?? "");
+
+  if (!value) {
+    return value;
+  }
+
+  try {
+
+    if (
+      !simplifiedConverter &&
+      window.OpenCC?.Converter
+    ) {
+
+      simplifiedConverter =
+        window.OpenCC.Converter({
+          from: "tw",
+          to: "cn"
+        });
+
+    }
+
+    if (simplifiedConverter) {
+      return simplifiedConverter(value);
+    }
+
+  } catch (error) {
+
+    console.error(
+      "OpenCC 繁簡轉換失敗:",
+      error
+    );
+
+  }
+
+  /*
+   * OpenCC 尚未載入或轉換失敗時，
+   * 保留原文字，避免頁面因此壞掉。
+   */
+  return value;
+}  
 
   /* =========================================================
      對外提供
   ========================================================= */
 
-  window.HabaoI18n = {
-    getLanguage,
-    setLanguage,
-    registerTranslations,
-    applyTranslations,
-    createLanguageSelector,
-    t,
-
-    languages:
-      SUPPORTED_LANGS
-  };
-
+window.HabaoI18n = {
+  getLanguage,
+  setLanguage,
+  registerTranslations,
+  applyTranslations,
+  createLanguageSelector,
+  toSimplified,
+  t,
+  languages: LANGUAGES
+};
 
   if (
     document.readyState ===
