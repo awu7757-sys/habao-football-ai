@@ -8670,6 +8670,11 @@ function getV2FocusScore(match) {
     雙方都是熱門球隊則 +600
   */
   const popularTeams = [
+        // ===== 臨時焦點排序測試 =====
+    "spain",
+    "england",
+    "西班牙",
+    "英格蘭",
     "real madrid",
     "barcelona",
     "atletico madrid",
@@ -9099,10 +9104,82 @@ function createV2FocusMatchCard(match) {
       : "--:--";
 
 
+const currentLanguage =
+  window.HabaoI18n?.getLanguage?.() ||
+  "zh-Hant";
+
+
+function toV2SimplifiedChinese(text) {
+
+  return String(text || "")
+    .replaceAll("歐", "欧")
+    .replaceAll("國", "国")
+    .replaceAll("聯", "联")
+    .replaceAll("賽", "赛")
+    .replaceAll("蘭", "兰")
+    .replaceAll("羅", "罗")
+    .replaceAll("爾", "尔")
+    .replaceAll("馬", "马")
+    .replaceAll("島", "岛")
+    .replaceAll("義", "意")
+    .replaceAll("門", "门")
+    .replaceAll("華", "华")
+    .replaceAll("亞", "亚")
+    .replaceAll("維", "维")
+    .replaceAll("喬", "乔")
+    .replaceAll("澤", "泽")
+    .replaceAll("葉", "叶")
+    .replaceAll("盧", "卢")
+    .replaceAll("薩", "萨")
+    .replaceAll("達", "达")
+    .replaceAll("貝", "贝")
+    .replaceAll("倫", "伦")
+    .replaceAll("圖", "图")
+    .replaceAll("納", "纳")
+    .replaceAll("聖", "圣")
+    .replaceAll("斯", "斯");
+}
+
+
+function getV2LocalizedName(
+  item,
+  fallback
+) {
+
+  if (!item) {
+    return fallback;
+  }
+
+  if (currentLanguage === "en") {
+
+    return (
+      item.api_name ||
+      item.name ||
+      fallback
+    );
+  }
+
+  if (currentLanguage === "zh-Hans") {
+
+    return toV2SimplifiedChinese(
+      item.name ||
+      item.api_name ||
+      fallback
+    );
+  }
+
+  return (
+    item.name ||
+    item.api_name ||
+    fallback
+  );
+}
+
+
 const leagueText =
   escapeV2HTML(
-    league.name ||
-    (
+    getV2LocalizedName(
+      league,
       window.HabaoI18n?.t(
         "footballMatch",
         "足球賽事"
@@ -9113,8 +9190,8 @@ const leagueText =
 
 const homeName =
   escapeV2HTML(
-    home.name ||
-    (
+    getV2LocalizedName(
+      home,
       window.HabaoI18n?.t(
         "homeTeam",
         "主隊"
@@ -9125,15 +9202,14 @@ const homeName =
 
 const awayName =
   escapeV2HTML(
-    away.name ||
-    (
+    getV2LocalizedName(
+      away,
       window.HabaoI18n?.t(
         "awayTeam",
         "客隊"
       ) || "客隊"
     )
   );
-
 
   const homeLogo =
     safeV2ImageURL(
