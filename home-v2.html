@@ -5756,9 +5756,9 @@ padding:
 
           <span class="section-line"></span>
 
-          <div class="section-title">
-            今日焦點
-          </div>
+<div class="section-title">
+  焦點賽事
+</div>
 
         </div>
 
@@ -8520,6 +8520,274 @@ const buttonText =
 ========================================= */
   
 let v2LatestFocusFixtures = [];
+
+/*
+  HABAO｜焦點賽事熱門度排序
+
+  原則：
+  1. 五大聯賽優先
+  2. 歐冠／歐霸大型賽事高權重
+  3. 大眾熱門球隊額外加權
+  4. 其他 HABAO 白名單聯賽保留
+  5. 同分時，較早開賽優先
+*/
+
+function getV2FocusScore(match) {
+
+  const leagueId =
+    Number(
+      match?.league?.id ||
+      match?.league_id ||
+      match?.leagueId ||
+      0
+    );
+
+  const leagueName =
+    String(
+      match?.league?.name ||
+      match?.league_name ||
+      match?.league ||
+      ""
+    ).toLowerCase();
+
+  const homeName =
+    String(
+      match?.home?.name ||
+      match?.home_name ||
+      match?.homeTeam ||
+      match?.home_team ||
+      ""
+    ).toLowerCase();
+
+  const awayName =
+    String(
+      match?.away?.name ||
+      match?.away_name ||
+      match?.awayTeam ||
+      match?.away_team ||
+      ""
+    ).toLowerCase();
+
+  let score = 0;
+
+
+  /*
+    五大聯賽
+    英超 / 西甲 / 德甲 / 義甲 / 法甲
+  */
+  const topFiveLeagueIds =
+    new Set([
+      39,
+      140,
+      78,
+      135,
+      61
+    ]);
+
+  if (
+    topFiveLeagueIds.has(leagueId)
+  ) {
+    score += 1000;
+  }
+
+
+  /*
+    歐洲大型賽事
+    歐冠 / 歐霸
+  */
+  if (leagueId === 2) {
+    score += 950;
+  }
+
+  if (leagueId === 3) {
+    score += 850;
+  }
+
+
+  /*
+    League ID 無法取得時，
+    用聯賽名稱做第二層判斷
+  */
+  const topLeagueKeywords = [
+    "premier league",
+    "la liga",
+    "bundesliga",
+    "serie a",
+    "ligue 1",
+    "英超",
+    "西甲",
+    "德甲",
+    "義甲",
+    "意甲",
+    "法甲"
+  ];
+
+  if (
+    topLeagueKeywords.some(
+      keyword =>
+        leagueName.includes(keyword)
+    )
+  ) {
+    score = Math.max(
+      score,
+      1000
+    );
+  }
+
+
+  if (
+    leagueName.includes(
+      "champions league"
+    ) ||
+    leagueName.includes("歐冠") ||
+    leagueName.includes("欧冠")
+  ) {
+    score = Math.max(
+      score,
+      950
+    );
+  }
+
+
+  if (
+    leagueName.includes(
+      "europa league"
+    ) ||
+    leagueName.includes("歐霸") ||
+    leagueName.includes("歐聯") ||
+    leagueName.includes("欧联")
+  ) {
+    score = Math.max(
+      score,
+      850
+    );
+  }
+
+
+  /*
+    大眾熱門球隊
+    出現一隊 +300
+    雙方都是熱門球隊則 +600
+  */
+  const popularTeams = [
+    "real madrid",
+    "barcelona",
+    "atletico madrid",
+
+    "manchester united",
+    "manchester city",
+    "liverpool",
+    "arsenal",
+    "chelsea",
+    "tottenham",
+
+    "bayern munich",
+    "borussia dortmund",
+
+    "paris saint germain",
+    "paris saint-germain",
+    "psg",
+
+    "inter milan",
+    "internazionale",
+    "ac milan",
+    "juventus",
+
+    "皇家馬德里",
+    "皇家马德里",
+    "巴塞隆納",
+    "巴塞罗那",
+    "馬德里競技",
+    "马德里竞技",
+
+    "曼聯",
+    "曼联",
+    "曼城",
+    "利物浦",
+    "阿森納",
+    "阿森纳",
+    "切爾西",
+    "切尔西",
+    "熱刺",
+    "热刺",
+
+    "拜仁慕尼黑",
+    "多特蒙德",
+
+    "巴黎聖日耳曼",
+    "巴黎圣日耳曼",
+
+    "國際米蘭",
+    "国际米兰",
+    "國米",
+    "国米",
+    "AC米蘭",
+    "AC米兰",
+    "尤文圖斯",
+    "尤文图斯"
+  ];
+
+
+  const homePopular =
+    popularTeams.some(
+      team =>
+        homeName.includes(team)
+    );
+
+  const awayPopular =
+    popularTeams.some(
+      team =>
+        awayName.includes(team)
+    );
+
+
+  if (homePopular) {
+    score += 300;
+  }
+
+  if (awayPopular) {
+    score += 300;
+  }
+
+
+  /*
+    兩支熱門球隊直接對戰，
+    再額外提升焦點程度
+  */
+  if (
+    homePopular &&
+    awayPopular
+  ) {
+    score += 300;
+  }
+
+
+  return score;
+}
+
+
+function sortV2FocusMatches(matches) {
+
+  return [...matches].sort(
+    (a, b) => {
+
+      const scoreDifference =
+        getV2FocusScore(b) -
+        getV2FocusScore(a);
+
+      if (scoreDifference !== 0) {
+        return scoreDifference;
+      }
+
+      return (
+        new Date(a.time).getTime() -
+        new Date(b.time).getTime()
+      );
+
+    }
+  );
+
+}  
   
 function renderV2FocusMatches(fixtures) {  
 
@@ -8627,11 +8895,11 @@ if (
   upcoming.length > 0
 ) {
 
-  const focusMatches =
-    [
-      ...live,
-      ...upcoming
-    ].slice(0, 2);
+const focusMatches =
+  sortV2FocusMatches([
+    ...live,
+    ...upcoming
+  ]).slice(0, 2);
 
   renderV2FocusMatchCards(
     container,
@@ -8745,25 +9013,22 @@ loadV2TomorrowFocusMatches()
     }
 
 
-    const tomorrowUpcoming =
-      [...tomorrowFixtures]
-        .filter(match => {
+const tomorrowUpcoming =
+  sortV2FocusMatches(
+    [...tomorrowFixtures]
+      .filter(match => {
 
-          const status =
-            String(
-              match?.status || ""
-            ).toUpperCase();
+        const status =
+          String(
+            match?.status || ""
+          ).toUpperCase();
 
-          return !finishedStatuses.has(
-            status
-          );
+        return !finishedStatuses.has(
+          status
+        );
 
-        })
-        .sort((a, b) =>
-          new Date(a.time).getTime() -
-          new Date(b.time).getTime()
-        )
-        .slice(0, 2);
+      })
+  ).slice(0, 2);
 
 
     renderV2FocusMatchCards(
@@ -9579,7 +9844,7 @@ navHome: "首頁",
 navMatches: "賽事",
 navPerformance: "AI 戰績",
 navAccount: "我的",
-todayFocus: "今日焦點",
+todayFocus: "焦點賽事",
 
 statTodayMatches: "今日賽事",
 statAnalyzed: "已分析",
@@ -9792,7 +10057,7 @@ navHome: "首页",
 navMatches: "赛事",
 navPerformance: "AI 战绩",
 navAccount: "我的",
-todayFocus: "今日焦点",
+todayFocus: "焦点赛事",
 statTodayMatches: "今日赛事",
 statAnalyzed: "已分析",
 statPublicVerified: "公开验证",
@@ -10004,7 +10269,7 @@ navHome: "Home",
 navMatches: "Matches",
 navPerformance: "AI Results",
 navAccount: "Account",
-todayFocus: "Today's Matches",
+todayFocus: "Featured Matches",
 
 statTodayMatches: "Today's Matches",
 statAnalyzed: "Analyzed",
@@ -10888,9 +11153,11 @@ if (container) {
       "WO"
     ]);
 
-  const tomorrowUpcoming =
+const tomorrowUpcoming =
+  sortV2FocusMatches(
     [...tomorrowFixtures]
       .filter(match => {
+
         const status =
           String(
             match?.status || ""
@@ -10899,12 +11166,9 @@ if (container) {
         return !finishedStatuses.has(
           status
         );
+
       })
-      .sort((a, b) =>
-        new Date(a.time).getTime() -
-        new Date(b.time).getTime()
-      )
-      .slice(0, 2);
+  ).slice(0, 2);
 
   renderV2FocusMatchCards(
     container,
