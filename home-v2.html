@@ -5441,6 +5441,7 @@ padding:
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
   
 </head>    
@@ -9108,39 +9109,6 @@ const currentLanguage =
   window.HabaoI18n?.getLanguage?.() ||
   "zh-Hant";
 
-
-function toV2SimplifiedChinese(text) {
-
-  return String(text || "")
-    .replaceAll("歐", "欧")
-    .replaceAll("國", "国")
-    .replaceAll("聯", "联")
-    .replaceAll("賽", "赛")
-    .replaceAll("蘭", "兰")
-    .replaceAll("羅", "罗")
-    .replaceAll("爾", "尔")
-    .replaceAll("馬", "马")
-    .replaceAll("島", "岛")
-    .replaceAll("義", "意")
-    .replaceAll("門", "门")
-    .replaceAll("華", "华")
-    .replaceAll("亞", "亚")
-    .replaceAll("維", "维")
-    .replaceAll("喬", "乔")
-    .replaceAll("澤", "泽")
-    .replaceAll("葉", "叶")
-    .replaceAll("盧", "卢")
-    .replaceAll("薩", "萨")
-    .replaceAll("達", "达")
-    .replaceAll("貝", "贝")
-    .replaceAll("倫", "伦")
-    .replaceAll("圖", "图")
-    .replaceAll("納", "纳")
-    .replaceAll("聖", "圣")
-    .replaceAll("斯", "斯");
-}
-
-
 function getV2LocalizedName(
   item,
   fallback
@@ -9161,7 +9129,7 @@ function getV2LocalizedName(
 
   if (currentLanguage === "zh-Hans") {
 
-    return toV2SimplifiedChinese(
+    return window.HabaoI18n.toSimplified(
       item.name ||
       item.api_name ||
       fallback
