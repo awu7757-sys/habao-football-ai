@@ -1,7 +1,7 @@
 // HABAO 賽事預測 AI - Service Worker
 
 const CACHE_NAME =
-  "habao-static-v6"
+  "habao-static-v7"
 
 const CORE_ASSETS = [
   "./",
@@ -117,10 +117,11 @@ self.addEventListener(
      * HTML 採 Network First，
      * 避免網站更新後一直卡在舊版 index.html。
      */
-    if (
-      request.mode === "navigate" ||
-      url.pathname.endsWith(".html")
-    ) {
+if (
+  request.mode === "navigate" ||
+  url.pathname.endsWith(".html") ||
+  url.pathname.endsWith(".js")
+) {
 
       event.respondWith(
         fetch(request)
