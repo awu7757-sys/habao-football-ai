@@ -5229,18 +5229,19 @@ await getHabaoSessionWithTimeout();
 if (session) {
 
   /*
-   * 已找到既有登入 Session。
-   *
-   * 保持 Splash 顯示，
-   * 直接完成會員驗證與跳頁。
-   *
-   * 不要在這裡先關閉 Splash，
-   * 避免 home-v2 真正載入前，
-   * index 登入畫面短暫露出。
+   * 已有登入 Session：
+   * 驗證成功會直接跳往 home-v2。
+   * 驗證失敗才關閉 Loading，
+   * 讓使用者重新登入。
    */
-  await verifyHabaoOAuthMember(
-    session
-  );
+  const redirected =
+    await verifyHabaoOAuthMember(
+      session
+    );
+
+  if (!redirected) {
+    window.habaoCloseSplash?.();
+  }
 
   return;
 }
