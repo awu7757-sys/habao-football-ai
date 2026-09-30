@@ -2895,6 +2895,13 @@ const habaoAnalysisTestMode =
 if (
   habaoAnalysisTestMode
 ) {
+  const testLang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  const isEnglishTest =
+    testLang === "en";
+
   raw = JSON.stringify({
     fixture: {
       date: "2026-10-01T19:30:00+08:00",
@@ -2917,42 +2924,89 @@ if (
       },
 
       venue: {
-        name: "測試球場",
-        city: "馬德里"
+        name:
+          isEnglishTest
+            ? "Test Stadium"
+            : "測試球場",
+
+        city:
+          isEnglishTest
+            ? "Madrid"
+            : "馬德里"
       }
     },
 
     analysis: {
       recommendations: {
         moneyline: {
-          pick: "皇家馬德里",
+          pick:
+            isEnglishTest
+              ? "Real Madrid"
+              : "皇家馬德里",
+
           confidence: 82,
-          reason: "測試分析：主隊近期進攻表現較為穩定。"
+
+          reason:
+            isEnglishTest
+              ? "Test analysis: the home side has shown more stable attacking form recently."
+              : "測試分析：主隊近期進攻表現較為穩定。"
         },
 
         handicap: {
-          pick: "皇家馬德里",
+          pick:
+            isEnglishTest
+              ? "Real Madrid"
+              : "皇家馬德里",
+
           line: "-0.5",
           confidence: 76,
-          reason: "測試分析：主場條件具有一定優勢。"
+
+          reason:
+            isEnglishTest
+              ? "Test analysis: home conditions provide a modest advantage."
+              : "測試分析：主場條件具有一定優勢。"
         },
 
         over_under: {
-          pick: "大 2.5",
+          pick:
+            isEnglishTest
+              ? "Over 2.5"
+              : "大 2.5",
+
           confidence: 79,
-          reason: "測試分析：雙方具備一定的進球能力。"
+
+          reason:
+            isEnglishTest
+              ? "Test analysis: both teams have enough attacking potential to produce goals."
+              : "測試分析：雙方具備一定的進球能力。"
         },
 
         btts: {
-          pick: "是",
+          pick:
+            isEnglishTest
+              ? "Yes"
+              : "是",
+
           confidence: 74,
-          reason: "測試分析：兩隊皆有取得進球的可能。"
+
+          reason:
+            isEnglishTest
+              ? "Test analysis: both teams have a reasonable chance of scoring."
+              : "測試分析：兩隊皆有取得進球的可能。"
         },
 
         double_chance: {
-          pick: "皇家馬德里 / 和局",
+          pick:
+            isEnglishTest
+              ? "Real Madrid / Draw"
+              : "皇家馬德里 / 和局",
+
           confidence: 86,
-          reason: "測試分析：主隊不敗機率相對較高。"
+
+          reason:
+            isEnglishTest
+              ? "Test analysis: the home side has the stronger probability of avoiding defeat."
+              : "測試分析：主隊不敗機率相對較高。"
         }
       },
 
@@ -2972,16 +3026,24 @@ if (
       ],
 
       summary:
-        "這是一筆三語系功能測試資料，用來確認分析結果頁的顯示是否正常。",
+        isEnglishTest
+          ? "This is multilingual test data used to verify that the analysis result page displays correctly in English."
+          : "這是一筆三語系功能測試資料，用來確認分析結果頁的顯示是否正常。",
 
       market_analysis:
-        "目前為測試模式，此內容僅用於確認分析頁各區塊能否正常顯示。",
+        isEnglishTest
+          ? "This page is currently in test mode. The content is only used to verify that each analysis section renders correctly."
+          : "目前為測試模式，此內容僅用於確認分析頁各區塊能否正常顯示。",
 
       risk_level:
-        "中等",
+        isEnglishTest
+          ? "Medium"
+          : "中等",
 
       final_note:
-        "這是測試資料，不代表任何真實賽事分析結果。"
+        isEnglishTest
+          ? "This is test data and does not represent a real match analysis."
+          : "這是測試資料，不代表任何真實賽事分析結果。"
     }
   });
 }
