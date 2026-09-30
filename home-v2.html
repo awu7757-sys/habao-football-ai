@@ -7951,6 +7951,15 @@ console.time("⏱️ 今日賽事 API");
         : [];
 
 
+const finishedStatuses =
+  new Set([
+    "FT",
+    "AET",
+    "PEN",
+    "AWD",
+    "WO"
+  ]);
+
 const visibleFixtures =
   fixtures.filter(match => {
 
@@ -7962,20 +7971,31 @@ const visibleFixtures =
         0
       );
 
-    return [
-      2,
-      3,
-      39,
-      140,
-      78,
-      135,
-      61,
-      98,
-      292,
-      88,
-      169,
-      71
-    ].includes(leagueId);
+    const status =
+      String(
+        match?.status || ""
+      ).toUpperCase();
+
+    const supportedLeague =
+      [
+        2,
+        3,
+        39,
+        140,
+        78,
+        135,
+        61,
+        98,
+        292,
+        88,
+        169,
+        71
+      ].includes(leagueId);
+
+    return (
+      supportedLeague &&
+      !finishedStatuses.has(status)
+    );
 
   });
 
