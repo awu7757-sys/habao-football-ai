@@ -5882,39 +5882,6 @@ function rerenderCurrentFixturesForLanguage() {
 window.addEventListener(
   "habao:languagechange",
   () => {
-
-    const sectionTitle =
-      document.getElementById(
-        "fixtureSectionTitle"
-      );
-
-    if (sectionTitle) {
-      sectionTitle.textContent =
-        currentFixtureOffset === 0
-          ? (
-              window.HabaoI18n?.t(
-                "todayFocus",
-                "⚽️ 今日焦點賽事"
-              ) ||
-              "⚽️ 今日焦點賽事"
-            )
-          : currentFixtureOffset === 1
-            ? (
-                window.HabaoI18n?.t(
-                  "tomorrowFocus",
-                  "⚽️ 明日焦點賽事"
-                ) ||
-                "⚽️ 明日焦點賽事"
-              )
-            : (
-                window.HabaoI18n?.t(
-                  "focusMatches",
-                  "⚽️ 焦點賽事"
-                ) ||
-                "⚽️ 焦點賽事"
-              );
-    }
-
     rerenderCurrentFixturesForLanguage();
   }
 );
@@ -7877,6 +7844,29 @@ analysisResultNotFound: "Analysis result not found"
           );
       }
     );
+
+    const sectionTitle =
+      document.getElementById(
+        "fixtureSectionTitle"
+      );
+
+    if (sectionTitle) {
+      sectionTitle.textContent =
+        currentFixtureOffset === 0
+          ? I18N.t(
+              "todayFocus",
+              "⚽️ 今日焦點賽事"
+            )
+          : currentFixtureOffset === 1
+            ? I18N.t(
+                "tomorrowFocus",
+                "⚽️ 明日焦點賽事"
+              )
+            : I18N.t(
+                "focusMatches",
+                "⚽️ 焦點賽事"
+              );
+    }
 
     const search =
       document.getElementById(
