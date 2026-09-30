@@ -4832,60 +4832,7 @@ async function loadTomorrowFixtures(offset = 1) {
     const cacheKey =
     `fixtures_${offset}`;
 
-  /* ===== TEMP FOOTBALL LANGUAGE TEST START ===== */
-  const habaoFootballTestMode =
-    new URLSearchParams(
-      window.location.search
-    ).get("test") === "1";
-
-  if (habaoFootballTestMode) {
-    const testData = {
-      success: true,
-      fixtures: [
-        {
-          __habaoTest: true,
-          fixtureId: 999999140,
-          time: "2026-10-01T19:30:00+08:00",
-          status: "NS",
-          league: {
-            id: 140,
-            name: "西班牙甲級聯賽",
-            api_name: "La Liga",
-            country: "Spain"
-          },
-          home: {
-            name: "皇家馬德里",
-            api_name: "Real Madrid",
-            logo: "./habao-hb-logo.png"
-          },
-          away: {
-            name: "巴塞隆納",
-            api_name: "Barcelona",
-            logo: "./habao-hb-logo.png"
-          }
-        }
-      ]
-    };
-
-    habaoFixtureCache.set(
-      cacheKey,
-      {
-        time: Date.now(),
-        data: testData
-      }
-    );
-
-    renderFixtureData(
-      testData,
-      offset,
-      container
-    );
-
-    return;
-  }
-  /* ===== TEMP FOOTBALL LANGUAGE TEST END ===== */
-
-  const cached =
+    const cached =
     habaoFixtureCache.get(cacheKey);
 
   if (
@@ -5380,10 +5327,6 @@ const leagueText =
     const isLocked =
       currentFixtureOffset === 2;
 
-    const isTestFixture =
-      Boolean(match.__habaoTest);
-
-
     return `
       <article
         class="match-card v2-match-card"
@@ -5494,24 +5437,6 @@ const leagueText =
                   disabled
                 >
                   ${window.HabaoI18n?.t("analysisTomorrow", "明日開放分析") || "明日開放分析"}
-                </button>
-              `
-
-              : isTestFixture
-
-              ? `
-                <div class="ai-status v2-status ready">
-                  <span></span>
-                  ${window.HabaoI18n?.t("analysisAvailable", "可分析") || "可分析"}
-                </div>
-
-                <button
-                  class="analysis-btn v2-analysis-btn"
-                  disabled
-                  style="opacity:.72;cursor:default;"
-                >
-                  <span>${window.HabaoI18n?.t("startAnalysis", "開始分析") || "開始分析"}</span>
-                  <strong>→</strong>
                 </button>
               `
 
