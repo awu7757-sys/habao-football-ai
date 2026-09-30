@@ -3812,16 +3812,20 @@ async function createAnalysisJob(
             "application/json"
         },
 
-        body: JSON.stringify({
-          account:
-            member.account,
+body: JSON.stringify({
+  account:
+    member.account,
 
-          job_type:
-            jobType,
+  job_type:
+    jobType,
 
-          fixture_ids:
-            fixtureIds.map(Number)
-        })
+  fixture_ids:
+    fixtureIds.map(Number),
+
+  language:
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant"
+})
       }
     );
 
@@ -6182,13 +6186,17 @@ async function requestBatchAnalysis(
             "application/json"
         },
 
-        body: JSON.stringify({
-          fixture_id:
-            fixtureId,
+body: JSON.stringify({
+  fixture_id:
+    fixtureId,
 
-          account:
-            member?.account || ""
-        })
+  account:
+    member?.account || "",
+
+  language:
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant"
+})
       }
     );
 
