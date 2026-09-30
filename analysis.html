@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>AI 賽事分析｜哈寶足球 AI</title>
-
+   
+<script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
    
 <style>   
@@ -2948,22 +2949,23 @@ function updateBatchResultNav() {
     }
   }
 
-  if (team) {
-    const home =
-      fixture.home?.name ||
-      fixture.home?.api_name ||
-      analysisT(
-        "homeTeam",
-        "主隊"
-      );
+const home =
+  getAnalysisLocalizedName(
+    fixture.home,
+    analysisT(
+      "homeTeam",
+      "主隊"
+    )
+  );
 
-    const away =
-      fixture.away?.name ||
-      fixture.away?.api_name ||
-      analysisT(
-        "awayTeam",
-        "客隊"
-      );
+const away =
+  getAnalysisLocalizedName(
+    fixture.away,
+    analysisT(
+      "awayTeam",
+      "客隊"
+    )
+  );
 
     team.textContent =
       `${home} vs ${away}`;
@@ -3029,72 +3031,53 @@ function showNextBatchResult() {
   );
 }
 
-
-function getAnalysisLeagueName(
-  leagueName = ""
+function getAnalysisLocalizedName(
+  item,
+  fallback = ""
 ) {
+  if (!item) {
+    return fallback;
+  }
+
   const lang =
-    window.HabaoI18n
-      ?.getLanguage?.() ||
+    window.HabaoI18n?.getLanguage?.() ||
     "zh-Hant";
 
   if (lang === "en") {
-    return leagueName;
-  }
-
-  const traditional = {
-    "Premier League": "英超",
-    "La Liga": "西甲",
-    "Bundesliga": "德甲",
-    "Serie A": "義甲",
-    "Ligue 1": "法甲",
-    "UEFA Champions League": "歐洲冠軍聯賽",
-    "UEFA Europa League": "歐洲聯賽",
-    "Championship": "英格蘭冠軍聯賽",
-    "Eredivisie": "荷蘭甲級聯賽",
-    "Primeira Liga": "葡萄牙超級聯賽",
-    "Jupiler Pro League": "比利時甲級聯賽",
-    "Belgian Pro League": "比利時甲級聯賽",
-    "UEFA Conference League": "歐洲協會聯賽",
-    "Europa Conference League": "歐洲協會聯賽",
-    "Super Lig": "土耳其超級聯賽",
-    "Süper Lig": "土耳其超級聯賽",
-    "KNVB Beker": "荷蘭盃"
-  };
-
-  const simplified = {
-    "Premier League": "英超",
-    "La Liga": "西甲",
-    "Bundesliga": "德甲",
-    "Serie A": "意甲",
-    "Ligue 1": "法甲",
-    "UEFA Champions League": "欧洲冠军联赛",
-    "UEFA Europa League": "欧洲联赛",
-    "Championship": "英格兰冠军联赛",
-    "Eredivisie": "荷兰甲级联赛",
-    "Primeira Liga": "葡萄牙超级联赛",
-    "Jupiler Pro League": "比利时甲级联赛",
-    "Belgian Pro League": "比利时甲级联赛",
-    "UEFA Conference League": "欧洲协会联赛",
-    "Europa Conference League": "欧洲协会联赛",
-    "Super Lig": "土耳其超级联赛",
-    "Süper Lig": "土耳其超级联赛",
-    "KNVB Beker": "荷兰杯"
-  };
-
-  if (lang === "zh-Hans") {
     return (
-      simplified[leagueName] ||
-      leagueName
+      item?.api_name ||
+      item?.name ||
+      (typeof item === "string" ? item : "") ||
+      fallback
     );
   }
 
-  return (
-    traditional[leagueName] ||
-    leagueName
-  );
+  const traditionalName =
+    item?.name ||
+    item?.api_name ||
+    (typeof item === "string" ? item : "") ||
+    fallback;
+
+  if (lang === "zh-Hans") {
+    return window.HabaoI18n?.toSimplified
+      ? window.HabaoI18n.toSimplified(
+          traditionalName
+        )
+      : traditionalName;
+  }
+
+  return traditionalName;
 }
 
+
+function getAnalysisLeagueName(
+  league
+) {
+  return getAnalysisLocalizedName(
+    league,
+    ""
+  );
+}   
 
 if (
   isBatchMode &&
@@ -3251,7 +3234,10 @@ const timeText = gameDate
     </div>
 
     <div class="team-name">
-      ${fixture.home?.name || fixture.home?.api_name || analysisT("homeTeam", "主隊")}
+      ${getAnalysisLocalizedName(
+  fixture.home,
+  analysisT("homeTeam", "主隊")
+)}
     </div>
   </div>
 
@@ -3269,7 +3255,10 @@ const timeText = gameDate
     </div>
 
     <div class="team-name">
-      ${fixture.away?.name || fixture.away?.api_name || analysisT("awayTeam", "客隊")}
+      ${getAnalysisLocalizedName(
+  fixture.away,
+  analysisT("awayTeam", "客隊")
+)}
     </div>
   </div>
 
