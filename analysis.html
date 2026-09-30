@@ -2907,13 +2907,13 @@ if (
       home: {
         name: "皇家馬德里",
         api_name: "Real Madrid",
-        logo: "./habao-hb-logo.png"
+        logo: ""
       },
 
       away: {
         name: "巴塞隆納",
         api_name: "Barcelona",
-        logo: "./habao-hb-logo.png"
+        logo: ""
       },
 
       venue: {
@@ -2984,6 +2984,7 @@ if (
         "這是測試資料，不代表任何真實賽事分析結果。"
     }
   });
+}
 
 /* ===== TEMP ANALYSIS LANGUAGE TEST END ===== */   
 
@@ -2997,7 +2998,6 @@ function updateBatchResultNav() {
     !nav ||
     !batchResults.length
   ) {
-     
     return;
   }
 
@@ -3051,24 +3051,25 @@ function updateBatchResultNav() {
     }
   }
 
-const home =
-  getAnalysisLocalizedName(
-    fixture.home,
-    analysisT(
-      "homeTeam",
-      "主隊"
-    )
-  );
+  const home =
+    getAnalysisLocalizedName(
+      fixture.home,
+      analysisT(
+        "homeTeam",
+        "主隊"
+      )
+    );
 
-const away =
-  getAnalysisLocalizedName(
-    fixture.away,
-    analysisT(
-      "awayTeam",
-      "客隊"
-    )
-  );
+  const away =
+    getAnalysisLocalizedName(
+      fixture.away,
+      analysisT(
+        "awayTeam",
+        "客隊"
+      )
+    );
 
+  if (team) {
     team.textContent =
       `${home} vs ${away}`;
   }
