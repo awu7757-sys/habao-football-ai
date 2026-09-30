@@ -7951,10 +7951,38 @@ console.time("⏱️ 今日賽事 API");
         : [];
 
 
-    animateV2Number(
-      countEl,
-      fixtures.length
-    );
+const visibleFixtures =
+  fixtures.filter(match => {
+
+    const leagueId =
+      Number(
+        match?.league?.id ||
+        match?.league_id ||
+        match?.leagueId ||
+        0
+      );
+
+    return [
+      2,
+      3,
+      39,
+      140,
+      78,
+      135,
+      61,
+      98,
+      292,
+      88,
+      169,
+      71
+    ].includes(leagueId);
+
+  });
+
+animateV2Number(
+  countEl,
+  visibleFixtures.length
+);
 
 
     /*
