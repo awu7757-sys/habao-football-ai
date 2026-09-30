@@ -3273,6 +3273,26 @@ const analysisLocale =
       ? "zh-CN"
       : "zh-TW";
 
+const localizeAnalysisText = value => {
+  const text =
+    value === null || value === undefined
+      ? ""
+      : String(value);
+
+  if (!text) {
+    return "";
+  }
+
+  if (
+    currentAnalysisLang === "zh-Hans" &&
+    window.HabaoI18n?.toSimplified
+  ) {
+    return window.HabaoI18n.toSimplified(text);
+  }
+
+  return text;
+};
+
 const timeText = gameDate
   ? gameDate.toLocaleString(
       analysisLocale,
@@ -3373,7 +3393,7 @@ ${getAnalysisLeagueName(
 )}
 <br>
         ${timeText}<br>
-        ${fixture.venue?.name || ""}${fixture.venue?.city ? "・" + fixture.venue.city : ""}
+        ${localizeAnalysisText(fixture.venue?.name || "")}${fixture.venue?.city ? "・" + localizeAnalysisText(fixture.venue.city) : ""}
       </div>
 
       <div class="grid">
@@ -3383,7 +3403,7 @@ ${getAnalysisLeagueName(
           <div class="pick-label">${analysisT("moneyline", "獨贏")}</div>
 
           <div class="pick-value">
-            ${moneyline.pick || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(moneyline.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
@@ -3396,7 +3416,7 @@ ${getAnalysisLeagueName(
           </div>
 
           <div class="reason">
-            ${moneyline.reason || analysisT("insufficientData", "資料不足")}
+            ${localizeAnalysisText(moneyline.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3406,7 +3426,7 @@ ${getAnalysisLeagueName(
           <div class="pick-label">${analysisT("handicap", "讓分")}</div>
 
           <div class="pick-value">
-            ${handicap.pick || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(handicap.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           ${
@@ -3432,7 +3452,7 @@ handicap.pick !== "No Recommendation"
           </div>
 
           <div class="reason">
-            ${handicap.reason || analysisT("insufficientData", "資料不足")}
+            ${localizeAnalysisText(handicap.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3442,7 +3462,7 @@ handicap.pick !== "No Recommendation"
           <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
 
           <div class="pick-value">
-            ${overUnder.pick || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
@@ -3455,7 +3475,7 @@ handicap.pick !== "No Recommendation"
           </div>
 
           <div class="reason">
-            ${overUnder.reason || analysisT("insufficientData", "資料不足")}
+            ${localizeAnalysisText(overUnder.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3465,7 +3485,7 @@ handicap.pick !== "No Recommendation"
           <div class="pick-label">BTTS</div>
 
           <div class="pick-value">
-            ${btts.pick || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(btts.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
@@ -3478,7 +3498,7 @@ handicap.pick !== "No Recommendation"
           </div>
 
           <div class="reason">
-            ${btts.reason || analysisT("insufficientData", "資料不足")}
+            ${localizeAnalysisText(btts.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3488,7 +3508,7 @@ handicap.pick !== "No Recommendation"
           <div class="pick-label">${analysisT("doubleChance", "雙重機會")}</div>
 
           <div class="pick-value">
-            ${doubleChance.pick || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(doubleChance.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
 
           <div class="confidence">
@@ -3504,7 +3524,7 @@ handicap.pick !== "No Recommendation"
           </div>
 
           <div class="reason">
-            ${doubleChance.reason || analysisT("insufficientData", "資料不足")}
+            ${localizeAnalysisText(doubleChance.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
 
@@ -3550,7 +3570,7 @@ handicap.pick !== "No Recommendation"
             <div class="v2-insight-title">${analysisT("analysisFocus", "AI 分析重點")}</div>
 
             <p>
-              ${analysis.summary || analysisT("noSummary", "目前沒有摘要資料。")}
+              ${localizeAnalysisText(analysis.summary) || analysisT("noSummary", "目前沒有摘要資料。")} 
             </p>
           </div>
         </div>
@@ -3564,7 +3584,7 @@ handicap.pick !== "No Recommendation"
             <div class="v2-insight-title">${analysisT("marketAnalysis", "市場與賠率分析")}</div>
 
             <p>
-              ${analysis.market_analysis || analysisT("insufficientData", "資料不足")}
+              ${localizeAnalysisText(analysis.market_analysis) || analysisT("insufficientData", "資料不足")} 
             </p>
           </div>
         </div>
@@ -3622,7 +3642,7 @@ handicap.pick !== "No Recommendation"
           </div>
 
           <div class="v2-risk-value">
-            ${analysis.risk_level || analysisT("notEvaluated", "未評估")}
+            ${localizeAnalysisText(analysis.risk_level) || analysisT("notEvaluated", "未評估")}
           </div>
 
         </div>
@@ -3637,7 +3657,7 @@ handicap.pick !== "No Recommendation"
             <div class="v2-insight-title">${analysisT("finalNote", "AI 最終提醒")}</div>
 
             <p>
-              ${analysis.final_note || analysisT("finalFallback", "請綜合即時資訊判斷。")}
+              ${localizeAnalysisText(analysis.final_note) || analysisT("finalFallback", "請綜合即時資訊判斷。")} 
             </p>
           </div>
 
