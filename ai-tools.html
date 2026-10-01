@@ -189,51 +189,32 @@
       background:linear-gradient(145deg,rgba(255,72,150,.07),rgba(255,255,255,.02));
     }
     .feature-icon{
-      position:absolute;
-      left:18px;
-      top:50%;
-      transform:translateY(-50%);
-      width:58px;
-      height:58px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:18px;
-      color:#ffc2e7;
-      background:
-        radial-gradient(circle at 50% 42%,rgba(255,111,195,.20),transparent 62%),
-        linear-gradient(145deg,rgba(31,22,43,.98),rgba(12,10,21,.99));
-      border:1px solid rgba(255,95,181,.48);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.11),
-        inset 0 0 22px rgba(240,90,157,.06),
-        0 0 0 1px rgba(142,73,255,.08),
-        0 10px 24px rgba(0,0,0,.38),
-        0 0 20px rgba(240,90,157,.14);
-    }
-    .feature-icon::after{
-      content:"";
-      position:absolute;
-      inset:7px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.035);
-      pointer-events:none;
-    }
-    .feature-icon svg{
-      width:30px;
-      height:30px;
-      display:block;
-      flex:0 0 30px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.9;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-      overflow:visible;
-      filter:
-        drop-shadow(0 0 4px rgba(255,185,228,.40))
-        drop-shadow(0 0 10px rgba(240,90,157,.24));
-    }
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:46px;
+  height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-radius:15px;
+  border:1px solid rgba(255,95,181,.38);
+  background:#130d1b;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 0 0 1px rgba(142,73,255,.08),
+    0 8px 22px rgba(0,0,0,.35),
+    0 0 18px rgba(240,90,157,.12);
+}
+.feature-icon img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  border-radius:14px;
+}
     .feature-number{
       position:absolute;right:12px;top:12px;min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;
       border-radius:999px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
@@ -409,12 +390,12 @@
       const I18N = window.HabaoI18n;
 
       const iconMap = {
-        input: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"></rect><path d="M8 8h8"></path><path d="M8 12h5"></path><path d="M8 16h3"></path><path d="M15 14l1.5 1.5L20 12"></path></svg>`,
-        scan: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3H5a2 2 0 0 0-2 2v2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M17 21h2a2 2 0 0 0 2-2v-2"></path><circle cx="11" cy="11" r="4"></circle><path d="M14 14l4 4"></path></svg>`,
-        rank: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path><path d="M3 20h18"></path><path d="M9 7l3-3 3 3"></path></svg>`,
-        trend: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l5-5 4 3 7-8"></path><path d="M15 6h5v5"></path><circle cx="5" cy="17" r="1.5"></circle></svg>`,
-        chip: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3"></rect><path d="M9 10h6"></path><path d="M9 14h3"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M9 18v4"></path><path d="M15 18v4"></path><path d="M2 9h4"></path><path d="M2 15h4"></path><path d="M18 9h4"></path><path d="M18 15h4"></path></svg>`
-      };
+  input: 'atg-feature-input.png',
+  scan: 'atg-feature-scan.png',
+  rank: 'atg-feature-rank.png',
+  trend: 'atg-feature-result.png',
+  chip: 'atg-feature-ai.png'
+};
 
       const pageText = {
         'zh-Hant': {
@@ -714,7 +695,7 @@
           featureGrid.classList.add('atg-core');
           featureGrid.innerHTML = t.features.map((item, index) => `
             <div class="feature atg-feature">
-              <span class="feature-icon">${iconMap[item.icon] || ''}</span>
+              <span class="feature-icon"><img src="${iconMap[item.icon] || ''}" alt="" loading="lazy"></span>
               <span class="feature-number">${index + 1}</span>
               <strong>${item.title}</strong>
               <span>${item.desc}</span>
