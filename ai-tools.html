@@ -198,10 +198,13 @@
       display:flex;
       align-items:center;
       justify-content:center;
+      padding:0;
+      margin:0;
+      overflow:hidden;
       border-radius:14px;
       color:#ffd2ee;
       background:
-        radial-gradient(circle at 35% 25%,rgba(255,92,185,.24),transparent 48%),
+        radial-gradient(circle at 50% 45%,rgba(255,92,185,.20),transparent 58%),
         linear-gradient(145deg,rgba(29,17,42,.98),rgba(11,9,18,.98));
       border:1px solid rgba(255,83,178,.42);
       box-shadow:
@@ -209,19 +212,20 @@
         0 0 0 1px rgba(167,83,255,.08),
         0 8px 20px rgba(0,0,0,.34),
         0 0 16px rgba(240,90,157,.16);
+      font-size:28px;
+      font-weight:900;
+      line-height:1;
+      text-align:center;
+      letter-spacing:0;
+      text-indent:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Arial",sans-serif;
+      text-shadow:0 0 8px rgba(255,107,196,.45);
     }
-    .feature-icon svg{
-      width:34px;
-      height:34px;
-      display:block;
-      flex:0 0 34px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:2.25;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-      filter:drop-shadow(0 0 4px rgba(255,107,196,.35));
-    }
+    .feature-icon-input{font-size:27px}
+    .feature-icon-scan{font-size:31px}
+    .feature-icon-rank{font-size:27px}
+    .feature-icon-trend{font-size:34px}
+    .feature-icon-chip{font-size:18px;letter-spacing:-1px}
     .feature.atg-feature strong{font-size:14px;padding-right:34px;line-height:1.45}
     .feature.atg-feature > span:not(.feature-icon){font-size:10px;line-height:1.75;color:#99a7b6;padding-right:16px}
     .flow-list{display:grid;gap:8px}
@@ -268,7 +272,7 @@
       .tool-logo{width:58px;height:58px;flex-basis:58px;border-radius:16px}
       .tool-name{font-size:15px}.tool-tags{font-size:9px}
       .detail-logo{width:68px;height:68px;flex-basis:68px;border-radius:18px}
-      .detail-name{font-size:19px}.feature-grid{gap:8px}.feature.atg-feature{min-height:112px;padding:15px 13px 15px 82px}.feature-icon{width:52px;height:52px;left:15px}.feature-icon svg{width:34px;height:34px;flex-basis:34px}
+      .detail-name{font-size:19px}.feature-grid{gap:8px}.feature.atg-feature{min-height:112px;padding:15px 13px 15px 82px}.feature-icon{width:52px;height:52px;left:15px}
     }
   </style>
   <script src="./opencc.js"></script>
@@ -392,39 +396,11 @@
       const I18N = window.HabaoI18n;
 
       const iconMap = {
-        input: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 3h8l4 4v14H6z"/>
-          <path d="M14 3v5h5"/>
-          <path d="M9 12h6"/>
-          <path d="M9 16h4"/>
-          <path d="M14.5 17.5l1.5 1.5 3-3"/>
-        </svg>`,
-        scan: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="8"/>
-          <path d="M12 12l5-3"/>
-          <path d="M12 4v2"/>
-          <path d="M4 12h2"/>
-          <path d="M18 12h2"/>
-          <path d="M7 7l1.5 1.5"/>
-        </svg>`,
-        rank: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 20v-5h4v5"/>
-          <path d="M10 20V9h4v11"/>
-          <path d="M15 20v-8h4v8"/>
-          <path d="M8.5 6.5l3.5-3 3.5 3"/>
-        </svg>`,
-        trend: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 18l5-5 4 3 7-8"/>
-          <path d="M15 8h5v5"/>
-          <path d="M4 20h16"/>
-        </svg>`,
-        chip: `<svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="6" y="6" width="12" height="12" rx="3"/>
-          <path d="M9 10h6"/>
-          <path d="M9 14h6"/>
-          <path d="M9 2v4M15 2v4M9 18v4M15 18v4"/>
-          <path d="M2 9h4M2 15h4M18 9h4M18 15h4"/>
-        </svg>`
+        input: '✓',
+        scan: '◎',
+        rank: '♛',
+        trend: '↗',
+        chip: 'AI'
       };
 
       const pageText = {
@@ -725,7 +701,7 @@
           featureGrid.classList.add('atg-core');
           featureGrid.innerHTML = t.features.map((item, index) => `
             <div class="feature atg-feature">
-              <span class="feature-icon">${iconMap[item.icon] || ''}</span>
+              <span class="feature-icon feature-icon-${item.icon}">${iconMap[item.icon] || ''}</span>
               <strong>${item.title}</strong>
               <span>${item.desc}</span>
             </div>
