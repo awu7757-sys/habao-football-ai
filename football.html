@@ -7038,7 +7038,13 @@ window.addEventListener(
 );
   
 // 頁面開啟後自動取得賽事
-loadTomorrowFixtures();
+// 從首頁「我的分析」進入時，不先載入明日賽事，避免畫面先跳一次賽事列表。
+window.habaoInitialFootballView =
+  new URLSearchParams(window.location.search).get("view");
+
+if (window.habaoInitialFootballView !== "history") {
+  loadTomorrowFixtures();
+}
 </script>
 <script>
 const ANALYSIS_HISTORY_URL =
@@ -7147,11 +7153,33 @@ function renderAnalysisHistory(matches) {
 if (!matches.length) {
 
   container.innerHTML = `
-    <div class="ai-note">
-      ${t(
-        "noHistory",
-        "尚無分析紀錄"
-      )}
+    <div class="v2-history-empty">
+
+      <div class="v2-history-empty-icon">
+        <img
+          src="./habao-hb-logo.png"
+          alt="HABAO"
+        >
+      </div>
+
+      <div class="v2-history-empty-label">
+        ANALYSIS HISTORY
+      </div>
+
+      <div class="v2-history-empty-title">
+        ${t(
+          "noHistory",
+          "尚無分析紀錄"
+        )}
+      </div>
+
+      <div class="v2-history-empty-text">
+        ${t(
+          "noHistoryText",
+          "完成賽事分析後，紀錄會自動保存在這裡。"
+        )}
+      </div>
+
     </div>
   `;
 
@@ -7542,6 +7570,11 @@ window.addEventListener(
     }
   }
 );
+
+// 首頁「我的分析」直達：football.html?view=history
+if (window.habaoInitialFootballView === "history") {
+  openAnalysisHistory();
+}
   
 </script>
 
