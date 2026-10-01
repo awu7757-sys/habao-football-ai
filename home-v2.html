@@ -3266,6 +3266,71 @@ padding:
     );
 }
 
+.v2-tool-toolbox {
+  border-color: rgba(242, 189, 75, .38);
+
+  background:
+    radial-gradient(
+      circle at 86% 10%,
+      rgba(242, 189, 75, .17),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(38, 34, 24, .97),
+      rgba(10, 16, 24, .99)
+    );
+
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.40),
+    0 0 26px rgba(242,189,75,.08),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.v2-tool-toolbox::after {
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,205,91,.22),
+      transparent 70%
+    );
+}
+
+.v2-tool-toolbox .v2-tool-icon {
+  color: #ffd76b;
+  border-color: rgba(255,211,112,.38);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(119,88,25,.90),
+      rgba(25,24,21,.98)
+    );
+}
+
+.v2-tool-toolbox .v2-tool-kicker {
+  color: rgba(255,210,108,.78);
+}
+
+.v2-tool-toolbox-logos {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding-left: 2px;
+}
+
+.v2-tool-toolbox-logos img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 6px 13px rgba(0,0,0,.32);
+}
+
+.v2-tool-toolbox-logos img + img {
+  margin-left: -6px;
+}
+
 .v2-tool-disabled {
   border-color: rgba(148,181,218,.10);
   opacity: .72;
@@ -5982,8 +6047,11 @@ padding:
     </a>
 
 
-    <!-- 更多功能 -->
-    <div class="v2-tool-card v2-tool-disabled">
+    <!-- AI 工具箱 -->
+    <a
+      href="ai-tools.html"
+      class="v2-tool-card v2-tool-toolbox"
+    >
 
       <div class="v2-tool-top">
 
@@ -5993,14 +6061,15 @@ padding:
             fill="none"
             stroke="currentColor"
           >
-            <path d="M12 3v18"/>
-            <path d="M3 12h18"/>
-            <circle cx="12" cy="12" r="9"/>
+            <rect x="4" y="4" width="6" height="6" rx="1.5"/>
+            <rect x="14" y="4" width="6" height="6" rx="1.5"/>
+            <rect x="4" y="14" width="6" height="6" rx="1.5"/>
+            <rect x="14" y="14" width="6" height="6" rx="1.5"/>
           </svg>
         </div>
 
-        <div class="v2-tool-coming">
-          SOON
+        <div class="v2-tool-arrow">
+          →
         </div>
 
       </div>
@@ -6008,24 +6077,30 @@ padding:
       <div class="v2-tool-content">
 
         <div class="v2-tool-kicker">
-          EXPANSION
+          AI TOOLBOX
         </div>
 
         <div class="v2-tool-title">
-          更多功能
+          AI 工具箱
         </div>
 
         <div class="v2-tool-desc">
-          更多聯賽、數據與運動項目持續擴充
+          ATG AI・539 AI 等多款智能工具
+        </div>
+
+        <div class="v2-tool-toolbox-logos" aria-hidden="true">
+          <img src="xinyao-atg-logo.png" alt="">
+          <img src="xinyao-539-logo.png" alt="">
         </div>
 
       </div>
 
       <div class="v2-tool-footer">
-        系統持續升級
+        <span class="v2-tool-dot"></span>
+        2 款工具可使用
       </div>
 
-    </div>
+    </a>
 
   </div>
 
@@ -9731,7 +9806,10 @@ personalAnalysisCenter: "個人分析中心",
 
 moreFeatures: "更多功能",
 moreFeaturesDesc: "更多聯賽、數據與運動項目持續擴充",
-systemUpgrading: "系統持續升級"
+systemUpgrading: "系統持續升級",
+aiToolbox: "AI 工具箱",
+aiToolboxDesc: "ATG AI・539 AI 等多款智能工具",
+toolsAvailable: "2 款工具可使用"
     },
 
 
@@ -9943,7 +10021,10 @@ personalAnalysisCenter: "个人分析中心",
 
 moreFeatures: "更多功能",
 moreFeaturesDesc: "更多联赛、数据与运动项目持续扩充",
-systemUpgrading: "系统持续升级"
+systemUpgrading: "系统持续升级",
+aiToolbox: "AI 工具箱",
+aiToolboxDesc: "ATG AI・539 AI 等多款智能工具",
+toolsAvailable: "2 款工具可使用"
     },
 
 
@@ -10156,7 +10237,10 @@ personalAnalysisCenter: "Personal Analysis Center",
 
 moreFeatures: "More Features",
 moreFeaturesDesc: "More leagues, data and sports are coming",
-systemUpgrading: "System Upgrading"
+systemUpgrading: "System Upgrading",
+aiToolbox: "AI Toolbox",
+aiToolboxDesc: "ATG AI, 539 AI and more smart tools",
+toolsAvailable: "2 tools available"
     }
 
   });
@@ -10695,7 +10779,7 @@ const toolTitleKeys = [
   "matchCenter",
   "aiPerformance",
   "myAnalysis",
-  "moreFeatures"
+  "aiToolbox"
 ];
 
 toolTitles.forEach(
@@ -10729,7 +10813,7 @@ const toolDescriptionKeys = [
   "matchCenterDesc",
   "aiPerformanceDesc",
   "myAnalysisDesc",
-  "moreFeaturesDesc"
+  "aiToolboxDesc"
 ];
 
 toolDescriptions.forEach(
@@ -10763,7 +10847,7 @@ const toolFooterKeys = [
   "liveMatchData",
   "autoVerifySystem",
   "personalAnalysisCenter",
-  "systemUpgrading"
+  "toolsAvailable"
 ];
 
 toolFooters.forEach(
