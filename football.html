@@ -3181,6 +3181,303 @@ h1{
   
 </style>
   
+
+<style>
+/* =========================================================
+   HABAO MATCH CENTER V3
+   Sport switcher / smarter search / two-level league filter
+========================================================= */
+
+.v3-sport-switcher{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:14px;
+  padding:7px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:19px;
+  background:
+    linear-gradient(145deg,rgba(16,23,31,.98),rgba(8,12,17,.98));
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-sport-tab{
+  min-width:0;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 9px;
+  border:1px solid transparent;
+  border-radius:14px;
+  background:transparent;
+  color:#7f8b98;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.2px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.v3-sport-tab:hover{
+  color:#d7dee5;
+  background:rgba(255,255,255,.035);
+}
+
+.v3-sport-tab.active{
+  color:#ffe083;
+  border-color:rgba(237,190,75,.42);
+  background:
+    linear-gradient(145deg,rgba(237,190,75,.18),rgba(154,102,17,.08));
+  box-shadow:
+    inset 0 1px 0 rgba(255,242,190,.08),
+    0 8px 18px rgba(0,0,0,.18);
+}
+
+.v3-sport-icon{
+  font-size:19px;
+  line-height:1;
+}
+
+.v3-sport-label{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.v3-sport-toast{
+  position:fixed;
+  left:50%;
+  bottom:28px;
+  z-index:10020;
+  transform:translate(-50%,18px);
+  width:max-content;
+  max-width:calc(100vw - 34px);
+  padding:11px 16px;
+  border:1px solid rgba(237,190,75,.36);
+  border-radius:999px;
+  background:rgba(8,13,18,.96);
+  color:#f1d585;
+  font-size:12px;
+  font-weight:850;
+  box-shadow:0 14px 38px rgba(0,0,0,.45);
+  opacity:0;
+  pointer-events:none;
+  transition:.2s ease;
+}
+
+.v3-sport-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+.v3-fixture-tools{
+  margin:0 0 24px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:19px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(231,180,59,.06),transparent 34%),
+    linear-gradient(145deg,rgba(15,23,31,.97),rgba(8,13,18,.97));
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools.is-hidden{
+  display:none !important;
+}
+
+.v3-fixture-tools .fixture-search{
+  max-width:none;
+  margin:0 0 13px;
+}
+
+.v3-fixture-tools .fixture-search input{
+  height:52px;
+  padding:0 48px 0 47px;
+  border:1px solid rgba(237,190,75,.24);
+  border-radius:14px;
+  background:#080d12;
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools .fixture-search input::placeholder{
+  color:#5f6d7b;
+  font-weight:650;
+}
+
+.v3-fixture-tools .fixture-search input:focus{
+  border-color:rgba(237,190,75,.56);
+  box-shadow:
+    0 0 0 3px rgba(237,190,75,.08),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools .fixture-search-icon{
+  left:16px;
+  color:#dfb445;
+  font-size:21px;
+}
+
+.v3-search-clear{
+  position:absolute;
+  right:9px;
+  top:50%;
+  transform:translateY(-50%);
+  width:32px;
+  height:32px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  color:#a8b2bc;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.v3-search-clear.show{
+  display:flex;
+}
+
+.v3-filter-caption{
+  margin:2px 2px 8px;
+  color:#8c7650;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.fixture-league-groups,
+.v3-fixture-tools .fixture-league-filter{
+  display:flex;
+  gap:8px;
+  width:100%;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+.fixture-league-groups::-webkit-scrollbar,
+.v3-fixture-tools .fixture-league-filter::-webkit-scrollbar{
+  display:none;
+}
+
+.fixture-league-groups{
+  margin:0;
+  padding:1px 1px 9px;
+}
+
+.v3-league-group-btn{
+  flex:0 0 auto;
+  min-width:74px;
+  height:37px;
+  padding:0 14px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:#11171d;
+  color:#788592;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.v3-league-group-btn:hover:not(.active){
+  color:#d2dae1;
+  border-color:rgba(255,255,255,.15);
+}
+
+.v3-league-group-btn.active{
+  color:#0f120b;
+  border-color:#e2b446;
+  background:linear-gradient(135deg,#f3d47d,#d99d27);
+  box-shadow:0 8px 18px rgba(217,157,39,.14);
+}
+
+.v3-fixture-tools .fixture-league-filter{
+  margin:0;
+  padding:9px 1px 1px;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+
+.v3-fixture-tools .league-filter-btn{
+  min-width:64px;
+  height:34px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+  color:#788592;
+  font-size:10px;
+  font-weight:850;
+}
+
+.v3-fixture-tools .league-filter-btn:hover:not(.active){
+  color:#e4c975;
+  border-color:rgba(232,184,72,.26);
+  background:rgba(232,184,72,.04);
+}
+
+.v3-fixture-tools .league-filter-btn.active{
+  color:#f3d579;
+  border-color:rgba(232,184,72,.42);
+  background:rgba(232,184,72,.10);
+  box-shadow:none;
+}
+
+@media(max-width:600px){
+  .v3-sport-switcher{
+    gap:6px;
+    padding:6px;
+    border-radius:17px;
+  }
+
+  .v3-sport-tab{
+    min-height:50px;
+    gap:6px;
+    padding:9px 6px;
+    font-size:12px;
+  }
+
+  .v3-sport-icon{
+    font-size:17px;
+  }
+
+  .v3-fixture-tools{
+    padding:12px;
+    border-radius:17px;
+  }
+
+  .v3-fixture-tools .fixture-search input{
+    height:49px;
+    font-size:13px;
+  }
+
+  .v3-league-group-btn{
+    min-width:68px;
+    height:36px;
+    padding:0 12px;
+    font-size:10px;
+  }
+
+  .v3-fixture-tools .league-filter-btn{
+    height:33px;
+    padding:0 12px;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -3261,6 +3558,47 @@ h1{
   </section>
 
 
+
+  <!-- SPORT SWITCHER -->
+  <section class="v3-sport-switcher" id="sportSwitcher" aria-label="運動種類">
+    <button
+      type="button"
+      class="v3-sport-tab active"
+      data-sport="football"
+      onclick="selectHabaoSport('football', this)"
+    >
+      <span class="v3-sport-icon">⚽</span>
+      <span class="v3-sport-label" data-sport-label="football">足球</span>
+    </button>
+
+    <button
+      type="button"
+      class="v3-sport-tab"
+      data-sport="basketball"
+      onclick="selectHabaoSport('basketball', this)"
+    >
+      <span class="v3-sport-icon">🏀</span>
+      <span class="v3-sport-label" data-sport-label="basketball">籃球</span>
+    </button>
+
+    <button
+      type="button"
+      class="v3-sport-tab"
+      data-sport="baseball"
+      onclick="selectHabaoSport('baseball', this)"
+    >
+      <span class="v3-sport-icon">⚾</span>
+      <span class="v3-sport-label" data-sport-label="baseball">棒球</span>
+    </button>
+  </section>
+
+  <div
+    id="sportComingSoonToast"
+    class="v3-sport-toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
   <!-- DATE CONTROL -->
 
   <section class="v2-control-panel">
@@ -3287,7 +3625,7 @@ h1{
           ▤
         </span>
 
-        我的分析
+        <span class="v2-history-label">我的分析</span>
       </button>
 
     </div>
@@ -3362,35 +3700,38 @@ h1{
 
   </div>
 
-<div class="fixture-search">
-  <span class="fixture-search-icon">⌕</span>
-  <input
-    type="text"
-    id="fixtureSearchInput"
-    placeholder="搜尋球隊或聯賽..."
-    autocomplete="off"
-  >
-</div>
+<section class="v3-fixture-tools" id="fixtureTools">
+  <div class="fixture-search">
+    <span class="fixture-search-icon">⌕</span>
+    <input
+      type="text"
+      id="fixtureSearchInput"
+      placeholder="搜尋球隊、聯賽、賽事..."
+      autocomplete="off"
+      enterkeyhint="search"
+    >
+    <button
+      type="button"
+      id="fixtureSearchClear"
+      class="v3-search-clear"
+      aria-label="清除搜尋"
+    >×</button>
+  </div>
 
-<div class="fixture-league-filter" id="fixtureLeagueFilter">
-  <button type="button" class="league-filter-btn active" data-league="all">全部</button>
-  <button type="button" class="league-filter-btn" data-league="top5">五大聯賽</button>
+  <div class="v3-filter-caption" id="leagueFilterCaption">
+    QUICK FILTER
+  </div>
 
-  <button type="button" class="league-filter-btn" data-league="champions">歐冠</button>
-  <button type="button" class="league-filter-btn" data-league="europa">歐聯杯</button>
+  <div class="fixture-league-groups" id="fixtureLeagueGroups">
+    <button type="button" class="v3-league-group-btn active" data-category="popular">熱門</button>
+    <button type="button" class="v3-league-group-btn" data-category="europe">歐洲盃賽</button>
+    <button type="button" class="v3-league-group-btn" data-category="top5">五大聯賽</button>
+    <button type="button" class="v3-league-group-btn" data-category="asia">亞洲</button>
+    <button type="button" class="v3-league-group-btn" data-category="other">其他</button>
+  </div>
 
-  <button type="button" class="league-filter-btn" data-league="premier">英超</button>
-  <button type="button" class="league-filter-btn" data-league="laliga">西甲</button>
-  <button type="button" class="league-filter-btn" data-league="bundesliga">德甲</button>
-  <button type="button" class="league-filter-btn" data-league="italy-serie-a">義甲</button>
-  <button type="button" class="league-filter-btn" data-league="ligue1">法甲</button>
-
-  <button type="button" class="league-filter-btn" data-league="j1">日職</button>
-  <button type="button" class="league-filter-btn" data-league="kleague">韓職</button>
-  <button type="button" class="league-filter-btn" data-league="eredivisie">荷甲</button>
-  <button type="button" class="league-filter-btn" data-league="csl">中超</button>
-  <button type="button" class="league-filter-btn" data-league="brazil-serie-a">巴甲</button>
-</div>
+  <div class="fixture-league-filter" id="fixtureLeagueFilter"></div>
+</section>
 
 <div id="matchesContainer"></div>
 
@@ -3425,6 +3766,75 @@ const supabaseAuth =
   );
 
 let currentFixtureOffset = 1;
+
+let habaoSportToastTimer = null;
+
+function selectHabaoSport(
+  sport,
+  button
+) {
+  if (sport === "football") {
+    document
+      .querySelectorAll(
+        ".v3-sport-tab"
+      )
+      .forEach(item => {
+        item.classList.toggle(
+          "active",
+          item.dataset.sport ===
+            "football"
+        );
+      });
+
+    return;
+  }
+
+  const toast =
+    document.getElementById(
+      "sportComingSoonToast"
+    );
+
+  if (!toast) return;
+
+  const isBasketball =
+    sport === "basketball";
+
+  toast.textContent =
+    isBasketball
+      ? (
+          window.HabaoI18n?.t(
+            "basketballComingSoon",
+            "🏀 籃球賽事即將開放"
+          ) ||
+          "🏀 籃球賽事即將開放"
+        )
+      : (
+          window.HabaoI18n?.t(
+            "baseballComingSoon",
+            "⚾ 棒球賽事即將開放"
+          ) ||
+          "⚾ 棒球賽事即將開放"
+        );
+
+  toast.classList.add("show");
+
+  if (habaoSportToastTimer) {
+    clearTimeout(
+      habaoSportToastTimer
+    );
+  }
+
+  habaoSportToastTimer =
+    setTimeout(() => {
+      toast.classList.remove(
+        "show"
+      );
+    }, 1800);
+
+  if (button) {
+    button.blur();
+  }
+}
 
 verifyMember();
   
@@ -4769,6 +5179,10 @@ const habaoFixtureCache =
   new Map();
 
 function switchDate(element, offset) {
+  document
+    .getElementById("fixtureTools")
+    ?.classList.remove("is-hidden");
+
   document.querySelectorAll(".date").forEach(item => {
     item.classList.remove("active");
   });
@@ -5456,185 +5870,417 @@ const leagueText =
 
 
 // ======================================
-// 賽事搜尋 + 聯賽快捷篩選
+// 賽事搜尋 + 兩層聯賽快捷篩選
 // ======================================
 
-let activeLeagueFilter = "all";
+const HABAO_LEAGUE_GROUPS = {
+  popular: {
+    leagues: null,
+    buttons: [
+      "champions",
+      "europa",
+      "premier",
+      "laliga"
+    ]
+  },
 
+  europe: {
+    leagues: new Set([
+      "champions",
+      "europa"
+    ]),
+    buttons: [
+      "champions",
+      "europa"
+    ]
+  },
 
-const topFiveLeagueKeys =
-  new Set([
-    "premier",
-    "laliga",
-    "bundesliga",
-    "italy-serie-a",
-    "ligue1"
-  ]);
+  top5: {
+    leagues: new Set([
+      "premier",
+      "laliga",
+      "bundesliga",
+      "italy-serie-a",
+      "ligue1"
+    ]),
+    buttons: [
+      "premier",
+      "laliga",
+      "bundesliga",
+      "italy-serie-a",
+      "ligue1"
+    ]
+  },
 
+  asia: {
+    leagues: new Set([
+      "j1",
+      "kleague",
+      "csl"
+    ]),
+    buttons: [
+      "j1",
+      "kleague",
+      "csl"
+    ]
+  },
+
+  other: {
+    leagues: new Set([
+      "eredivisie",
+      "brazil-serie-a"
+    ]),
+    buttons: [
+      "eredivisie",
+      "brazil-serie-a"
+    ]
+  }
+};
+
+const LEAGUE_I18N_KEYS = {
+  all: "leagueAll",
+  champions: "leagueChampions",
+  europa: "leagueEuropa",
+  premier: "leaguePremier",
+  laliga: "leagueLaLiga",
+  bundesliga: "leagueBundesliga",
+  "italy-serie-a": "leagueSerieA",
+  ligue1: "leagueLigue1",
+  j1: "leagueJ1",
+  kleague: "leagueKLeague",
+  eredivisie: "leagueEredivisie",
+  csl: "leagueCSL",
+  "brazil-serie-a": "leagueBrazil"
+};
+
+const LEAGUE_FALLBACK_LABELS = {
+  all: "全部",
+  champions: "歐冠",
+  europa: "歐聯杯",
+  premier: "英超",
+  laliga: "西甲",
+  bundesliga: "德甲",
+  "italy-serie-a": "義甲",
+  ligue1: "法甲",
+  j1: "日職",
+  kleague: "韓職",
+  eredivisie: "荷甲",
+  csl: "中超",
+  "brazil-serie-a": "巴甲"
+};
+
+let activeLeagueCategory =
+  window.habaoActiveLeagueCategory ||
+  "popular";
+
+let activeLeagueFilter =
+  window.habaoActiveLeagueFilter ||
+  "all";
+
+if (!HABAO_LEAGUE_GROUPS[
+  activeLeagueCategory
+]) {
+  activeLeagueCategory =
+    "popular";
+}
 
 const searchInput =
   document.getElementById(
     "fixtureSearchInput"
   );
 
+const searchClear =
+  document.getElementById(
+    "fixtureSearchClear"
+  );
+
+const leagueGroups =
+  document.getElementById(
+    "fixtureLeagueGroups"
+  );
 
 const leagueFilter =
   document.getElementById(
     "fixtureLeagueFilter"
   );
 
-
 function normalizeSearchText(value) {
-
   return String(value || "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, " ");
 }
 
+function getLeagueButtonText(
+  leagueKey
+) {
+  const i18nKey =
+    LEAGUE_I18N_KEYS[
+      leagueKey
+    ];
+
+  const fallback =
+    LEAGUE_FALLBACK_LABELS[
+      leagueKey
+    ] || leagueKey;
+
+  return i18nKey
+    ? (
+        window.HabaoI18n?.t(
+          i18nKey,
+          fallback
+        ) || fallback
+      )
+    : fallback;
+}
+
+function syncLeagueCategoryButtons() {
+  if (!leagueGroups) return;
+
+  leagueGroups
+    .querySelectorAll(
+      ".v3-league-group-btn"
+    )
+    .forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.category ===
+          activeLeagueCategory
+      );
+    });
+}
+
+function renderLeagueQuickFilters() {
+  if (!leagueFilter) return;
+
+  const group =
+    HABAO_LEAGUE_GROUPS[
+      activeLeagueCategory
+    ] ||
+    HABAO_LEAGUE_GROUPS.popular;
+
+  const buttons = [
+    "all",
+    ...group.buttons
+  ];
+
+  if (
+    activeLeagueFilter !== "all" &&
+    !group.buttons.includes(
+      activeLeagueFilter
+    )
+  ) {
+    activeLeagueFilter = "all";
+    window.habaoActiveLeagueFilter =
+      "all";
+  }
+
+  leagueFilter.innerHTML =
+    buttons
+      .map(leagueKey => `
+        <button
+          type="button"
+          class="league-filter-btn ${
+            activeLeagueFilter ===
+              leagueKey
+              ? "active"
+              : ""
+          }"
+          data-league="${leagueKey}"
+        >
+          ${getLeagueButtonText(
+            leagueKey
+          )}
+        </button>
+      `)
+      .join("");
+}
+
+function updateSearchClearButton() {
+  if (!searchClear) return;
+
+  searchClear.classList.toggle(
+    "show",
+    Boolean(
+      searchInput?.value?.trim()
+    )
+  );
+}
 
 function applyFixtureFilters() {
-
   const keyword =
     normalizeSearchText(
       searchInput?.value || ""
     );
-
 
   const cards =
     container.querySelectorAll(
       ".v2-match-card"
     );
 
+  const group =
+    HABAO_LEAGUE_GROUPS[
+      activeLeagueCategory
+    ] ||
+    HABAO_LEAGUE_GROUPS.popular;
 
   let visibleCount = 0;
 
-
   cards.forEach(card => {
-
     const fixtureId =
       card.dataset.fixtureId || "";
-
 
     const match =
       window.habaoFixtureMap?.[
         String(fixtureId)
       ];
 
-
-if (!match) {
-
-  card.hidden = true;
-
-  card.setAttribute(
-    "hidden",
-    ""
-  );
-
-  card.style.setProperty(
-    "display",
-    "none",
-    "important"
-  );
-
-  return;
-}
-
+    if (!match) {
+      card.hidden = true;
+      card.setAttribute(
+        "hidden",
+        ""
+      );
+      card.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+      return;
+    }
 
     const leagueKey =
       card.dataset.leagueKey ||
       getHabaoLeagueKey(match);
 
-
     const originalLeagueName =
       match?.league?.name || "";
 
+    const originalLeagueApiName =
+      match?.league?.api_name || "";
 
     const leagueLabel =
       getHabaoLeagueLabel(
         leagueKey
       );
 
-
-    const homeEnglish =
+    const homeOriginal =
       match?.home?.name || "";
 
-    const awayEnglish =
+    const awayOriginal =
       match?.away?.name || "";
 
+    const homeApi =
+      match?.home?.api_name || "";
+
+    const awayApi =
+      match?.away?.api_name || "";
 
     const homeChinese =
       getTeamNameZH(
-        homeEnglish
+        homeApi || homeOriginal
       );
 
     const awayChinese =
       getTeamNameZH(
-        awayEnglish
+        awayApi || awayOriginal
       );
 
+    const homeDisplay =
+      getHabaoDisplayTeamName(
+        match.home
+      );
 
-    // 搜尋別名：
-    // 中文簡稱、中文全名、英文聯賽名稱全部都可以搜尋
+    const awayDisplay =
+      getHabaoDisplayTeamName(
+        match.away
+      );
+
+    const leagueDisplay =
+      getHabaoDisplayLeagueName(
+        match
+      );
+
     const leagueSearchAliases = {
-
       "champions":
-        "歐冠 歐洲冠軍聯賽 champions league uefa champions league",
+        "歐冠 欧冠 歐洲冠軍聯賽 欧洲冠军联赛 champions league uefa champions league",
 
       "europa":
-        "歐聯 歐聯杯 歐霸 歐霸盃 europa league uefa europa league",
+        "歐聯 欧联 歐聯杯 欧联杯 歐霸 歐霸盃 europa league uefa europa league",
 
       "premier":
-        "英超 英格蘭超級聯賽 premier league",
+        "英超 英格蘭超級聯賽 英格兰超级联赛 premier league",
 
       "laliga":
-        "西甲 西班牙甲級聯賽 la liga laliga",
+        "西甲 西班牙甲級聯賽 西班牙甲级联赛 la liga laliga",
 
       "bundesliga":
-        "德甲 德國甲級聯賽 bundesliga",
+        "德甲 德國甲級聯賽 德国甲级联赛 bundesliga",
 
       "italy-serie-a":
-        "義甲 意甲 義大利甲級聯賽 意大利甲級聯賽 serie a italy",
+        "義甲 意甲 義大利甲級聯賽 意大利甲级联赛 serie a italy",
 
       "ligue1":
-        "法甲 法國甲級聯賽 ligue 1 ligue1",
+        "法甲 法國甲級聯賽 法国甲级联赛 ligue 1 ligue1",
 
       "j1":
-        "日職 日職聯 日本 日本職業足球甲級聯賽 j1 league j league",
+        "日職 日职 日職聯 日本 日本職業足球甲級聯賽 j1 league j league",
 
       "kleague":
-        "韓職 韓職聯 韓國 韓國職業足球甲級聯賽 k league k league 1",
+        "韓職 韩职 韓職聯 韓國 韩国 韓國職業足球甲級聯賽 k league k league 1",
 
       "eredivisie":
-        "荷甲 荷蘭甲級聯賽 eredivisie",
+        "荷甲 荷蘭甲級聯賽 荷兰甲级联赛 eredivisie",
 
       "csl":
-        "中超 中國足球超級聯賽 chinese super league",
+        "中超 中國足球超級聯賽 中国足球超级联赛 chinese super league",
 
       "brazil-serie-a":
-        "巴甲 巴西甲級聯賽 brasileirao brasileirão serie a brazil"
-
+        "巴甲 巴西甲級聯賽 巴西甲级联赛 brasileirao brasileirão serie a brazil"
     };
 
+    const simplifiedNames =
+      window.HabaoI18n?.toSimplified
+        ? [
+            window.HabaoI18n.toSimplified(
+              homeOriginal
+            ),
+            window.HabaoI18n.toSimplified(
+              awayOriginal
+            ),
+            window.HabaoI18n.toSimplified(
+              homeChinese
+            ),
+            window.HabaoI18n.toSimplified(
+              awayChinese
+            ),
+            window.HabaoI18n.toSimplified(
+              originalLeagueName
+            )
+          ]
+        : [];
 
     const searchText =
       normalizeSearchText(
         [
-          homeEnglish,
-          awayEnglish,
-
+          homeOriginal,
+          awayOriginal,
+          homeApi,
+          awayApi,
           homeChinese,
           awayChinese,
-
+          homeDisplay,
+          awayDisplay,
           originalLeagueName,
+          originalLeagueApiName,
           leagueLabel,
-
+          leagueDisplay,
+          ...simplifiedNames,
           leagueSearchAliases[
             leagueKey
           ] || ""
         ].join(" ")
       );
-
 
     const keywordMatched =
       !keyword ||
@@ -5642,63 +6288,60 @@ if (!match) {
         keyword
       );
 
-
     let leagueMatched = true;
 
-
     if (
-      activeLeagueFilter ===
-      "top5"
-    ) {
-
-      leagueMatched =
-        topFiveLeagueKeys.has(
-          leagueKey
-        );
-
-    } else if (
       activeLeagueFilter !==
-      "all"
+        "all"
     ) {
-
       leagueMatched =
         leagueKey ===
         activeLeagueFilter;
+    } else if (
+      activeLeagueCategory !==
+        "popular" &&
+      group.leagues
+    ) {
+      leagueMatched =
+        group.leagues.has(
+          leagueKey
+        );
     }
-
 
     const matched =
       keywordMatched &&
       leagueMatched;
 
+    card.hidden = !matched;
 
-card.hidden = !matched;
-
-if (matched) {
-  card.removeAttribute("hidden");
-  card.style.removeProperty("display");
-  visibleCount++;
-} else {
-  card.setAttribute("hidden", "");
-  card.style.setProperty(
-    "display",
-    "none",
-    "important"
-  );
-}
+    if (matched) {
+      card.removeAttribute(
+        "hidden"
+      );
+      card.style.removeProperty(
+        "display"
+      );
+      visibleCount++;
+    } else {
+      card.setAttribute(
+        "hidden",
+        ""
+      );
+      card.style.setProperty(
+        "display",
+        "none",
+        "important"
+      );
+    }
   });
-
 
   let emptyMessage =
     container.querySelector(
       ".fixture-search-empty"
     );
 
-
   if (visibleCount === 0) {
-
     if (!emptyMessage) {
-
       emptyMessage =
         document.createElement(
           "div"
@@ -5712,111 +6355,135 @@ if (matched) {
       );
     }
 
-
-if (keyword) {
-
-  emptyMessage.textContent =
-    (
-      window.HabaoI18n?.t(
-        "searchNotFoundPrefix",
-        "找不到「"
-      ) || "找不到「"
-    ) +
-    searchInput.value.trim() +
-    (
-      window.HabaoI18n?.t(
-        "searchNotFoundSuffix",
-        "」相關賽事。"
-      ) || "」相關賽事。"
-    );
-
-} else if (
-  activeLeagueFilter !==
-  "all"
-) {
-
-  emptyMessage.textContent =
-    window.HabaoI18n?.t(
-      "noLeagueMatches",
-      "目前沒有這個聯賽的賽事。"
-    ) ||
-    "目前沒有這個聯賽的賽事。";
-
-} else {
-
-  emptyMessage.textContent =
-    window.HabaoI18n?.t(
-      "noFilteredMatches",
-      "目前暫無符合條件的主要賽事。"
-    ) ||
-    "目前暫無符合條件的主要賽事。";
-}
-
+    if (keyword) {
+      emptyMessage.textContent =
+        (
+          window.HabaoI18n?.t(
+            "searchNotFoundPrefix",
+            "找不到「"
+          ) || "找不到「"
+        ) +
+        searchInput.value.trim() +
+        (
+          window.HabaoI18n?.t(
+            "searchNotFoundSuffix",
+            "」相關賽事。"
+          ) || "」相關賽事。"
+        );
+    } else if (
+      activeLeagueCategory !==
+        "popular" ||
+      activeLeagueFilter !==
+        "all"
+    ) {
+      emptyMessage.textContent =
+        window.HabaoI18n?.t(
+          "noLeagueMatches",
+          "目前沒有這個分類的賽事。"
+        ) ||
+        "目前沒有這個分類的賽事。";
+    } else {
+      emptyMessage.textContent =
+        window.HabaoI18n?.t(
+          "noFilteredMatches",
+          "目前暫無符合條件的主要賽事。"
+        ) ||
+        "目前暫無符合條件的主要賽事。";
+    }
   } else if (emptyMessage) {
-
     emptyMessage.remove();
   }
 }
 
-
-// ======================================
-// 搜尋框
-// ======================================
-
 if (searchInput) {
-
-  searchInput.oninput =
-    applyFixtureFilters;
+  searchInput.oninput = () => {
+    updateSearchClearButton();
+    applyFixtureFilters();
+  };
 }
 
+if (searchClear) {
+  searchClear.onclick = () => {
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
 
-// ======================================
-// 聯賽快捷按鈕
-// ======================================
+    updateSearchClearButton();
+    applyFixtureFilters();
+  };
+}
+
+if (leagueGroups) {
+  leagueGroups.onclick =
+    event => {
+      const button =
+        event.target.closest(
+          ".v3-league-group-btn"
+        );
+
+      if (!button) return;
+
+      activeLeagueCategory =
+        button.dataset.category ||
+        "popular";
+
+      activeLeagueFilter =
+        "all";
+
+      window.habaoActiveLeagueCategory =
+        activeLeagueCategory;
+
+      window.habaoActiveLeagueFilter =
+        activeLeagueFilter;
+
+      syncLeagueCategoryButtons();
+      renderLeagueQuickFilters();
+      applyFixtureFilters();
+    };
+}
 
 if (leagueFilter) {
-
   leagueFilter.onclick =
     event => {
-
       const button =
         event.target.closest(
           ".league-filter-btn"
         );
 
-
-      if (!button) {
-        return;
-      }
-
+      if (!button) return;
 
       activeLeagueFilter =
         button.dataset.league ||
         "all";
 
+      window.habaoActiveLeagueFilter =
+        activeLeagueFilter;
 
       leagueFilter
         .querySelectorAll(
           ".league-filter-btn"
         )
         .forEach(item => {
-
-          item.classList.remove(
-            "active"
+          item.classList.toggle(
+            "active",
+            item === button
           );
         });
-
-
-      button.classList.add(
-        "active"
-      );
-
 
       applyFixtureFilters();
     };
 }
 
+window.habaoApplyFixtureFilters =
+  applyFixtureFilters;
 
+window.habaoRenderLeagueQuickFilters =
+  renderLeagueQuickFilters;
+
+syncLeagueCategoryButtons();
+renderLeagueQuickFilters();
+updateSearchClearButton();
 applyFixtureFilters();
   
   }
@@ -6377,6 +7044,10 @@ const ANALYSIS_HISTORY_URL =
 
 async function openAnalysisHistory() {
   try {
+    document
+      .getElementById("fixtureTools")
+      ?.classList.add("is-hidden");
+
         // 進入「我的分析」時，取消今天／明天的選取狀態
     document.querySelectorAll(".date").forEach(item => {
       item.classList.remove("active");
@@ -7400,6 +8071,20 @@ function closeQuotaLimitModal() {
       selectDate: "選擇賽事日期",
       myAnalysis: "我的分析",
 
+      sportFootball: "足球",
+      sportBasketball: "籃球",
+      sportBaseball: "棒球",
+      basketballComingSoon: "🏀 籃球賽事即將開放",
+      baseballComingSoon: "⚾ 棒球賽事即將開放",
+
+      quickFilter: "快捷篩選",
+      filterPopular: "熱門",
+      filterEurope: "歐洲盃賽",
+      filterTop5: "五大聯賽",
+      filterAsia: "亞洲",
+      filterOther: "其他",
+      clearSearch: "清除搜尋",
+
       today: "今天",
       tomorrow: "明天",
       dayAfterTomorrow: "後天",
@@ -7408,7 +8093,7 @@ function closeQuotaLimitModal() {
       tomorrowFocus: "⚽️ 明日焦點賽事",
       focusMatches: "⚽️ 焦點賽事",
 
-      searchPlaceholder: "搜尋球隊或聯賽...",
+      searchPlaceholder: "搜尋球隊、聯賽、賽事...",
 
       leagueAll: "全部",
       leagueTop5: "五大聯賽",
@@ -7519,6 +8204,20 @@ analysisResultNotFound: "找不到這場分析結果"
       selectDate: "选择赛事日期",
       myAnalysis: "我的分析",
 
+      sportFootball: "足球",
+      sportBasketball: "篮球",
+      sportBaseball: "棒球",
+      basketballComingSoon: "🏀 篮球赛事即将开放",
+      baseballComingSoon: "⚾ 棒球赛事即将开放",
+
+      quickFilter: "快捷筛选",
+      filterPopular: "热门",
+      filterEurope: "欧洲杯赛",
+      filterTop5: "五大联赛",
+      filterAsia: "亚洲",
+      filterOther: "其他",
+      clearSearch: "清除搜索",
+
       today: "今天",
       tomorrow: "明天",
       dayAfterTomorrow: "后天",
@@ -7527,7 +8226,7 @@ analysisResultNotFound: "找不到這場分析結果"
       tomorrowFocus: "⚽️ 明日焦点赛事",
       focusMatches: "⚽️ 焦点赛事",
 
-      searchPlaceholder: "搜索球队或联赛...",
+      searchPlaceholder: "搜索球队、联赛、赛事...",
 
       leagueAll: "全部",
       leagueTop5: "五大联赛",
@@ -7638,6 +8337,20 @@ analysisResultNotFound: "找不到这场分析结果"
       selectDate: "Select Match Date",
       myAnalysis: "My Analysis",
 
+      sportFootball: "Football",
+      sportBasketball: "Basketball",
+      sportBaseball: "Baseball",
+      basketballComingSoon: "🏀 Basketball matches are coming soon",
+      baseballComingSoon: "⚾ Baseball matches are coming soon",
+
+      quickFilter: "Quick Filter",
+      filterPopular: "Popular",
+      filterEurope: "European Cups",
+      filterTop5: "Top 5 Leagues",
+      filterAsia: "Asia",
+      filterOther: "Other",
+      clearSearch: "Clear search",
+
       today: "Today",
       tomorrow: "Tomorrow",
       dayAfterTomorrow: "Day After Tomorrow",
@@ -7646,7 +8359,7 @@ analysisResultNotFound: "找不到这场分析结果"
       tomorrowFocus: "⚽️ Tomorrow's Featured Matches",
       focusMatches: "⚽️ Featured Matches",
 
-      searchPlaceholder: "Search teams or leagues...",
+      searchPlaceholder: "Search teams, leagues or matches...",
 
       leagueAll: "All",
       leagueTop5: "Top 5 Leagues",
@@ -7786,9 +8499,89 @@ analysisResultNotFound: "Analysis result not found"
     );
 
     text(
-      ".v2-history-btn",
+      ".v2-history-label",
       "myAnalysis"
     );
+
+    const sportKeys = {
+      football: "sportFootball",
+      basketball: "sportBasketball",
+      baseball: "sportBaseball"
+    };
+
+    document
+      .querySelectorAll(
+        "[data-sport-label]"
+      )
+      .forEach(element => {
+        const key =
+          sportKeys[
+            element.dataset.sportLabel
+          ];
+
+        if (!key) return;
+
+        element.textContent =
+          I18N.t(
+            key,
+            element.textContent
+          );
+      });
+
+    const categoryKeys = {
+      popular: "filterPopular",
+      europe: "filterEurope",
+      top5: "filterTop5",
+      asia: "filterAsia",
+      other: "filterOther"
+    };
+
+    document
+      .querySelectorAll(
+        ".v3-league-group-btn"
+      )
+      .forEach(button => {
+        const key =
+          categoryKeys[
+            button.dataset.category
+          ];
+
+        if (!key) return;
+
+        button.textContent =
+          I18N.t(
+            key,
+            button.textContent
+          );
+      });
+
+    const filterCaption =
+      document.getElementById(
+        "leagueFilterCaption"
+      );
+
+    if (filterCaption) {
+      filterCaption.textContent =
+        I18N.t(
+          "quickFilter",
+          "快捷篩選"
+        );
+    }
+
+    const searchClear =
+      document.getElementById(
+        "fixtureSearchClear"
+      );
+
+    if (searchClear) {
+      searchClear.setAttribute(
+        "aria-label",
+        I18N.t(
+          "clearSearch",
+          "清除搜尋"
+        )
+      );
+    }
 
     const description =
       document.querySelector(
@@ -7858,8 +8651,17 @@ analysisResultNotFound: "Analysis result not found"
       search.placeholder =
         I18N.t(
           "searchPlaceholder",
-          "搜尋球隊或聯賽..."
+          "搜尋球隊、聯賽、賽事..."
         );
+    }
+
+    if (
+      typeof window
+        .habaoRenderLeagueQuickFilters ===
+        "function"
+    ) {
+      window
+        .habaoRenderLeagueQuickFilters();
     }
 
     const leagueKeys = {
@@ -7897,6 +8699,15 @@ analysisResultNotFound: "Analysis result not found"
             button.textContent
           );
       });
+
+    if (
+      typeof window
+        .habaoApplyFixtureFilters ===
+        "function"
+    ) {
+      window
+        .habaoApplyFixtureFilters();
+    }
 
     text(
       ".line-group-title",
