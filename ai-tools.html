@@ -181,74 +181,66 @@
     .detail-intro strong{display:block;margin-bottom:5px;color:#fff;font-size:13px;line-height:1.7}
     .feature-grid.atg-core{grid-template-columns:1fr}
     .feature.atg-feature{
-      position:relative;overflow:hidden;min-height:104px;padding:16px 16px 16px 76px;
-      border-color:var(--theme-line);background:linear-gradient(145deg,rgba(255,72,150,.07),rgba(255,255,255,.02));
+      position:relative;
+      overflow:hidden;
+      min-height:114px;
+      padding:17px 16px 17px 94px;
+      border-color:var(--theme-line);
+      background:linear-gradient(145deg,rgba(255,72,150,.07),rgba(255,255,255,.02));
     }
-.feature-icon{
-  position:absolute;
-  left:16px;
-  top:50%;
-  transform:translateY(-50%);
-
-  width:46px;
-  height:46px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:15px;
-
-  color:#ffb9e4;
-
-  background:
-    radial-gradient(
-      circle at 30% 20%,
-      rgba(255,116,194,.22),
-      transparent 55%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(26,20,38,.96),
-      rgba(15,12,25,.98)
-    );
-
-  border:1px solid rgba(255,95,181,.38);
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 0 0 1px rgba(142,73,255,.08),
-    0 8px 22px rgba(0,0,0,.35),
-    0 0 18px rgba(240,90,157,.12);
-}
-.feature-icon svg{
-  width:22px;
-  height:22px;
-
-  display:block;
-  margin:auto;
-
-  stroke:currentColor;
-  fill:none;
-
-  stroke-width:1.8;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-
-  transform:translate(0.5px, 0.5px);
-
-  filter:
-    drop-shadow(
-      0 0 5px rgba(255,94,184,.45)
-    );
-}
+    .feature-icon{
+      position:absolute;
+      left:18px;
+      top:50%;
+      transform:translateY(-50%);
+      width:58px;
+      height:58px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:18px;
+      color:#ffc2e7;
+      background:
+        radial-gradient(circle at 50% 42%,rgba(255,111,195,.20),transparent 62%),
+        linear-gradient(145deg,rgba(31,22,43,.98),rgba(12,10,21,.99));
+      border:1px solid rgba(255,95,181,.48);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.11),
+        inset 0 0 22px rgba(240,90,157,.06),
+        0 0 0 1px rgba(142,73,255,.08),
+        0 10px 24px rgba(0,0,0,.38),
+        0 0 20px rgba(240,90,157,.14);
+    }
+    .feature-icon::after{
+      content:"";
+      position:absolute;
+      inset:7px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.035);
+      pointer-events:none;
+    }
+    .feature-icon svg{
+      width:30px;
+      height:30px;
+      display:block;
+      flex:0 0 30px;
+      stroke:currentColor;
+      fill:none;
+      stroke-width:1.9;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      overflow:visible;
+      filter:
+        drop-shadow(0 0 4px rgba(255,185,228,.40))
+        drop-shadow(0 0 10px rgba(240,90,157,.24));
+    }
     .feature-number{
       position:absolute;right:12px;top:12px;min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;
       border-radius:999px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
       font-size:11px;font-weight:1000;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     }
-    .feature.atg-feature strong{font-size:13px;padding-right:28px}
-    .feature.atg-feature span{font-size:10px;line-height:1.7;color:#99a7b6;padding-right:18px}
+    .feature.atg-feature strong{font-size:14px;padding-right:34px;line-height:1.45}
+    .feature.atg-feature span{font-size:10px;line-height:1.75;color:#99a7b6;padding-right:16px}
     .flow-list{display:grid;gap:8px}
     .flow-step{
       display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;
@@ -293,7 +285,7 @@
       .tool-logo{width:58px;height:58px;flex-basis:58px;border-radius:16px}
       .tool-name{font-size:15px}.tool-tags{font-size:9px}
       .detail-logo{width:68px;height:68px;flex-basis:68px;border-radius:18px}
-      .detail-name{font-size:19px}.feature-grid{gap:8px}.feature.atg-feature{padding:14px 14px 14px 68px}.feature-icon{width:40px;height:40px;left:14px}
+      .detail-name{font-size:19px}.feature-grid{gap:8px}.feature.atg-feature{min-height:112px;padding:15px 13px 15px 86px}.feature-icon{width:54px;height:54px;left:15px}.feature-icon svg{width:29px;height:29px;flex-basis:29px}
     }
   </style>
   <script src="./opencc.js"></script>
