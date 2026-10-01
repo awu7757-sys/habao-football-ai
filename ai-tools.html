@@ -266,6 +266,146 @@
     .final-cta .use-button{position:static}
     .atg-only{display:none}
     body.tool-atg .atg-only{display:block}
+
+    /* ===== 539 DETAIL UPGRADE ===== */
+    .g539-only{display:none}
+    body.tool-539 .g539-only{display:block}
+
+    body.tool-539 .detail-intro{
+      border-color:rgba(242,161,38,.34);
+      background:
+        radial-gradient(circle at 92% 8%,rgba(255,214,107,.08),transparent 34%),
+        linear-gradient(145deg,rgba(242,161,38,.07),rgba(255,255,255,.02));
+    }
+
+    .feature-grid.g539-core{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .feature.g539-feature{
+      position:relative;
+      min-height:116px;
+      padding:14px;
+      border-color:rgba(242,161,38,.28);
+      background:
+        radial-gradient(circle at 92% 10%,rgba(255,214,107,.10),transparent 38%),
+        linear-gradient(145deg,rgba(242,161,38,.06),rgba(255,255,255,.02));
+    }
+    .g539-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:24px;
+      margin-bottom:10px;
+      padding:0 9px;
+      border-radius:999px;
+      color:#291704;
+      background:linear-gradient(135deg,#f2a126,#ffd66b);
+      font-size:9px;
+      font-weight:1000;
+      box-shadow:0 6px 16px rgba(242,161,38,.16);
+    }
+    .feature.g539-feature strong{
+      font-size:13px;
+      line-height:1.45;
+    }
+    .feature.g539-feature span:last-child{
+      margin-top:6px;
+      color:#9aa5b1;
+      font-size:9px;
+      line-height:1.7;
+    }
+
+    .g539-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:9px;
+    }
+    .g539-summary-card{
+      min-height:92px;
+      padding:13px 10px;
+      border:1px solid rgba(242,161,38,.24);
+      border-radius:15px;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(255,214,107,.09),transparent 50%),
+        rgba(255,255,255,.02);
+      text-align:center;
+    }
+    .g539-summary-card b{
+      display:block;
+      color:#ffd66b;
+      font-size:17px;
+      line-height:1.1;
+    }
+    .g539-summary-card strong{
+      display:block;
+      margin-top:7px;
+      color:#fff;
+      font-size:11px;
+    }
+    .g539-summary-card span{
+      display:block;
+      margin-top:5px;
+      color:#7f8d9b;
+      font-size:8px;
+      line-height:1.55;
+    }
+
+    .g539-data-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:9px;
+    }
+    .g539-data-card{
+      min-height:104px;
+      padding:13px;
+      border:1px solid rgba(242,161,38,.25);
+      border-radius:15px;
+      background:
+        linear-gradient(145deg,rgba(242,161,38,.06),rgba(255,255,255,.018));
+    }
+    .g539-data-card .data-kicker{
+      color:#f2a126;
+      font-size:9px;
+      font-weight:1000;
+      letter-spacing:.6px;
+    }
+    .g539-data-card strong{
+      display:block;
+      margin-top:7px;
+      color:#fff;
+      font-size:12px;
+      line-height:1.4;
+    }
+    .g539-data-card span{
+      display:block;
+      margin-top:6px;
+      color:#8491a0;
+      font-size:9px;
+      line-height:1.65;
+    }
+
+    .g539-flow .flow-step b,
+    .g539-who .who-item i{
+      color:#2b1804;
+    }
+
+    body.tool-539 .final-cta{
+      border-color:rgba(242,161,38,.34);
+      background:
+        radial-gradient(circle at 50% 0%,rgba(255,214,107,.10),transparent 58%),
+        linear-gradient(145deg,rgba(30,28,22,.98),rgba(10,13,17,.99));
+    }
+
+    @media(max-width:420px){
+      .feature-grid.g539-core{grid-template-columns:1fr}
+      .g539-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+      .g539-summary-card{min-height:86px;padding:12px 7px}
+      .g539-summary-card b{font-size:15px}
+      .g539-summary-card strong{font-size:10px}
+      .g539-data-grid{grid-template-columns:1fr}
+    }
+
     @media(max-width:420px){
       .page{padding-left:12px;padding-right:12px}
       .hero{padding:21px 17px}.hero h1{font-size:25px}
@@ -380,6 +520,36 @@
       <div class="final-cta atg-only">
         <h3 id="finalTitle">準備好開始使用了嗎？</h3>
         <p id="finalText">進入 ATG AI助手，開始自動掃描、分析與配置。</p>
+      </div>
+
+      <div class="panel g539-only">
+        <div class="panel-title"><span class="mark">♥</span><span id="g539PersonalTitle">今日個人分析</span></div>
+        <div class="g539-summary" id="g539PersonalGrid"></div>
+      </div>
+
+      <div class="panel g539-only">
+        <div class="panel-title"><span class="mark">▥</span><span id="g539DataTitle">539 數據中心</span></div>
+        <div class="g539-data-grid" id="g539DataGrid"></div>
+      </div>
+
+      <div class="panel g539-only g539-flow">
+        <div class="panel-title"><span class="mark">→</span><span id="g539FlowTitle">使用流程</span></div>
+        <div class="flow-list" id="g539FlowList"></div>
+      </div>
+
+      <div class="panel g539-only">
+        <div class="panel-title"><span class="mark">★</span><span id="g539HighlightsTitle">工具特色</span></div>
+        <div class="mini-grid" id="g539HighlightsGrid"></div>
+      </div>
+
+      <div class="panel g539-only g539-who">
+        <div class="panel-title"><span class="mark">✓</span><span id="g539WhoTitle">適合這些使用者</span></div>
+        <div class="who-list" id="g539WhoList"></div>
+      </div>
+
+      <div class="final-cta g539-only">
+        <h3 id="g539FinalTitle">開始使用 539 趨勢分析</h3>
+        <p id="g539FinalText">選擇玩法、查看分析結果，並搭配完整 539 數據中心。</p>
       </div>
 
       <div class="sticky-cta">
@@ -553,40 +723,157 @@
             'zh-Hant': {
               kicker:'539 TREND ANALYSIS',
               name:'芯瑤 💕 539 趨勢分析',
-              tags:'多玩法分析｜歷史驗證｜數據中心',
-              description:'<strong>整合多種玩法分析與歷史驗證，快速整理 539 相關數據。</strong><br><br>可集中查看不同玩法分析、歷史比對結果與數據中心內容，讓判讀更直覺。',
+              tags:'多玩法分析｜個人推薦｜歷史驗證｜數據中心',
+              description:'<strong>不用自己整理大量開獎資料，系統會依照歷史數據與不同玩法，自動整理分析結果。</strong><br><br>芯瑤 539 趨勢分析整合多玩法分析、每日個人分析、上一期開獎驗證與完整數據中心，讓使用者可以從不同角度查看近期號碼表現與統計資訊。',
               features:[
-                {title:'連碰234星', desc:'支援多種選號玩法。'},
-                {title:'全車／尾數', desc:'快速切換分析類型。'},
-                {title:'歷史驗證', desc:'比對歷史結果。'},
-                {title:'數據中心', desc:'集中查看近期數據。'}
+                {badge:'2/3/4', title:'連碰 2／3／4 星', desc:'支援連碰玩法分析，可依照所選玩法自動產生對應分析結果。'},
+                {badge:'全車', title:'全車分析', desc:'自動整理推薦號碼，快速查看全車分析結果。'},
+                {badge:'尾數', title:'尾數分析', desc:'依照近期號碼分布與歷史資料，整理尾數相關趨勢。'},
+                {badge:'不中', title:'多選不中', desc:'提供多選不中玩法分析，快速整理可參考號碼組合。'},
+                {badge:'驗證', title:'上一期開獎驗證', desc:'自動比對上一期分析結果與實際開獎號碼，方便查看歷史分析表現。'},
+                {badge:'DATA', title:'539 數據中心', desc:'集中查看近期開獎、連莊趨勢、號碼分布、未開統計與 WG 擋牌資訊。'}
               ],
+              personalTitle:'芯瑤 💕 今日個人分析',
+              personal:[
+                ['5','主選 5 顆','每日整理主要參考號碼'],
+                ['3','全車 3 顆','集中查看全車參考'],
+                ['尾','主尾','快速查看尾數方向']
+              ],
+              dataTitle:'539 數據中心',
+              data:[
+                ['趨勢','連莊統計走勢圖','查看最近數期連莊顆數變化與近期開獎號碼。'],
+                ['分布','開獎號碼分佈圖','查看 01～39 號碼在近期 30 期中的出現次數與熱度。'],
+                ['未開','未開號碼統計','整理不同未開期數的號碼，快速查看長期未開號碼。'],
+                ['WG','WG 擋牌通知','集中查看 WG 二星、三星、四星擋牌資訊與更新日期。']
+              ],
+              flowTitle:'使用流程',
+              flow:[
+                ['選擇分析玩法','選擇連碰 2／3／4 星、全車、尾數或多選不中。'],
+                ['開始分析','系統依照歷史資料與所選玩法整理分析結果。'],
+                ['查看個人分析與驗證','查看今日個人分析，並比對上一期開獎驗證。'],
+                ['查看數據中心','搭配連莊、分布、未開號碼與 WG 資料進一步判讀。']
+              ],
+              highlightsTitle:'工具特色',
+              highlights:[
+                ['多玩法整合','不同 539 分析玩法集中在同一套工具。'],
+                ['歷史驗證','可直接查看上一期分析與實際開獎比對。'],
+                ['完整數據中心','近期開獎、分布、未開與趨勢資料集中整理。'],
+                ['每日個人分析','每日提供主選、全車與主尾參考。']
+              ],
+              whoTitle:'適合這些使用者',
+              who:[
+                '想快速整理 539 歷史資料與近期走勢。',
+                '想查看不同玩法的分析結果。',
+                '想驗證過去分析與實際開獎表現。',
+                '想查看近期號碼冷熱、分布與未開狀況。',
+                '想集中查看每日個人分析與數據中心。'
+              ],
+              finalTitle:'開始使用 539 趨勢分析',
+              finalText:'選擇玩法、查看分析結果，並搭配完整 539 數據中心。',
               useLabel:'立即使用 539 趨勢分析'
             },
             'zh-Hans': {
               kicker:'539 TREND ANALYSIS',
               name:'芯瑶 💕 539 趋势分析',
-              tags:'多玩法分析｜历史验证｜数据中心',
-              description:'<strong>整合多种玩法分析与历史验证，快速整理 539 相关数据。</strong><br><br>可集中查看不同玩法分析、历史比对结果与数据中心内容，让判读更直觉。',
+              tags:'多玩法分析｜个人推荐｜历史验证｜数据中心',
+              description:'<strong>不用自己整理大量开奖资料，系统会依照历史数据与不同玩法，自动整理分析结果。</strong><br><br>芯瑶 539 趋势分析整合多玩法分析、每日个人分析、上一期开奖验证与完整数据中心，让使用者可以从不同角度查看近期号码表现与统计资讯。',
               features:[
-                {title:'连碰234星', desc:'支持多种选号玩法。'},
-                {title:'全车／尾数', desc:'快速切换分析类型。'},
-                {title:'历史验证', desc:'比对历史结果。'},
-                {title:'数据中心', desc:'集中查看近期数据。'}
+                {badge:'2/3/4', title:'连碰 2／3／4 星', desc:'支持连碰玩法分析，可依照所选玩法自动产生对应分析结果。'},
+                {badge:'全车', title:'全车分析', desc:'自动整理推荐号码，快速查看全车分析结果。'},
+                {badge:'尾数', title:'尾数分析', desc:'依照近期号码分布与历史资料，整理尾数相关趋势。'},
+                {badge:'不中', title:'多选不中', desc:'提供多选不中玩法分析，快速整理可参考号码组合。'},
+                {badge:'验证', title:'上一期开奖验证', desc:'自动比对上一期分析结果与实际开奖号码，方便查看历史分析表现。'},
+                {badge:'DATA', title:'539 数据中心', desc:'集中查看近期开奖、连庄趋势、号码分布、未开统计与 WG 挡牌资讯。'}
               ],
+              personalTitle:'芯瑶 💕 今日个人分析',
+              personal:[
+                ['5','主选 5 颗','每日整理主要参考号码'],
+                ['3','全车 3 颗','集中查看全车参考'],
+                ['尾','主尾','快速查看尾数方向']
+              ],
+              dataTitle:'539 数据中心',
+              data:[
+                ['趋势','连庄统计走势图','查看最近数期连庄颗数变化与近期开奖号码。'],
+                ['分布','开奖号码分布图','查看 01～39 号码在近期 30 期中的出现次数与热度。'],
+                ['未开','未开奖号码统计','整理不同未开期数的号码，快速查看长期未开号码。'],
+                ['WG','WG 挡牌通知','集中查看 WG 二星、三星、四星挡牌资讯与更新日期。']
+              ],
+              flowTitle:'使用流程',
+              flow:[
+                ['选择分析玩法','选择连碰 2／3／4 星、全车、尾数或多选不中。'],
+                ['开始分析','系统依照历史资料与所选玩法整理分析结果。'],
+                ['查看个人分析与验证','查看今日个人分析，并比对上一期开奖验证。'],
+                ['查看数据中心','搭配连庄、分布、未开号码与 WG 资料进一步判读。']
+              ],
+              highlightsTitle:'工具特色',
+              highlights:[
+                ['多玩法整合','不同 539 分析玩法集中在同一套工具。'],
+                ['历史验证','可直接查看上一期分析与实际开奖比对。'],
+                ['完整数据中心','近期开奖、分布、未开与趋势资料集中整理。'],
+                ['每日个人分析','每日提供主选、全车与主尾参考。']
+              ],
+              whoTitle:'适合这些使用者',
+              who:[
+                '想快速整理 539 历史资料与近期走势。',
+                '想查看不同玩法的分析结果。',
+                '想验证过去分析与实际开奖表现。',
+                '想查看近期号码冷热、分布与未开状况。',
+                '想集中查看每日个人分析与数据中心。'
+              ],
+              finalTitle:'开始使用 539 趋势分析',
+              finalText:'选择玩法、查看分析结果，并搭配完整 539 数据中心。',
               useLabel:'立即使用 539 趋势分析'
             },
             'en': {
               kicker:'539 TREND ANALYSIS',
               name:'Xinyao 💕 539 Trend Analysis',
-              tags:'Multi-Mode Analysis｜History Check｜Data Center',
-              description:'<strong>Combine multiple play-mode analyses and history validation in one place.</strong><br><br>Quickly review different 539 analysis modes, historical verification and recent data for easier decision-making.',
+              tags:'Multi-Mode Analysis｜Daily Picks｜History Check｜Data Center',
+              description:'<strong>Skip the manual work of organizing large volumes of draw history. The system organizes analysis results by play mode and historical data.</strong><br><br>Xinyao 539 Trend Analysis combines multiple analysis modes, daily personal analysis, previous-draw validation and a complete data center so users can review recent number behavior from several angles.',
               features:[
-                {title:'2/3/4-Star Combo', desc:'Supports multiple number-selection modes.'},
-                {title:'Full Set / Tail Numbers', desc:'Quickly switch between analysis types.'},
-                {title:'History Validation', desc:'Compare against historical results.'},
-                {title:'Data Center', desc:'Review recent data in one place.'}
+                {badge:'2/3/4', title:'2 / 3 / 4-Star Combos', desc:'Supports combo analysis and generates results based on the selected play mode.'},
+                {badge:'FULL', title:'Full-Set Analysis', desc:'Organizes recommended numbers for quick full-set review.'},
+                {badge:'TAIL', title:'Tail-Number Analysis', desc:'Reviews recent distributions and historical data to summarize tail-number trends.'},
+                {badge:'MISS', title:'Multi-Number Miss', desc:'Provides multi-number miss analysis and organizes reference combinations.'},
+                {badge:'CHECK', title:'Previous Draw Validation', desc:'Compares the previous analysis with the actual draw for historical review.'},
+                {badge:'DATA', title:'539 Data Center', desc:'Review recent draws, repeat trends, distributions, overdue numbers and WG notices.'}
               ],
+              personalTitle:'Xinyao 💕 Daily Personal Analysis',
+              personal:[
+                ['5','Top 5 Picks','Daily primary reference numbers'],
+                ['3','Full-Set 3','Quick full-set reference'],
+                ['T','Main Tail','Quick tail-number direction']
+              ],
+              dataTitle:'539 Data Center',
+              data:[
+                ['TREND','Repeat Trend Chart','Review recent repeat-count changes and recent winning numbers.'],
+                ['DIST','Number Distribution','See how often numbers 01–39 appeared across the latest 30 draws.'],
+                ['DUE','Overdue Number Stats','Organizes numbers by how long they have not appeared.'],
+                ['WG','WG Notice','Review WG 2-star, 3-star and 4-star notice information and update dates.']
+              ],
+              flowTitle:'How It Works',
+              flow:[
+                ['Choose a Play Mode','Select 2/3/4-star combos, full set, tail numbers or multi-number miss.'],
+                ['Run Analysis','The system organizes results using historical data and the selected mode.'],
+                ['Review Daily Analysis & Validation','Check daily personal analysis and previous-draw validation.'],
+                ['Open the Data Center','Use trends, distribution, overdue numbers and WG data for deeper review.']
+              ],
+              highlightsTitle:'Why Use This Tool',
+              highlights:[
+                ['Multiple Modes','Several 539 analysis modes are combined in one tool.'],
+                ['History Validation','Compare previous analysis directly with actual draw results.'],
+                ['Complete Data Center','Recent draws, distributions, overdue numbers and trends in one place.'],
+                ['Daily Personal Analysis','Daily top picks, full-set references and main-tail direction.']
+              ],
+              whoTitle:'Best For',
+              who:[
+                'Users who want to organize 539 history and recent trends quickly.',
+                'Users who want to compare results from different analysis modes.',
+                'Users who want to review previous analysis against actual draws.',
+                'Users who want to inspect hot/cold, distribution and overdue-number data.',
+                'Users who want daily personal analysis and data-center views in one place.'
+              ],
+              finalTitle:'Start 539 Trend Analysis',
+              finalText:'Choose a play mode, review analysis results and use the complete 539 Data Center.',
               useLabel:'Open 539 Trend Analysis'
             }
           }
@@ -650,6 +937,55 @@
         `).join('');
       }
 
+
+      function render539Personal(items) {
+        const grid = document.getElementById('g539PersonalGrid');
+        if (!grid) return;
+        grid.innerHTML = items.map(item => `
+          <div class="g539-summary-card">
+            <b>${item[0]}</b>
+            <strong>${item[1]}</strong>
+            <span>${item[2]}</span>
+          </div>
+        `).join('');
+      }
+
+      function render539Data(items) {
+        const grid = document.getElementById('g539DataGrid');
+        if (!grid) return;
+        grid.innerHTML = items.map(item => `
+          <div class="g539-data-card">
+            <div class="data-kicker">${item[0]}</div>
+            <strong>${item[1]}</strong>
+            <span>${item[2]}</span>
+          </div>
+        `).join('');
+      }
+
+      function render539Flow(flow) {
+        const list = document.getElementById('g539FlowList');
+        if (!list) return;
+        list.innerHTML = flow.map((item, index) => `
+          <div class="flow-step"><b>${index + 1}</b><div><strong>${item[0]}</strong><span>${item[1]}</span></div></div>
+        `).join('');
+      }
+
+      function render539Highlights(items) {
+        const grid = document.getElementById('g539HighlightsGrid');
+        if (!grid) return;
+        grid.innerHTML = items.map(item => `
+          <div class="mini-card"><strong>${item[0]}</strong><span>${item[1]}</span></div>
+        `).join('');
+      }
+
+      function render539Who(items) {
+        const list = document.getElementById('g539WhoList');
+        if (!list) return;
+        list.innerHTML = items.map(value => `
+          <div class="who-item"><i>✓</i><span>${value}</span></div>
+        `).join('');
+      }
+
       function prepareVideoPreview(video) {
         if (!video) return;
         const previewTime = 0.05;
@@ -673,6 +1009,7 @@
 
         document.body.classList.toggle('theme-539', tool === '539');
         document.body.classList.toggle('tool-atg', tool === 'atg');
+        document.body.classList.toggle('tool-539', tool === '539');
         document.body.classList.add('is-detail');
 
         const topBack = document.getElementById('topBack');
@@ -717,12 +1054,32 @@
           setText('finalText', t.finalText);
         } else {
           featureGrid.classList.remove('atg-core');
+          featureGrid.classList.add('g539-core');
           featureGrid.innerHTML = t.features.map(item => `
-            <div class="feature">
+            <div class="feature g539-feature">
+              <span class="g539-chip">${item.badge || ''}</span>
               <strong>${item.title}</strong>
               <span>${item.desc}</span>
             </div>
           `).join('');
+
+          setText('g539PersonalTitle', t.personalTitle);
+          render539Personal(t.personal || []);
+
+          setText('g539DataTitle', t.dataTitle);
+          render539Data(t.data || []);
+
+          setText('g539FlowTitle', t.flowTitle);
+          render539Flow(t.flow || []);
+
+          setText('g539HighlightsTitle', t.highlightsTitle);
+          render539Highlights(t.highlights || []);
+
+          setText('g539WhoTitle', t.whoTitle);
+          render539Who(t.who || []);
+
+          setText('g539FinalTitle', t.finalTitle);
+          setText('g539FinalText', t.finalText);
         }
 
         const useText = `${t.useLabel} ↗`;
