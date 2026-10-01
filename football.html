@@ -544,6 +544,17 @@ h1{
   font-size:11px;
   line-height:1.7;
 }
+
+.v2-history-empty-icon img{
+  width:38px;
+  height:38px;
+
+  display:block;
+  object-fit:contain;
+
+  filter:
+    drop-shadow(0 4px 8px rgba(0,0,0,.30));
+}  
   
 /* ========================================
    HABAO V2 - ANALYSIS HISTORY CARD
@@ -7146,9 +7157,12 @@ function renderAnalysisHistory(matches) {
     container.innerHTML = `
       <div class="v2-history-empty">
 
-        <div class="v2-history-empty-icon">
-          H
-        </div>
+<div class="v2-history-empty-icon">
+  <img
+    src="./habao-hb-logo.png"
+    alt="HABAO"
+  >
+</div>
 
         <div class="v2-history-empty-label">
           ANALYSIS HISTORY
