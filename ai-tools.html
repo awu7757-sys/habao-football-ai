@@ -181,16 +181,23 @@
     .detail-intro strong{color:#fff;font-size:13px}
     .feature-grid.atg-core{grid-template-columns:1fr}
     .feature.atg-feature{
-      position:relative;overflow:hidden;min-height:94px;padding:14px 14px 14px 50px;
+      position:relative;overflow:hidden;min-height:104px;padding:16px 16px 16px 76px;
       border-color:var(--theme-line);background:linear-gradient(145deg,rgba(255,72,150,.07),rgba(255,255,255,.02));
     }
-    .feature-number{
-      position:absolute;left:13px;top:14px;width:25px;height:25px;display:grid;place-items:center;
-      border-radius:8px;color:#fff;background:linear-gradient(135deg,var(--theme),var(--theme2));
-      font-size:11px;font-weight:1000;box-shadow:0 7px 16px var(--theme-soft);
+    .feature-icon{
+      position:absolute;left:16px;top:50%;transform:translateY(-50%);
+      width:44px;height:44px;display:grid;place-items:center;border-radius:14px;
+      color:#fff;background:linear-gradient(135deg,rgba(240,90,157,.95),rgba(165,76,255,.92));
+      border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 22px rgba(240,90,157,.25);
     }
-    .feature.atg-feature strong{font-size:13px}
-    .feature.atg-feature span{font-size:10px;line-height:1.7;color:#99a7b6}
+    .feature-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .feature-number{
+      position:absolute;right:12px;top:12px;min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;
+      border-radius:999px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      font-size:11px;font-weight:1000;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
+    .feature.atg-feature strong{font-size:13px;padding-right:28px}
+    .feature.atg-feature span{font-size:10px;line-height:1.7;color:#99a7b6;padding-right:18px}
     .flow-list{display:grid;gap:8px}
     .flow-step{
       display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;
@@ -235,7 +242,7 @@
       .tool-logo{width:58px;height:58px;flex-basis:58px;border-radius:16px}
       .tool-name{font-size:15px}.tool-tags{font-size:9px}
       .detail-logo{width:68px;height:68px;flex-basis:68px;border-radius:18px}
-      .detail-name{font-size:19px}.feature-grid{gap:8px}
+      .detail-name{font-size:19px}.feature-grid{gap:8px}.feature.atg-feature{padding:14px 14px 14px 68px}.feature-icon{width:40px;height:40px;left:14px}
     }
   </style>
   <script src="./opencc.js"></script>
@@ -271,9 +278,9 @@
             <div class="tool-card-top">
               <img class="tool-logo" src="xinyao-atg-logo.png" alt="芯瑤 ATG AI助手">
               <div class="tool-meta">
-                <div class="tool-kicker">ATG AI ASSISTANT</div>
-                <div class="tool-name">芯瑤 ♥ ATG AI助手</div>
-                <div class="tool-tags">自動掃描｜房間排名｜每轉結果｜AI 自動配注</div>
+                <div class="tool-kicker" id="toolAtgKicker">ATG AI ASSISTANT</div>
+                <div class="tool-name" id="toolAtgName">芯瑤 ♥ ATG AI助手</div>
+                <div class="tool-tags" id="toolAtgTags">自動掃描｜房間排名｜每轉結果｜AI 自動配注</div>
               </div>
             </div>
             <a class="tool-button" href="ai-tools.html?tool=atg"><span id="viewAtg">查看工具</span> →</a>
@@ -283,9 +290,9 @@
             <div class="tool-card-top">
               <img class="tool-logo" src="xinyao-539-logo.png" alt="芯瑤 539 趨勢分析">
               <div class="tool-meta">
-                <div class="tool-kicker">539 TREND ANALYSIS</div>
-                <div class="tool-name">芯瑤 💕 539 趨勢分析</div>
-                <div class="tool-tags">多玩法分析｜歷史驗證｜數據中心</div>
+                <div class="tool-kicker" id="tool539Kicker">539 TREND ANALYSIS</div>
+                <div class="tool-name" id="tool539Name">芯瑤 💕 539 趨勢分析</div>
+                <div class="tool-tags" id="tool539Tags">多玩法分析｜歷史驗證｜數據中心</div>
               </div>
             </div>
             <a class="tool-button" href="ai-tools.html?tool=539"><span id="view539">查看工具</span> →</a>
@@ -309,7 +316,7 @@
       <div class="panel">
         <div class="panel-title"><span class="mark">▶</span><span id="videoTitle">示範影片</span></div>
         <div class="video-shell">
-          <video id="toolVideo" controls playsinline preload="metadata" poster="xinyao-atg-logo.png">
+          <video id="toolVideo" controls playsinline preload="metadata">
             <source id="toolVideoSource" src="atg-demo.mp4" type="video/mp4">
           </video>
         </div>
@@ -326,40 +333,23 @@
       </div>
 
       <div class="panel atg-only">
-        <div class="panel-title"><span class="mark">→</span><span>使用流程</span></div>
-        <div class="flow-list">
-          <div class="flow-step"><b>1</b><div><strong>開始掃描</strong><span>啟動系統後，自動取得 ATG 房間資料。</span></div></div>
-          <div class="flow-step"><b>2</b><div><strong>4100+ 房間自動整理</strong><span>自動翻頁、掃描並整理大量房間資訊。</span></div></div>
-          <div class="flow-step"><b>3</b><div><strong>產生分析與房間排名</strong><span>將結果集中整理，直接顯示房間排序與分析分數。</span></div></div>
-          <div class="flow-step"><b>4</b><div><strong>進入指定房間</strong><span>可從排行結果快速查看指定房間資訊。</span></div></div>
-          <div class="flow-step"><b>5</b><div><strong>查看每轉結果</strong><span>進房後持續整理每轉分析結果與即時狀態。</span></div></div>
-          <div class="flow-step"><b>6</b><div><strong>AI 自動配注</strong><span>依照目前狀況提供下一階段的配置建議。</span></div></div>
-        </div>
+        <div class="panel-title"><span class="mark">→</span><span id="flowTitle">使用流程</span></div>
+        <div class="flow-list" id="flowList"></div>
       </div>
 
       <div class="panel atg-only">
-        <div class="panel-title"><span class="mark">★</span><span>工具特色</span></div>
-        <div class="mini-grid">
-          <div class="mini-card"><strong>自動化</strong><span>大量資料自動取得與整理，減少繁瑣手動操作。</span></div>
-          <div class="mini-card"><strong>高效率</strong><span>4100+ 房間集中掃描，快速找到需要查看的資訊。</span></div>
-          <div class="mini-card"><strong>易判讀</strong><span>房間排行、分析分數與每轉結果集中顯示。</span></div>
-          <div class="mini-card"><strong>智能配置</strong><span>依目前狀態提供下一階段 AI 自動配注建議。</span></div>
-        </div>
+        <div class="panel-title"><span class="mark">★</span><span id="highlightsTitle">工具特色</span></div>
+        <div class="mini-grid" id="highlightsGrid"></div>
       </div>
 
       <div class="panel atg-only">
-        <div class="panel-title"><span class="mark">✓</span><span>適合這些使用者</span></div>
-        <div class="who-list">
-          <div class="who-item"><i>✓</i><span>不想一直手動輸入大量資料，希望操作更簡單。</span></div>
-          <div class="who-item"><i>✓</i><span>想快速查看大量房間狀況與房間排名。</span></div>
-          <div class="who-item"><i>✓</i><span>希望進房後能集中掌握每轉結果與即時資訊。</span></div>
-          <div class="who-item"><i>✓</i><span>希望系統協助整理下一階段的配置建議。</span></div>
-        </div>
+        <div class="panel-title"><span class="mark">✓</span><span id="whoTitle">適合這些使用者</span></div>
+        <div class="who-list" id="whoList"></div>
       </div>
 
       <div class="final-cta atg-only">
-        <h3>準備好開始使用了嗎？</h3>
-        <p>進入 ATG AI助手，開始自動掃描、分析與配置。</p>
+        <h3 id="finalTitle">準備好開始使用了嗎？</h3>
+        <p id="finalText">進入 ATG AI助手，開始自動掃描、分析與配置。</p>
         <a class="use-button" id="useButtonAtgBottom" href="https://xinyao-ai.github.io/xinyao-ai/?v=5000" target="_blank" rel="noopener noreferrer">立即使用 ATG AI助手 ↗</a>
       </div>
 
@@ -375,111 +365,372 @@
       const params = new URLSearchParams(location.search);
       const tool = params.get('tool');
       const I18N = window.HabaoI18n;
-      const lang = I18N?.getLanguage?.() || 'zh-Hant';
 
-      const ui = {
+      const iconMap = {
+        input: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path><path d="M16.5 16.5l2-2"></path></svg>`,
+        scan: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2"></path><path d="M20 8V6a2 2 0 0 0-2-2h-2"></path><path d="M4 16v2a2 2 0 0 0 2 2h2"></path><path d="M20 16v2a2 2 0 0 1-2 2h-2"></path><path d="M7 12h10"></path></svg>`,
+        rank: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20h8"></path><path d="M12 4l2.2 4.4 4.8.7-3.5 3.4.8 4.8-4.3-2.2-4.3 2.2.8-4.8-3.5-3.4 4.8-.7z"></path></svg>`,
+        trend: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l5-5 3 3 6-7"></path><path d="M14 9h4v4"></path></svg>`,
+        chip: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M9 1v4"></path><path d="M15 1v4"></path><path d="M9 19v4"></path><path d="M15 19v4"></path><path d="M1 9h4"></path><path d="M1 15h4"></path><path d="M19 9h4"></path><path d="M19 15h4"></path></svg>`
+      };
+
+      const pageText = {
         'zh-Hant': {
           backHome:'← 返回首頁', backToolbox:'← 返回 AI 工具箱', toolbox:'AI 工具箱',
           subtitle:'集中整理可使用的智能工具，選擇工具後可查看示範影片、功能與使用入口。',
-          available:'可用工具', view:'查看工具', video:'示範影片', description:'工具說明', features:'主要功能', use:'立即使用'
+          available:'可用工具', view:'查看工具', video:'示範影片', description:'工具說明', features:'主要功能', use:'立即使用',
+          footer:'HABAO AI TOOLBOX'
         },
         'zh-Hans': {
           backHome:'← 返回首页', backToolbox:'← 返回 AI 工具箱', toolbox:'AI 工具箱',
           subtitle:'集中整理可使用的智能工具，选择工具后可查看示范影片、功能与使用入口。',
-          available:'可用工具', view:'查看工具', video:'示范影片', description:'工具说明', features:'主要功能', use:'立即使用'
+          available:'可用工具', view:'查看工具', video:'示范影片', description:'工具说明', features:'主要功能', use:'立即使用',
+          footer:'HABAO AI TOOLBOX'
         },
         'en': {
           backHome:'← Back Home', backToolbox:'← Back to AI Toolbox', toolbox:'AI Toolbox',
           subtitle:'Browse available smart tools, watch demos, review features and launch each tool.',
-          available:'Available Tools', view:'View Tool', video:'Demo Video', description:'Tool Overview', features:'Key Features', use:'Open'
-        }
-      }[lang] || null;
-
-      const data = {
-        atg: {
-          name:'芯瑤 ♥ ATG AI助手', kicker:'ATG AI ASSISTANT', logo:'xinyao-atg-logo.png',
-          video:'atg-demo.mp4', tags:'自動掃描｜房間排名｜每轉結果｜AI 自動配注',
-          url:'https://xinyao-ai.github.io/xinyao-ai/?v=5000', theme:'atg',
-          description:'<strong>免繁雜輸入，讓系統自動幫你掃描、分析、排序與配置。</strong><br><br>ATG AI助手整合全房掃描、房間排名、每轉結果與 AI 自動配注功能，減少手動整理大量資料的時間，讓使用者可以更快掌握房間狀況與後續操作方向。',
-          features:[
-            ['免手動輸入繁雜資料','系統自動取得並整理房號、點數、轉數與房間資訊，減少重複輸入與人工整理。'],
-            ['4100+ 房間自動掃描','一鍵掃描 ATG 4100 多個房間，自動翻頁並整理大量房間資料。'],
-            ['自動列出房間排名','掃描完成後自動整理分析結果、分析分數與房間排序，可直接查看指定房間。'],
-            ['提前得知每轉結果','進房後集中整理每轉分析結果與即時狀態，讓資訊更快、更直覺。'],
-            ['AI 自動配注','依目前狀況自動整理下一階段配置，提供建議單轉金額與建議自動轉數。']
-          ]
-        },
-        '539': {
-          name:'芯瑤 💕 539 趨勢分析', kicker:'539 TREND ANALYSIS', logo:'xinyao-539-logo.png',
-          video:'539-demo.mp4', tags:'多玩法分析｜歷史驗證｜數據中心',
-          url:'https://xinyao-ai.github.io/xinyao-539/', theme:'539',
-          features:[['連碰234星','支援多種選號玩法'],['全車／尾數','快速切換分析類型'],['歷史驗證','比對歷史結果'],['數據中心','集中查看近期數據']]
+          available:'Available Tools', view:'View Tool', video:'Demo Video', description:'Tool Overview', features:'Key Features', use:'Open',
+          footer:'HABAO AI TOOLBOX'
         }
       };
 
-      const topBack = document.getElementById('topBack');
-      if (ui) {
+      const toolsData = {
+        atg: {
+          logo:'xinyao-atg-logo.png',
+          video:'atg-demo.mp4',
+          url:'https://xinyao-ai.github.io/xinyao-ai/?v=5000',
+          theme:'atg',
+          texts:{
+            'zh-Hant': {
+              kicker:'ATG AI ASSISTANT',
+              name:'芯瑤 ♥ ATG AI助手',
+              tags:'自動掃描｜房間排名｜每轉結果｜AI 自動配注',
+              description:'<strong>免手動輸入繁雜資料，讓系統自動幫你掃描、分析、排序與配置。</strong><br><br>ATG AI助手整合全房掃描、房間排名、每轉結果與 AI 自動配注功能，減少手動整理大量資料的時間，讓使用者可以更快掌握房間狀況與後續操作方向。',
+              features:[
+                {icon:'input', title:'免手動輸入繁雜資料', desc:'系統自動取得並整理房號、點數、轉數與房間資訊，減少重複輸入與人工整理。'},
+                {icon:'scan', title:'4100+ 房間自動掃描', desc:'一鍵掃描 ATG 4100 多個房間，自動翻頁並整理大量房間資料。'},
+                {icon:'rank', title:'自動列出房間排名', desc:'掃描完成後自動整理分析結果、分析分數與房間排序，可直接查看指定房間。'},
+                {icon:'trend', title:'提前得知每轉結果', desc:'進房後集中整理每轉分析結果與即時狀態，讓資訊更快、更直覺。'},
+                {icon:'chip', title:'AI 自動配注', desc:'依目前狀況自動整理下一階段配置，提供建議單轉金額與建議自動轉數。'}
+              ],
+              flowTitle:'使用流程',
+              flow:[
+                ['開始掃描','啟動系統後，自動取得 ATG 房間資料。'],
+                ['4100+ 房間自動整理','自動翻頁、掃描並整理大量房間資訊。'],
+                ['產生分析與房間排名','將結果集中整理，直接顯示房間排序與分析分數。'],
+                ['進入指定房間','可從排行結果快速查看指定房間資訊。'],
+                ['查看每轉結果','進房後持續整理每轉分析結果與即時狀態。'],
+                ['AI 自動配注','依照目前狀況提供下一階段的配置建議。']
+              ],
+              highlightsTitle:'工具特色',
+              highlights:[
+                ['自動化','大量資料自動取得與整理，減少繁瑣手動操作。'],
+                ['高效率','4100+ 房間集中掃描，快速找到需要查看的資訊。'],
+                ['易判讀','房間排行、分析分數與每轉結果集中顯示。'],
+                ['智能配置','依目前狀態提供下一階段 AI 自動配注建議。']
+              ],
+              whoTitle:'適合這些使用者',
+              who:[
+                '不想一直手動輸入大量資料，希望操作更簡單。',
+                '想快速查看大量房間狀況與房間排名。',
+                '希望進房後能集中掌握每轉結果與即時資訊。',
+                '希望系統協助整理下一階段的配置建議。'
+              ],
+              finalTitle:'準備好開始使用了嗎？',
+              finalText:'進入 ATG AI助手，開始自動掃描、分析與配置。',
+              useLabel:'立即使用 ATG AI助手'
+            },
+            'zh-Hans': {
+              kicker:'ATG AI ASSISTANT',
+              name:'芯瑶 ♥ ATG AI助手',
+              tags:'自动扫描｜房间排名｜每转结果｜AI 自动配注',
+              description:'<strong>免手动输入繁杂资料，让系统自动帮你扫描、分析、排序与配置。</strong><br><br>ATG AI助手整合全房扫描、房间排名、每转结果与 AI 自动配注功能，减少手动整理大量资料的时间，让使用者可以更快掌握房间状况与后续操作方向。',
+              features:[
+                {icon:'input', title:'免手动输入繁杂资料', desc:'系统自动取得并整理房号、点数、转数与房间资讯，减少重复输入与人工整理。'},
+                {icon:'scan', title:'4100+ 房间自动扫描', desc:'一键扫描 ATG 4100 多个房间，自动翻页并整理大量房间资料。'},
+                {icon:'rank', title:'自动列出房间排名', desc:'扫描完成后自动整理分析结果、分析分数与房间排序，可直接查看指定房间。'},
+                {icon:'trend', title:'提前得知每转结果', desc:'进房后集中整理每转分析结果与即时状态，让资讯更快、更直觉。'},
+                {icon:'chip', title:'AI 自动配注', desc:'依目前状况自动整理下一阶段配置，提供建议单转金额与建议自动转数。'}
+              ],
+              flowTitle:'使用流程',
+              flow:[
+                ['开始扫描','启动系统后，自动取得 ATG 房间资料。'],
+                ['4100+ 房间自动整理','自动翻页、扫描并整理大量房间资讯。'],
+                ['产生分析与房间排名','将结果集中整理，直接显示房间排序与分析分数。'],
+                ['进入指定房间','可从排行结果快速查看指定房间资讯。'],
+                ['查看每转结果','进房后持续整理每转分析结果与即时状态。'],
+                ['AI 自动配注','依照目前状况提供下一阶段的配置建议。']
+              ],
+              highlightsTitle:'工具特色',
+              highlights:[
+                ['自动化','大量资料自动取得与整理，减少繁琐手动操作。'],
+                ['高效率','4100+ 房间集中扫描，快速找到需要查看的资讯。'],
+                ['易判读','房间排行、分析分数与每转结果集中显示。'],
+                ['智能配置','依目前状态提供下一阶段 AI 自动配注建议。']
+              ],
+              whoTitle:'适合这些使用者',
+              who:[
+                '不想一直手动输入大量资料，希望操作更简单。',
+                '想快速查看大量房间状况与房间排名。',
+                '希望进房后能集中掌握每转结果与即时资讯。',
+                '希望系统协助整理下一阶段的配置建议。'
+              ],
+              finalTitle:'准备好开始使用了吗？',
+              finalText:'进入 ATG AI助手，开始自动扫描、分析与配置。',
+              useLabel:'立即使用 ATG AI助手'
+            },
+            'en': {
+              kicker:'ATG AI ASSISTANT',
+              name:'Xinyao ♥ ATG AI Assistant',
+              tags:'Auto Scan｜Room Ranking｜Spin Results｜AI Bet Allocation',
+              description:'<strong>Skip complicated manual input and let the system scan, analyze, rank and allocate automatically.</strong><br><br>The ATG AI Assistant combines full-room scanning, room ranking, spin-by-spin results and AI-assisted allocation, reducing manual data organization and helping users understand room conditions and next-step actions faster.',
+              features:[
+                {icon:'input', title:'No Manual Data Entry', desc:'The system automatically captures and organizes room numbers, points, spin counts and room information.'},
+                {icon:'scan', title:'Auto Scan 4,100+ Rooms', desc:'Scan over 4,100 ATG rooms with one click, auto-flip pages and collect large amounts of room data.'},
+                {icon:'rank', title:'Automatic Room Ranking', desc:'After scanning, the system organizes results, scores and room rankings for quick review.'},
+                {icon:'trend', title:'See Spin Results Earlier', desc:'Once inside a room, spin-by-spin analysis and live status are organized in one place for faster reading.'},
+                {icon:'chip', title:'AI Auto Allocation', desc:'Based on the current status, the system prepares the next-stage setup with suggested single-spin amount and auto-spin count.'}
+              ],
+              flowTitle:'How It Works',
+              flow:[
+                ['Start Scanning','Launch the system to automatically fetch ATG room data.'],
+                ['Auto Organize 4,100+ Rooms','Auto-flip pages, scan and organize a large number of rooms.'],
+                ['Generate Analysis & Rankings','Results are organized into scores and room rankings.'],
+                ['Open the Target Room','Jump from ranking results to the room you want to inspect.'],
+                ['Review Spin Results','Track spin-by-spin results and live room status after entering.'],
+                ['AI Auto Allocation','Get next-stage allocation suggestions based on the current condition.']
+              ],
+              highlightsTitle:'Why Use This Tool',
+              highlights:[
+                ['Automation','Automatically gathers and organizes large volumes of data to reduce manual work.'],
+                ['Efficiency','Scans 4,100+ rooms to quickly surface the data you need.'],
+                ['Easy to Read','Room ranking, scores and spin results are displayed in one place.'],
+                ['Smart Allocation','Provides AI-based next-stage allocation suggestions.']
+              ],
+              whoTitle:'Best For',
+              who:[
+                'Users who want to avoid repeated manual data entry.',
+                'Users who need to review many rooms and rankings quickly.',
+                'Users who want spin results and live information in one view.',
+                'Users who want system-assisted next-stage allocation suggestions.'
+              ],
+              finalTitle:'Ready to Start?',
+              finalText:'Open the ATG AI Assistant and begin scanning, analyzing and allocating automatically.',
+              useLabel:'Open ATG AI Assistant'
+            }
+          }
+        },
+        '539': {
+          logo:'xinyao-539-logo.png',
+          video:'539-demo.mp4',
+          url:'https://xinyao-ai.github.io/xinyao-539/',
+          theme:'539',
+          texts:{
+            'zh-Hant': {
+              kicker:'539 TREND ANALYSIS',
+              name:'芯瑤 💕 539 趨勢分析',
+              tags:'多玩法分析｜歷史驗證｜數據中心',
+              description:'<strong>整合多種玩法分析與歷史驗證，快速整理 539 相關數據。</strong><br><br>可集中查看不同玩法分析、歷史比對結果與數據中心內容，讓判讀更直覺。',
+              features:[
+                {title:'連碰234星', desc:'支援多種選號玩法。'},
+                {title:'全車／尾數', desc:'快速切換分析類型。'},
+                {title:'歷史驗證', desc:'比對歷史結果。'},
+                {title:'數據中心', desc:'集中查看近期數據。'}
+              ],
+              useLabel:'立即使用 539 趨勢分析'
+            },
+            'zh-Hans': {
+              kicker:'539 TREND ANALYSIS',
+              name:'芯瑶 💕 539 趋势分析',
+              tags:'多玩法分析｜历史验证｜数据中心',
+              description:'<strong>整合多种玩法分析与历史验证，快速整理 539 相关数据。</strong><br><br>可集中查看不同玩法分析、历史比对结果与数据中心内容，让判读更直觉。',
+              features:[
+                {title:'连碰234星', desc:'支持多种选号玩法。'},
+                {title:'全车／尾数', desc:'快速切换分析类型。'},
+                {title:'历史验证', desc:'比对历史结果。'},
+                {title:'数据中心', desc:'集中查看近期数据。'}
+              ],
+              useLabel:'立即使用 539 趋势分析'
+            },
+            'en': {
+              kicker:'539 TREND ANALYSIS',
+              name:'Xinyao 💕 539 Trend Analysis',
+              tags:'Multi-Mode Analysis｜History Check｜Data Center',
+              description:'<strong>Combine multiple play-mode analyses and history validation in one place.</strong><br><br>Quickly review different 539 analysis modes, historical verification and recent data for easier decision-making.',
+              features:[
+                {title:'2/3/4-Star Combo', desc:'Supports multiple number-selection modes.'},
+                {title:'Full Set / Tail Numbers', desc:'Quickly switch between analysis types.'},
+                {title:'History Validation', desc:'Compare against historical results.'},
+                {title:'Data Center', desc:'Review recent data in one place.'}
+              ],
+              useLabel:'Open 539 Trend Analysis'
+            }
+          }
+        }
+      };
+
+      function getLanguage() {
+        return I18N?.getLanguage?.() || 'zh-Hant';
+      }
+
+      function getTextSet(toolKey, lang) {
+        return toolsData[toolKey]?.texts?.[lang] || toolsData[toolKey]?.texts?.['zh-Hant'];
+      }
+
+      function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el && value != null) el.textContent = value;
+      }
+
+      function renderList(lang) {
+        const ui = pageText[lang] || pageText['zh-Hant'];
+        setText('toolboxTitle', ui.toolbox);
+        setText('toolboxSubtitle', ui.subtitle);
+        setText('availableTitle', ui.available);
+        setText('viewAtg', ui.view);
+        setText('view539', ui.view);
+        document.querySelector('.footer-note').textContent = ui.footer;
+
+        const atg = getTextSet('atg', lang);
+        setText('toolAtgKicker', atg.kicker);
+        setText('toolAtgName', atg.name);
+        setText('toolAtgTags', atg.tags);
+
+        const f539 = getTextSet('539', lang);
+        setText('tool539Kicker', f539.kicker);
+        setText('tool539Name', f539.name);
+        setText('tool539Tags', f539.tags);
+      }
+
+      function renderFlow(flow) {
+        const flowList = document.getElementById('flowList');
+        if (!flowList) return;
+        flowList.innerHTML = flow.map((item, index) => `
+          <div class="flow-step"><b>${index + 1}</b><div><strong>${item[0]}</strong><span>${item[1]}</span></div></div>
+        `).join('');
+      }
+
+      function renderHighlights(items) {
+        const grid = document.getElementById('highlightsGrid');
+        if (!grid) return;
+        grid.innerHTML = items.map(item => `
+          <div class="mini-card"><strong>${item[0]}</strong><span>${item[1]}</span></div>
+        `).join('');
+      }
+
+      function renderWho(items) {
+        const whoList = document.getElementById('whoList');
+        if (!whoList) return;
+        whoList.innerHTML = items.map(text => `
+          <div class="who-item"><i>✓</i><span>${text}</span></div>
+        `).join('');
+      }
+
+      function prepareVideoPreview(video) {
+        if (!video) return;
+        const previewTime = 0.05;
+        const showPreviewFrame = () => {
+          try {
+            video.currentTime = (video.duration && video.duration > previewTime) ? previewTime : 0;
+          } catch (_) {
+            video.pause();
+          }
+        };
+        video.addEventListener('loadeddata', showPreviewFrame, { once: true });
+        video.addEventListener('seeked', () => video.pause(), { once: true });
+      }
+
+      function renderDetail(lang) {
+        if (!tool || !toolsData[tool]) return;
+
+        const ui = pageText[lang] || pageText['zh-Hant'];
+        const d = toolsData[tool];
+        const t = getTextSet(tool, lang);
+
+        document.body.classList.toggle('theme-539', tool === '539');
+        document.body.classList.toggle('tool-atg', tool === 'atg');
+        document.body.classList.add('is-detail');
+
+        const topBack = document.getElementById('topBack');
+        topBack.textContent = ui.backToolbox;
+        topBack.href = 'ai-tools.html';
+
+        document.getElementById('detailLogo').src = d.logo;
+        document.getElementById('detailLogo').alt = t.name;
+        setText('detailKicker', t.kicker);
+        setText('detailName', t.name);
+        setText('detailTags', t.tags);
+        setText('videoTitle', ui.video);
+        setText('descriptionTitle', ui.description);
+        setText('featuresTitle', ui.features);
+        document.getElementById('toolDescription').innerHTML = t.description || '';
+
+        const video = document.getElementById('toolVideo');
+        const source = document.getElementById('toolVideoSource');
+        video.removeAttribute('poster');
+        source.src = d.video;
+        video.load();
+        prepareVideoPreview(video);
+
+        const featureGrid = document.getElementById('featureGrid');
+        if (tool === 'atg') {
+          featureGrid.classList.add('atg-core');
+          featureGrid.innerHTML = t.features.map((item, index) => `
+            <div class="feature atg-feature">
+              <span class="feature-icon">${iconMap[item.icon] || ''}</span>
+              <span class="feature-number">${index + 1}</span>
+              <strong>${item.title}</strong>
+              <span>${item.desc}</span>
+            </div>
+          `).join('');
+
+          setText('flowTitle', t.flowTitle);
+          renderFlow(t.flow);
+          setText('highlightsTitle', t.highlightsTitle);
+          renderHighlights(t.highlights);
+          setText('whoTitle', t.whoTitle);
+          renderWho(t.who);
+          setText('finalTitle', t.finalTitle);
+          setText('finalText', t.finalText);
+        } else {
+          featureGrid.classList.remove('atg-core');
+          featureGrid.innerHTML = t.features.map(item => `
+            <div class="feature">
+              <strong>${item.title}</strong>
+              <span>${item.desc}</span>
+            </div>
+          `).join('');
+        }
+
+        const useText = `${t.useLabel} ↗`;
+        const useButton = document.getElementById('useButton');
+        useButton.href = d.url;
+        useButton.textContent = useText;
+        const bottomButton = document.getElementById('useButtonAtgBottom');
+        if (bottomButton) {
+          bottomButton.href = d.url;
+          bottomButton.textContent = useText;
+        }
+
+        document.title = `HABAO｜${t.name}`;
+      }
+
+      function renderPage(lang) {
+        const ui = pageText[lang] || pageText['zh-Hant'];
+        const topBack = document.getElementById('topBack');
         topBack.textContent = tool ? ui.backToolbox : ui.backHome;
-        document.getElementById('toolboxTitle').textContent = ui.toolbox;
-        document.getElementById('toolboxSubtitle').textContent = ui.subtitle;
-        document.getElementById('availableTitle').textContent = ui.available;
-        document.getElementById('viewAtg').textContent = ui.view;
-        document.getElementById('view539').textContent = ui.view;
-        document.getElementById('videoTitle').textContent = ui.video;
-        document.getElementById('descriptionTitle').textContent = ui.description;
-        document.getElementById('featuresTitle').textContent = ui.features;
+        topBack.href = tool ? 'ai-tools.html' : 'home-v2.html';
+        renderList(lang);
+        if (tool) renderDetail(lang);
       }
 
-      if (!tool || !data[tool]) return;
-      document.body.classList.add('is-detail');
-      if (tool === '539') document.body.classList.add('theme-539');
-      if (tool === 'atg') document.body.classList.add('tool-atg');
-      topBack.href = 'ai-tools.html';
+      renderPage(getLanguage());
 
-      const d = data[tool];
-      document.getElementById('detailLogo').src = d.logo;
-      document.getElementById('detailLogo').alt = d.name;
-      document.getElementById('detailKicker').textContent = d.kicker;
-      document.getElementById('detailName').textContent = d.name;
-      document.getElementById('detailTags').textContent = d.tags;
-
-      const video = document.getElementById('toolVideo');
-      const source = document.getElementById('toolVideoSource');
-      video.poster = d.logo;
-      source.src = d.video;
-      video.load();
-
-      const description = document.getElementById('toolDescription');
-      if (description) {
-        description.innerHTML = d.description || '';
-        if (!d.description) description.classList.add('copy-empty');
-      }
-
-      const grid = document.getElementById('featureGrid');
-      if (tool === 'atg') {
-        grid.classList.add('atg-core');
-        grid.innerHTML = d.features.map(([title,desc], index) => `
-          <div class="feature atg-feature">
-            <span class="feature-number">${index + 1}</span>
-            <strong>${title}</strong>
-            <span>${desc}</span>
-          </div>
-        `).join('');
-      } else {
-        grid.innerHTML = d.features.map(([title,desc]) => `
-          <div class="feature">
-            <strong>${title}</strong>
-            <span>${desc}</span>
-          </div>
-        `).join('');
-      }
-
-      const use = document.getElementById('useButton');
-      use.href = d.url;
-      use.textContent = `${ui ? ui.use : '立即使用'} ${tool === 'atg' ? 'ATG AI助手' : '539 趨勢分析'} ↗`;
-      const atgBottom = document.getElementById('useButtonAtgBottom');
-      if (atgBottom && tool === 'atg') atgBottom.href = d.url;
-      document.title = `HABAO｜${d.name}`;
+      window.addEventListener('habao:languagechange', (event) => {
+        const nextLang = event.detail?.language || getLanguage();
+        renderPage(nextLang);
+      });
     })();
   </script>
 </body>
