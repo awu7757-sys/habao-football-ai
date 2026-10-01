@@ -193,33 +193,22 @@
   left:16px;
   top:50%;
   transform:translateY(-50%);
-  width:46px;
-  height:46px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  width:48px;
+  height:48px;
+  display:block;
   overflow:hidden;
-  border-radius:15px;
-  border:1px solid rgba(255,95,181,.38);
-  background:#130d1b;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 0 0 1px rgba(142,73,255,.08),
-    0 8px 22px rgba(0,0,0,.35),
-    0 0 18px rgba(240,90,157,.12);
+  border-radius:12px;
+  background:transparent;
+  border:0;
+  box-shadow:none;
 }
 .feature-icon img{
   width:100%;
   height:100%;
   display:block;
   object-fit:cover;
-  border-radius:14px;
+  border-radius:12px;
 }
-    .feature-number{
-      position:absolute;right:12px;top:12px;min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;
-      border-radius:999px;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-      font-size:11px;font-weight:1000;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    }
     .feature.atg-feature strong{font-size:14px;padding-right:34px;line-height:1.45}
     .feature.atg-feature span{font-size:10px;line-height:1.75;color:#99a7b6;padding-right:16px}
     .flow-list{display:grid;gap:8px}
@@ -390,11 +379,11 @@
       const I18N = window.HabaoI18n;
 
       const iconMap = {
-  input: 'atg-feature-input.png',
-  scan: 'atg-feature-scan.png',
-  rank: 'atg-feature-rank.png',
-  trend: 'atg-feature-result.png',
-  chip: 'atg-feature-ai.png'
+  input: 'atg-feature-input-tight.png',
+  scan: 'atg-feature-scan-tight.png',
+  rank: 'atg-feature-rank-tight.png',
+  trend: 'atg-feature-result-tight.png',
+  chip: 'atg-feature-ai-tight.png'
 };
 
       const pageText = {
@@ -696,7 +685,6 @@
           featureGrid.innerHTML = t.features.map((item, index) => `
             <div class="feature atg-feature">
               <span class="feature-icon"><img src="${iconMap[item.icon] || ''}" alt="" loading="lazy"></span>
-              <span class="feature-number">${index + 1}</span>
               <strong>${item.title}</strong>
               <span>${item.desc}</span>
             </div>
