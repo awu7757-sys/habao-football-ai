@@ -7144,46 +7144,22 @@ function renderAnalysisHistory(matches) {
       );
   }
 
-  if (!matches.length) {
-    container.innerHTML = `
-      <div class="v2-history-empty">
+if (!matches.length) {
 
-<div class="v2-history-empty-icon">
-  <img
-    src="./habao-hb-logo.png"
-    alt="HABAO"
-  >
-</div>
+  container.innerHTML = `
+    <div class="ai-note">
+      ${t(
+        "noHistory",
+        "尚無分析紀錄"
+      )}
+    </div>
+  `;
 
-        <div class="v2-history-empty-label">
-          ANALYSIS HISTORY
-        </div>
+  window.habaoAnalysisHistory = {};
+  window.habaoCurrentHistoryMatches = [];
 
-        <div class="v2-history-empty-title">
-          ${t(
-            "noHistory",
-            "尚無分析紀錄"
-          )}
-        </div>
-
-        <div class="v2-history-empty-text">
-          ${t(
-            "noHistoryText",
-            "完成賽事分析後，紀錄會自動保存在這裡。"
-          )}
-        </div>
-
-      </div>
-    `;
-
-    window.habaoAnalysisHistory =
-      {};
-
-    window.habaoCurrentHistoryMatches =
-      [];
-
-    return;
-  }
+  return;
+}
 
   const historyLeagueNameZH = {
     "Premier League":
