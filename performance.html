@@ -270,10 +270,12 @@
         <article class="market-card btts">
           <div class="market-top"><span class="market-tag">BTTS</span><span class="market-name" data-i18n="bttsName">雙方進球</span></div>
           <div class="market-main"><div class="market-icon"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
-  <circle cx="10" cy="16" r="6.2" stroke="currentColor" stroke-width="1.8"/>
-  <circle cx="22" cy="16" r="6.2" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M14.6 12.2 17.3 10l2.7 2.2-.9 3.2h-3.6l-.9-3.2ZM15.4 19h3.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M4.4 13.4 7 12l2 1.8-.8 2.9H5.4M27.6 13.4 25 12l-2 1.8.8 2.9h2.8" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+  <path d="M7 11.5h18v11H7z" stroke="currentColor" stroke-width="1.8" rx="1.5"/>
+  <path d="M9.5 14.2h13M9.5 17h13M12 11.5v11M16 11.5v11M20 11.5v11" stroke="currentColor" stroke-width="1" opacity=".65"/>
+  <circle cx="8.5" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.8"/>
+  <circle cx="23.5" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.8"/>
+  <path d="m10.9 10.8 3.1 3.1M21.1 10.8 18 13.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="m12.5 13.2 1.6.7-.7 1.6M19.5 13.2l-1.6.7.7 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div><div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div></div>
           <div id="bttsStatus" class="market-status">--</div>
         </article>
@@ -403,7 +405,13 @@ function renderRecent(){
 }
 
 function trendRows(){
-  const rows=(allData?.trend||[]).map(x=>({date:x.date,m:x[currentTrend]})).filter(x=>num(x.m?.decided)>0);
+  const rows=(allData?.trend||[])
+    .map(x=>({date:x.date,m:x[currentTrend]}))
+    .filter(x=>{
+      const decided=num(x.m?.decided);
+      const effective=num(x.m?.effective_wins)+num(x.m?.effective_losses);
+      return decided>0 && effective>0;
+    });
   if(!rows.length)return[];
   const lastDate=new Date(rows.at(-1).date+"T00:00:00+08:00");
   const start=new Date(lastDate);start.setDate(start.getDate()-(trendPeriod-1));
