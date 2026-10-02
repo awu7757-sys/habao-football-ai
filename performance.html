@@ -1,574 +1,345 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#03121d">
-<title>HABAO 賽事預測 AI｜公開戰績</title>
-<script src="./habao-i18n.js"></script>
-<style>
-:root{
-  --bg:#03121d;
-  --panel:#071b28;
-  --panel2:#0a2231;
-  --line:rgba(125,190,220,.16);
-  --line2:rgba(245,190,55,.33);
-  --text:#f6f8fb;
-  --muted:#9cb0be;
-  --gold:#f4bf33;
-  --gold2:#ffd85a;
-  --green:#14d99a;
-  --red:#ff555c;
-  --blue:#2f8cff;
-  --cyan:#52c9ff;
-  --orange:#ff8f36;
-  --max:860px;
-  --r:16px;
-}
-*{box-sizing:border-box}
-html,body{margin:0;background:
-  radial-gradient(circle at 70% 0%,rgba(38,112,151,.12),transparent 26%),
-  linear-gradient(180deg,#061826 0%,#02111b 55%,#03131e 100%);
-  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,sans-serif}
-body{min-height:100vh}
-button{font:inherit}
-.app{max-width:var(--max);margin:0 auto;padding:10px 18px 34px}
-.topbar{height:64px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:50px;height:50px;border-radius:13px;border:1px solid rgba(244,191,51,.7);
-  background:linear-gradient(145deg,#201605,#020508 45%,#3e2d09);
-  display:grid;place-items:center;color:#ffd870;font-size:25px;font-weight:900;
-  box-shadow:0 0 18px rgba(244,191,51,.18),inset 0 0 18px rgba(244,191,51,.12)}
-.logo span{letter-spacing:-3px;margin-left:-3px}
-.brand-title{font-weight:900;font-size:20px;letter-spacing:.3px}
-.brand-sub{font-size:10px;letter-spacing:2.3px;color:#b7c5cf;margin-top:2px}
-.back-btn{border:1px solid rgba(244,191,51,.65);color:#ffd35a;background:rgba(21,18,8,.5);
-  padding:10px 20px;border-radius:12px;font-weight:800;cursor:pointer}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071521" />
+  <title>HABAO 賽事預測 AI｜公開戰績</title>
+  <script src="./habao-i18n.js"></script>
+  <style>
+    :root{
+      --bg:#061521;
+      --bg2:#03101a;
+      --panel:#0a2231;
+      --panel2:#0c2939;
+      --border:rgba(136,190,219,.16);
+      --text:#f5f7fa;
+      --muted:#8fa5b3;
+      --gold:#f4bd43;
+      --gold2:#ffd967;
+      --green:#21d9a0;
+      --red:#ff5f66;
+      --blue:#45a3ff;
+      --orange:#ff9348;
+      --radius:18px;
+      --max-width:760px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{background:var(--bg2)}
+    body{
+      margin:0;min-height:100vh;color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+      background:
+        radial-gradient(circle at 50% -10%,rgba(58,150,205,.12),transparent 30%),
+        linear-gradient(180deg,#071a28 0%,#04131f 46%,#020d15 100%);
+    }
+    button{font:inherit}
+    .app{width:min(100%,var(--max-width));margin:0 auto;padding:0 14px calc(42px + env(safe-area-inset-bottom))}
 
-/* hero */
-.hero{position:relative;overflow:hidden;border:1px solid rgba(244,191,51,.48);border-radius:18px;
-  min-height:218px;padding:20px 26px 18px;
-  background:
-   linear-gradient(90deg,rgba(2,11,17,.96) 0%,rgba(3,15,22,.85) 43%,rgba(3,16,23,.40) 73%,rgba(2,12,18,.82) 100%),
-   radial-gradient(circle at 80% 58%,rgba(244,191,51,.19),transparent 16%),
-   repeating-linear-gradient(112deg,transparent 0 18px,rgba(255,255,255,.022) 18px 19px),
-   linear-gradient(180deg,#183546 0%,#0d2630 46%,#19351f 47%,#07131a 100%);
-  box-shadow:inset 0 0 30px rgba(0,0,0,.42),0 0 24px rgba(244,191,51,.08)}
-.hero:before{content:"";position:absolute;inset:0;background:
- radial-gradient(ellipse at 55% 10%,rgba(255,211,86,.35),transparent 11%),
- radial-gradient(ellipse at 72% 12%,rgba(255,211,86,.22),transparent 9%),
- radial-gradient(ellipse at 35% 14%,rgba(255,211,86,.18),transparent 8%);pointer-events:none}
-.hero-copy{position:relative;z-index:2;max-width:620px}
-.eyebrow{display:flex;align-items:center;gap:10px;color:#ffd969;font-weight:800;letter-spacing:2px;font-size:15px}
-.eyebrow .tool{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;border:2px solid #d8ad38;color:#ffd969}
-.hero h1{font-size:49px;line-height:.95;margin:12px 0 13px;color:#fff1b8;font-weight:1000;
-  text-shadow:0 2px 0 #75571a,0 0 17px rgba(244,191,51,.28)}
-.hero p{font-size:15px;line-height:1.55;color:#e5ebef;margin:0;max-width:620px;font-weight:600}
-.hero-icons{position:relative;z-index:2;margin-top:17px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
-  border-top:1px solid rgba(255,255,255,.08);padding-top:12px}
-.hero-item{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;white-space:nowrap}
-.hero-item .ico{font-size:24px;color:#ffd13d}
+    /* ===== KEEP ORIGINAL TOP BAR ===== */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+    .brand{display:flex;align-items:center;gap:11px}
+    .brand-logo{
+      width:42px;height:42px;flex:0 0 42px;
+      background:url("./habao-hb-logo.png") center/contain no-repeat;
+      filter:drop-shadow(0 8px 16px rgba(0,0,0,.38)) drop-shadow(0 0 10px rgba(214,181,111,.10));
+    }
+    .brand-title{color:#fff;font-size:15px;font-weight:950;letter-spacing:.2px}
+    .brand-subtitle{margin-top:3px;color:#7f93a2;font-size:9px;font-weight:800;letter-spacing:1.4px}
+    .back-btn{
+      min-width:62px;padding:9px 13px;border:1px solid rgba(244,185,66,.25);border-radius:10px;
+      background:rgba(244,185,66,.06);color:#f4c95d;font-size:11px;font-weight:900;cursor:pointer;
+    }
 
-/* summary/filter */
-.summarybar{margin-top:12px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(8,31,45,.97),rgba(6,25,37,.97));
- border-radius:15px;padding:10px 12px;display:grid;grid-template-columns:190px 1fr 205px;align-items:center;gap:10px}
-.verified-label{font-size:13px;font-weight:800;color:#eef2f4}
-.verified-num{font-size:31px;font-weight:1000;line-height:1;margin-top:2px}
-.verified-num small{font-size:15px;color:#ffd24e}
-.live-pill{display:inline-flex;align-items:center;gap:6px;color:#25efb4;border:1px solid rgba(20,217,154,.35);
- background:rgba(20,217,154,.08);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-left:7px;vertical-align:5px}
-.live-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:#19e4a4;box-shadow:0 0 10px #19e4a4}
-.filters{height:48px;display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)}
-.filter-btn{border:0;background:transparent;color:#c3cfd6;font-weight:800;cursor:pointer;border-radius:10px}
-.filter-btn.active{background:linear-gradient(180deg,#ffd553,#efa91d);color:#231907;box-shadow:0 0 18px rgba(244,191,51,.20)}
-.rangebox{border:1px solid rgba(255,255,255,.07);border-radius:10px;height:48px;display:flex;align-items:center;gap:9px;padding:0 12px}
-.rangebox .cal{font-size:20px}.range-label{font-size:11px;color:#a7bac7;font-weight:800}.range-text{font-size:12px;font-weight:800;margin-top:2px}
+    /* ===== HERO ===== */
+    .hero{
+      position:relative;overflow:hidden;margin:14px 0 12px;padding:20px 20px 15px;
+      min-height:210px;border:1px solid rgba(244,189,67,.52);border-radius:20px;
+      background:
+        linear-gradient(90deg,rgba(2,12,18,.96) 0%,rgba(3,16,24,.84) 45%,rgba(3,17,24,.26) 100%),
+        url("./assets/performance/performance-hero-bg.png") center/cover no-repeat;
+      box-shadow:0 12px 34px rgba(0,0,0,.34),inset 0 0 34px rgba(0,0,0,.22),0 0 22px rgba(244,189,67,.08)
+    }
+    .hero:after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.6}
+    .hero-copy{position:relative;z-index:2;max-width:520px}
+    .hero-kicker{display:flex;align-items:center;gap:8px;color:#ffd35c;font-size:12px;font-weight:950;letter-spacing:1.6px}
+    .hero-kicker .kicon{width:28px;height:28px;border:1px solid #e1b447;border-radius:50%;display:grid;place-items:center;font-size:13px}
+    .hero h1{margin:8px 0 8px;font-size:40px;line-height:1;color:#ffe8a6;font-weight:1000;letter-spacing:-1.2px;text-shadow:0 2px 16px rgba(244,189,67,.18)}
+    .hero p{margin:0;color:#edf3f7;font-size:12px;line-height:1.62;font-weight:700;max-width:520px;text-shadow:0 1px 8px rgba(0,0,0,.65)}
+    .hero-features{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:17px;padding-top:11px;border-top:1px solid rgba(255,255,255,.10)}
+    .hero-feature{display:flex;align-items:center;gap:6px;min-width:0;color:#f2f6f8;font-size:10px;font-weight:850;white-space:nowrap}
+    .hero-feature .fi{color:#ffd342;font-size:17px}
 
-/* sections */
-.section{margin-top:13px}
-.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.section-title h2{font-size:18px;margin:0;font-weight:950;display:flex;align-items:center;gap:8px}
-.section-title h2:before{content:"";width:4px;height:22px;border-radius:3px;background:#f6c43c;box-shadow:0 0 8px rgba(246,196,60,.45)}
-.help{width:17px;height:17px;border:1px solid #8fa2ad;border-radius:50%;display:inline-grid;place-items:center;font-size:11px;color:#a8b7c1}
-.more-btn{border:1px solid rgba(244,191,51,.47);border-radius:999px;background:rgba(244,191,51,.08);color:#ffd14c;padding:7px 14px;font-weight:800;font-size:12px;cursor:pointer}
+    /* ===== SUMMARY / RANGE ===== */
+    .summarybar{
+      display:grid;grid-template-columns:160px 1fr 180px;gap:8px;align-items:center;padding:9px 10px;
+      border:1px solid var(--border);border-radius:15px;background:linear-gradient(180deg,rgba(8,35,50,.96),rgba(5,25,37,.96));
+      box-shadow:inset 0 1px rgba(255,255,255,.025)
+    }
+    .verified-label{color:#dce7ed;font-size:10px;font-weight:850}
+    .verified-line{display:flex;align-items:flex-end;gap:6px;margin-top:2px}
+    .verified-num{font-size:26px;line-height:1;font-weight:1000;color:#fff}.verified-unit{font-size:11px;font-weight:900;color:#ffd149;padding-bottom:3px}
+    .live-pill{display:inline-flex;align-items:center;gap:5px;margin-left:4px;padding:4px 7px;border-radius:999px;border:1px solid rgba(33,217,160,.32);background:rgba(33,217,160,.08);color:#30e6ae;font-size:9px;font-weight:900;align-self:center}
+    .live-pill:before{content:"";width:6px;height:6px;border-radius:50%;background:#22e5aa;box-shadow:0 0 7px #22e5aa}
+    .filters{height:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(1,14,22,.32)}
+    .filter-btn{border:0;border-radius:8px;background:transparent;color:#c2d0d8;font-size:11px;font-weight:900;cursor:pointer}
+    .filter-btn.active{background:linear-gradient(180deg,#ffd557,#edaa26);color:#201605;box-shadow:0 4px 14px rgba(244,189,67,.22)}
+    .rangebox{height:44px;border:1px solid rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;gap:8px;padding:0 10px;background:rgba(1,13,21,.25)}
+    .range-icon{width:25px;height:25px;border:1px solid rgba(128,185,217,.24);border-radius:7px;display:grid;place-items:center;color:#a8c3d2;font-size:13px}
+    .range-label{font-size:9px;color:#89a2b1;font-weight:850}.range-text{margin-top:2px;color:#eef4f7;font-size:9px;font-weight:850;white-space:nowrap}
 
-/* market cards */
-.market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.market-card{min-height:142px;border-radius:15px;padding:14px 16px;position:relative;overflow:hidden;background:linear-gradient(145deg,#0a2233,#071a27 75%)}
-.market-card.blue{border:1px solid #1f67e4;box-shadow:inset 0 0 23px rgba(24,105,255,.08)}
-.market-card.green{border:1px solid #16b77e;box-shadow:inset 0 0 23px rgba(20,217,154,.07)}
-.market-card.red{border:1px solid #d64b4f;box-shadow:inset 0 0 23px rgba(255,85,92,.07)}
-.market-head{display:flex;align-items:center;gap:12px}
-.market-tag{border:1px solid currentColor;border-radius:12px;padding:4px 8px;font-weight:900;font-size:16px}
-.market-card.blue .market-tag{color:#65a3ff}.market-card.green .market-tag{color:#43e0a9}.market-card.red .market-tag{color:#ff9956}
-.market-name{font-size:14px;font-weight:900;color:#d8e4ea}
-.market-body{display:grid;grid-template-columns:54px 1fr 24px;align-items:end;gap:8px;margin-top:8px}
-.market-icon{font-size:42px;line-height:1;color:var(--cyan)}
-.market-card.green .market-icon{color:#26e4a4}.market-card.red .market-icon{color:#ff6268}
-.market-rate{font-size:29px;font-weight:1000;line-height:1}.market-sample{font-size:13px;color:#c0ced7;font-weight:700;margin-top:5px}
-.bars{font-size:23px;color:#1fe1a5}.wave{font-size:22px;color:#ff9133}
-.market-badge{margin:10px auto 0;text-align:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;width:128px}
-.blue .market-badge,.red .market-badge{color:#2ce7ad;border:1px solid rgba(44,231,173,.3);background:rgba(44,231,173,.10)}
-.green .market-badge{color:#ffc83f;border:1px solid rgba(255,200,63,.30);background:rgba(255,200,63,.08)}
+    /* ===== SECTION ===== */
+    .section{margin-top:13px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+    .section-title{display:flex;align-items:center;gap:7px;margin:0;font-size:15px;font-weight:950;color:#f5f8fa}
+    .section-title:before{content:"";width:4px;height:19px;border-radius:3px;background:#f6c33e;box-shadow:0 0 8px rgba(246,195,62,.42)}
+    .help{width:15px;height:15px;display:grid;place-items:center;border:1px solid #8198a6;border-radius:50%;font-size:9px;color:#9db0bc}
 
-/* middle */
-.mid-grid{display:grid;grid-template-columns:1fr 1.06fr;gap:12px}
-.box{border:1px solid var(--line);background:linear-gradient(180deg,#082332,#061c28);border-radius:15px;overflow:hidden}
-.box-head{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid rgba(255,255,255,.06)}
-.box-head h3{margin:0;font-size:17px;font-weight:950;display:flex;align-items:center;gap:8px}
-.box-head h3:before{content:"";width:4px;height:21px;background:#f5c33c;border-radius:4px}
-.recent-inner{padding:13px 14px}
-.recent-row{display:flex;gap:8px;align-items:center;min-height:44px}
-.result-chip{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:1000;font-size:17px;flex:0 0 auto;
- box-shadow:inset 0 0 9px rgba(255,255,255,.08)}
-.result-chip.win{background:#0e986f;color:white}.result-chip.loss{background:#d83e45;color:white}
-.result-chip.push{background:#63747f;color:white}.result-chip.half_win{background:#17886d;color:#fff}.result-chip.half_loss{background:#9e5a46;color:#fff}
-.recent-arrow{color:#c8d4da;font-size:23px;margin-left:auto}
-.recent-summary{margin-top:14px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;color:#dce4e9;font-size:14px;font-weight:800}
-.recent-summary b{color:#ffd049;font-size:17px}
+    /* ===== MARKET CARDS ===== */
+    .market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .market-card{position:relative;overflow:hidden;min-height:130px;padding:12px 13px;border-radius:14px;background-color:#071a26;background-size:cover;background-position:center;box-shadow:inset 0 0 30px rgba(0,0,0,.18)}
+    .market-card:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,15,24,.93),rgba(3,18,27,.68) 57%,rgba(3,18,27,.30));pointer-events:none}
+    .market-card>*{position:relative;z-index:1}
+    .market-card.moneyline{border:1px solid #2588ff;background-image:linear-gradient(90deg,rgba(3,15,24,.85),rgba(3,15,24,.35)),url("./assets/performance/performance-card-1x2.png")}
+    .market-card.overunder{border:1px solid #17d0a1;background-image:linear-gradient(90deg,rgba(3,15,24,.86),rgba(3,15,24,.35)),url("./assets/performance/performance-card-ou.png")}
+    .market-card.btts{border:1px solid #ff6269;background-image:linear-gradient(90deg,rgba(3,15,24,.88),rgba(3,15,24,.35)),url("./assets/performance/performance-card-btts.png")}
+    .market-top{display:flex;align-items:center;gap:9px}.market-tag{padding:3px 7px;border:1px solid currentColor;border-radius:10px;font-size:12px;font-weight:950}
+    .moneyline .market-tag{color:#59adff}.overunder .market-tag{color:#3de2b4}.btts .market-tag{color:#ff9a5a}
+    .market-name{font-size:11px;font-weight:950;color:#f3f7f9}
+    .market-main{display:grid;grid-template-columns:42px 1fr;gap:8px;align-items:center;margin-top:11px}
+    .market-icon{font-size:31px;line-height:1}.moneyline .market-icon{color:#4aafff}.overunder .market-icon{color:#2de1ad}.btts .market-icon{color:#ff5963}
+    .market-rate{font-size:25px;font-weight:1000;line-height:1;color:#fff}.market-sample{margin-top:4px;color:#d5e0e6;font-size:10px;font-weight:850}
+    .market-status{margin:10px auto 0;width:110px;padding:4px 7px;border-radius:999px;text-align:center;font-size:9px;font-weight:950;border:1px solid rgba(33,217,160,.34);background:rgba(33,217,160,.11);color:#28e5ad}
+    .market-status.warn{border-color:rgba(244,189,67,.38);background:rgba(244,189,67,.10);color:#ffd04d}
+    .market-status.down{border-color:rgba(255,95,102,.35);background:rgba(255,95,102,.10);color:#ff8186}
 
-.trend-tabs{display:grid;grid-template-columns:repeat(4,1fr);margin:0 12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;overflow:hidden}
-.trend-tab{border:0;background:#071a27;color:#c5d1d7;padding:6px 3px;font-size:11px;font-weight:800;cursor:pointer}
-.trend-tab.active{background:linear-gradient(180deg,#ffd652,#efae27);color:#251a06}
-.trend-body{display:grid;grid-template-columns:1fr 103px;gap:6px;padding:8px 10px 10px}
-.chart-wrap{height:122px;position:relative;border-radius:8px;background:
- repeating-linear-gradient(to bottom,rgba(255,255,255,.075) 0 1px,transparent 1px 30px)}
-.chart-wrap svg{width:100%;height:100%}
-.trend-side{padding:7px 4px 0 6px}
-.trend-current{font-size:11px;color:#aebdc7}.trend-current b{font-size:18px;color:#ffd243}
-.trend-change{margin-top:5px;font-size:16px;font-weight:1000;color:#1fe1a5}
-.trend-state{font-size:12px;color:#aebdc7;margin-top:12px}.trend-state b{display:block;color:#20e0a3;font-size:15px;margin-top:3px}
-.empty{display:grid;place-items:center;height:100%;color:#708793;font-size:12px}
+    /* ===== RECENT + TREND ===== */
+    .mid-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:9px}
+    .panel{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#082433,#061d29);box-shadow:inset 0 1px rgba(255,255,255,.025)}
+    .panel-head{height:41px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .panel-head h3{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:950}.panel-head h3:before{content:"";width:4px;height:18px;border-radius:4px;background:#f4c03b}
+    .recent-panel{position:relative;background:
+      linear-gradient(180deg,rgba(7,30,43,.97),rgba(5,24,34,.78)),
+      url("./assets/performance/performance-recent-bg.png") center bottom/cover no-repeat}
+    .recent-body{padding:13px 12px 11px;min-height:122px}
+    .recent-tabs{display:flex;gap:4px;margin-bottom:9px}
+    .mini-tab{border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(1,13,21,.40);color:#aabcc7;padding:4px 7px;font-size:8px;font-weight:850;cursor:pointer}.mini-tab.active{background:rgba(244,189,67,.14);border-color:rgba(244,189,67,.36);color:#ffd45c}
+    .recent-row{display:flex;gap:6px;align-items:center;overflow:hidden;min-height:31px}.result-chip{width:28px;height:28px;flex:0 0 28px;border-radius:50%;display:grid;place-items:center;color:white;font-size:15px;font-weight:1000;box-shadow:inset 0 0 8px rgba(255,255,255,.08)}
+    .result-chip.win{background:#159b74}.result-chip.loss{background:#db4750}.result-chip.push{background:#536d7b}.result-chip.half_win{background:#2d8f78}.result-chip.half_loss{background:#9d6553}
+    .recent-summary{margin-top:12px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;font-weight:850;color:#dbe5ea}.recent-summary b{color:#ffd34c;font-size:13px}
 
-/* leagues */
-.league-controls{display:flex;gap:4px;background:#061824;border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:2px}
-.league-control{border:0;background:transparent;color:#b8c6cf;font-size:11px;font-weight:800;padding:6px 12px;border-radius:7px}
-.league-control.active{background:linear-gradient(180deg,#ffd34a,#f0ab1f);color:#231805}
-.league-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
-.league-strip::-webkit-scrollbar{display:none}
-.league-card{min-width:88px;width:88px;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:9px 7px;text-align:center;background:linear-gradient(180deg,#092130,#061b27)}
-.league-logo{width:36px;height:36px;margin:0 auto 4px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.04);font-weight:1000;color:#fff;font-size:12px}
-.league-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.league-rate{font-size:17px;font-weight:1000;color:#fff;margin-top:4px}
-.league-rate.gold{color:#ffd244}.league-sample{font-size:10px;color:#9eb0ba;margin-top:1px}
+    .trend-controls{padding:8px 10px 0;display:flex;gap:6px;align-items:center;justify-content:space-between}
+    .trend-tabs{display:grid;grid-template-columns:repeat(4,1fr);flex:1;border:1px solid rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
+    .trend-tab{border:0;background:#061a26;color:#b9c8d0;padding:5px 2px;font-size:8px;font-weight:900;cursor:pointer}.trend-tab.active{background:linear-gradient(180deg,#ffd34d,#eda825);color:#201605}
+    .trend-period{display:flex;gap:3px}.period-btn{border:1px solid rgba(255,255,255,.07);border-radius:7px;background:#061924;color:#91a7b4;padding:5px 6px;font-size:8px;font-weight:900;cursor:pointer}.period-btn.active{border-color:rgba(244,189,67,.42);color:#ffd35a;background:rgba(244,189,67,.10)}
+    .trend-body{display:grid;grid-template-columns:1fr 82px;gap:5px;padding:8px 10px 10px}
+    .chart-wrap{height:105px;position:relative;border-radius:8px;overflow:hidden;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.07) 0 1px,transparent 1px 25px)}
+    .chart-labels{position:absolute;inset:0;pointer-events:none}.chart-labels span{position:absolute;left:3px;color:#6f8a99;font-size:7px;transform:translateY(50%)}
+    .chart-wrap svg{position:absolute;inset:0;width:100%;height:100%}
+    .trend-side{padding:4px 0 0 5px}.trend-current{font-size:8px;color:#99aebb}.trend-current b{display:block;margin-top:2px;color:#ffd242;font-size:17px}.trend-change{margin-top:4px;font-size:12px;font-weight:1000}.trend-state{margin-top:10px;color:#93aab7;font-size:8px}.trend-state b{display:block;margin-top:2px;font-size:12px;color:#23dfa9}.trend-sample{margin-top:8px;color:#6e8998;font-size:7px}
 
-/* table */
-.records-box{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#061b28}
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:760px;font-size:11px}
-th{height:34px;color:#b6c5cd;background:#092535;font-weight:800;text-align:left;padding:0 10px;border-right:1px solid rgba(255,255,255,.05)}
-td{height:39px;padding:4px 10px;border-top:1px solid rgba(255,255,255,.055);border-right:1px solid rgba(255,255,255,.04);color:#dbe4e8}
-td.score{color:#ffd243;font-size:16px;font-weight:1000}
-.pred{line-height:1.35;font-weight:800;color:#eef3f6}.pred small{display:block;color:#a9b9c3;font-weight:700}
-.verify-dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#102a37;color:#ffd343}
-.mark{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-size:15px;font-weight:1000}
-.mark.win{background:#0e9c71;color:#fff}.mark.loss{background:#c8323a;color:#fff}.mark.push{background:#455f6e;color:#fff}
-.row-arrow{font-size:20px;color:#9cb0bd}
-.method-note{margin-top:10px;font-size:11px;color:#7f96a5;text-align:center;line-height:1.5}
+    /* ===== LEAGUES ===== */
+    .league-sort{display:flex;gap:3px;padding:2px;border:1px solid rgba(255,255,255,.06);border-radius:8px;background:#041722}.league-sort button{border:0;border-radius:6px;background:transparent;color:#9eb0ba;padding:5px 9px;font-size:8px;font-weight:900;cursor:pointer}.league-sort button.active{background:linear-gradient(180deg,#ffd34d,#eca624);color:#201605}
+    .league-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.league-strip::-webkit-scrollbar{display:none}
+    .league-card{min-width:96px;width:96px;padding:9px 7px 8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:linear-gradient(180deg,#0a2635,#061b27);text-align:center;box-shadow:inset 0 1px rgba(255,255,255,.025)}
+    .league-logo-wrap{height:39px;display:grid;place-items:center}.league-logo{max-width:36px;max-height:36px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}.league-fallback{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.05);color:#d8e5eb;font-size:9px;font-weight:950}
+    .league-name{margin-top:4px;color:#e8eff3;font-size:9px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.league-rate{margin-top:4px;font-size:16px;font-weight:1000;color:#fff}.league-count{margin-top:1px;color:#839ba8;font-size:8px;font-weight:800}
 
-/* loading */
-.skeleton{height:120px;border-radius:12px;background:linear-gradient(90deg,#08202d 25%,#0e2a39 37%,#08202d 63%);background-size:400% 100%;animation:shimmer 1.3s infinite}
-@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+    /* ===== RECORDS ===== */
+    .more-btn{border:1px solid rgba(244,189,67,.45);border-radius:999px;background:rgba(244,189,67,.08);color:#ffd34d;padding:6px 11px;font-size:9px;font-weight:950;cursor:pointer}
+    .records-box{overflow:hidden;border:1px solid var(--border);border-radius:13px;background:#061b28}.table-wrap{overflow:auto}
+    table{width:100%;min-width:705px;border-collapse:collapse;font-size:8px}th{height:30px;padding:0 8px;text-align:left;color:#a9bdc8;background:#092536;font-size:8px;font-weight:900;border-right:1px solid rgba(255,255,255,.05)}td{height:36px;padding:4px 8px;border-top:1px solid rgba(255,255,255,.055);border-right:1px solid rgba(255,255,255,.04);color:#dbe5ea}
+    td.score{color:#ffd243;font-size:13px;font-weight:1000}.pred-main{font-size:9px;font-weight:950;color:#f2f6f8}.pred-sub{margin-top:2px;color:#8fa6b2;font-size:7px;font-weight:800}.verify-dot{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:#102b39;color:#ffd244;font-size:10px;font-weight:1000}.mark{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:1000}.mark.win,.mark.half_win{background:#139970;color:#fff}.mark.loss,.mark.half_loss{background:#cb3d46;color:#fff}.mark.push{background:#4c6573;color:#fff}.row-arrow{font-size:15px;color:#8aa0ad}
+    .method-note{padding:8px 12px 0;color:#6f8998;font-size:8px;line-height:1.5;text-align:center}
+    .empty{display:grid;place-items:center;min-height:80px;color:#718a98;font-size:10px}
 
-@media(max-width:700px){
- .app{padding:8px 10px 28px}
- .brand-title{font-size:16px}.brand-sub{font-size:8px}.logo{width:45px;height:45px}
- .hero{padding:17px 16px 14px;min-height:205px}.hero h1{font-size:43px}.hero p{font-size:13px}
- .hero-icons{grid-template-columns:repeat(2,1fr);gap:8px}.hero-item{font-size:12px}
- .summarybar{grid-template-columns:1fr;gap:8px}.filters{border:0}.rangebox{justify-content:center}
- .market-grid{grid-template-columns:1fr}
- .market-card{min-height:128px}
- .mid-grid{grid-template-columns:1fr}
- .league-card{min-width:92px}
-}
-</style>
+    @media(max-width:640px){
+      .app{padding:0 10px 34px}.hero{padding:18px 15px 14px;min-height:215px}.hero h1{font-size:35px}.hero p{font-size:11px}.hero-features{grid-template-columns:repeat(2,1fr);row-gap:8px}.summarybar{grid-template-columns:1fr;gap:7px}.filters{height:42px}.rangebox{justify-content:center}.market-grid{grid-template-columns:1fr}.market-card{min-height:118px}.mid-grid{grid-template-columns:1fr}.league-card{min-width:92px;width:92px}
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"><span>HB</span></div>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-label="HABAO"></div>
+        <div>
+          <div class="brand-title">HABAO 賽事預測 AI</div>
+          <div class="brand-subtitle">SPORTS INTELLIGENCE</div>
+        </div>
+      </div>
+      <button class="back-btn" type="button" onclick="goBack()"><span data-i18n="back">返回</span></button>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="hero-kicker"><span class="kicon">⚒</span><span>AI PERFORMANCE</span></div>
+        <h1 data-i18n="heroTitle">公開戰績</h1>
+        <p data-i18n="heroText">系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。</p>
+      </div>
+      <div class="hero-features">
+        <div class="hero-feature"><span class="fi">◷</span><span data-i18n="feature1">賽前自動分析</span></div>
+        <div class="hero-feature"><span class="fi">▤</span><span data-i18n="feature2">不依賴會員操作</span></div>
+        <div class="hero-feature"><span class="fi">◇</span><span data-i18n="feature3">真實賽果驗證</span></div>
+        <div class="hero-feature"><span class="fi">▥</span><span data-i18n="feature4">透明公開數據</span></div>
+      </div>
+    </section>
+
+    <section class="summarybar">
       <div>
-        <div class="brand-title" data-i18n="brandTitle">HABAO 賽事預測 AI</div>
-        <div class="brand-sub">SPORTS INTELLIGENCE</div>
+        <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
+        <div class="verified-line"><span id="verifiedMatches" class="verified-num">--</span><span class="verified-unit" data-i18n="matchUnit">場</span><span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
       </div>
-    </div>
-    <button class="back-btn" onclick="history.back()" data-i18n="back">返回</button>
-  </header>
-
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="eyebrow"><span class="tool">⚒</span><span>AI PERFORMANCE</span></div>
-      <h1 data-i18n="heroTitle">公開戰績</h1>
-      <p data-i18n="heroDesc">系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證<br>所有符合條件之賽事皆會納入公開戰績，不人工篩選。</p>
-    </div>
-    <div class="hero-icons">
-      <div class="hero-item"><span class="ico">◷</span><span data-i18n="f1">賽前自動分析</span></div>
-      <div class="hero-item"><span class="ico">▤</span><span data-i18n="f2">不依賴會員操作</span></div>
-      <div class="hero-item"><span class="ico">♢</span><span data-i18n="f3">真實賽果驗證</span></div>
-      <div class="hero-item"><span class="ico">▥</span><span data-i18n="f4">透明公開數據</span></div>
-    </div>
-  </section>
-
-  <section class="summarybar">
-    <div>
-      <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
-      <div><span id="verifiedMatches" class="verified-num">--</span><span class="verified-num"><small data-i18n="matchUnit"> 場</small></span>
-        <span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
-    </div>
-    <div class="filters">
-      <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
-      <button class="filter-btn" data-days="7" data-i18n="last7">近 7 天</button>
-      <button class="filter-btn" data-days="30" data-i18n="last30">近 30 天</button>
-    </div>
-    <div class="rangebox">
-      <span class="cal">▣</span>
-      <div><div class="range-label" data-i18n="statsRange">統計區間</div><div id="rangeText" class="range-text">--</div></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-title"><h2><span data-i18n="marketPerformance">AI 市場表現</span><span class="help">?</span></h2></div>
-    <div class="market-grid">
-      <article class="market-card blue">
-        <div class="market-head"><span class="market-tag">1X2</span><span class="market-name" data-i18n="moneyline">獨贏</span></div>
-        <div class="market-body">
-          <div class="market-icon">◎</div>
-          <div><div id="moneylineRate" class="market-rate">--</div><div id="moneylineSample" class="market-sample">--</div></div>
-          <div class="bars">▥</div>
-        </div>
-        <div id="moneylineBadge" class="market-badge" data-i18n="stableRecent">近期較穩定</div>
-      </article>
-
-      <article class="market-card green">
-        <div class="market-head"><span class="market-tag">O/U</span><span class="market-name" data-i18n="overUnder">大小分</span></div>
-        <div class="market-body">
-          <div class="market-icon">▥</div>
-          <div><div id="overRate" class="market-rate">--</div><div id="overSample" class="market-sample">--</div></div>
-          <div class="wave">〰</div>
-        </div>
-        <div id="overBadge" class="market-badge" data-i18n="volatileRecent">近期波動</div>
-      </article>
-
-      <article class="market-card red">
-        <div class="market-head"><span class="market-tag">BTTS</span><span class="market-name" data-i18n="bttsName">雙方進球</span></div>
-        <div class="market-body">
-          <div class="market-icon">⚽</div>
-          <div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div>
-          <div class="bars">▥</div>
-        </div>
-        <div id="bttsBadge" class="market-badge" data-i18n="stablePerformance">表現穩定</div>
-      </article>
-    </div>
-  </section>
-
-  <section class="section mid-grid">
-    <div class="box">
-      <div class="box-head"><h3><span data-i18n="recentForm">近期戰績</span> <span style="font-weight:500;color:#b9c7cf" data-i18n="recent10">（近 10 場）</span></h3></div>
-      <div class="recent-inner">
-        <div id="recentRow" class="recent-row"></div>
-        <div id="recentSummary" class="recent-summary">--</div>
+      <div class="filters">
+        <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
+        <button class="filter-btn" data-days="7" data-i18n="last7">近 7 天</button>
+        <button class="filter-btn" data-days="30" data-i18n="last30">近 30 天</button>
       </div>
-    </div>
-
-    <div class="box">
-      <div class="box-head"><h3><span data-i18n="trendTitle">AI 命中走勢</span><span class="help">?</span></h3></div>
-      <div class="trend-tabs">
-        <button class="trend-tab active" data-trend="overall" data-i18n="overall">綜合</button>
-        <button class="trend-tab" data-trend="moneyline" data-i18n="moneyline">獨贏</button>
-        <button class="trend-tab" data-trend="over_under" data-i18n="overUnder">大小分</button>
-        <button class="trend-tab" data-trend="btts">BTTS</button>
+      <div class="rangebox">
+        <span class="range-icon">▣</span>
+        <div><div class="range-label" data-i18n="statsRange">統計區間</div><div id="rangeText" class="range-text">--</div></div>
       </div>
-      <div class="trend-body">
-        <div id="trendChart" class="chart-wrap"></div>
-        <div class="trend-side">
-          <div class="trend-current"><span data-i18n="current">目前</span> <b id="trendCurrent">--</b></div>
-          <div id="trendChange" class="trend-change">--</div>
-          <div class="trend-state"><span data-i18n="recentTrend">近期趨勢</span><b id="trendState">--</b></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2 class="section-title"><span data-i18n="marketPerformance">AI 市場表現</span><span class="help">?</span></h2></div>
+      <div class="market-grid">
+        <article class="market-card moneyline">
+          <div class="market-top"><span class="market-tag">1X2</span><span class="market-name" data-i18n="moneyline">獨贏</span></div>
+          <div class="market-main"><div class="market-icon">◎</div><div><div id="moneylineRate" class="market-rate">--</div><div id="moneylineSample" class="market-sample">--</div></div></div>
+          <div id="moneylineStatus" class="market-status">--</div>
+        </article>
+        <article class="market-card overunder">
+          <div class="market-top"><span class="market-tag">O/U</span><span class="market-name" data-i18n="overUnder">大小分</span></div>
+          <div class="market-main"><div class="market-icon">▥</div><div><div id="overRate" class="market-rate">--</div><div id="overSample" class="market-sample">--</div></div></div>
+          <div id="overStatus" class="market-status">--</div>
+        </article>
+        <article class="market-card btts">
+          <div class="market-top"><span class="market-tag">BTTS</span><span class="market-name" data-i18n="bttsName">雙方進球</span></div>
+          <div class="market-main"><div class="market-icon">⚽</div><div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div></div>
+          <div id="bttsStatus" class="market-status">--</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section mid-grid">
+      <div class="panel recent-panel">
+        <div class="panel-head"><h3><span data-i18n="recentForm">近期戰績</span> <span style="color:#9cafba;font-weight:700" data-i18n="recent10">（近 10 筆）</span></h3></div>
+        <div class="recent-body">
+          <div class="recent-tabs">
+            <button class="mini-tab active" data-recent="overall" data-i18n="overall">綜合</button>
+            <button class="mini-tab" data-recent="moneyline" data-i18n="moneyline">獨贏</button>
+            <button class="mini-tab" data-recent="over_under" data-i18n="overUnder">大小分</button>
+            <button class="mini-tab" data-recent="btts">BTTS</button>
+          </div>
+          <div id="recentRow" class="recent-row"></div>
+          <div id="recentSummary" class="recent-summary">--</div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="section-title">
-      <h2><span data-i18n="leaguePerformance">各聯賽表現</span><span class="help">?</span></h2>
-      <div class="league-controls"><button class="league-control active" data-i18n="sortByRate">勝率排序</button><button class="league-control" data-i18n="matchCount">賽事數量</button></div>
-    </div>
-    <div id="leagueStrip" class="league-strip"></div>
-  </section>
-
-  <section class="section">
-    <div class="section-title">
-      <h2><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2>
-      <button id="moreBtn" class="more-btn" data-i18n="viewMore">查看更多 ›</button>
-    </div>
-    <div class="records-box">
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th data-i18n="dateTime">日期時間</th>
-            <th data-i18n="league">聯賽</th>
-            <th data-i18n="homeAway">主隊 vs 客隊</th>
-            <th data-i18n="score">比分</th>
-            <th data-i18n="aiPrediction">AI 預測</th>
-            <th data-i18n="verification">驗證結果</th>
-            <th data-i18n="moneyline">獨贏</th>
-            <th data-i18n="overUnder">大小分</th>
-            <th>BTTS</th>
-            <th></th>
-          </tr></thead>
-          <tbody id="recordsBody"></tbody>
-        </table>
+      <div class="panel">
+        <div class="panel-head"><h3><span data-i18n="trendTitle">AI 命中走勢</span><span class="help">?</span></h3></div>
+        <div class="trend-controls">
+          <div class="trend-tabs">
+            <button class="trend-tab active" data-trend="overall" data-i18n="overall">綜合</button>
+            <button class="trend-tab" data-trend="moneyline" data-i18n="moneyline">獨贏</button>
+            <button class="trend-tab" data-trend="over_under" data-i18n="overUnder">大小分</button>
+            <button class="trend-tab" data-trend="btts">BTTS</button>
+          </div>
+          <div class="trend-period"><button class="period-btn active" data-period="7">7D</button><button class="period-btn" data-period="30">30D</button></div>
+        </div>
+        <div class="trend-body">
+          <div id="trendChart" class="chart-wrap"><div class="chart-labels"><span style="bottom:75%">75%</span><span style="bottom:50%">50%</span><span style="bottom:25%">25%</span></div></div>
+          <div class="trend-side">
+            <div class="trend-current"><span data-i18n="current">目前</span><b id="trendCurrent">--</b></div>
+            <div id="trendChange" class="trend-change">--</div>
+            <div class="trend-state"><span data-i18n="recentTrend">近期趨勢</span><b id="trendState">--</b></div>
+            <div id="trendSample" class="trend-sample">--</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="method-note" data-i18n="methodNote">公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。</div>
-  </section>
-</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title"><span data-i18n="leaguePerformance">各聯賽表現</span><span class="help">?</span></h2>
+        <div class="league-sort"><button id="sortRate" class="active" data-sort="rate" data-i18n="sortByRate">勝率排序</button><button id="sortCount" data-sort="count" data-i18n="matchCount">賽事數量</button></div>
+      </div>
+      <div id="leagueStrip" class="league-strip"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2 class="section-title"><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2><button id="moreBtn" class="more-btn" data-i18n="viewMore">查看更多 ›</button></div>
+      <div class="records-box"><div class="table-wrap"><table>
+        <thead><tr><th data-i18n="dateTime">日期時間</th><th data-i18n="league">聯賽</th><th data-i18n="homeAway">主隊 vs 客隊</th><th data-i18n="score">比分</th><th data-i18n="aiPrediction">AI 預測</th><th data-i18n="verification">驗證結果</th><th data-i18n="moneyline">獨贏</th><th data-i18n="overUnder">大小分</th><th>BTTS</th><th></th></tr></thead>
+        <tbody id="recordsBody"></tbody>
+      </table></div></div>
+      <div class="method-note" data-i18n="methodNote">公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。</div>
+    </section>
+  </main>
 
 <script>
-const API = "https://oqtbsbohcfeg hgnykwxy.supabase.co/functions/v1/ai-performance".replace(" ","");
-let dataCache=null, currentDays="", currentTrend="overall", showAll=false;
+const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
+let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod=7, leagueSort="rate", showAll=false;
+let viewData=null, allData=null;
 
 const I18N={
- "zh-Hant":{
-  brandTitle:"HABAO 賽事預測 AI",back:"返回",heroTitle:"公開戰績",
-  heroDesc:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證<br>所有符合條件之賽事皆會納入公開戰績，不人工篩選。",
-  f1:"賽前自動分析",f2:"不依賴會員操作",f3:"真實賽果驗證",f4:"透明公開數據",
-  verifiedMatches:"已驗證賽事",matchUnit:" 場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",
-  marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",
-  stableRecent:"近期較穩定",volatileRecent:"近期波動",stablePerformance:"表現穩定",
-  recentForm:"近期戰績",recent10:"（近 10 場）",trendTitle:"AI 命中走勢",overall:"綜合",current:"目前",recentTrend:"近期趨勢",
-  leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",
-  latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",
-  dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",
-  yes:"是",no:"否",match:"場",samples:"場",noData:"尚無資料",insufficient:"樣本不足",trendStable:"穩定",trendUp:"上升",trendDown:"下降",
-  recentSummary:"近 10 場：{w} 中｜{l} 未中｜{p} 走盤　　命中率 {r}",
-  methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"
- },
- "zh-Hans":{
-  brandTitle:"HABAO 赛事预测 AI",back:"返回",heroTitle:"公开战绩",
-  heroDesc:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证<br>所有符合条件之赛事皆会纳入公开战绩，不人工筛选。",
-  f1:"赛前自动分析",f2:"不依赖会员操作",f3:"真实赛果验证",f4:"透明公开数据",
-  verifiedMatches:"已验证赛事",matchUnit:" 场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",
-  marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",
-  stableRecent:"近期较稳定",volatileRecent:"近期波动",stablePerformance:"表现稳定",
-  recentForm:"近期战绩",recent10:"（近 10 场）",trendTitle:"AI 命中走势",overall:"综合",current:"目前",recentTrend:"近期趋势",
-  leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",
-  latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",
-  dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",
-  yes:"是",no:"否",match:"场",samples:"场",noData:"暂无数据",insufficient:"样本不足",trendStable:"稳定",trendUp:"上升",trendDown:"下降",
-  recentSummary:"近 10 场：{w} 中｜{l} 未中｜{p} 走盘　　命中率 {r}",
-  methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"
- },
- "en":{
-  brandTitle:"HABAO Match Prediction AI",back:"Back",heroTitle:"PUBLIC PERFORMANCE",
-  heroDesc:"The system automatically creates pre-match prediction snapshots for eligible matches and verifies them against official final scores.<br>All eligible matches are included automatically with no manual selection.",
-  f1:"Pre-match analysis",f2:"Independent of member actions",f3:"Verified by final results",f4:"Transparent public data",
-  verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",
-  marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",
-  stableRecent:"Recently stable",volatileRecent:"Recent volatility",stablePerformance:"Stable performance",
-  recentForm:"Recent Form",recent10:"(Last 10)",trendTitle:"AI Hit-Rate Trend",overall:"Overall",current:"Current",recentTrend:"Recent trend",
-  leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",
-  latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",
-  dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",
-  yes:"Yes",no:"No",match:"matches",samples:"matches",noData:"No data yet",insufficient:"Insufficient sample",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",
-  recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　 Hit rate {r}",
-  methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."
- }
+  "zh-Hant":{back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
+  "zh-Hans":{back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
+  "en":{back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
 };
-function lang(){
- const saved=localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant";
- if(saved.toLowerCase().includes("en"))return"en";
- if(saved.toLowerCase().includes("hans")||saved.toLowerCase().includes("cn"))return"zh-Hans";
- return"zh-Hant";
-}
-function tr(k){return I18N[lang()][k]??I18N["zh-Hant"][k]??k}
-function applyLang(){
- document.documentElement.lang=lang();
- document.querySelectorAll("[data-i18n]").forEach(el=>{
-  const v=tr(el.dataset.i18n);
-  if(v.includes("<br>"))el.innerHTML=v; else el.textContent=v;
- });
-}
-function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
-function pct(m){return n(m?.total)>0?`${n(m?.hit_rate).toFixed(1)}%`:"--"}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function norm(v){v=String(v??"").toLowerCase();if(["win","won"].includes(v))return"win";if(["loss","lose","lost"].includes(v))return"loss";if(v==="push")return"push";if(v.includes("half_win"))return"half_win";if(v.includes("half_loss"))return"half_loss";return"push"}
-function mark(v){const r=norm(v);return r==="win"||r==="half_win"?"✓":r==="loss"||r==="half_loss"?"✕":"−"}
-function resultClass(v){const r=norm(v);return r==="win"||r==="half_win"?"win":r==="loss"||r==="half_loss"?"loss":"push"}
+function getLang(){const s=(localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant").toLowerCase();if(s.includes("en"))return"en";if(s.includes("hans")||s.includes("cn"))return"zh-Hans";return"zh-Hant"}
+function tr(k){return I18N[getLang()]?.[k]??I18N["zh-Hant"][k]??k}
+function applyLang(){document.documentElement.lang=getLang();document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=tr(el.dataset.i18n))}
+function goBack(){if(history.length>1)history.back();else location.href="home-v2.html"}
+function num(v){const x=Number(v);return Number.isFinite(x)?x:0}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function pct(m){return num(m?.decided)>0?`${num(m.hit_rate).toFixed(1)}%`:"--"}
+function normalizeResult(v){v=String(v??"").toLowerCase();if(v==="win"||v==="won")return"win";if(v==="loss"||v==="lose"||v==="lost")return"loss";if(v==="push")return"push";if(v==="half_win")return"half_win";if(v==="half_loss")return"half_loss";return"push"}
+function resultMark(v){const r=normalizeResult(v);return r==="win"||r==="half_win"?"✓":r==="loss"||r==="half_loss"?"✕":"−"}
 function marketResult(settlement,key){const v=settlement?.[key];return v&&typeof v==="object"?(v.result??v.status??v.outcome):v}
-function pick(pred,key){
- const roots=[pred?.recommendations,pred,pred?.predictions,pred?.analysis];
- for(const root of roots){
-  const v=root?.[key];
-  if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";
-  if(typeof v==="string"||typeof v==="number")return String(v);
- }
- return"--";
-}
-function dt(v){
- const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";
- return new Intl.DateTimeFormat(lang()==="en"?"en-US":"zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
-}
-function dateOnly(v){
- const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";
- const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);
- const g=t=>parts.find(x=>x.type===t)?.value||"";
- return`${g("year")}/${g("month")}/${g("day")}`;
-}
-function leagueAbbr(name){
- const s=String(name||"").toLowerCase();
- if(s.includes("premier")||s.includes("英超"))return"PL";
- if(s.includes("liga")||s.includes("西甲"))return"LL";
- if(s.includes("bundes")||s.includes("德甲"))return"BL";
- if(s.includes("serie")||s.includes("義甲")||s.includes("意甲"))return"SA";
- if(s.includes("ligue")||s.includes("法甲"))return"L1";
- if(s.includes("champions")||s.includes("歐冠"))return"UCL";
- if(s.includes("europa")||s.includes("歐霸"))return"UEL";
- if(s.includes("eredivisie")||s.includes("荷甲"))return"ERE";
- if(s.includes("j1")||s.includes("日職"))return"J1";
- if(s.includes("k league")||s.includes("韓職"))return"K1";
- return String(name||"LG").replace(/\s+/g,"").slice(0,3).toUpperCase();
-}
-function displayLeague(name){
- const s=String(name||"");
- const low=s.toLowerCase();
- if(low.includes("premier"))return lang()==="en"?"EPL":"英超";
- if(low.includes("laliga")||low.includes("la liga"))return lang()==="en"?"La Liga":"西甲";
- if(low.includes("bundes"))return lang()==="en"?"Bundesliga":"德甲";
- if(low.includes("serie a"))return lang()==="en"?"Serie A":"義甲";
- if(low.includes("ligue 1"))return lang()==="en"?"Ligue 1":"法甲";
- if(low.includes("champions"))return lang()==="en"?"UCL":"歐冠";
- if(low.includes("europa"))return lang()==="en"?"UEL":"歐霸";
- return s||"--";
-}
-function rateBadge(m,key){
- const arr=(dataCache?.trend||[]).map(x=>({r:n(x?.[key]?.hit_rate),t:n(x?.[key]?.total)})).filter(x=>x.t>0);
- const last=arr.slice(-4);
- if(last.length<2)return tr("insufficient");
- const vals=last.map(x=>x.r), spread=Math.max(...vals)-Math.min(...vals);
- if(spread>=14)return tr("volatileRecent");
- return key==="btts"?tr("stablePerformance"):tr("stableRecent");
-}
-function renderMarkets(){
- const mm=dataCache?.markets?.moneyline||{}, ou=dataCache?.markets?.over_under||{}, bt=dataCache?.markets?.btts||{};
- [["moneyline",mm,"moneylineRate","moneylineSample","moneylineBadge"],["over_under",ou,"overRate","overSample","overBadge"],["btts",bt,"bttsRate","bttsSample","bttsBadge"]].forEach(([key,m,rid,sid,bid])=>{
-  document.getElementById(rid).textContent=pct(m);
-  document.getElementById(sid).textContent=`${n(m.win)+n(m.half_win)} / ${n(m.total)} ${tr("samples")}`;
-  document.getElementById(bid).textContent=rateBadge(m,key);
- });
-}
-function renderRecent(){
- const g=dataCache?.recent_form?.overall||{}, items=Array.isArray(g.items)?g.items:[];
- const row=document.getElementById("recentRow");
- row.innerHTML=(items.length?items:Array(10).fill({result:"push",placeholder:true})).slice(0,10).map(x=>
-  x.placeholder?`<div class="result-chip push">−</div>`:`<div class="result-chip ${resultClass(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${mark(x.result)}</div>`
- ).join("")+`<span class="recent-arrow">›</span>`;
- const s=g.summary||{}, w=n(s.win)+n(s.half_win), l=n(s.loss)+n(s.half_loss), p=n(s.push), decided=w+l, r=decided?`${(w/decided*100).toFixed(1)}%`:"--";
- document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`);
-}
-function renderTrend(){
- const arr=(dataCache?.trend||[]).map(x=>({date:x.date,rate:n(x?.[currentTrend]?.hit_rate),total:n(x?.[currentTrend]?.total)})).filter(x=>x.total>0).slice(-30);
- const box=document.getElementById("trendChart");
- if(arr.length<2){
-  box.innerHTML=`<div class="empty">${esc(tr("insufficient"))}</div>`;
-  document.getElementById("trendCurrent").textContent=arr.length?pct({total:arr[0].total,hit_rate:arr[0].rate}):"--";
-  document.getElementById("trendChange").textContent="--";
-  document.getElementById("trendState").textContent=tr("insufficient");
-  return;
- }
- const w=430,h=122,p=12;
- const xs=arr.map((_,i)=>p+i*((w-p*2)/(arr.length-1))), ys=arr.map(x=>h-p-(Math.max(20,Math.min(90,x.rate))-20)/70*(h-p*2));
- const pts=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
- box.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
- <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c437" stop-opacity=".28"/><stop offset="1" stop-color="#f7c437" stop-opacity="0"/></linearGradient></defs>
- <polygon points="${p},${h-p} ${pts} ${w-p},${h-p}" fill="url(#area)"/>
- <polyline points="${pts}" fill="none" stroke="#ffd046" stroke-width="3" vector-effect="non-scaling-stroke"/>
- ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="2.8" fill="#ffe272"/>`).join("")}
- </svg>`;
- const first=arr[0].rate,last=arr.at(-1).rate,diff=last-first;
- document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;
- document.getElementById("trendChange").textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
- document.getElementById("trendChange").style.color=diff>=0?"#1fe1a5":"#ff686e";
- document.getElementById("trendState").textContent=Math.abs(diff)<3?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
-}
-function renderLeagues(){
- const list=[...(dataCache?.leagues||[])].sort((a,b)=>n(b?.overall?.hit_rate)-n(a?.overall?.hit_rate));
- const el=document.getElementById("leagueStrip");
- if(!list.length){el.innerHTML=`<div style="color:#78909c;font-size:12px;padding:12px">${esc(tr("noData"))}</div>`;return}
- el.innerHTML=list.map((x,i)=>`<div class="league-card">
-   <div class="league-logo">${esc(leagueAbbr(x.league))}</div>
-   <div class="league-name">${esc(displayLeague(x.league))}</div>
-   <div class="league-rate ${i===list.length-1?"gold":""}">${pct(x.overall)}</div>
-   <div class="league-sample">${n(x.matches)} / ${n(x.overall?.total)} ${tr("samples")}</div>
- </div>`).join("");
-}
-function verificationOverall(settlement){
- const vals=["moneyline","over_under","btts"].map(k=>marketResult(settlement,k)).filter(Boolean).map(norm);
- if(!vals.length)return"push";
- let score=0; vals.forEach(v=>score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0);
- return score>0?"win":score<0?"loss":"push";
-}
-function predSummary(p){
- const m=pick(p,"moneyline"),o=pick(p,"over_under"),b=pick(p,"btts");
- return `<div class="pred">${esc(m)}<small>${esc(o)}｜BTTS ${esc(b)}</small></div>`;
-}
-function renderRecords(){
- const rows=Array.isArray(dataCache?.matches)?dataCache.matches:[];
- const shown=showAll?rows:rows.slice(0,5);
- const body=document.getElementById("recordsBody");
- if(!shown.length){body.innerHTML=`<tr><td colspan="10" style="text-align:center;height:90px;color:#778f9d">${esc(tr("noData"))}</td></tr>`;return}
- body.innerHTML=shown.map(x=>{
-  const s=x.settlement||{}, ov=verificationOverall(s);
-  return`<tr>
-   <td>${esc(dt(x.kickoff_at))}</td>
-   <td><b>${esc(displayLeague(x.league))}</b></td>
-   <td>${esc(x.home)} vs ${esc(x.away)}</td>
-   <td class="score">${esc(x.final_score||"-")}</td>
-   <td>${predSummary(x.prediction||{})}</td>
-   <td><div class="verify-dot">${mark(ov)}</div></td>
-   <td><div class="mark ${resultClass(marketResult(s,"moneyline"))}">${mark(marketResult(s,"moneyline"))}</div></td>
-   <td><div class="mark ${resultClass(marketResult(s,"over_under"))}">${mark(marketResult(s,"over_under"))}</div></td>
-   <td><div class="mark ${resultClass(marketResult(s,"btts"))}">${mark(marketResult(s,"btts"))}</div></td>
-   <td class="row-arrow">›</td>
-  </tr>`;
- }).join("");
- document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
-}
-function renderRange(){
- const rows=dataCache?.matches||[];
- if(currentDays==="7"){document.getElementById("rangeText").textContent=tr("last7");return}
- if(currentDays==="30"){document.getElementById("rangeText").textContent=tr("last30");return}
- if(!rows.length){document.getElementById("rangeText").textContent="--";return}
- const dates=rows.map(x=>new Date(x.kickoff_at)).filter(x=>!Number.isNaN(x.getTime())).sort((a,b)=>a-b);
- document.getElementById("rangeText").textContent=`${dateOnly(dates[0])} - ${dateOnly(dates.at(-1))}`;
-}
-function renderAll(){
- document.getElementById("verifiedMatches").textContent=n(dataCache?.summary?.verified_matches);
- renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords();
-}
-async function load(){
- document.getElementById("recordsBody").innerHTML=`<tr><td colspan="10"><div class="skeleton"></div></td></tr>`;
- try{
-  const url=currentDays?`${API}?days=${currentDays}`:API;
-  const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
-  if(!res.ok)throw new Error(`API ${res.status}`);
-  const json=await res.json();if(!json?.success)throw new Error(json?.error||"API failed");
-  dataCache=json;renderAll();
- }catch(e){
-  console.error(e);dataCache={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll();
- }
-}
-document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",()=>{
- currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));load();
-}));
-document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>{
- currentTrend=btn.dataset.trend;document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b===btn));renderTrend();
-}));
+function dateFmt(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";return new Intl.DateTimeFormat(getLang()==="en"?"en-US":"zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)}
+function ymd(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const g=t=>p.find(x=>x.type===t)?.value||"";return`${g("year")}/${g("month")}/${g("day")}`}
+
+const LEAGUE_IDS=[
+  {id:2,keys:["champions league","歐冠","欧冠"]},{id:3,keys:["europa league","歐霸","欧联","歐聯"]},{id:39,keys:["premier league","英超"]},{id:140,keys:["la liga","laliga","西甲"]},{id:78,keys:["bundesliga","德甲"]},{id:135,keys:["serie a","義甲","意甲"]},{id:61,keys:["ligue 1","法甲"]},{id:98,keys:["j1 league","j league","日職","日职"]},{id:292,keys:["k league 1","k-league","韓職","韩职"]},{id:169,keys:["super league","chinese super league","中超"]},{id:88,keys:["eredivisie","荷甲"]},{id:71,keys:["serie a brazil","brasileirão","brasileirao","巴甲","brazil"]}
+];
+function leagueId(name){const s=String(name||"").toLowerCase();for(const x of LEAGUE_IDS){if(x.keys.some(k=>s.includes(k.toLowerCase())))return x.id}return null}
+function leagueLogo(name){const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
+function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
+
+function classifyStatus(key){const trend=(allData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
+function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=viewData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
+
+function renderRange(){const rows=viewData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
+
+function renderRecent(){const group=allData?.recent_form?.[currentRecent]||{};const items=Array.isArray(group.items)?group.items:[];document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>x.placeholder?`<div class="result-chip push">−</div>`:`<div class="result-chip ${normalizeResult(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${resultMark(x.result)}</div>`).join("");const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`)}
+
+function trendRows(){const rows=(allData?.trend||[]).map(x=>({date:x.date,m:x[currentTrend]})).filter(x=>num(x.m?.decided)>0);if(!rows.length)return[];const lastDate=new Date(rows.at(-1).date+"T00:00:00+08:00");const start=new Date(lastDate);start.setDate(start.getDate()-(trendPeriod-1));return rows.filter(x=>new Date(x.date+"T00:00:00+08:00")>=start)}
+function renderTrend(){const arr=trendRows();const box=document.getElementById("trendChart");box.querySelectorAll("svg,.empty").forEach(x=>x.remove());if(!arr.length){box.insertAdjacentHTML("beforeend",`<div class="empty">${esc(tr("insufficient"))}</div>`);document.getElementById("trendCurrent").textContent="--";document.getElementById("trendChange").textContent="--";document.getElementById("trendState").textContent=tr("insufficient");document.getElementById("trendSample").textContent="--";return}
+  const cumulative=[];let wins=0,losses=0;for(const x of arr){wins+=num(x.m?.effective_wins);losses+=num(x.m?.effective_losses);const den=wins+losses;cumulative.push({date:x.date,rate:den?wins/den*100:0,total:den})}
+  const w=420,h=105,px=24,py=9;const minY=0,maxY=100;const xs=cumulative.map((_,i)=>px+(cumulative.length===1?(w-px*2)/2:i*((w-px*2)/(cumulative.length-1))));const ys=cumulative.map(x=>h-py-(x.rate-minY)/(maxY-minY)*(h-py*2));const pts=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");const svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c43b" stop-opacity=".34"/><stop offset="1" stop-color="#f7c43b" stop-opacity="0"/></linearGradient></defs><polygon points="${px},${h-py} ${pts} ${w-px},${h-py}" fill="url(#trendArea)"/><polyline points="${pts}" fill="none" stroke="#ffd044" stroke-width="2.5" vector-effect="non-scaling-stroke"/>${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="2.3" fill="#ffe27d"/>`).join("")}</svg>`;box.insertAdjacentHTML("beforeend",svg);
+  const first=cumulative[0].rate,last=cumulative.at(-1).rate,diff=last-first;document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;const ch=document.getElementById("trendChange");ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;ch.style.color=diff>=0?"#21d9a0":"#ff696f";document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");document.getElementById("trendSample").textContent=`${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("samples")}`}
+
+function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(x.league||"--")}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+
+function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
+function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
+function renderRecords(){const rows=Array.isArray(viewData?.matches)?viewData.matches:[],shown=showAll?rows:rows.slice(0,5),body=document.getElementById("recordsBody");if(!shown.length){body.innerHTML=`<tr><td colspan="10"><div class="empty">${esc(tr("noData"))}</div></td></tr>`;return}body.innerHTML=shown.map(x=>{const s=x.settlement||{},ov=overallResult(s),mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");return`<tr><td>${esc(dateFmt(x.kickoff_at))}</td><td><b>${esc(x.league||"--")}</b></td><td>${esc(x.home)} vs ${esc(x.away)}</td><td class="score">${esc(x.final_score||"-")}</td><td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td><td><div class="verify-dot">${resultMark(ov)}</div></td>${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}<td class="row-arrow">›</td></tr>`}).join("");document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore")}
+
+function renderAll(){document.getElementById("verifiedMatches").textContent=num(viewData?.summary?.verified_matches);renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords()}
+async function fetchData(days=""){const url=days?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(days)}`:AI_PERFORMANCE_API;const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const j=await res.json();if(!j?.success)throw new Error(j?.error||"API failed");return j}
+async function loadView(){try{viewData=currentDays?await fetchData(currentDays):allData;if(!viewData)viewData=await fetchData("");renderAll()}catch(e){console.error("AI PERFORMANCE ERROR",e);viewData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
+async function init(){applyLang();try{allData=await fetchData("");viewData=allData;renderAll()}catch(e){console.error(e);viewData=allData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
+
+document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadView()}));
+document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>{currentRecent=btn.dataset.recent;document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b===btn));renderRecent()}));
+document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>{currentTrend=btn.dataset.trend;document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
+document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",()=>{trendPeriod=Number(btn.dataset.period)||7;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
+document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
-window.addEventListener("habao:languagechange",()=>{applyLang();if(dataCache)renderAll()});
-applyLang();load();
+window.addEventListener("habao:languagechange",()=>{applyLang();renderAll()});
+init();
 </script>
 </body>
 </html>
