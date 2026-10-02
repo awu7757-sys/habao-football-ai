@@ -5699,7 +5699,7 @@ padding:
     </div>
 
     <div class="quick-label">
-      今日賽事
+      可分析賽事
     </div>
 
     <div class="quick-mini-chart">
@@ -7967,92 +7967,104 @@ async function loadV2HomeStats() {
 
 async function loadV2TodayFixturesCount() {
 
-console.time("⏱️ 今日賽事 API");  
+  console.time("⏱️ 可分析賽事 API");
 
   const countEl =
-    document.getElementById("todayMatchCount");
+    document.getElementById(
+      "todayMatchCount"
+    );
 
   if (!countEl) return;
 
-  try {
 
-    const response =
-      await fetch(
-        V2_FIXTURES_URL,
-        {
-          method: "POST",
+  const fetchFixtures =
+    async (offset) => {
 
-          headers: {
-            "Content-Type":
-              "application/json",
+      const response =
+        await fetch(
+          V2_FIXTURES_URL,
+          {
+            method: "POST",
 
-            "apikey":
-              PUBLISHABLE_KEY,
+            headers: {
+              "Content-Type":
+                "application/json",
 
-            "Authorization":
-              "Bearer " +
-              PUBLISHABLE_KEY
-          },
+              "apikey":
+                PUBLISHABLE_KEY,
 
-          body:
-            JSON.stringify({
-              offset: 0
-            })
-        }
-      );
+              "Authorization":
+                "Bearer " +
+                PUBLISHABLE_KEY
+            },
 
-
-    const data =
-      await response.json();
-    console.timeEnd("⏱️ 今日賽事 API");
+            body:
+              JSON.stringify({
+                offset
+              })
+          }
+        );
 
 
-    if (
-      !response.ok ||
-      !data.success
-    ) {
-
-      throw new Error(
-        data.error ||
-        "今日賽事讀取失敗"
-      );
-
-    }
+      const data =
+        await response.json();
 
 
-    const fixtures =
-      Array.isArray(data.fixtures)
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+
+        throw new Error(
+          data.error ||
+          "賽事讀取失敗"
+        );
+
+      }
+
+
+      return Array.isArray(
+        data.fixtures
+      )
         ? data.fixtures
         : [];
 
+    };
 
-const finishedStatuses =
-  new Set([
-    "FT",
-    "AET",
-    "PEN",
-    "AWD",
-    "WO"
-  ]);
 
-const visibleFixtures =
-  fixtures.filter(match => {
+  try {
 
-    const leagueId =
-      Number(
-        match?.league?.id ||
-        match?.league_id ||
-        match?.leagueId ||
-        0
-      );
+    const [
+      todayFixtures,
+      tomorrowFixtures
+    ] =
+      await Promise.all([
+        fetchFixtures(0),
+        fetchFixtures(1)
+      ]);
 
-    const status =
-      String(
-        match?.status || ""
-      ).toUpperCase();
 
-    const supportedLeague =
-      [
+    const fixtures = [
+      ...todayFixtures,
+      ...tomorrowFixtures
+    ];
+
+
+    const unavailableStatuses =
+      new Set([
+        "FT",
+        "AET",
+        "PEN",
+        "AWD",
+        "WO",
+        "CANC",
+        "PST",
+        "ABD"
+      ]);
+
+
+    const supportedLeagueIds =
+      new Set([
         2,
         3,
         39,
@@ -8065,37 +8077,88 @@ const visibleFixtures =
         88,
         169,
         71
-      ].includes(leagueId);
+      ]);
 
-    return (
-      supportedLeague &&
-      !finishedStatuses.has(status)
+
+    const uniqueFixtures =
+      new Map();
+
+
+    fixtures.forEach(match => {
+
+      const fixtureId =
+        Number(
+          match?.fixtureId ||
+          0
+        );
+
+
+      const leagueId =
+        Number(
+          match?.league?.id ||
+          match?.league_id ||
+          match?.leagueId ||
+          0
+        );
+
+
+      const status =
+        String(
+          match?.status || ""
+        ).toUpperCase();
+
+
+      if (
+        fixtureId > 0 &&
+        supportedLeagueIds.has(
+          leagueId
+        ) &&
+        !unavailableStatuses.has(
+          status
+        )
+      ) {
+
+        uniqueFixtures.set(
+          fixtureId,
+          match
+        );
+
+      }
+
+    });
+
+
+    animateV2Number(
+      countEl,
+      uniqueFixtures.size
     );
-
-  });
-
-animateV2Number(
-  countEl,
-  visibleFixtures.length
-);
 
 
     /*
-      順便保存今日賽事。
-      下一步「今日焦點」直接使用，
-      不需要再打一次 API。
+      焦點賽事仍維持原本邏輯：
+      先顯示今天，
+      今天沒有可用賽事時，
+      原程式會再抓明日焦點。
     */
 
     window.v2TodayFixtures =
-      fixtures;
-    
-    renderV2FocusMatches(fixtures);
+      todayFixtures;
+
+
+    renderV2FocusMatches(
+      todayFixtures
+    );
+
+
+    console.timeEnd(
+      "⏱️ 可分析賽事 API"
+    );
 
 
   } catch (error) {
 
     console.error(
-      "V2 TODAY FIXTURES ERROR:",
+      "V2 ANALYZABLE FIXTURES ERROR:",
       error
     );
 
@@ -9749,7 +9812,7 @@ navPerformance: "AI 戰績",
 navAccount: "我的",
 todayFocus: "焦點賽事",
 
-statTodayMatches: "今日賽事",
+statTodayMatches: "可分析賽事",
 statAnalyzed: "已分析",
 statPublicVerified: "公開驗證",
 viewAll: "查看全部",
@@ -9964,7 +10027,7 @@ navMatches: "赛事",
 navPerformance: "AI 战绩",
 navAccount: "我的",
 todayFocus: "焦点赛事",
-statTodayMatches: "今日赛事",
+statTodayMatches: "可分析赛事",
 statAnalyzed: "已分析",
 statPublicVerified: "公开验证",
 viewAll: "查看全部",
@@ -10180,7 +10243,7 @@ navPerformance: "AI Results",
 navAccount: "Account",
 todayFocus: "Featured Matches",
 
-statTodayMatches: "Today's Matches",
+statTodayMatches: "Analyzable Matches",
 statAnalyzed: "Analyzed",
 statPublicVerified: "Public Verification",
 viewAll: "View All",
@@ -10710,7 +10773,7 @@ if (quickLabels[0]) {
   quickLabels[0].textContent =
     I18N.t(
       "statTodayMatches",
-      "今日賽事"
+      "可分析賽事"
     );
 }
 
