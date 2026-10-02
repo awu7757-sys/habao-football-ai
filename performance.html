@@ -1,154 +1,574 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#06131d" />
-  <title>HABAO 賽事預測 AI｜公開戰績</title>
-  <script src="./habao-i18n.js"></script>
-  <style>
-    :root{
-      --bg:#06131d;--card:#0b1d29;--card2:#0d2230;--line:rgba(255,255,255,.075);
-      --text:#f7f9fb;--muted:#8195a4;--gold:#f4c95d;--green:#39e5a9;--red:#ff6b6b;
-      --blue:#64a8ff;--radius:18px;--max:760px;
-    }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html{background:var(--bg)}
-    body{margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;color:var(--text);background:radial-gradient(circle at 10% 0%,rgba(244,185,66,.08),transparent 26%),radial-gradient(circle at 95% 20%,rgba(26,214,157,.055),transparent 25%),linear-gradient(180deg,#06141f 0%,#071722 45%,#06131d 100%)}
-    button{font:inherit}.app{width:min(100%,var(--max));margin:auto;padding:0 14px 48px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 16px;border-bottom:1px solid var(--line)}
-    .brand{display:flex;align-items:center;gap:11px}.brand-logo{width:42px;height:42px;background:url("./habao-hb-logo.png") center/contain no-repeat;filter:drop-shadow(0 8px 16px rgba(0,0,0,.38))}.brand-title{font-size:15px;font-weight:950}.brand-subtitle{margin-top:3px;color:#7f93a2;font-size:9px;font-weight:800;letter-spacing:1.4px}.back-btn{padding:9px 13px;border:1px solid rgba(244,185,66,.25);border-radius:10px;background:rgba(244,185,66,.06);color:var(--gold);font-size:11px;font-weight:900;cursor:pointer}
-    .hero{position:relative;overflow:hidden;margin-top:16px;padding:24px 19px 18px;border:1px solid rgba(244,185,66,.2);border-radius:22px;background:radial-gradient(circle at 90% 10%,rgba(244,185,66,.12),transparent 32%),linear-gradient(145deg,rgba(13,34,46,.98),rgba(7,24,35,.98));box-shadow:0 18px 45px rgba(0,0,0,.24)}
-    .hero-kicker{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:2px}.hero h1{margin:9px 0 7px;font-size:30px;font-weight:1000;letter-spacing:-1px}.hero p{max-width:560px;margin:0;color:#91a6b5;font-size:12px;font-weight:650;line-height:1.8}
-    .verified-box{display:flex;align-items:center;justify-content:space-between;margin-top:19px;padding:16px 17px;border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.17)}.verified-label{color:#8195a4;font-size:9px;font-weight:850;letter-spacing:1px}.verified-number{margin-top:4px;font-size:30px;font-weight:1000}.verified-unit{margin-left:4px;color:var(--gold);font-size:10px;font-weight:900}.live-status{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(42,224,164,.18);border-radius:999px;background:rgba(42,224,164,.055);color:var(--green);font-size:9px;font-weight:900}.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(57,229,169,.8)}
-    .transparency{margin-top:12px;padding:11px 12px;border:1px solid rgba(100,168,255,.13);border-radius:13px;background:rgba(100,168,255,.045);color:#91a6b5;font-size:10px;line-height:1.65}.transparency b{color:#cfe2ff}
-    .filter-tabs,.mini-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;padding:5px;border:1px solid rgba(255,255,255,.06);border-radius:13px;background:rgba(0,0,0,.18)}.filter-btn,.mini-tab{padding:9px 6px;border:0;border-radius:9px;background:transparent;color:#718796;font-size:10px;font-weight:900;cursor:pointer}.filter-btn.active,.mini-tab.active{background:linear-gradient(135deg,#f6c84d,#d99e21);color:#101820;box-shadow:0 5px 18px rgba(244,185,66,.17)}
-    .section{margin-top:24px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:0 3px}.section-title{margin:0;font-size:16px;font-weight:1000}.section-note{padding:5px 9px;border:1px solid rgba(244,185,66,.18);border-radius:999px;background:rgba(244,185,66,.05);color:var(--gold);font-size:9px;font-weight:900}
-    .overall-card{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;padding:17px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(15,37,49,.98),rgba(8,27,39,.98))}.overall-label{color:#8297a6;font-size:10px;font-weight:850}.overall-rate{margin-top:5px;font-size:36px;font-weight:1000;letter-spacing:-1.5px}.overall-sub{margin-top:5px;color:#617785;font-size:9px;font-weight:800}.overall-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.mini-metric{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px;border-radius:11px;background:rgba(255,255,255,.025)}.mini-metric b{font-size:15px}.mini-metric span{margin-top:3px;color:#718796;font-size:8px;font-weight:800}
-    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}.stat-card{position:relative;overflow:hidden;min-height:140px;padding:15px 12px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(15,37,49,.98),rgba(8,27,39,.98))}.stat-card:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,#f4b942,transparent)}.stat-icon{width:42px;height:27px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(244,185,66,.24);border-radius:8px;background:rgba(244,185,66,.07);color:var(--gold);font-size:9px;font-weight:1000}.stat-name{margin-top:14px;color:#8297a6;font-size:10px;font-weight:850}.stat-rate{margin-top:5px;font-size:26px;font-weight:1000}.stat-total{margin-top:4px;color:#617785;font-size:9px;font-weight:800}
-    .panel{padding:15px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(14,35,47,.98),rgba(8,27,38,.98));box-shadow:0 10px 24px rgba(0,0,0,.15)}
-    .recent-row{display:flex;gap:7px;overflow-x:auto;padding:5px 1px 4px;scrollbar-width:none}.recent-row::-webkit-scrollbar{display:none}.recent-chip{flex:0 0 42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--line);font-size:16px;font-weight:1000}.recent-chip.win{color:var(--green);background:rgba(57,229,169,.06);border-color:rgba(57,229,169,.18)}.recent-chip.loss{color:var(--red);background:rgba(255,107,107,.06);border-color:rgba(255,107,107,.18)}.recent-chip.push,.recent-chip.half_win,.recent-chip.half_loss{color:var(--gold);background:rgba(244,201,93,.06);border-color:rgba(244,201,93,.18)}.recent-summary{margin-top:10px;color:#91a6b5;font-size:10px;font-weight:750}
-    .trend-chart{height:180px;margin-top:12px;position:relative}.trend-chart svg{width:100%;height:100%;overflow:visible}.trend-grid{stroke:rgba(255,255,255,.07);stroke-width:1}.trend-line{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.trend-dot{fill:#06131d;stroke:var(--gold);stroke-width:2}.trend-labels{display:flex;justify-content:space-between;margin-top:6px;color:#607684;font-size:8px}.trend-empty{height:180px;display:flex;align-items:center;justify-content:center;color:#607684;font-size:10px}.trend-summary{margin-top:10px;color:#91a6b5;font-size:10px;line-height:1.6}
-    .league-list,.match-list{display:grid;gap:9px}.league-card{padding:14px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,rgba(14,35,47,.98),rgba(8,27,38,.98))}.league-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.league-name{font-size:12px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.league-count{color:#718796;font-size:9px}.league-overall{margin-top:9px;display:flex;align-items:end;justify-content:space-between;padding:9px 10px;border-radius:11px;background:rgba(244,185,66,.045)}.league-overall b{font-size:18px}.league-overall span{color:#718796;font-size:8px}.league-markets{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}.league-market{text-align:center;padding:8px 4px;border-radius:10px;background:rgba(255,255,255,.024)}.league-market span{display:block;color:#718796;font-size:8px}.league-market b{display:block;margin-top:3px;font-size:11px}
-    .match-card{overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,rgba(14,35,47,.98),rgba(8,27,38,.98))}.match-main{padding:14px}.match-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.league{color:#718796;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.date{color:#617785;font-size:8px;white-space:nowrap}.teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}.team{font-size:12px;font-weight:900;min-width:0}.team.away{text-align:right}.score{padding:6px 9px;border:1px solid rgba(244,185,66,.14);border-radius:9px;color:var(--gold);background:rgba(244,185,66,.06);font-size:15px;font-weight:1000}.markets{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.market{padding:10px 6px;text-align:center;min-width:0}.market+.market{border-left:1px solid var(--line)}.market-name{color:#718796;font-size:8px}.market-pick{margin-top:4px;color:#e4e9ef;font-size:9px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.result{display:inline-flex;min-width:17px;justify-content:center;margin-left:3px;padding:2px 3px;border-radius:5px;font-size:8px}.result.win{color:var(--green);background:rgba(57,229,169,.08)}.result.loss{color:var(--red);background:rgba(255,107,107,.08)}.result.push,.result.half_win,.result.half_loss{color:var(--gold);background:rgba(244,201,93,.08)}
-    .info-card,.state-card{padding:15px 16px;border:1px solid rgba(244,185,66,.14);border-radius:15px;background:rgba(244,185,66,.035);color:#8195a4;font-size:10px;line-height:1.75}.state-card{text-align:center;background:linear-gradient(145deg,rgba(14,35,47,.98),rgba(8,27,38,.98));border-color:var(--line);padding:32px 18px}.state-title{color:#fff;font-size:13px;font-weight:950}.state-text{margin-top:5px}.loader{width:27px;height:27px;margin:0 auto 13px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.retry-btn{margin-top:12px;padding:8px 12px;border:0;border-radius:9px;background:var(--gold);color:#101820;font-size:10px;font-weight:900}.footer{margin-top:30px;padding:18px 8px 4px;border-top:1px solid var(--line);color:#516875;font-size:9px;line-height:1.8;text-align:center}
-    @media(max-width:520px){.app{padding-left:12px;padding-right:12px}.hero{padding:21px 16px 17px}.hero h1{font-size:27px}.stats-grid{gap:7px}.stat-card{padding:13px 9px;min-height:134px}.overall-card{grid-template-columns:1fr}.overall-breakdown{margin-top:2px}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#03121d">
+<title>HABAO 賽事預測 AI｜公開戰績</title>
+<script src="./habao-i18n.js"></script>
+<style>
+:root{
+  --bg:#03121d;
+  --panel:#071b28;
+  --panel2:#0a2231;
+  --line:rgba(125,190,220,.16);
+  --line2:rgba(245,190,55,.33);
+  --text:#f6f8fb;
+  --muted:#9cb0be;
+  --gold:#f4bf33;
+  --gold2:#ffd85a;
+  --green:#14d99a;
+  --red:#ff555c;
+  --blue:#2f8cff;
+  --cyan:#52c9ff;
+  --orange:#ff8f36;
+  --max:860px;
+  --r:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:
+  radial-gradient(circle at 70% 0%,rgba(38,112,151,.12),transparent 26%),
+  linear-gradient(180deg,#061826 0%,#02111b 55%,#03131e 100%);
+  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,sans-serif}
+body{min-height:100vh}
+button{font:inherit}
+.app{max-width:var(--max);margin:0 auto;padding:10px 18px 34px}
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:50px;height:50px;border-radius:13px;border:1px solid rgba(244,191,51,.7);
+  background:linear-gradient(145deg,#201605,#020508 45%,#3e2d09);
+  display:grid;place-items:center;color:#ffd870;font-size:25px;font-weight:900;
+  box-shadow:0 0 18px rgba(244,191,51,.18),inset 0 0 18px rgba(244,191,51,.12)}
+.logo span{letter-spacing:-3px;margin-left:-3px}
+.brand-title{font-weight:900;font-size:20px;letter-spacing:.3px}
+.brand-sub{font-size:10px;letter-spacing:2.3px;color:#b7c5cf;margin-top:2px}
+.back-btn{border:1px solid rgba(244,191,51,.65);color:#ffd35a;background:rgba(21,18,8,.5);
+  padding:10px 20px;border-radius:12px;font-weight:800;cursor:pointer}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border:1px solid rgba(244,191,51,.48);border-radius:18px;
+  min-height:218px;padding:20px 26px 18px;
+  background:
+   linear-gradient(90deg,rgba(2,11,17,.96) 0%,rgba(3,15,22,.85) 43%,rgba(3,16,23,.40) 73%,rgba(2,12,18,.82) 100%),
+   radial-gradient(circle at 80% 58%,rgba(244,191,51,.19),transparent 16%),
+   repeating-linear-gradient(112deg,transparent 0 18px,rgba(255,255,255,.022) 18px 19px),
+   linear-gradient(180deg,#183546 0%,#0d2630 46%,#19351f 47%,#07131a 100%);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.42),0 0 24px rgba(244,191,51,.08)}
+.hero:before{content:"";position:absolute;inset:0;background:
+ radial-gradient(ellipse at 55% 10%,rgba(255,211,86,.35),transparent 11%),
+ radial-gradient(ellipse at 72% 12%,rgba(255,211,86,.22),transparent 9%),
+ radial-gradient(ellipse at 35% 14%,rgba(255,211,86,.18),transparent 8%);pointer-events:none}
+.hero-copy{position:relative;z-index:2;max-width:620px}
+.eyebrow{display:flex;align-items:center;gap:10px;color:#ffd969;font-weight:800;letter-spacing:2px;font-size:15px}
+.eyebrow .tool{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;border:2px solid #d8ad38;color:#ffd969}
+.hero h1{font-size:49px;line-height:.95;margin:12px 0 13px;color:#fff1b8;font-weight:1000;
+  text-shadow:0 2px 0 #75571a,0 0 17px rgba(244,191,51,.28)}
+.hero p{font-size:15px;line-height:1.55;color:#e5ebef;margin:0;max-width:620px;font-weight:600}
+.hero-icons{position:relative;z-index:2;margin-top:17px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  border-top:1px solid rgba(255,255,255,.08);padding-top:12px}
+.hero-item{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;white-space:nowrap}
+.hero-item .ico{font-size:24px;color:#ffd13d}
+
+/* summary/filter */
+.summarybar{margin-top:12px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(8,31,45,.97),rgba(6,25,37,.97));
+ border-radius:15px;padding:10px 12px;display:grid;grid-template-columns:190px 1fr 205px;align-items:center;gap:10px}
+.verified-label{font-size:13px;font-weight:800;color:#eef2f4}
+.verified-num{font-size:31px;font-weight:1000;line-height:1;margin-top:2px}
+.verified-num small{font-size:15px;color:#ffd24e}
+.live-pill{display:inline-flex;align-items:center;gap:6px;color:#25efb4;border:1px solid rgba(20,217,154,.35);
+ background:rgba(20,217,154,.08);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-left:7px;vertical-align:5px}
+.live-pill:before{content:"";width:7px;height:7px;border-radius:50%;background:#19e4a4;box-shadow:0 0 10px #19e4a4}
+.filters{height:48px;display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06)}
+.filter-btn{border:0;background:transparent;color:#c3cfd6;font-weight:800;cursor:pointer;border-radius:10px}
+.filter-btn.active{background:linear-gradient(180deg,#ffd553,#efa91d);color:#231907;box-shadow:0 0 18px rgba(244,191,51,.20)}
+.rangebox{border:1px solid rgba(255,255,255,.07);border-radius:10px;height:48px;display:flex;align-items:center;gap:9px;padding:0 12px}
+.rangebox .cal{font-size:20px}.range-label{font-size:11px;color:#a7bac7;font-weight:800}.range-text{font-size:12px;font-weight:800;margin-top:2px}
+
+/* sections */
+.section{margin-top:13px}
+.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.section-title h2{font-size:18px;margin:0;font-weight:950;display:flex;align-items:center;gap:8px}
+.section-title h2:before{content:"";width:4px;height:22px;border-radius:3px;background:#f6c43c;box-shadow:0 0 8px rgba(246,196,60,.45)}
+.help{width:17px;height:17px;border:1px solid #8fa2ad;border-radius:50%;display:inline-grid;place-items:center;font-size:11px;color:#a8b7c1}
+.more-btn{border:1px solid rgba(244,191,51,.47);border-radius:999px;background:rgba(244,191,51,.08);color:#ffd14c;padding:7px 14px;font-weight:800;font-size:12px;cursor:pointer}
+
+/* market cards */
+.market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.market-card{min-height:142px;border-radius:15px;padding:14px 16px;position:relative;overflow:hidden;background:linear-gradient(145deg,#0a2233,#071a27 75%)}
+.market-card.blue{border:1px solid #1f67e4;box-shadow:inset 0 0 23px rgba(24,105,255,.08)}
+.market-card.green{border:1px solid #16b77e;box-shadow:inset 0 0 23px rgba(20,217,154,.07)}
+.market-card.red{border:1px solid #d64b4f;box-shadow:inset 0 0 23px rgba(255,85,92,.07)}
+.market-head{display:flex;align-items:center;gap:12px}
+.market-tag{border:1px solid currentColor;border-radius:12px;padding:4px 8px;font-weight:900;font-size:16px}
+.market-card.blue .market-tag{color:#65a3ff}.market-card.green .market-tag{color:#43e0a9}.market-card.red .market-tag{color:#ff9956}
+.market-name{font-size:14px;font-weight:900;color:#d8e4ea}
+.market-body{display:grid;grid-template-columns:54px 1fr 24px;align-items:end;gap:8px;margin-top:8px}
+.market-icon{font-size:42px;line-height:1;color:var(--cyan)}
+.market-card.green .market-icon{color:#26e4a4}.market-card.red .market-icon{color:#ff6268}
+.market-rate{font-size:29px;font-weight:1000;line-height:1}.market-sample{font-size:13px;color:#c0ced7;font-weight:700;margin-top:5px}
+.bars{font-size:23px;color:#1fe1a5}.wave{font-size:22px;color:#ff9133}
+.market-badge{margin:10px auto 0;text-align:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;width:128px}
+.blue .market-badge,.red .market-badge{color:#2ce7ad;border:1px solid rgba(44,231,173,.3);background:rgba(44,231,173,.10)}
+.green .market-badge{color:#ffc83f;border:1px solid rgba(255,200,63,.30);background:rgba(255,200,63,.08)}
+
+/* middle */
+.mid-grid{display:grid;grid-template-columns:1fr 1.06fr;gap:12px}
+.box{border:1px solid var(--line);background:linear-gradient(180deg,#082332,#061c28);border-radius:15px;overflow:hidden}
+.box-head{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid rgba(255,255,255,.06)}
+.box-head h3{margin:0;font-size:17px;font-weight:950;display:flex;align-items:center;gap:8px}
+.box-head h3:before{content:"";width:4px;height:21px;background:#f5c33c;border-radius:4px}
+.recent-inner{padding:13px 14px}
+.recent-row{display:flex;gap:8px;align-items:center;min-height:44px}
+.result-chip{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:1000;font-size:17px;flex:0 0 auto;
+ box-shadow:inset 0 0 9px rgba(255,255,255,.08)}
+.result-chip.win{background:#0e986f;color:white}.result-chip.loss{background:#d83e45;color:white}
+.result-chip.push{background:#63747f;color:white}.result-chip.half_win{background:#17886d;color:#fff}.result-chip.half_loss{background:#9e5a46;color:#fff}
+.recent-arrow{color:#c8d4da;font-size:23px;margin-left:auto}
+.recent-summary{margin-top:14px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;color:#dce4e9;font-size:14px;font-weight:800}
+.recent-summary b{color:#ffd049;font-size:17px}
+
+.trend-tabs{display:grid;grid-template-columns:repeat(4,1fr);margin:0 12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;overflow:hidden}
+.trend-tab{border:0;background:#071a27;color:#c5d1d7;padding:6px 3px;font-size:11px;font-weight:800;cursor:pointer}
+.trend-tab.active{background:linear-gradient(180deg,#ffd652,#efae27);color:#251a06}
+.trend-body{display:grid;grid-template-columns:1fr 103px;gap:6px;padding:8px 10px 10px}
+.chart-wrap{height:122px;position:relative;border-radius:8px;background:
+ repeating-linear-gradient(to bottom,rgba(255,255,255,.075) 0 1px,transparent 1px 30px)}
+.chart-wrap svg{width:100%;height:100%}
+.trend-side{padding:7px 4px 0 6px}
+.trend-current{font-size:11px;color:#aebdc7}.trend-current b{font-size:18px;color:#ffd243}
+.trend-change{margin-top:5px;font-size:16px;font-weight:1000;color:#1fe1a5}
+.trend-state{font-size:12px;color:#aebdc7;margin-top:12px}.trend-state b{display:block;color:#20e0a3;font-size:15px;margin-top:3px}
+.empty{display:grid;place-items:center;height:100%;color:#708793;font-size:12px}
+
+/* leagues */
+.league-controls{display:flex;gap:4px;background:#061824;border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:2px}
+.league-control{border:0;background:transparent;color:#b8c6cf;font-size:11px;font-weight:800;padding:6px 12px;border-radius:7px}
+.league-control.active{background:linear-gradient(180deg,#ffd34a,#f0ab1f);color:#231805}
+.league-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+.league-strip::-webkit-scrollbar{display:none}
+.league-card{min-width:88px;width:88px;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:9px 7px;text-align:center;background:linear-gradient(180deg,#092130,#061b27)}
+.league-logo{width:36px;height:36px;margin:0 auto 4px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.04);font-weight:1000;color:#fff;font-size:12px}
+.league-name{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.league-rate{font-size:17px;font-weight:1000;color:#fff;margin-top:4px}
+.league-rate.gold{color:#ffd244}.league-sample{font-size:10px;color:#9eb0ba;margin-top:1px}
+
+/* table */
+.records-box{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#061b28}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:760px;font-size:11px}
+th{height:34px;color:#b6c5cd;background:#092535;font-weight:800;text-align:left;padding:0 10px;border-right:1px solid rgba(255,255,255,.05)}
+td{height:39px;padding:4px 10px;border-top:1px solid rgba(255,255,255,.055);border-right:1px solid rgba(255,255,255,.04);color:#dbe4e8}
+td.score{color:#ffd243;font-size:16px;font-weight:1000}
+.pred{line-height:1.35;font-weight:800;color:#eef3f6}.pred small{display:block;color:#a9b9c3;font-weight:700}
+.verify-dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#102a37;color:#ffd343}
+.mark{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-size:15px;font-weight:1000}
+.mark.win{background:#0e9c71;color:#fff}.mark.loss{background:#c8323a;color:#fff}.mark.push{background:#455f6e;color:#fff}
+.row-arrow{font-size:20px;color:#9cb0bd}
+.method-note{margin-top:10px;font-size:11px;color:#7f96a5;text-align:center;line-height:1.5}
+
+/* loading */
+.skeleton{height:120px;border-radius:12px;background:linear-gradient(90deg,#08202d 25%,#0e2a39 37%,#08202d 63%);background-size:400% 100%;animation:shimmer 1.3s infinite}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
+@media(max-width:700px){
+ .app{padding:8px 10px 28px}
+ .brand-title{font-size:16px}.brand-sub{font-size:8px}.logo{width:45px;height:45px}
+ .hero{padding:17px 16px 14px;min-height:205px}.hero h1{font-size:43px}.hero p{font-size:13px}
+ .hero-icons{grid-template-columns:repeat(2,1fr);gap:8px}.hero-item{font-size:12px}
+ .summarybar{grid-template-columns:1fr;gap:8px}.filters{border:0}.rangebox{justify-content:center}
+ .market-grid{grid-template-columns:1fr}
+ .market-card{min-height:128px}
+ .mid-grid{grid-template-columns:1fr}
+ .league-card{min-width:92px}
+}
+</style>
 </head>
 <body>
-<main class="app">
+<div class="app">
   <header class="topbar">
-    <div class="brand"><div class="brand-logo" aria-label="HABAO"></div><div><div class="brand-title">HABAO 賽事預測 AI</div><div class="brand-subtitle">SPORTS INTELLIGENCE</div></div></div>
-    <button class="back-btn" type="button" onclick="goBack()" data-i18n="back">返回</button>
+    <div class="brand">
+      <div class="logo"><span>HB</span></div>
+      <div>
+        <div class="brand-title" data-i18n="brandTitle">HABAO 賽事預測 AI</div>
+        <div class="brand-sub">SPORTS INTELLIGENCE</div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="history.back()" data-i18n="back">返回</button>
   </header>
 
   <section class="hero">
-    <div class="hero-kicker">● AI PERFORMANCE</div>
-    <h1 data-i18n="heroTitle">公開戰績</h1>
-    <p data-i18n="heroText">系統自動建立賽前預測快照，完賽後依正式比分驗證，公開呈現真實歷史結果。</p>
-    <div class="verified-box"><div><div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div><div><span class="verified-number" id="verifiedMatches">--</span><span class="verified-unit" data-i18n="matchesUnit">場</span></div></div><div class="live-status"><span class="live-dot"></span><span data-i18n="autoUpdate">自動更新</span></div></div>
-    <div class="transparency"><b data-i18n="transparentTitle">公開原則：</b><span data-i18n="transparentText">符合系統條件的賽事皆由排程自動納入，不人工挑選；預測於賽前固定保存，完賽後才進行驗證。</span></div>
-    <div class="filter-tabs">
-      <button class="filter-btn active" data-days="" onclick="changeFilter(this)" data-i18n="all">全部</button>
-      <button class="filter-btn" data-days="7" onclick="changeFilter(this)" data-i18n="last7Days">近 7 天</button>
-      <button class="filter-btn" data-days="30" onclick="changeFilter(this)" data-i18n="last30Days">近 30 天</button>
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="tool">⚒</span><span>AI PERFORMANCE</span></div>
+      <h1 data-i18n="heroTitle">公開戰績</h1>
+      <p data-i18n="heroDesc">系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證<br>所有符合條件之賽事皆會納入公開戰績，不人工篩選。</p>
+    </div>
+    <div class="hero-icons">
+      <div class="hero-item"><span class="ico">◷</span><span data-i18n="f1">賽前自動分析</span></div>
+      <div class="hero-item"><span class="ico">▤</span><span data-i18n="f2">不依賴會員操作</span></div>
+      <div class="hero-item"><span class="ico">♢</span><span data-i18n="f3">真實賽果驗證</span></div>
+      <div class="hero-item"><span class="ico">▥</span><span data-i18n="f4">透明公開數據</span></div>
+    </div>
+  </section>
+
+  <section class="summarybar">
+    <div>
+      <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
+      <div><span id="verifiedMatches" class="verified-num">--</span><span class="verified-num"><small data-i18n="matchUnit"> 場</small></span>
+        <span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
+      <button class="filter-btn" data-days="7" data-i18n="last7">近 7 天</button>
+      <button class="filter-btn" data-days="30" data-i18n="last30">近 30 天</button>
+    </div>
+    <div class="rangebox">
+      <span class="cal">▣</span>
+      <div><div class="range-label" data-i18n="statsRange">統計區間</div><div id="rangeText" class="range-text">--</div></div>
     </div>
   </section>
 
   <section class="section">
-    <div class="section-head"><h2 class="section-title" data-i18n="overview">整體表現</h2><div class="section-note" id="currentFilterText">全部</div></div>
-    <div class="overall-card">
-      <div><div class="overall-label" data-i18n="overallHitRate">綜合市場命中率</div><div class="overall-rate" id="overallRate">--</div><div class="overall-sub" id="overallTotal">0 次驗證</div></div>
-      <div class="overall-breakdown"><div class="mini-metric"><b id="overallWin">0</b><span data-i18n="wins">命中</span></div><div class="mini-metric"><b id="overallLoss">0</b><span data-i18n="losses">未中</span></div><div class="mini-metric"><b id="overallPush">0</b><span data-i18n="pushes">走盤</span></div></div>
-    </div>
-    <div class="stats-grid">
-      <article class="stat-card"><div class="stat-icon">1X2</div><div class="stat-name" data-i18n="moneyline">獨贏</div><div class="stat-rate" id="moneylineRate">--</div><div class="stat-total" id="moneylineTotal">0 次驗證</div></article>
-      <article class="stat-card"><div class="stat-icon">O/U</div><div class="stat-name" data-i18n="overUnder">大小分</div><div class="stat-rate" id="overUnderRate">--</div><div class="stat-total" id="overUnderTotal">0 次驗證</div></article>
-      <article class="stat-card"><div class="stat-icon">BTTS</div><div class="stat-name" data-i18n="btts">雙方進球</div><div class="stat-rate" id="bttsRate">--</div><div class="stat-total" id="bttsTotal">0 次驗證</div></article>
+    <div class="section-title"><h2><span data-i18n="marketPerformance">AI 市場表現</span><span class="help">?</span></h2></div>
+    <div class="market-grid">
+      <article class="market-card blue">
+        <div class="market-head"><span class="market-tag">1X2</span><span class="market-name" data-i18n="moneyline">獨贏</span></div>
+        <div class="market-body">
+          <div class="market-icon">◎</div>
+          <div><div id="moneylineRate" class="market-rate">--</div><div id="moneylineSample" class="market-sample">--</div></div>
+          <div class="bars">▥</div>
+        </div>
+        <div id="moneylineBadge" class="market-badge" data-i18n="stableRecent">近期較穩定</div>
+      </article>
+
+      <article class="market-card green">
+        <div class="market-head"><span class="market-tag">O/U</span><span class="market-name" data-i18n="overUnder">大小分</span></div>
+        <div class="market-body">
+          <div class="market-icon">▥</div>
+          <div><div id="overRate" class="market-rate">--</div><div id="overSample" class="market-sample">--</div></div>
+          <div class="wave">〰</div>
+        </div>
+        <div id="overBadge" class="market-badge" data-i18n="volatileRecent">近期波動</div>
+      </article>
+
+      <article class="market-card red">
+        <div class="market-head"><span class="market-tag">BTTS</span><span class="market-name" data-i18n="bttsName">雙方進球</span></div>
+        <div class="market-body">
+          <div class="market-icon">⚽</div>
+          <div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div>
+          <div class="bars">▥</div>
+        </div>
+        <div id="bttsBadge" class="market-badge" data-i18n="stablePerformance">表現穩定</div>
+      </article>
     </div>
   </section>
 
-  <section class="section">
-    <div class="section-head"><h2 class="section-title" data-i18n="recentTitle">近期 10 場</h2><div class="section-note" id="recentNote">綜合</div></div>
-    <div class="panel">
-      <div class="mini-tabs" style="grid-template-columns:repeat(4,1fr);margin-top:0">
-        <button class="mini-tab active" data-recent="overall" onclick="changeRecent(this)" data-i18n="overall">綜合</button>
-        <button class="mini-tab" data-recent="moneyline" onclick="changeRecent(this)" data-i18n="moneyline">獨贏</button>
-        <button class="mini-tab" data-recent="over_under" onclick="changeRecent(this)" data-i18n="overUnder">大小分</button>
-        <button class="mini-tab" data-recent="btts" onclick="changeRecent(this)">BTTS</button>
+  <section class="section mid-grid">
+    <div class="box">
+      <div class="box-head"><h3><span data-i18n="recentForm">近期戰績</span> <span style="font-weight:500;color:#b9c7cf" data-i18n="recent10">（近 10 場）</span></h3></div>
+      <div class="recent-inner">
+        <div id="recentRow" class="recent-row"></div>
+        <div id="recentSummary" class="recent-summary">--</div>
       </div>
-      <div class="recent-row" id="recentRow"></div>
-      <div class="recent-summary" id="recentSummary">--</div>
     </div>
-  </section>
 
-  <section class="section">
-    <div class="section-head"><h2 class="section-title" data-i18n="trendTitle">命中率趨勢</h2><div class="section-note" id="trendNote">綜合</div></div>
-    <div class="panel">
-      <div class="mini-tabs" style="grid-template-columns:repeat(4,1fr);margin-top:0">
-        <button class="mini-tab trend-tab active" data-trend="overall" onclick="changeTrend(this)" data-i18n="overall">綜合</button>
-        <button class="mini-tab trend-tab" data-trend="moneyline" onclick="changeTrend(this)" data-i18n="moneyline">獨贏</button>
-        <button class="mini-tab trend-tab" data-trend="over_under" onclick="changeTrend(this)" data-i18n="overUnder">大小分</button>
-        <button class="mini-tab trend-tab" data-trend="btts" onclick="changeTrend(this)">BTTS</button>
+    <div class="box">
+      <div class="box-head"><h3><span data-i18n="trendTitle">AI 命中走勢</span><span class="help">?</span></h3></div>
+      <div class="trend-tabs">
+        <button class="trend-tab active" data-trend="overall" data-i18n="overall">綜合</button>
+        <button class="trend-tab" data-trend="moneyline" data-i18n="moneyline">獨贏</button>
+        <button class="trend-tab" data-trend="over_under" data-i18n="overUnder">大小分</button>
+        <button class="trend-tab" data-trend="btts">BTTS</button>
       </div>
-      <div id="trendChart" class="trend-chart"></div>
-      <div id="trendLabels" class="trend-labels"></div>
-      <div id="trendSummary" class="trend-summary">--</div>
+      <div class="trend-body">
+        <div id="trendChart" class="chart-wrap"></div>
+        <div class="trend-side">
+          <div class="trend-current"><span data-i18n="current">目前</span> <b id="trendCurrent">--</b></div>
+          <div id="trendChange" class="trend-change">--</div>
+          <div class="trend-state"><span data-i18n="recentTrend">近期趨勢</span><b id="trendState">--</b></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="section"><div class="info-card" data-i18n="methodText">命中率只計算已完賽且成功驗證的市場。走盤不列入勝負分母；半贏與半輸依半注結果計算。頁面不會因會員是否點擊分析而決定是否納入公開戰績。</div></section>
-
-  <section class="section" id="leagueSection" hidden>
-    <div class="section-head"><h2 class="section-title" data-i18n="leaguePerformance">聯賽表現</h2><div class="section-note" id="leagueCountText">--</div></div>
-    <div class="league-list" id="leagueList"></div>
+  <section class="section">
+    <div class="section-title">
+      <h2><span data-i18n="leaguePerformance">各聯賽表現</span><span class="help">?</span></h2>
+      <div class="league-controls"><button class="league-control active" data-i18n="sortByRate">勝率排序</button><button class="league-control" data-i18n="matchCount">賽事數量</button></div>
+    </div>
+    <div id="leagueStrip" class="league-strip"></div>
   </section>
 
   <section class="section">
-    <div class="section-head"><h2 class="section-title" data-i18n="matchRecords">已驗證賽事</h2><div class="section-note" id="matchCountText">--</div></div>
-    <div class="match-list" id="matchList"><div class="state-card"><div class="loader"></div><div class="state-title" data-i18n="loadingTitle">正在讀取 AI 戰績</div><div class="state-text" data-i18n="loadingText">正在同步最新驗證資料...</div></div></div>
+    <div class="section-title">
+      <h2><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2>
+      <button id="moreBtn" class="more-btn" data-i18n="viewMore">查看更多 ›</button>
+    </div>
+    <div class="records-box">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="dateTime">日期時間</th>
+            <th data-i18n="league">聯賽</th>
+            <th data-i18n="homeAway">主隊 vs 客隊</th>
+            <th data-i18n="score">比分</th>
+            <th data-i18n="aiPrediction">AI 預測</th>
+            <th data-i18n="verification">驗證結果</th>
+            <th data-i18n="moneyline">獨贏</th>
+            <th data-i18n="overUnder">大小分</th>
+            <th>BTTS</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="method-note" data-i18n="methodNote">公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。</div>
   </section>
+</div>
 
-  <div class="footer" data-i18n="footerText">所有公開戰績皆以賽前固定快照與正式完場比分自動核對，僅供賽事數據分析參考。</div>
-</main>
 <script>
-const PERFORMANCE_I18N={
-  "zh-Hant":{pageTitle:"HABAO 賽事預測 AI｜公開戰績",back:"返回",heroTitle:"公開戰績",heroText:"系統自動建立賽前預測快照，完賽後依正式比分驗證，公開呈現真實歷史結果。",verifiedMatches:"已驗證賽事",matchesUnit:"場",autoUpdate:"自動更新",transparentTitle:"公開原則：",transparentText:"符合系統條件的賽事皆由排程自動納入，不人工挑選；預測於賽前固定保存，完賽後才進行驗證。",all:"全部",last7Days:"近 7 天",last30Days:"近 30 天",overview:"整體表現",overallHitRate:"綜合市場命中率",overall:"綜合",moneyline:"獨贏",overUnder:"大小分",btts:"雙方進球",verificationCount:"次驗證",wins:"命中",losses:"未中",pushes:"走盤",recentTitle:"近期 10 場",trendTitle:"命中率趨勢",trendStable:"近期走勢持平",trendUp:"近期命中率上升",trendDown:"近期命中率下降",trendInsufficient:"樣本不足，累積更多驗證後顯示趨勢",recentSummary:"近 {total} 場：{win} 中｜{loss} 未中｜{push} 走盤",methodText:"命中率只計算已完賽且成功驗證的市場。走盤不列入勝負分母；半贏與半輸依半注結果計算。頁面不會因會員是否點擊分析而決定是否納入公開戰績。",leaguePerformance:"聯賽表現",leaguesUnit:"個聯賽",samples:"樣本",matchRecords:"已驗證賽事",loadingTitle:"正在讀取 AI 戰績",loadingText:"正在同步最新驗證資料...",emptyTitle:"此區間尚無已驗證賽事",emptyText:"符合條件的賽事會在賽前自動保存預測快照，完賽並驗證後自動出現在這裡。",errorTitle:"戰績資料暫時無法讀取",retry:"重新整理",homeTeam:"主隊",awayTeam:"客隊",footballMatch:"足球賽事",push:"走",halfWin:"半贏",halfLoss:"半輸",pending:"待",footerText:"所有公開戰績皆以賽前固定快照與正式完場比分自動核對，僅供賽事數據分析參考。"},
-  "zh-Hans":{pageTitle:"HABAO 赛事预测 AI｜公开战绩",back:"返回",heroTitle:"公开战绩",heroText:"系统自动建立赛前预测快照，完赛后依正式比分验证，公开呈现真实历史结果。",verifiedMatches:"已验证赛事",matchesUnit:"场",autoUpdate:"自动更新",transparentTitle:"公开原则：",transparentText:"符合系统条件的赛事皆由排程自动纳入，不人工挑选；预测于赛前固定保存，完赛后才进行验证。",all:"全部",last7Days:"近 7 天",last30Days:"近 30 天",overview:"整体表现",overallHitRate:"综合市场命中率",overall:"综合",moneyline:"独赢",overUnder:"大小分",btts:"双方进球",verificationCount:"次验证",wins:"命中",losses:"未中",pushes:"走盘",recentTitle:"近期 10 场",trendTitle:"命中率趋势",trendStable:"近期走势持平",trendUp:"近期命中率上升",trendDown:"近期命中率下降",trendInsufficient:"样本不足，累积更多验证后显示趋势",recentSummary:"近 {total} 场：{win} 中｜{loss} 未中｜{push} 走盘",methodText:"命中率只计算已完赛且成功验证的市场。走盘不列入胜负分母；半赢与半输依半注结果计算。页面不会因会员是否点击分析而决定是否纳入公开战绩。",leaguePerformance:"联赛表现",leaguesUnit:"个联赛",samples:"样本",matchRecords:"已验证赛事",loadingTitle:"正在读取 AI 战绩",loadingText:"正在同步最新验证资料...",emptyTitle:"此区间尚无已验证赛事",emptyText:"符合条件的赛事会在赛前自动保存预测快照，完赛并验证后自动出现在这里。",errorTitle:"战绩资料暂时无法读取",retry:"重新整理",homeTeam:"主队",awayTeam:"客队",footballMatch:"足球赛事",push:"走",halfWin:"半赢",halfLoss:"半输",pending:"待",footerText:"所有公开战绩皆以赛前固定快照与正式完场比分自动核对，仅供赛事数据分析参考。"},
-  en:{pageTitle:"HABAO Sports Prediction AI | Public Performance",back:"Back",heroTitle:"Public Performance",heroText:"The system automatically saves pre-match prediction snapshots and verifies them against official final scores after each match.",verifiedMatches:"Verified Matches",matchesUnit:"matches",autoUpdate:"Auto Update",transparentTitle:"Disclosure: ",transparentText:"All system-eligible matches are automatically included by schedule with no manual selection. Predictions are locked before kickoff and verified only after completion.",all:"All",last7Days:"Last 7 Days",last30Days:"Last 30 Days",overview:"Overall Performance",overallHitRate:"Combined Market Hit Rate",overall:"Overall",moneyline:"1X2",overUnder:"Over / Under",btts:"Both Teams to Score",verificationCount:"verifications",wins:"Hits",losses:"Misses",pushes:"Pushes",recentTitle:"Recent 10 Matches",trendTitle:"Hit Rate Trend",trendStable:"Recent trend is stable",trendUp:"Recent hit rate is rising",trendDown:"Recent hit rate is falling",trendInsufficient:"More verified samples are needed to show a trend",recentSummary:"Last {total}: {win} hits | {loss} misses | {push} pushes",methodText:"Hit rates include only completed and successfully verified markets. Pushes are excluded from the win-loss denominator; half wins and half losses are calculated as half-stake results. Public inclusion does not depend on whether a member opens an analysis.",leaguePerformance:"League Performance",leaguesUnit:"leagues",samples:"samples",matchRecords:"Verified Matches",loadingTitle:"Loading AI Performance",loadingText:"Syncing the latest verified data...",emptyTitle:"No Verified Matches",emptyText:"Eligible matches are automatically snapshotted before kickoff and will appear here after completion and verification.",errorTitle:"Performance Data Temporarily Unavailable",retry:"Refresh",homeTeam:"Home",awayTeam:"Away",footballMatch:"Football Match",push:"Push",halfWin:"Half Win",halfLoss:"Half Loss",pending:"Pending",footerText:"All public performance is automatically checked against locked pre-match snapshots and official final scores. For sports data analysis reference only."}
+const API = "https://oqtbsbohcfeg hgnykwxy.supabase.co/functions/v1/ai-performance".replace(" ","");
+let dataCache=null, currentDays="", currentTrend="overall", showAll=false;
+
+const I18N={
+ "zh-Hant":{
+  brandTitle:"HABAO 賽事預測 AI",back:"返回",heroTitle:"公開戰績",
+  heroDesc:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證<br>所有符合條件之賽事皆會納入公開戰績，不人工篩選。",
+  f1:"賽前自動分析",f2:"不依賴會員操作",f3:"真實賽果驗證",f4:"透明公開數據",
+  verifiedMatches:"已驗證賽事",matchUnit:" 場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",
+  marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",
+  stableRecent:"近期較穩定",volatileRecent:"近期波動",stablePerformance:"表現穩定",
+  recentForm:"近期戰績",recent10:"（近 10 場）",trendTitle:"AI 命中走勢",overall:"綜合",current:"目前",recentTrend:"近期趨勢",
+  leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",
+  latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",
+  dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",
+  yes:"是",no:"否",match:"場",samples:"場",noData:"尚無資料",insufficient:"樣本不足",trendStable:"穩定",trendUp:"上升",trendDown:"下降",
+  recentSummary:"近 10 場：{w} 中｜{l} 未中｜{p} 走盤　　命中率 {r}",
+  methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"
+ },
+ "zh-Hans":{
+  brandTitle:"HABAO 赛事预测 AI",back:"返回",heroTitle:"公开战绩",
+  heroDesc:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证<br>所有符合条件之赛事皆会纳入公开战绩，不人工筛选。",
+  f1:"赛前自动分析",f2:"不依赖会员操作",f3:"真实赛果验证",f4:"透明公开数据",
+  verifiedMatches:"已验证赛事",matchUnit:" 场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",
+  marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",
+  stableRecent:"近期较稳定",volatileRecent:"近期波动",stablePerformance:"表现稳定",
+  recentForm:"近期战绩",recent10:"（近 10 场）",trendTitle:"AI 命中走势",overall:"综合",current:"目前",recentTrend:"近期趋势",
+  leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",
+  latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",
+  dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",
+  yes:"是",no:"否",match:"场",samples:"场",noData:"暂无数据",insufficient:"样本不足",trendStable:"稳定",trendUp:"上升",trendDown:"下降",
+  recentSummary:"近 10 场：{w} 中｜{l} 未中｜{p} 走盘　　命中率 {r}",
+  methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"
+ },
+ "en":{
+  brandTitle:"HABAO Match Prediction AI",back:"Back",heroTitle:"PUBLIC PERFORMANCE",
+  heroDesc:"The system automatically creates pre-match prediction snapshots for eligible matches and verifies them against official final scores.<br>All eligible matches are included automatically with no manual selection.",
+  f1:"Pre-match analysis",f2:"Independent of member actions",f3:"Verified by final results",f4:"Transparent public data",
+  verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",
+  marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",
+  stableRecent:"Recently stable",volatileRecent:"Recent volatility",stablePerformance:"Stable performance",
+  recentForm:"Recent Form",recent10:"(Last 10)",trendTitle:"AI Hit-Rate Trend",overall:"Overall",current:"Current",recentTrend:"Recent trend",
+  leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",
+  latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",
+  dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",
+  yes:"Yes",no:"No",match:"matches",samples:"matches",noData:"No data yet",insufficient:"Insufficient sample",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",
+  recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　 Hit rate {r}",
+  methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."
+ }
 };
-if(window.HabaoI18n){window.HabaoI18n.registerTranslations(PERFORMANCE_I18N)}
-const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
-let currentDays="",currentRecent="overall",currentTrend="overall",lastData=null,loadingRequestId=0;
-function t(k,f=""){return window.HabaoI18n?.t?.(k,f)??f}
-function lang(){return window.HabaoI18n?.getLanguage?.()||"zh-Hant"}
-function locale(){return lang()==="en"?"en-US":lang()==="zh-Hans"?"zh-CN":"zh-TW"}
-function applyLanguage(){document.title=t("pageTitle","HABAO 賽事預測 AI｜公開戰績");window.HabaoI18n?.applyTranslations?.();if(lastData){renderRecent();renderTrend();renderLeagues(lastData.leagues);renderMatches(lastData.matches)}}
-function goBack(){if(history.length>1){history.back();return}location.href="home-v2.html"}
-function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
-function rate(m){return num(m?.total)>0&&Number.isFinite(Number(m?.hit_rate))?`${Number(m.hit_rate).toFixed(1)}%`:"--"}
-function fmtDate(v){if(!v)return"--";const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";return new Intl.DateTimeFormat(locale(),{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)}
-function normalized(v){const s=String(v??"").toLowerCase();if(["win","won"].includes(s))return"win";if(["loss","lose","lost"].includes(s))return"loss";if(s==="push")return"push";if(["half_win","half-win"].includes(s))return"half_win";if(["half_loss","half-loss"].includes(s))return"half_loss";return"pending"}
-function resultLabel(v){const r=normalized(v);return r==="win"?"✓":r==="loss"?"✕":r==="push"?t("push","走"):r==="half_win"?t("halfWin","半贏"):r==="half_loss"?t("halfLoss","半輸"):t("pending","待")}
-function settlementResult(s,m){const v=s?.[m];return v&&typeof v==="object"?(v.result??v.status??v.outcome??null):(v??null)}
-function pick(p,m){for(const root of [p?.recommendations,p,p?.predictions]){const v=root?.[m];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??"--";if(typeof v==="string")return v}return"--"}
-function finalScore(m){if(typeof m?.final_score==="string")return m.final_score;if(m?.final_score&&typeof m.final_score==="object")return`${m.final_score.home??"-"}-${m.final_score.away??"-"}`;return"-"}
-function updateMarket(m,rateId,totalId){document.getElementById(rateId).textContent=rate(m);document.getElementById(totalId).textContent=`${num(m?.total)} ${t("verificationCount","次驗證")}`}
-function changeFilter(btn){currentDays=btn.dataset.days??"";document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));btn.classList.add("active");loadPerformance()}
-function changeRecent(btn){currentRecent=btn.dataset.recent;document.querySelectorAll("[data-recent]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");renderRecent()}
-function changeTrend(btn){currentTrend=btn.dataset.trend;document.querySelectorAll("[data-trend]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");renderTrend()}
-function marketLabel(k){return k==="overall"?t("overall","綜合"):k==="moneyline"?t("moneyline","獨贏"):k==="over_under"?t("overUnder","大小分"):"BTTS"}
-function renderRecent(){const group=lastData?.recent_form?.[currentRecent];const items=Array.isArray(group?.items)?group.items:[];document.getElementById("recentNote").textContent=marketLabel(currentRecent);const row=document.getElementById("recentRow");row.innerHTML=items.length?items.map(x=>`<div class="recent-chip ${normalized(x.result)}" title="${esc(`${x.home||""} vs ${x.away||""}`)}">${esc(resultLabel(x.result))}</div>`).join(""):`<div style="color:#607684;font-size:10px;padding:12px 2px">${esc(t("trendInsufficient","樣本不足"))}</div>`;const s=group?.summary||{};let tpl=t("recentSummary","近 {total} 場：{win} 中｜{loss} 未中｜{push} 走盤");const recentWin=num(s.win)+num(s.half_win),recentLoss=num(s.loss)+num(s.half_loss),push=num(s.push);document.getElementById("recentSummary").textContent=tpl.replace("{total}",num(s.total)).replace("{win}",recentWin).replace("{loss}",recentLoss).replace("{push}",push)}
-function renderTrend(){document.getElementById("trendNote").textContent=marketLabel(currentTrend);const rows=Array.isArray(lastData?.trend)?lastData.trend:[];const points=rows.map(x=>({date:x.date,rate:Number(x?.[currentTrend]?.hit_rate),total:num(x?.[currentTrend]?.total)})).filter(x=>x.total>0&&Number.isFinite(x.rate)).slice(-14);const chart=document.getElementById("trendChart"),labels=document.getElementById("trendLabels");if(points.length<2){chart.innerHTML=`<div class="trend-empty">${esc(t("trendInsufficient","樣本不足，累積更多驗證後顯示趨勢"))}</div>`;labels.innerHTML="";document.getElementById("trendSummary").textContent=t("trendInsufficient","樣本不足，累積更多驗證後顯示趨勢");return}const w=640,h=170,pad=16;const xs=points.map((_,i)=>pad+i*((w-pad*2)/(points.length-1)));const ys=points.map(p=>h-pad-(p.rate/100)*(h-pad*2));const poly=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");chart.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line class="trend-grid" x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/><line class="trend-grid" x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}"/><line class="trend-grid" x1="${pad}" y1="${pad}" x2="${w-pad}" y2="${pad}"/><polyline class="trend-line" points="${poly}"/>${xs.map((x,i)=>`<circle class="trend-dot" cx="${x}" cy="${ys[i]}" r="4"/>`).join("")}</svg>`;labels.innerHTML=`<span>${esc(points[0].date.slice(5))}</span><span>${esc(points[points.length-1].date.slice(5))}</span>`;const first=points[0].rate,last=points[points.length-1].rate,diff=last-first;const msg=Math.abs(diff)<3?t("trendStable","近期走勢持平"):diff>0?t("trendUp","近期命中率上升"):t("trendDown","近期命中率下降");document.getElementById("trendSummary").textContent=`${msg}｜${first.toFixed(1)}% → ${last.toFixed(1)}%`}
-function renderLeagues(leagues){const sec=document.getElementById("leagueSection"),list=document.getElementById("leagueList");if(!Array.isArray(leagues)||!leagues.length){sec.hidden=true;list.innerHTML="";return}sec.hidden=false;document.getElementById("leagueCountText").textContent=`${leagues.length} ${t("leaguesUnit","個聯賽")}`;list.innerHTML=leagues.map(l=>`<article class="league-card"><div class="league-top"><div class="league-name">${esc(l.league||t("footballMatch","足球賽事"))}</div><div class="league-count">${num(l.matches)} ${t("matchesUnit","場")}</div></div><div class="league-overall"><div><span>${t("overall","綜合")}</span><br><b>${esc(rate(l.overall))}</b></div><span>${num(l.overall?.total)} ${t("samples","樣本")}</span></div><div class="league-markets"><div class="league-market"><span>${t("moneyline","獨贏")}</span><b>${esc(rate(l.moneyline))}</b></div><div class="league-market"><span>${t("overUnder","大小分")}</span><b>${esc(rate(l.over_under))}</b></div><div class="league-market"><span>BTTS</span><b>${esc(rate(l.btts))}</b></div></div></article>`).join("")}
-function marketHtml(name,p,r){const n=normalized(r);return`<div class="market"><div class="market-name">${esc(name)}</div><div class="market-pick">${esc(p)} <span class="result ${n}">${esc(resultLabel(r))}</span></div></div>`}
-function matchCard(m){const home=m?.home||m?.home_team||t("homeTeam","主隊"),away=m?.away||m?.away_team||t("awayTeam","客隊"),league=m?.league||m?.league_name||t("footballMatch","足球賽事"),p=m?.prediction||{},s=m?.settlement||{};return`<article class="match-card"><div class="match-main"><div class="match-top"><div class="league">${esc(league)}</div><div class="date">${esc(fmtDate(m?.kickoff_at))}</div></div><div class="teams"><div class="team">${esc(home)}</div><div class="score">${esc(finalScore(m))}</div><div class="team away">${esc(away)}</div></div></div><div class="markets">${marketHtml(t("moneyline","獨贏"),pick(p,"moneyline"),settlementResult(s,"moneyline"))}${marketHtml(t("overUnder","大小分"),pick(p,"over_under"),settlementResult(s,"over_under"))}${marketHtml("BTTS",pick(p,"btts"),settlementResult(s,"btts"))}</div></article>`}
-function renderMatches(matches){const list=document.getElementById("matchList");const arr=Array.isArray(matches)?matches:[];document.getElementById("matchCountText").textContent=`${arr.length} ${t("matchesUnit","場")}`;if(!arr.length){list.innerHTML=`<div class="state-card"><div class="state-title">${t("emptyTitle","此區間尚無已驗證賽事")}</div><div class="state-text">${t("emptyText","")}</div></div>`;return}list.innerHTML=arr.map(matchCard).join("")}
-function loading(){document.getElementById("matchList").innerHTML=`<div class="state-card"><div class="loader"></div><div class="state-title">${t("loadingTitle","正在讀取 AI 戰績")}</div><div class="state-text">${t("loadingText","正在同步最新驗證資料...")}</div></div>`}
-function errorState(msg){document.getElementById("matchList").innerHTML=`<div class="state-card"><div class="state-title">${t("errorTitle","戰績資料暫時無法讀取")}</div><div class="state-text">${esc(msg)}</div><button class="retry-btn" onclick="loadPerformance()">${t("retry","重新整理")}</button></div>`}
-async function loadPerformance(){const rid=++loadingRequestId;loading();try{const u=currentDays?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(currentDays)}`:AI_PERFORMANCE_API;const res=await fetch(u,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const data=await res.json();if(rid!==loadingRequestId)return;if(!data?.success)throw new Error(data?.error||"API failed");lastData=data;document.getElementById("verifiedMatches").textContent=num(data?.summary?.verified_matches);document.getElementById("currentFilterText").textContent=currentDays==="7"?t("last7Days","近 7 天"):currentDays==="30"?t("last30Days","近 30 天"):t("all","全部");const overall=data?.summary?.overall||{};document.getElementById("overallRate").textContent=rate(overall);document.getElementById("overallTotal").textContent=`${num(overall.total)} ${t("verificationCount","次驗證")}`;document.getElementById("overallWin").textContent=num(overall.win)+num(overall.half_win);document.getElementById("overallLoss").textContent=num(overall.loss)+num(overall.half_loss);document.getElementById("overallPush").textContent=num(overall.push);updateMarket(data?.markets?.moneyline,"moneylineRate","moneylineTotal");updateMarket(data?.markets?.over_under,"overUnderRate","overUnderTotal");updateMarket(data?.markets?.btts,"bttsRate","bttsTotal");renderRecent();renderTrend();renderLeagues(data?.leagues);renderMatches(data?.matches)}catch(e){if(rid!==loadingRequestId)return;console.error(e);lastData=null;document.getElementById("verifiedMatches").textContent="--";errorState(e?.message||"Error")}}
-window.addEventListener("habao:languagechange",()=>{applyLanguage();loadPerformance()});applyLanguage();loadPerformance();
+function lang(){
+ const saved=localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant";
+ if(saved.toLowerCase().includes("en"))return"en";
+ if(saved.toLowerCase().includes("hans")||saved.toLowerCase().includes("cn"))return"zh-Hans";
+ return"zh-Hant";
+}
+function tr(k){return I18N[lang()][k]??I18N["zh-Hant"][k]??k}
+function applyLang(){
+ document.documentElement.lang=lang();
+ document.querySelectorAll("[data-i18n]").forEach(el=>{
+  const v=tr(el.dataset.i18n);
+  if(v.includes("<br>"))el.innerHTML=v; else el.textContent=v;
+ });
+}
+function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+function pct(m){return n(m?.total)>0?`${n(m?.hit_rate).toFixed(1)}%`:"--"}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function norm(v){v=String(v??"").toLowerCase();if(["win","won"].includes(v))return"win";if(["loss","lose","lost"].includes(v))return"loss";if(v==="push")return"push";if(v.includes("half_win"))return"half_win";if(v.includes("half_loss"))return"half_loss";return"push"}
+function mark(v){const r=norm(v);return r==="win"||r==="half_win"?"✓":r==="loss"||r==="half_loss"?"✕":"−"}
+function resultClass(v){const r=norm(v);return r==="win"||r==="half_win"?"win":r==="loss"||r==="half_loss"?"loss":"push"}
+function marketResult(settlement,key){const v=settlement?.[key];return v&&typeof v==="object"?(v.result??v.status??v.outcome):v}
+function pick(pred,key){
+ const roots=[pred?.recommendations,pred,pred?.predictions,pred?.analysis];
+ for(const root of roots){
+  const v=root?.[key];
+  if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";
+  if(typeof v==="string"||typeof v==="number")return String(v);
+ }
+ return"--";
+}
+function dt(v){
+ const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";
+ return new Intl.DateTimeFormat(lang()==="en"?"en-US":"zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+}
+function dateOnly(v){
+ const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";
+ const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);
+ const g=t=>parts.find(x=>x.type===t)?.value||"";
+ return`${g("year")}/${g("month")}/${g("day")}`;
+}
+function leagueAbbr(name){
+ const s=String(name||"").toLowerCase();
+ if(s.includes("premier")||s.includes("英超"))return"PL";
+ if(s.includes("liga")||s.includes("西甲"))return"LL";
+ if(s.includes("bundes")||s.includes("德甲"))return"BL";
+ if(s.includes("serie")||s.includes("義甲")||s.includes("意甲"))return"SA";
+ if(s.includes("ligue")||s.includes("法甲"))return"L1";
+ if(s.includes("champions")||s.includes("歐冠"))return"UCL";
+ if(s.includes("europa")||s.includes("歐霸"))return"UEL";
+ if(s.includes("eredivisie")||s.includes("荷甲"))return"ERE";
+ if(s.includes("j1")||s.includes("日職"))return"J1";
+ if(s.includes("k league")||s.includes("韓職"))return"K1";
+ return String(name||"LG").replace(/\s+/g,"").slice(0,3).toUpperCase();
+}
+function displayLeague(name){
+ const s=String(name||"");
+ const low=s.toLowerCase();
+ if(low.includes("premier"))return lang()==="en"?"EPL":"英超";
+ if(low.includes("laliga")||low.includes("la liga"))return lang()==="en"?"La Liga":"西甲";
+ if(low.includes("bundes"))return lang()==="en"?"Bundesliga":"德甲";
+ if(low.includes("serie a"))return lang()==="en"?"Serie A":"義甲";
+ if(low.includes("ligue 1"))return lang()==="en"?"Ligue 1":"法甲";
+ if(low.includes("champions"))return lang()==="en"?"UCL":"歐冠";
+ if(low.includes("europa"))return lang()==="en"?"UEL":"歐霸";
+ return s||"--";
+}
+function rateBadge(m,key){
+ const arr=(dataCache?.trend||[]).map(x=>({r:n(x?.[key]?.hit_rate),t:n(x?.[key]?.total)})).filter(x=>x.t>0);
+ const last=arr.slice(-4);
+ if(last.length<2)return tr("insufficient");
+ const vals=last.map(x=>x.r), spread=Math.max(...vals)-Math.min(...vals);
+ if(spread>=14)return tr("volatileRecent");
+ return key==="btts"?tr("stablePerformance"):tr("stableRecent");
+}
+function renderMarkets(){
+ const mm=dataCache?.markets?.moneyline||{}, ou=dataCache?.markets?.over_under||{}, bt=dataCache?.markets?.btts||{};
+ [["moneyline",mm,"moneylineRate","moneylineSample","moneylineBadge"],["over_under",ou,"overRate","overSample","overBadge"],["btts",bt,"bttsRate","bttsSample","bttsBadge"]].forEach(([key,m,rid,sid,bid])=>{
+  document.getElementById(rid).textContent=pct(m);
+  document.getElementById(sid).textContent=`${n(m.win)+n(m.half_win)} / ${n(m.total)} ${tr("samples")}`;
+  document.getElementById(bid).textContent=rateBadge(m,key);
+ });
+}
+function renderRecent(){
+ const g=dataCache?.recent_form?.overall||{}, items=Array.isArray(g.items)?g.items:[];
+ const row=document.getElementById("recentRow");
+ row.innerHTML=(items.length?items:Array(10).fill({result:"push",placeholder:true})).slice(0,10).map(x=>
+  x.placeholder?`<div class="result-chip push">−</div>`:`<div class="result-chip ${resultClass(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${mark(x.result)}</div>`
+ ).join("")+`<span class="recent-arrow">›</span>`;
+ const s=g.summary||{}, w=n(s.win)+n(s.half_win), l=n(s.loss)+n(s.half_loss), p=n(s.push), decided=w+l, r=decided?`${(w/decided*100).toFixed(1)}%`:"--";
+ document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`);
+}
+function renderTrend(){
+ const arr=(dataCache?.trend||[]).map(x=>({date:x.date,rate:n(x?.[currentTrend]?.hit_rate),total:n(x?.[currentTrend]?.total)})).filter(x=>x.total>0).slice(-30);
+ const box=document.getElementById("trendChart");
+ if(arr.length<2){
+  box.innerHTML=`<div class="empty">${esc(tr("insufficient"))}</div>`;
+  document.getElementById("trendCurrent").textContent=arr.length?pct({total:arr[0].total,hit_rate:arr[0].rate}):"--";
+  document.getElementById("trendChange").textContent="--";
+  document.getElementById("trendState").textContent=tr("insufficient");
+  return;
+ }
+ const w=430,h=122,p=12;
+ const xs=arr.map((_,i)=>p+i*((w-p*2)/(arr.length-1))), ys=arr.map(x=>h-p-(Math.max(20,Math.min(90,x.rate))-20)/70*(h-p*2));
+ const pts=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+ box.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+ <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c437" stop-opacity=".28"/><stop offset="1" stop-color="#f7c437" stop-opacity="0"/></linearGradient></defs>
+ <polygon points="${p},${h-p} ${pts} ${w-p},${h-p}" fill="url(#area)"/>
+ <polyline points="${pts}" fill="none" stroke="#ffd046" stroke-width="3" vector-effect="non-scaling-stroke"/>
+ ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="2.8" fill="#ffe272"/>`).join("")}
+ </svg>`;
+ const first=arr[0].rate,last=arr.at(-1).rate,diff=last-first;
+ document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;
+ document.getElementById("trendChange").textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
+ document.getElementById("trendChange").style.color=diff>=0?"#1fe1a5":"#ff686e";
+ document.getElementById("trendState").textContent=Math.abs(diff)<3?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
+}
+function renderLeagues(){
+ const list=[...(dataCache?.leagues||[])].sort((a,b)=>n(b?.overall?.hit_rate)-n(a?.overall?.hit_rate));
+ const el=document.getElementById("leagueStrip");
+ if(!list.length){el.innerHTML=`<div style="color:#78909c;font-size:12px;padding:12px">${esc(tr("noData"))}</div>`;return}
+ el.innerHTML=list.map((x,i)=>`<div class="league-card">
+   <div class="league-logo">${esc(leagueAbbr(x.league))}</div>
+   <div class="league-name">${esc(displayLeague(x.league))}</div>
+   <div class="league-rate ${i===list.length-1?"gold":""}">${pct(x.overall)}</div>
+   <div class="league-sample">${n(x.matches)} / ${n(x.overall?.total)} ${tr("samples")}</div>
+ </div>`).join("");
+}
+function verificationOverall(settlement){
+ const vals=["moneyline","over_under","btts"].map(k=>marketResult(settlement,k)).filter(Boolean).map(norm);
+ if(!vals.length)return"push";
+ let score=0; vals.forEach(v=>score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0);
+ return score>0?"win":score<0?"loss":"push";
+}
+function predSummary(p){
+ const m=pick(p,"moneyline"),o=pick(p,"over_under"),b=pick(p,"btts");
+ return `<div class="pred">${esc(m)}<small>${esc(o)}｜BTTS ${esc(b)}</small></div>`;
+}
+function renderRecords(){
+ const rows=Array.isArray(dataCache?.matches)?dataCache.matches:[];
+ const shown=showAll?rows:rows.slice(0,5);
+ const body=document.getElementById("recordsBody");
+ if(!shown.length){body.innerHTML=`<tr><td colspan="10" style="text-align:center;height:90px;color:#778f9d">${esc(tr("noData"))}</td></tr>`;return}
+ body.innerHTML=shown.map(x=>{
+  const s=x.settlement||{}, ov=verificationOverall(s);
+  return`<tr>
+   <td>${esc(dt(x.kickoff_at))}</td>
+   <td><b>${esc(displayLeague(x.league))}</b></td>
+   <td>${esc(x.home)} vs ${esc(x.away)}</td>
+   <td class="score">${esc(x.final_score||"-")}</td>
+   <td>${predSummary(x.prediction||{})}</td>
+   <td><div class="verify-dot">${mark(ov)}</div></td>
+   <td><div class="mark ${resultClass(marketResult(s,"moneyline"))}">${mark(marketResult(s,"moneyline"))}</div></td>
+   <td><div class="mark ${resultClass(marketResult(s,"over_under"))}">${mark(marketResult(s,"over_under"))}</div></td>
+   <td><div class="mark ${resultClass(marketResult(s,"btts"))}">${mark(marketResult(s,"btts"))}</div></td>
+   <td class="row-arrow">›</td>
+  </tr>`;
+ }).join("");
+ document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
+}
+function renderRange(){
+ const rows=dataCache?.matches||[];
+ if(currentDays==="7"){document.getElementById("rangeText").textContent=tr("last7");return}
+ if(currentDays==="30"){document.getElementById("rangeText").textContent=tr("last30");return}
+ if(!rows.length){document.getElementById("rangeText").textContent="--";return}
+ const dates=rows.map(x=>new Date(x.kickoff_at)).filter(x=>!Number.isNaN(x.getTime())).sort((a,b)=>a-b);
+ document.getElementById("rangeText").textContent=`${dateOnly(dates[0])} - ${dateOnly(dates.at(-1))}`;
+}
+function renderAll(){
+ document.getElementById("verifiedMatches").textContent=n(dataCache?.summary?.verified_matches);
+ renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords();
+}
+async function load(){
+ document.getElementById("recordsBody").innerHTML=`<tr><td colspan="10"><div class="skeleton"></div></td></tr>`;
+ try{
+  const url=currentDays?`${API}?days=${currentDays}`:API;
+  const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
+  if(!res.ok)throw new Error(`API ${res.status}`);
+  const json=await res.json();if(!json?.success)throw new Error(json?.error||"API failed");
+  dataCache=json;renderAll();
+ }catch(e){
+  console.error(e);dataCache={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll();
+ }
+}
+document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",()=>{
+ currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));load();
+}));
+document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>{
+ currentTrend=btn.dataset.trend;document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b===btn));renderTrend();
+}));
+document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
+window.addEventListener("habao:languagechange",()=>{applyLang();if(dataCache)renderAll()});
+applyLang();load();
 </script>
 </body>
 </html>
