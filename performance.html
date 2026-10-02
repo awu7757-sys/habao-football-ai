@@ -171,11 +171,67 @@
     .method-note{padding:8px 12px 0;color:#6f8998;font-size:8px;line-height:1.5;text-align:center}
     .empty{display:grid;place-items:center;min-height:80px;color:#718a98;font-size:10px}
 
+
+    /* ===== SPORT SWITCH ===== */
+    .sport-switch{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px;
+      padding:4px;border:1px solid rgba(255,255,255,.07);border-radius:13px;
+      background:linear-gradient(180deg,rgba(8,33,47,.92),rgba(4,22,33,.92));
+      box-shadow:inset 0 1px rgba(255,255,255,.025)
+    }
+    .sport-tab{
+      min-height:39px;border:0;border-radius:9px;background:transparent;color:#92a8b5;
+      display:flex;align-items:center;justify-content:center;gap:7px;
+      font-size:10px;font-weight:950;cursor:pointer
+    }
+    .sport-tab .sport-emoji{font-size:16px;line-height:1}
+    .sport-tab.active{
+      color:#231805;background:linear-gradient(180deg,#ffd658,#eda925);
+      box-shadow:0 4px 15px rgba(244,189,67,.20)
+    }
+    .sport-coming{display:none}
+    .sport-coming.active{display:block}
+    .coming-hero{
+      overflow:hidden;position:relative;padding:18px;border:1px solid var(--border);
+      border-radius:16px;background:
+        radial-gradient(circle at 85% 15%,rgba(244,189,67,.10),transparent 28%),
+        linear-gradient(180deg,#0a2939,#061b28);
+      margin-bottom:10px
+    }
+    .coming-badge{
+      display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;
+      border:1px solid rgba(244,189,67,.28);background:rgba(244,189,67,.08);
+      color:#ffd253;font-size:9px;font-weight:950
+    }
+    .coming-title{margin:9px 0 5px;font-size:23px;font-weight:1000;color:#f7f9fa}
+    .coming-text{margin:0;color:#92a9b6;font-size:10px;line-height:1.6;font-weight:750}
+    .coming-market-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .coming-market{
+      min-height:108px;border:1px solid rgba(255,255,255,.065);border-radius:13px;
+      padding:12px;background:linear-gradient(145deg,#092737,#061b27)
+    }
+    .coming-market-name{color:#dce6eb;font-size:10px;font-weight:950}
+    .coming-market-value{margin-top:15px;height:24px;width:62%;border-radius:8px}
+    .coming-market-line{margin-top:8px;height:9px;width:88%;border-radius:6px}
+    .coming-market-line.short{width:58%}
+    .skeleton-shine{
+      background:linear-gradient(90deg,#0d3041 22%,#16465b 38%,#0d3041 62%);
+      background-size:350% 100%;animation:sportShimmer 1.35s linear infinite
+    }
+    .coming-panels{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .coming-panel{min-height:145px;border:1px solid rgba(255,255,255,.06);border-radius:13px;padding:12px;background:#072230}
+    .coming-panel-title{font-size:10px;font-weight:950;color:#d9e4e9}
+    .coming-row{display:flex;gap:7px;margin-top:15px}
+    .coming-dot{width:26px;height:26px;border-radius:50%}
+    .coming-chart{height:75px;margin-top:14px;border-radius:9px}
+    @keyframes sportShimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
     @media(max-width:640px){
       .app{padding:0 10px 34px}.hero{padding:18px 15px 14px;min-height:215px}.hero h1{font-size:35px}.hero p{font-size:11px}.hero-features{grid-template-columns:repeat(2,1fr);row-gap:8px}.summarybar{grid-template-columns:1fr;gap:7px}.filters{height:42px}.rangebox{justify-content:center}.market-grid{grid-template-columns:1fr}.market-card{min-height:118px}.mid-grid{grid-template-columns:1fr}.league-card{min-width:100px;width:100px}
       .recent-body{padding:12px 10px 11px}.recent-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.mini-tab{padding:6px 3px;font-size:8px}.recent-row{gap:4px}.result-chip{width:28px;height:28px;font-size:14px}
       .trend-controls{align-items:stretch;gap:5px}.trend-period{flex-direction:column}.period-btn{min-width:31px;padding:4px 5px}.trend-body{grid-template-columns:minmax(0,1fr) 76px;gap:5px}.chart-wrap{height:122px}
       .table-wrap{display:none}.mobile-records{display:block;padding:8px}.records-box{background:transparent;border:0;overflow:visible}
+      .sport-tab{min-height:37px;font-size:9px}.coming-market-grid{grid-template-columns:1fr}.coming-panels{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -185,7 +241,7 @@
       <div class="brand">
         <div class="brand-logo" aria-label="HABAO"></div>
         <div>
-          <div class="brand-title">HABAO 賽事預測 AI</div>
+          <div class="brand-title" data-i18n="brandTitle">HABAO 賽事預測 AI</div>
           <div class="brand-subtitle">SPORTS INTELLIGENCE</div>
         </div>
       </div>
@@ -227,6 +283,13 @@
       </div>
     </section>
 
+    <nav class="sport-switch" aria-label="Sports">
+      <button class="sport-tab active" type="button" data-sport="football"><span class="sport-emoji">⚽</span><span data-i18n="football">足球</span></button>
+      <button class="sport-tab" type="button" data-sport="basketball"><span class="sport-emoji">🏀</span><span data-i18n="basketball">籃球</span></button>
+      <button class="sport-tab" type="button" data-sport="baseball"><span class="sport-emoji">⚾</span><span data-i18n="baseball">棒球</span></button>
+    </nav>
+
+    <div id="footballPerformance">
     <section class="summarybar">
       <div>
         <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
@@ -339,21 +402,60 @@
       </div>
       <div class="method-note" data-i18n="methodNote">公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。</div>
     </section>
+    </div>
+
+    <section id="sportComingSoon" class="sport-coming">
+      <div class="coming-hero">
+        <div class="coming-badge"><span id="comingSportIcon">🏀</span><span data-i18n="comingSoon">敬請期待</span></div>
+        <div id="comingSportTitle" class="coming-title">籃球公開戰績</div>
+        <p class="coming-text" data-i18n="comingText">目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。</p>
+      </div>
+
+      <div class="section-head"><h2 class="section-title"><span data-i18n="marketPerformance">AI 市場表現</span><span class="help">?</span></h2></div>
+      <div class="coming-market-grid">
+        <div class="coming-market"><div id="comingMarket1" class="coming-market-name">勝負</div><div class="coming-market-value skeleton-shine"></div><div class="coming-market-line skeleton-shine"></div><div class="coming-market-line short skeleton-shine"></div></div>
+        <div class="coming-market"><div id="comingMarket2" class="coming-market-name">讓分</div><div class="coming-market-value skeleton-shine"></div><div class="coming-market-line skeleton-shine"></div><div class="coming-market-line short skeleton-shine"></div></div>
+        <div class="coming-market"><div id="comingMarket3" class="coming-market-name">大小分</div><div class="coming-market-value skeleton-shine"></div><div class="coming-market-line skeleton-shine"></div><div class="coming-market-line short skeleton-shine"></div></div>
+      </div>
+
+      <div class="coming-panels">
+        <div class="coming-panel">
+          <div class="coming-panel-title" data-i18n="recentForm">近期戰績</div>
+          <div class="coming-row">
+            <span class="coming-dot skeleton-shine"></span><span class="coming-dot skeleton-shine"></span><span class="coming-dot skeleton-shine"></span><span class="coming-dot skeleton-shine"></span><span class="coming-dot skeleton-shine"></span>
+          </div>
+          <div class="coming-market-line skeleton-shine"></div>
+        </div>
+        <div class="coming-panel">
+          <div class="coming-panel-title" data-i18n="trendTitle">AI 命中走勢</div>
+          <div class="coming-chart skeleton-shine"></div>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top:10px">
+        <div class="section-head"><h2 class="section-title"><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2></div>
+        <div class="coming-panel">
+          <div class="coming-market-line skeleton-shine"></div>
+          <div class="coming-market-line skeleton-shine"></div>
+          <div class="coming-market-line short skeleton-shine"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
 <script>
 const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
-let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod=7, leagueSort="rate", showAll=false;
+let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod=7, leagueSort="rate", showAll=false, currentSport="football";
 let viewData=null, allData=null;
 
 const I18N={
-  "zh-Hant":{back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
-  "zh-Hans":{back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",verificationUnit:"笔验证",otherLeague:"其他联赛",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
-  "en":{back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",verificationUnit:"verified picks",otherLeague:"Other League",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
+  "zh-Hant":{brandTitle:"HABAO 賽事預測 AI",football:"足球",basketball:"籃球",baseball:"棒球",comingSoon:"敬請期待",comingText:"目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。",sportPerformance:"{sport}公開戰績",winLoss:"勝負",handicap:"讓分",back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
+  "zh-Hans":{brandTitle:"HABAO 赛事预测 AI",football:"足球",basketball:"篮球",baseball:"棒球",comingSoon:"敬请期待",comingText:"目前先完成版面骨架；数据源与自动验证接通后，将使用与足球相同的公开验证机制。",sportPerformance:"{sport}公开战绩",winLoss:"胜负",handicap:"让分",back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",verificationUnit:"笔验证",otherLeague:"其他联赛",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
+  "en":{brandTitle:"HABAO Match Prediction AI",football:"Football",basketball:"Basketball",baseball:"Baseball",comingSoon:"Coming Soon",comingText:"The interface skeleton is ready. Once the data feed and automatic verification are connected, it will use the same public verification workflow as football.",sportPerformance:"{sport} Public Performance",winLoss:"Moneyline",handicap:"Spread",back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",verificationUnit:"verified picks",otherLeague:"Other League",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
 };
-function getLang(){const s=(localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant").toLowerCase();if(s.includes("en"))return"en";if(s.includes("hans")||s.includes("cn"))return"zh-Hans";return"zh-Hant"}
+function getLang(){const raw=window.HabaoI18n?.getLanguage?.()||localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant";const s=String(raw).toLowerCase();if(s.includes("en"))return"en";if(s.includes("hans")||s.includes("cn"))return"zh-Hans";return"zh-Hant"}
 function tr(k){return I18N[getLang()]?.[k]??I18N["zh-Hant"][k]??k}
-function applyLang(){document.documentElement.lang=getLang();document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=tr(el.dataset.i18n))}
+function applyLang(){document.documentElement.lang=getLang();document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=tr(el.dataset.i18n));document.title=`${tr("brandTitle")}｜${tr("heroTitle")}`;renderSportSkeleton()}
 function goBack(){if(history.length>1)history.back();else location.href="home-v2.html"}
 function num(v){const x=Number(v);return Number.isFinite(x)?x:0}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -386,6 +488,76 @@ function leagueId(name){const s=String(name||"").toLowerCase();for(const x of LE
 function leagueLogo(name){const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
 function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA",90:"KNV",239:"PRI",265:"COP",128:"ARG"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
 function displayLeagueName(name){const s=String(name||"").trim();return(!s||s==="--"||s.toLowerCase()==="null"||s.toLowerCase()==="undefined")?tr("otherLeague"):s}
+function toSimplifiedText(value){
+  const s=String(value??"");
+  return getLang()==="zh-Hans" && window.HabaoI18n?.toSimplified ? window.HabaoI18n.toSimplified(s) : s;
+}
+const LEAGUE_NAMES={
+  2:{zh:"歐洲冠軍聯賽",hans:"欧洲冠军联赛",en:"UEFA Champions League"},
+  3:{zh:"歐洲聯賽",hans:"欧联杯",en:"UEFA Europa League"},
+  39:{zh:"英格蘭超級聯賽",hans:"英格兰超级联赛",en:"Premier League"},
+  140:{zh:"西班牙甲級聯賽",hans:"西班牙甲级联赛",en:"La Liga"},
+  78:{zh:"德國甲級聯賽",hans:"德国甲级联赛",en:"Bundesliga"},
+  135:{zh:"義大利甲級聯賽",hans:"意大利甲级联赛",en:"Serie A"},
+  61:{zh:"法國甲級聯賽",hans:"法国甲级联赛",en:"Ligue 1"},
+  98:{zh:"日本職業足球甲級聯賽",hans:"日本职业足球甲级联赛",en:"J1 League"},
+  292:{zh:"韓國職業足球甲級聯賽",hans:"韩国职业足球甲级联赛",en:"K League 1"},
+  169:{zh:"中國足球超級聯賽",hans:"中国足球超级联赛",en:"Chinese Super League"},
+  88:{zh:"荷蘭甲級聯賽",hans:"荷兰甲级联赛",en:"Eredivisie"},
+  71:{zh:"巴西甲級聯賽",hans:"巴西甲级联赛",en:"Brasileirão Série A"},
+  90:{zh:"荷蘭盃",hans:"荷兰杯",en:"KNVB Beker"},
+  239:{zh:"哥倫比亞甲級聯賽",hans:"哥伦比亚甲级联赛",en:"Primera A"},
+  265:{zh:"智利盃",hans:"智利杯",en:"Copa Chile"},
+  128:{zh:"阿根廷職業聯賽",hans:"阿根廷职业联赛",en:"Liga Profesional Argentina"}
+};
+function localizedLeagueName(name){
+  const s=String(name||"").trim();
+  if(!s||s==="--")return tr("otherLeague");
+  const id=leagueId(s), info=id?LEAGUE_NAMES[id]:null, lang=getLang();
+  if(info){
+    if(lang==="en")return info.en;
+    if(lang==="zh-Hans")return info.hans;
+    return info.zh;
+  }
+  return lang==="zh-Hans"?toSimplifiedText(s):s;
+}
+function localizedTeamName(name, prediction=null, side=""){
+  const s=String(name||"--");
+  if(getLang()==="zh-Hans")return toSimplifiedText(s);
+  if(getLang()==="en"){
+    const sideKey=side==="away"?"away":"home";
+    const apiName=
+      prediction?._fixture_meta?.[`${sideKey}_api_name`] ||
+      prediction?.fixture?.[sideKey]?.api_name ||
+      prediction?.source_data?.fixture?.[sideKey]?.api_name ||
+      prediction?.sourceData?.fixture?.[sideKey]?.api_name ||
+      "";
+    return String(apiName||s);
+  }
+  return s;
+}
+function localizedPick(value){
+  let s=String(value??"--").trim();
+  if(getLang()==="zh-Hans")return toSimplifiedText(s);
+  if(getLang()!=="en")return s;
+
+  const replacements=[
+    [/暫不推薦|暂不推荐/g,"No pick"],
+    [/主勝|主胜/g,"Home Win"],
+    [/客勝|客胜/g,"Away Win"],
+    [/和局|平局|和/g,"Draw"],
+    [/雙方進球|双方进球/g,"BTTS"],
+    [/大於|大于/g,"Over "],
+    [/小於|小于/g,"Under "],
+    [/^大(?=\s*\d)/g,"Over "],
+    [/^小(?=\s*\d)/g,"Under "],
+    [/是/g,"Yes"],
+    [/否/g,"No"]
+  ];
+  for(const [re,to] of replacements)s=s.replace(re,to);
+  return s.replace(/\s+/g," ").trim();
+}
+
 
 function classifyStatus(key){const trend=(allData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
 function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=viewData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
@@ -398,7 +570,7 @@ function renderRecent(){
   const items=Array.isArray(group.items)?group.items:[];
   document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
     x.placeholder?`<div class="result-chip push">−</div>`:
-    `<div class="result-chip ${normalizeResult(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${resultMark(x.result)}</div>`
+    `<div class="result-chip ${normalizeResult(x.result)}" title="${esc(localizedTeamName(x.home)+" vs "+localizedTeamName(x.away))}">${resultMark(x.result)}</div>`
   ).join("");
   const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";
   document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`) + `<div class="recent-hint">${esc(marketLabel(currentRecent))}</div>`;
@@ -474,7 +646,7 @@ function renderTrend(){
   document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
-function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(displayLeagueName(x.league))}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(localizedLeagueName(x.league))}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
 function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
@@ -491,11 +663,11 @@ function renderRecords(){
   }
 
   body.innerHTML=shown.map(x=>{
-    const s=x.settlement||{},ov=overallResult(s),mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");
+    const s=x.settlement||{},ov=overallResult(s),mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
     return`<tr>
       <td>${esc(dateFmt(x.kickoff_at))}</td>
-      <td><b>${esc(displayLeagueName(x.league))}</b></td>
-      <td>${esc(x.home)} vs ${esc(x.away)}</td>
+      <td><b>${esc(localizedLeagueName(x.league))}</b></td>
+      <td>${esc(localizedTeamName(x.home,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.prediction,"away"))}</td>
       <td class="score">${esc(x.final_score||"-")}</td>
       <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td>
       <td><div class="verify-dot">${resultMark(ov)}</div></td>
@@ -505,18 +677,18 @@ function renderRecords(){
   }).join("");
 
   mobile.innerHTML=shown.map(x=>{
-    const s=x.settlement||{},mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");
+    const s=x.settlement||{},mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
     const logo=leagueLogo(x.league),fallback=leagueShort(x.league);
     return`<article class="record-card">
       <div class="record-top">
         <div class="record-league">
-          ${logo?`<img src="${logo}" alt="${esc(displayLeagueName(x.league))}" onerror="this.style.display=\'none\'">`:`<span>${esc(fallback)}</span>`}
-          <span>${esc(displayLeagueName(x.league))}</span>
+          ${logo?`<img src="${logo}" alt="${esc(localizedLeagueName(x.league))}" onerror="this.style.display=\'none\'">`:`<span>${esc(fallback)}</span>`}
+          <span>${esc(localizedLeagueName(x.league))}</span>
         </div>
         <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
       </div>
       <div class="record-match">
-        <div class="record-teams">${esc(x.home)}<br>vs ${esc(x.away)}</div>
+        <div class="record-teams">${esc(localizedTeamName(x.home,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.prediction,"away"))}</div>
         <div class="record-score">${esc(x.final_score||"-")}</div>
       </div>
       <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(mp)}｜${esc(ou)}｜BTTS ${esc(bt)}</div>
@@ -529,11 +701,43 @@ function renderRecords(){
   document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
 }
 
+
+function renderSportSkeleton(){
+  const title=document.getElementById("comingSportTitle");
+  const icon=document.getElementById("comingSportIcon");
+  const m1=document.getElementById("comingMarket1");
+  const m2=document.getElementById("comingMarket2");
+  const m3=document.getElementById("comingMarket3");
+  if(!title||!icon||!m1||!m2||!m3)return;
+  const sportKey=currentSport==="baseball"?"baseball":"basketball";
+  const sportName=tr(sportKey);
+  title.textContent=tr("sportPerformance").replace("{sport}",sportName);
+  icon.textContent=currentSport==="baseball"?"⚾":"🏀";
+  m1.textContent=tr("winLoss");
+  m2.textContent=tr("handicap");
+  m3.textContent=tr("overUnder");
+}
+function switchSport(sport){
+  currentSport=sport;
+  document.querySelectorAll(".sport-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.sport===sport));
+  const football=document.getElementById("footballPerformance");
+  const coming=document.getElementById("sportComingSoon");
+  if(sport==="football"){
+    football.style.display="";
+    coming.classList.remove("active");
+  }else{
+    football.style.display="none";
+    coming.classList.add("active");
+    renderSportSkeleton();
+  }
+}
+
 function renderAll(){document.getElementById("verifiedMatches").textContent=num(viewData?.summary?.verified_matches);renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords()}
 async function fetchData(days=""){const url=days?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(days)}`:AI_PERFORMANCE_API;const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const j=await res.json();if(!j?.success)throw new Error(j?.error||"API failed");return j}
 async function loadView(){try{viewData=currentDays?await fetchData(currentDays):allData;if(!viewData)viewData=await fetchData("");renderAll()}catch(e){console.error("AI PERFORMANCE ERROR",e);viewData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
 async function init(){applyLang();try{allData=await fetchData("");viewData=allData;renderAll()}catch(e){console.error(e);viewData=allData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
 
+document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>switchSport(btn.dataset.sport||"football")));
 document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadView()}));
 function syncMarketTabs(key){
   currentRecent=key;currentTrend=key;
@@ -546,7 +750,8 @@ document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click
 document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",()=>{trendPeriod=Number(btn.dataset.period)||7;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
-window.addEventListener("habao:languagechange",()=>{applyLang();renderAll()});
+window.addEventListener("habao:languagechange",()=>{applyLang();if(currentSport==="football")renderAll()});
+window.addEventListener("habao:translationsapplied",()=>{applyLang();if(currentSport==="football")renderAll()});
 init();
 </script>
 </body>
