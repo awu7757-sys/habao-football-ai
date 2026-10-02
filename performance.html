@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#071521" />
   <title>HABAO 賽事預測 AI｜公開戰績</title>
+  <script src="./opencc.js"></script>
   <script src="./habao-i18n.js"></script>
   <style>
     :root{
@@ -510,42 +511,79 @@ const LEAGUE_NAMES={
   265:{zh:"智利盃",hans:"智利杯",en:"Copa Chile"},
   128:{zh:"阿根廷職業聯賽",hans:"阿根廷职业联赛",en:"Liga Profesional Argentina"}
 };
-function localizedLeagueName(name){
+function localizedLeagueName(name,idHint=null,apiName=""){
   const s=String(name||"").trim();
-  if(!s||s==="--")return tr("otherLeague");
-  const id=leagueId(s), info=id?LEAGUE_NAMES[id]:null, lang=getLang();
-  if(info){
-    if(lang==="en")return info.en;
-    if(lang==="zh-Hans")return info.hans;
-    return info.zh;
+  const normalized=s.toLowerCase();
+  const isOther=
+    !s ||
+    s==="--" ||
+    normalized==="其他聯賽" ||
+    normalized==="其他联赛" ||
+    normalized==="other league";
+
+  if(isOther)return tr("otherLeague");
+
+  const hintedId=Number(idHint||0);
+  const id=hintedId||leagueId(s);
+  const info=id?LEAGUE_NAMES[id]:null;
+  const lang=getLang();
+
+  if(lang==="en"){
+    const rawEnglish=String(apiName||"").trim();
+    if(rawEnglish)return rawEnglish;
+    if(info)return info.en;
+    return s;
   }
-  return lang==="zh-Hans"?toSimplifiedText(s):s;
+
+  if(lang==="zh-Hans"){
+    if(info)return info.hans;
+    return toSimplifiedText(s);
+  }
+
+  if(info)return info.zh;
+  return s;
 }
-function localizedTeamName(name, prediction=null, side=""){
+function localizedTeamName(name,apiName="",prediction=null,side=""){
   const s=String(name||"--");
-  if(getLang()==="zh-Hans")return toSimplifiedText(s);
-  if(getLang()==="en"){
+  const lang=getLang();
+
+  if(lang==="zh-Hans"){
+    return toSimplifiedText(s);
+  }
+
+  if(lang==="en"){
     const sideKey=side==="away"?"away":"home";
-    const apiName=
+    const predictionApiName=
       prediction?._fixture_meta?.[`${sideKey}_api_name`] ||
       prediction?.fixture?.[sideKey]?.api_name ||
       prediction?.source_data?.fixture?.[sideKey]?.api_name ||
       prediction?.sourceData?.fixture?.[sideKey]?.api_name ||
       "";
-    return String(apiName||s);
+
+    return String(apiName||predictionApiName||s);
   }
+
   return s;
 }
 function localizedPick(value){
   let s=String(value??"--").trim();
-  if(getLang()==="zh-Hans")return toSimplifiedText(s);
-  if(getLang()!=="en")return s;
+  const lang=getLang();
+
+  if(lang==="zh-Hans")return toSimplifiedText(s);
+  if(lang!=="en")return s;
+
+  const compact=s.replace(/\s+/g,"");
+
+  if(/^(主勝|主胜|主隊勝|主队胜|主隊|主队)$/.test(compact))return"Home Win";
+  if(/^(客勝|客胜|客隊勝|客队胜|客隊|客队)$/.test(compact))return"Away Win";
+  if(/^(和局|平局|和)$/.test(compact))return"Draw";
+  if(/^(暫不推薦|暂不推荐|不推薦|不推荐)$/.test(compact))return"No pick";
 
   const replacements=[
-    [/暫不推薦|暂不推荐/g,"No pick"],
-    [/主勝|主胜/g,"Home Win"],
-    [/客勝|客胜/g,"Away Win"],
-    [/和局|平局|和/g,"Draw"],
+    [/暫不推薦|暂不推荐|不推薦|不推荐/g,"No pick"],
+    [/主隊勝|主队胜|主勝|主胜/g,"Home Win"],
+    [/客隊勝|客队胜|客勝|客胜/g,"Away Win"],
+    [/和局|平局/g,"Draw"],
     [/雙方進球|双方进球/g,"BTTS"],
     [/大於|大于/g,"Over "],
     [/小於|小于/g,"Under "],
@@ -554,6 +592,7 @@ function localizedPick(value){
     [/是/g,"Yes"],
     [/否/g,"No"]
   ];
+
   for(const [re,to] of replacements)s=s.replace(re,to);
   return s.replace(/\s+/g," ").trim();
 }
@@ -570,7 +609,7 @@ function renderRecent(){
   const items=Array.isArray(group.items)?group.items:[];
   document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
     x.placeholder?`<div class="result-chip push">−</div>`:
-    `<div class="result-chip ${normalizeResult(x.result)}" title="${esc(localizedTeamName(x.home)+" vs "+localizedTeamName(x.away))}">${resultMark(x.result)}</div>`
+    `<div class="result-chip ${normalizeResult(x.result)}" title="${esc(localizedTeamName(x.home,x.home_api_name,null,"home")+" vs "+localizedTeamName(x.away,x.away_api_name,null,"away"))}">${resultMark(x.result)}</div>`
   ).join("");
   const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";
   document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`) + `<div class="recent-hint">${esc(marketLabel(currentRecent))}</div>`;
@@ -646,7 +685,7 @@ function renderTrend(){
   document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
-function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(localizedLeagueName(x.league))}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
 function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
@@ -666,8 +705,8 @@ function renderRecords(){
     const s=x.settlement||{},ov=overallResult(s),mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
     return`<tr>
       <td>${esc(dateFmt(x.kickoff_at))}</td>
-      <td><b>${esc(localizedLeagueName(x.league))}</b></td>
-      <td>${esc(localizedTeamName(x.home,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.prediction,"away"))}</td>
+      <td><b>${esc(localizedLeagueName(x.league,x.league_id,x.league_api_name))}</b></td>
+      <td>${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</td>
       <td class="score">${esc(x.final_score||"-")}</td>
       <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td>
       <td><div class="verify-dot">${resultMark(ov)}</div></td>
@@ -678,17 +717,17 @@ function renderRecords(){
 
   mobile.innerHTML=shown.map(x=>{
     const s=x.settlement||{},mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
-    const logo=leagueLogo(x.league),fallback=leagueShort(x.league);
+    const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);
     return`<article class="record-card">
       <div class="record-top">
         <div class="record-league">
-          ${logo?`<img src="${logo}" alt="${esc(localizedLeagueName(x.league))}" onerror="this.style.display=\'none\'">`:`<span>${esc(fallback)}</span>`}
-          <span>${esc(localizedLeagueName(x.league))}</span>
+          ${logo?`<img src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display=\'none\'">`:`<span>${esc(fallback)}</span>`}
+          <span>${esc(leagueName)}</span>
         </div>
         <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
       </div>
       <div class="record-match">
-        <div class="record-teams">${esc(localizedTeamName(x.home,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.prediction,"away"))}</div>
+        <div class="record-teams">${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</div>
         <div class="record-score">${esc(x.final_score||"-")}</div>
       </div>
       <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(mp)}｜${esc(ou)}｜BTTS ${esc(bt)}</div>
