@@ -3085,6 +3085,43 @@ function getAnalysisLeagueName(
     league?.name ||
     "";
 
+  const leagueId =
+    Number(league?.id || 0);
+
+  /*
+    API-Football 的義甲與巴甲英文都可能叫 Serie A。
+    因此不能只靠 league name 判斷，白名單聯賽優先使用 league id。
+  */
+  const traditionalById = {
+    2: "歐洲冠軍聯賽",
+    3: "歐霸盃",
+    39: "英格蘭超級聯賽",
+    140: "西班牙甲級聯賽",
+    78: "德國甲級聯賽",
+    135: "義大利甲級聯賽",
+    61: "法國甲級聯賽",
+    98: "日本職業足球甲級聯賽",
+    292: "韓國職業足球甲級聯賽",
+    169: "中國足球超級聯賽",
+    88: "荷蘭甲級聯賽",
+    71: "巴西甲級聯賽"
+  };
+
+  const englishById = {
+    2: "UEFA Champions League",
+    3: "UEFA Europa League",
+    39: "Premier League",
+    140: "La Liga",
+    78: "Bundesliga",
+    135: "Serie A",
+    61: "Ligue 1",
+    98: "J1 League",
+    292: "K League 1",
+    169: "Chinese Super League",
+    88: "Eredivisie",
+    71: "Brazil Serie A"
+  };
+
   const traditionalMap = {
     "UEFA Champions League": "歐洲冠軍聯賽",
     "UEFA Europa League": "歐霸盃",
@@ -3098,6 +3135,7 @@ function getAnalysisLeagueName(
     "Chinese Super League": "中國足球超級聯賽",
     "Eredivisie": "荷蘭甲級聯賽",
     "Serie A Brazil": "巴西甲級聯賽",
+    "Brazil Serie A": "巴西甲級聯賽",
     "Liga Profesional Argentina": "阿根廷甲級聯賽",
     "KNVB Beker": "荷蘭盃",
     "Copa Chile": "智利盃",
@@ -3105,16 +3143,22 @@ function getAnalysisLeagueName(
   };
 
   if (lang === "en") {
-    return apiName || league?.name || "";
+    return (
+      englishById[leagueId] ||
+      apiName ||
+      league?.name ||
+      ""
+    );
   }
 
   const traditional =
-    league?.name && /[\u3400-\u9fff]/.test(league.name)
+    traditionalById[leagueId] ||
+    (league?.name && /[\u3400-\u9fff]/.test(league.name)
       ? league.name
       : traditionalMap[apiName] ||
         league?.name ||
         apiName ||
-        "";
+        "");
 
   if (lang === "zh-Hans") {
     return window.HabaoI18n?.toSimplified
