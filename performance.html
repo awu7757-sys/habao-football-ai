@@ -124,37 +124,52 @@
     .recent-body{padding:13px 12px 11px;min-height:122px}
     .recent-tabs{display:flex;gap:4px;margin-bottom:9px}
     .mini-tab{border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(1,13,21,.40);color:#aabcc7;padding:4px 7px;font-size:8px;font-weight:850;cursor:pointer}.mini-tab.active{background:rgba(244,189,67,.14);border-color:rgba(244,189,67,.36);color:#ffd45c}
-    .recent-row{display:flex;gap:6px;align-items:center;overflow:hidden;min-height:31px}.result-chip{width:28px;height:28px;flex:0 0 28px;border-radius:50%;display:grid;place-items:center;color:white;font-size:15px;font-weight:1000;box-shadow:inset 0 0 8px rgba(255,255,255,.08)}
-    .result-chip.win{background:#159b74}.result-chip.loss{background:#db4750}.result-chip.push{background:#536d7b}.result-chip.half_win{background:#2d8f78}.result-chip.half_loss{background:#9d6553}
-    .recent-summary{margin-top:12px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);font-size:10px;font-weight:850;color:#dbe5ea}.recent-summary b{color:#ffd34c;font-size:13px}
+    .recent-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;align-items:center;min-height:34px}
+    .result-chip{width:29px;height:29px;justify-self:center;border-radius:50%;display:grid;place-items:center;color:white;font-size:15px;font-weight:1000;box-shadow:inset 0 0 8px rgba(255,255,255,.08),0 2px 10px rgba(0,0,0,.22)}
+    .result-chip.win{background:linear-gradient(145deg,#21b88c,#0d795d)}.result-chip.loss{background:linear-gradient(145deg,#f05b64,#b82d36)}.result-chip.push{background:linear-gradient(145deg,#667f8e,#405763)}.result-chip.half_win{background:linear-gradient(145deg,#36aa8e,#267661)}.result-chip.half_loss{background:linear-gradient(145deg,#b87962,#875040)}
+    .recent-summary{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;font-weight:850;color:#dbe5ea;letter-spacing:.1px}.recent-summary b{color:#ffd34c;font-size:13px}
+    .recent-hint{margin-top:6px;color:#708b99;font-size:7px;text-align:right}
 
     .trend-controls{padding:8px 10px 0;display:flex;gap:6px;align-items:center;justify-content:space-between}
     .trend-tabs{display:grid;grid-template-columns:repeat(4,1fr);flex:1;border:1px solid rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
     .trend-tab{border:0;background:#061a26;color:#b9c8d0;padding:5px 2px;font-size:8px;font-weight:900;cursor:pointer}.trend-tab.active{background:linear-gradient(180deg,#ffd34d,#eda825);color:#201605}
     .trend-period{display:flex;gap:3px}.period-btn{border:1px solid rgba(255,255,255,.07);border-radius:7px;background:#061924;color:#91a7b4;padding:5px 6px;font-size:8px;font-weight:900;cursor:pointer}.period-btn.active{border-color:rgba(244,189,67,.42);color:#ffd35a;background:rgba(244,189,67,.10)}
-    .trend-body{display:grid;grid-template-columns:1fr 82px;gap:5px;padding:8px 10px 10px}
-    .chart-wrap{height:105px;position:relative;border-radius:8px;overflow:hidden;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.07) 0 1px,transparent 1px 25px)}
-    .chart-labels{position:absolute;inset:0;pointer-events:none}.chart-labels span{position:absolute;left:3px;color:#6f8a99;font-size:7px;transform:translateY(50%)}
+    .trend-body{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:7px;padding:8px 10px 10px}
+    .chart-wrap{height:124px;position:relative;border-radius:9px;overflow:hidden;background:linear-gradient(180deg,rgba(4,22,32,.72),rgba(4,19,28,.32));border:1px solid rgba(255,255,255,.035)}
     .chart-wrap svg{position:absolute;inset:0;width:100%;height:100%}
-    .trend-side{padding:4px 0 0 5px}.trend-current{font-size:8px;color:#99aebb}.trend-current b{display:block;margin-top:2px;color:#ffd242;font-size:17px}.trend-change{margin-top:4px;font-size:12px;font-weight:1000}.trend-state{margin-top:10px;color:#93aab7;font-size:8px}.trend-state b{display:block;margin-top:2px;font-size:12px;color:#23dfa9}.trend-sample{margin-top:8px;color:#6e8998;font-size:7px}
+    .trend-side{padding:5px 0 0 4px}.trend-current{font-size:8px;color:#99aebb}.trend-current b{display:block;margin-top:2px;color:#ffd242;font-size:18px}.trend-change{margin-top:4px;font-size:12px;font-weight:1000}.trend-state{margin-top:10px;color:#93aab7;font-size:8px}.trend-state b{display:block;margin-top:2px;font-size:12px;color:#23dfa9}.trend-sample{margin-top:8px;color:#7f9aa8;font-size:7px;line-height:1.45}
 
     /* ===== LEAGUES ===== */
     .league-sort{display:flex;gap:3px;padding:2px;border:1px solid rgba(255,255,255,.06);border-radius:8px;background:#041722}.league-sort button{border:0;border-radius:6px;background:transparent;color:#9eb0ba;padding:5px 9px;font-size:8px;font-weight:900;cursor:pointer}.league-sort button.active{background:linear-gradient(180deg,#ffd34d,#eca624);color:#201605}
     .league-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.league-strip::-webkit-scrollbar{display:none}
-    .league-card{min-width:96px;width:96px;padding:9px 7px 8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:linear-gradient(180deg,#0a2635,#061b27);text-align:center;box-shadow:inset 0 1px rgba(255,255,255,.025)}
-    .league-logo-wrap{height:39px;display:grid;place-items:center}.league-logo{max-width:36px;max-height:36px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}.league-fallback{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:rgba(255,255,255,.05);color:#d8e5eb;font-size:9px;font-weight:950}
-    .league-name{margin-top:4px;color:#e8eff3;font-size:9px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.league-rate{margin-top:4px;font-size:16px;font-weight:1000;color:#fff}.league-count{margin-top:1px;color:#839ba8;font-size:8px;font-weight:800}
+    .league-card{min-width:104px;width:104px;padding:10px 7px 9px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:linear-gradient(180deg,#0b2939,#061b27);text-align:center;box-shadow:inset 0 1px rgba(255,255,255,.03),0 5px 16px rgba(0,0,0,.14)}
+    .league-logo-wrap{height:43px;display:grid;place-items:center}.league-logo{max-width:40px;max-height:40px;object-fit:contain;filter:drop-shadow(0 3px 7px rgba(0,0,0,.4))}.league-fallback{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,rgba(255,211,77,.13),rgba(255,255,255,.03));border:1px solid rgba(244,189,67,.18);color:#ffd45f;font-size:9px;font-weight:950}
+    .league-name{margin-top:5px;color:#edf4f7;font-size:9px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.league-rate{margin-top:4px;font-size:17px;font-weight:1000;color:#fff}.league-count{margin-top:2px;color:#8da4b0;font-size:8px;font-weight:800}
 
     /* ===== RECORDS ===== */
     .more-btn{border:1px solid rgba(244,189,67,.45);border-radius:999px;background:rgba(244,189,67,.08);color:#ffd34d;padding:6px 11px;font-size:9px;font-weight:950;cursor:pointer}
     .records-box{overflow:hidden;border:1px solid var(--border);border-radius:13px;background:#061b28}.table-wrap{overflow:auto}
     table{width:100%;min-width:705px;border-collapse:collapse;font-size:8px}th{height:30px;padding:0 8px;text-align:left;color:#a9bdc8;background:#092536;font-size:8px;font-weight:900;border-right:1px solid rgba(255,255,255,.05)}td{height:36px;padding:4px 8px;border-top:1px solid rgba(255,255,255,.055);border-right:1px solid rgba(255,255,255,.04);color:#dbe5ea}
     td.score{color:#ffd243;font-size:13px;font-weight:1000}.pred-main{font-size:9px;font-weight:950;color:#f2f6f8}.pred-sub{margin-top:2px;color:#8fa6b2;font-size:7px;font-weight:800}.verify-dot{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:#102b39;color:#ffd244;font-size:10px;font-weight:1000}.mark{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:1000}.mark.win,.mark.half_win{background:#139970;color:#fff}.mark.loss,.mark.half_loss{background:#cb3d46;color:#fff}.mark.push{background:#4c6573;color:#fff}.row-arrow{font-size:15px;color:#8aa0ad}
+    .mobile-records{display:none}
+    .record-card{border:1px solid rgba(255,255,255,.07);border-radius:12px;background:linear-gradient(180deg,#082636,#061c28);padding:10px;margin-bottom:8px;box-shadow:inset 0 1px rgba(255,255,255,.02)}
+    .record-card:last-child{margin-bottom:0}
+    .record-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .record-league{display:flex;align-items:center;gap:7px;min-width:0;color:#dce7ec;font-size:9px;font-weight:950}.record-league img{width:25px;height:25px;object-fit:contain}.record-league span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .record-time{color:#7f99a7;font-size:8px;font-weight:800;white-space:nowrap}
+    .record-match{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:8px}
+    .record-teams{color:#f0f5f7;font-size:11px;font-weight:900;line-height:1.35}.record-score{color:#ffd145;font-size:20px;font-weight:1000;letter-spacing:.5px}
+    .record-pred{margin-top:7px;padding:7px 8px;border-radius:9px;background:rgba(0,0,0,.18);color:#9fb3be;font-size:8px;line-height:1.45}.record-pred b{color:#eef4f7}
+    .record-results{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+    .record-result{display:flex;align-items:center;justify-content:space-between;gap:5px;border:1px solid rgba(255,255,255,.055);border-radius:8px;padding:6px 7px;background:rgba(2,15,23,.36);font-size:8px;color:#9fb3bd;font-weight:850}.record-result .mark{width:20px;height:20px;flex:0 0 20px}
     .method-note{padding:8px 12px 0;color:#6f8998;font-size:8px;line-height:1.5;text-align:center}
     .empty{display:grid;place-items:center;min-height:80px;color:#718a98;font-size:10px}
 
     @media(max-width:640px){
-      .app{padding:0 10px 34px}.hero{padding:18px 15px 14px;min-height:215px}.hero h1{font-size:35px}.hero p{font-size:11px}.hero-features{grid-template-columns:repeat(2,1fr);row-gap:8px}.summarybar{grid-template-columns:1fr;gap:7px}.filters{height:42px}.rangebox{justify-content:center}.market-grid{grid-template-columns:1fr}.market-card{min-height:118px}.mid-grid{grid-template-columns:1fr}.league-card{min-width:92px;width:92px}
+      .app{padding:0 10px 34px}.hero{padding:18px 15px 14px;min-height:215px}.hero h1{font-size:35px}.hero p{font-size:11px}.hero-features{grid-template-columns:repeat(2,1fr);row-gap:8px}.summarybar{grid-template-columns:1fr;gap:7px}.filters{height:42px}.rangebox{justify-content:center}.market-grid{grid-template-columns:1fr}.market-card{min-height:118px}.mid-grid{grid-template-columns:1fr}.league-card{min-width:100px;width:100px}
+      .recent-body{padding:12px 10px 11px}.recent-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.mini-tab{padding:6px 3px;font-size:8px}.recent-row{gap:3px}.result-chip{width:27px;height:27px;font-size:14px}
+      .trend-controls{align-items:stretch;gap:5px}.trend-period{flex-direction:column}.period-btn{min-width:31px;padding:4px 5px}.trend-body{grid-template-columns:minmax(0,1fr) 76px;gap:5px}.chart-wrap{height:122px}
+      .table-wrap{display:none}.mobile-records{display:block;padding:8px}.records-box{background:transparent;border:0;overflow:visible}
     }
   </style>
 </head>
@@ -249,7 +264,7 @@
           <div class="trend-period"><button class="period-btn active" data-period="7">7D</button><button class="period-btn" data-period="30">30D</button></div>
         </div>
         <div class="trend-body">
-          <div id="trendChart" class="chart-wrap"><div class="chart-labels"><span style="bottom:75%">75%</span><span style="bottom:50%">50%</span><span style="bottom:25%">25%</span></div></div>
+          <div id="trendChart" class="chart-wrap"></div>
           <div class="trend-side">
             <div class="trend-current"><span data-i18n="current">目前</span><b id="trendCurrent">--</b></div>
             <div id="trendChange" class="trend-change">--</div>
@@ -270,10 +285,13 @@
 
     <section class="section">
       <div class="section-head"><h2 class="section-title"><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2><button id="moreBtn" class="more-btn" data-i18n="viewMore">查看更多 ›</button></div>
-      <div class="records-box"><div class="table-wrap"><table>
-        <thead><tr><th data-i18n="dateTime">日期時間</th><th data-i18n="league">聯賽</th><th data-i18n="homeAway">主隊 vs 客隊</th><th data-i18n="score">比分</th><th data-i18n="aiPrediction">AI 預測</th><th data-i18n="verification">驗證結果</th><th data-i18n="moneyline">獨贏</th><th data-i18n="overUnder">大小分</th><th>BTTS</th><th></th></tr></thead>
-        <tbody id="recordsBody"></tbody>
-      </table></div></div>
+      <div class="records-box">
+        <div class="table-wrap"><table>
+          <thead><tr><th data-i18n="dateTime">日期時間</th><th data-i18n="league">聯賽</th><th data-i18n="homeAway">主隊 vs 客隊</th><th data-i18n="score">比分</th><th data-i18n="aiPrediction">AI 預測</th><th data-i18n="verification">驗證結果</th><th data-i18n="moneyline">獨贏</th><th data-i18n="overUnder">大小分</th><th>BTTS</th><th></th></tr></thead>
+          <tbody id="recordsBody"></tbody>
+        </table></div>
+        <div id="mobileRecords" class="mobile-records"></div>
+      </div>
       <div class="method-note" data-i18n="methodNote">公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。</div>
     </section>
   </main>
@@ -302,30 +320,162 @@ function dateFmt(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";
 function ymd(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const g=t=>p.find(x=>x.type===t)?.value||"";return`${g("year")}/${g("month")}/${g("day")}`}
 
 const LEAGUE_IDS=[
-  {id:2,keys:["champions league","歐冠","欧冠"]},{id:3,keys:["europa league","歐霸","欧联","歐聯"]},{id:39,keys:["premier league","英超"]},{id:140,keys:["la liga","laliga","西甲"]},{id:78,keys:["bundesliga","德甲"]},{id:135,keys:["serie a","義甲","意甲"]},{id:61,keys:["ligue 1","法甲"]},{id:98,keys:["j1 league","j league","日職","日职"]},{id:292,keys:["k league 1","k-league","韓職","韩职"]},{id:169,keys:["super league","chinese super league","中超"]},{id:88,keys:["eredivisie","荷甲"]},{id:71,keys:["serie a brazil","brasileirão","brasileirao","巴甲","brazil"]}
+  {id:2,keys:["champions league","歐冠","欧冠"]},
+  {id:3,keys:["europa league","歐霸","欧联","歐聯"]},
+  {id:39,keys:["premier league","英超"]},
+  {id:140,keys:["la liga","laliga","西甲"]},
+  {id:78,keys:["bundesliga","德甲"]},
+  {id:135,keys:["serie a","義甲","意甲"]},
+  {id:61,keys:["ligue 1","法甲"]},
+  {id:98,keys:["j1 league","j league","日職","日职"]},
+  {id:292,keys:["k league 1","k-league","韓職","韩职"]},
+  {id:169,keys:["super league","chinese super league","中超"]},
+  {id:88,keys:["eredivisie","荷甲"]},
+  {id:71,keys:["serie a brazil","brasileirão","brasileirao","巴甲","brazil"]},
+  {id:90,keys:["knvb beker","荷蘭盃","荷兰杯"]},
+  {id:239,keys:["primera a","colombia primera a","哥倫比亞甲","哥伦比亚甲"]},
+  {id:265,keys:["copa chile","智利盃","智利杯"]},
+  {id:128,keys:["liga profesional argentina","argentina liga profesional","阿根廷甲"]}
 ];
 function leagueId(name){const s=String(name||"").toLowerCase();for(const x of LEAGUE_IDS){if(x.keys.some(k=>s.includes(k.toLowerCase())))return x.id}return null}
 function leagueLogo(name){const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
-function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
+function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA",90:"KNV",239:"PRI",265:"COP",128:"ARG"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
 
 function classifyStatus(key){const trend=(allData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
 function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=viewData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
 
 function renderRange(){const rows=viewData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
-function renderRecent(){const group=allData?.recent_form?.[currentRecent]||{};const items=Array.isArray(group.items)?group.items:[];document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>x.placeholder?`<div class="result-chip push">−</div>`:`<div class="result-chip ${normalizeResult(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${resultMark(x.result)}</div>`).join("");const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`)}
+function marketLabel(key){return key==="overall"?tr("overall"):key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):"BTTS"}
+function renderRecent(){
+  const group=allData?.recent_form?.[currentRecent]||{};
+  const items=Array.isArray(group.items)?group.items:[];
+  document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
+    x.placeholder?`<div class="result-chip push">−</div>`:
+    `<div class="result-chip ${normalizeResult(x.result)}" title="${esc((x.home||"")+" vs "+(x.away||""))}">${resultMark(x.result)}</div>`
+  ).join("");
+  const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";
+  document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`) + `<div class="recent-hint">${esc(marketLabel(currentRecent))}</div>`;
+}
 
-function trendRows(){const rows=(allData?.trend||[]).map(x=>({date:x.date,m:x[currentTrend]})).filter(x=>num(x.m?.decided)>0);if(!rows.length)return[];const lastDate=new Date(rows.at(-1).date+"T00:00:00+08:00");const start=new Date(lastDate);start.setDate(start.getDate()-(trendPeriod-1));return rows.filter(x=>new Date(x.date+"T00:00:00+08:00")>=start)}
-function renderTrend(){const arr=trendRows();const box=document.getElementById("trendChart");box.querySelectorAll("svg,.empty").forEach(x=>x.remove());if(!arr.length){box.insertAdjacentHTML("beforeend",`<div class="empty">${esc(tr("insufficient"))}</div>`);document.getElementById("trendCurrent").textContent="--";document.getElementById("trendChange").textContent="--";document.getElementById("trendState").textContent=tr("insufficient");document.getElementById("trendSample").textContent="--";return}
-  const cumulative=[];let wins=0,losses=0;for(const x of arr){wins+=num(x.m?.effective_wins);losses+=num(x.m?.effective_losses);const den=wins+losses;cumulative.push({date:x.date,rate:den?wins/den*100:0,total:den})}
-  const w=420,h=105,px=24,py=9;const minY=0,maxY=100;const xs=cumulative.map((_,i)=>px+(cumulative.length===1?(w-px*2)/2:i*((w-px*2)/(cumulative.length-1))));const ys=cumulative.map(x=>h-py-(x.rate-minY)/(maxY-minY)*(h-py*2));const pts=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");const svg=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c43b" stop-opacity=".34"/><stop offset="1" stop-color="#f7c43b" stop-opacity="0"/></linearGradient></defs><polygon points="${px},${h-py} ${pts} ${w-px},${h-py}" fill="url(#trendArea)"/><polyline points="${pts}" fill="none" stroke="#ffd044" stroke-width="2.5" vector-effect="non-scaling-stroke"/>${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="2.3" fill="#ffe27d"/>`).join("")}</svg>`;box.insertAdjacentHTML("beforeend",svg);
-  const first=cumulative[0].rate,last=cumulative.at(-1).rate,diff=last-first;document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;const ch=document.getElementById("trendChange");ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;ch.style.color=diff>=0?"#21d9a0":"#ff696f";document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");document.getElementById("trendSample").textContent=`${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("samples")}`}
+function trendRows(){
+  const rows=(allData?.trend||[]).map(x=>({date:x.date,m:x[currentTrend]})).filter(x=>num(x.m?.decided)>0);
+  if(!rows.length)return[];
+  const lastDate=new Date(rows.at(-1).date+"T00:00:00+08:00");
+  const start=new Date(lastDate);start.setDate(start.getDate()-(trendPeriod-1));
+  return rows.filter(x=>new Date(x.date+"T00:00:00+08:00")>=start);
+}
+function shortDate(s){
+  const d=new Date(s+"T00:00:00+08:00");
+  if(Number.isNaN(d.getTime()))return s;
+  return `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+}
+function renderTrend(){
+  const arr=trendRows(),box=document.getElementById("trendChart");
+  box.innerHTML="";
+  if(!arr.length){
+    box.innerHTML=`<div class="empty">${esc(tr("insufficient"))}</div>`;
+    document.getElementById("trendCurrent").textContent="--";
+    document.getElementById("trendChange").textContent="--";
+    document.getElementById("trendState").textContent=tr("insufficient");
+    document.getElementById("trendSample").textContent="--";
+    return;
+  }
+
+  const cumulative=[];let wins=0,losses=0;
+  for(const x of arr){
+    wins+=num(x.m?.effective_wins);losses+=num(x.m?.effective_losses);
+    const den=wins+losses;
+    cumulative.push({date:x.date,rate:den?wins/den*100:0,total:den});
+  }
+
+  const W=520,H=150,L=38,R=10,T=10,B=27;
+  const plotW=W-L-R,plotH=H-T-B;
+  const xs=cumulative.map((_,i)=>L+(cumulative.length===1?plotW/2:i*(plotW/(cumulative.length-1))));
+  const ys=cumulative.map(x=>T+(100-x.rate)/100*plotH);
+  const pts=xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  const area=`${L},${T+plotH} ${pts} ${L+plotW},${T+plotH}`;
+  const grid=[0,25,50,75,100];
+  const xIdx=[0,Math.floor((cumulative.length-1)/2),cumulative.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="trend chart">
+    <defs>
+      <linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f7c43b" stop-opacity=".34"/>
+        <stop offset="1" stop-color="#f7c43b" stop-opacity=".015"/>
+      </linearGradient>
+      <filter id="trendGlow"><feGaussianBlur stdDeviation="2.3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    ${grid.map(v=>{const y=T+(100-v)/100*plotH;return `<line x1="${L}" y1="${y}" x2="${L+plotW}" y2="${y}" stroke="rgba(255,255,255,.08)" stroke-width="1"/><text x="${L-7}" y="${y+3}" text-anchor="end" fill="#78909d" font-size="9">${v}%</text>`}).join("")}
+    <polygon points="${area}" fill="url(#trendArea)"/>
+    <polyline points="${pts}" fill="none" stroke="#ffd044" stroke-width="3" vector-effect="non-scaling-stroke" filter="url(#trendGlow)"/>
+    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3.3" fill="#ffe176" stroke="#5b4710" stroke-width="1"/>`).join("")}
+    ${xIdx.map(i=>`<text x="${xs[i]}" y="${H-8}" text-anchor="${i===0?"start":i===cumulative.length-1?"end":"middle"}" fill="#7f98a6" font-size="9">${shortDate(cumulative[i].date)}</text>`).join("")}
+  </svg>`;
+
+  const first=cumulative[0].rate,last=cumulative.at(-1).rate,diff=last-first;
+  document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;
+  const ch=document.getElementById("trendChange");
+  ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
+  ch.style.color=diff>0?"#21d9a0":diff<0?"#ff696f":"#9eb3bf";
+  document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
+  document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("samples")}`;
+}
 
 function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(x.league||"--")}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
 function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
-function renderRecords(){const rows=Array.isArray(viewData?.matches)?viewData.matches:[],shown=showAll?rows:rows.slice(0,5),body=document.getElementById("recordsBody");if(!shown.length){body.innerHTML=`<tr><td colspan="10"><div class="empty">${esc(tr("noData"))}</div></td></tr>`;return}body.innerHTML=shown.map(x=>{const s=x.settlement||{},ov=overallResult(s),mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");return`<tr><td>${esc(dateFmt(x.kickoff_at))}</td><td><b>${esc(x.league||"--")}</b></td><td>${esc(x.home)} vs ${esc(x.away)}</td><td class="score">${esc(x.final_score||"-")}</td><td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td><td><div class="verify-dot">${resultMark(ov)}</div></td>${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}<td class="row-arrow">›</td></tr>`}).join("");document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore")}
+function renderRecords(){
+  const rows=Array.isArray(viewData?.matches)?viewData.matches:[],
+        shown=showAll?rows:rows.slice(0,5),
+        body=document.getElementById("recordsBody"),
+        mobile=document.getElementById("mobileRecords");
+
+  if(!shown.length){
+    body.innerHTML=`<tr><td colspan="10"><div class="empty">${esc(tr("noData"))}</div></td></tr>`;
+    mobile.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;
+    return;
+  }
+
+  body.innerHTML=shown.map(x=>{
+    const s=x.settlement||{},ov=overallResult(s),mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");
+    return`<tr>
+      <td>${esc(dateFmt(x.kickoff_at))}</td>
+      <td><b>${esc(x.league||"--")}</b></td>
+      <td>${esc(x.home)} vs ${esc(x.away)}</td>
+      <td class="score">${esc(x.final_score||"-")}</td>
+      <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td>
+      <td><div class="verify-dot">${resultMark(ov)}</div></td>
+      ${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
+      <td class="row-arrow">›</td>
+    </tr>`;
+  }).join("");
+
+  mobile.innerHTML=shown.map(x=>{
+    const s=x.settlement||{},mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");
+    const logo=leagueLogo(x.league),fallback=leagueShort(x.league);
+    return`<article class="record-card">
+      <div class="record-top">
+        <div class="record-league">
+          ${logo?`<img src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none'">`:`<span>${esc(fallback)}</span>`}
+          <span>${esc(x.league||"--")}</span>
+        </div>
+        <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
+      </div>
+      <div class="record-match">
+        <div class="record-teams">${esc(x.home)}<br>vs ${esc(x.away)}</div>
+        <div class="record-score">${esc(x.final_score||"-")}</div>
+      </div>
+      <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(mp)}｜${esc(ou)}｜BTTS ${esc(bt)}</div>
+      <div class="record-results">
+        ${[["moneyline",tr("moneyline")],["over_under",tr("overUnder")],["btts","BTTS"]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
+      </div>
+    </article>`;
+  }).join("");
+
+  document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
+}
 
 function renderAll(){document.getElementById("verifiedMatches").textContent=num(viewData?.summary?.verified_matches);renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords()}
 async function fetchData(days=""){const url=days?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(days)}`:AI_PERFORMANCE_API;const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const j=await res.json();if(!j?.success)throw new Error(j?.error||"API failed");return j}
@@ -333,8 +483,14 @@ async function loadView(){try{viewData=currentDays?await fetchData(currentDays):
 async function init(){applyLang();try{allData=await fetchData("");viewData=allData;renderAll()}catch(e){console.error(e);viewData=allData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
 
 document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadView()}));
-document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>{currentRecent=btn.dataset.recent;document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b===btn));renderRecent()}));
-document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>{currentTrend=btn.dataset.trend;document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
+function syncMarketTabs(key){
+  currentRecent=key;currentTrend=key;
+  document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b.dataset.recent===key));
+  document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b.dataset.trend===key));
+  renderRecent();renderTrend();
+}
+document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.recent)));
+document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.trend)));
 document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",()=>{trendPeriod=Number(btn.dataset.period)||7;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
