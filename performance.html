@@ -63,12 +63,14 @@
     .hero:after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.6}
     .hero-copy{position:relative;z-index:2;max-width:520px}
     .hero-kicker{display:flex;align-items:center;gap:8px;color:#ffd35c;font-size:12px;font-weight:950;letter-spacing:1.6px}
-    .hero-kicker .kicon{width:28px;height:28px;border:1px solid #e1b447;border-radius:50%;display:grid;place-items:center;font-size:13px}
+    .hero-kicker .kicon{width:30px;height:30px;border:1px solid rgba(255,211,76,.72);border-radius:50%;display:grid;place-items:center;color:#ffd34c;background:radial-gradient(circle,rgba(244,189,67,.13),rgba(244,189,67,.025));box-shadow:inset 0 0 14px rgba(244,189,67,.08),0 0 12px rgba(244,189,67,.10)}
+    .hero-kicker .kicon svg{width:17px;height:17px;display:block}
     .hero h1{margin:8px 0 8px;font-size:40px;line-height:1;color:#ffe8a6;font-weight:1000;letter-spacing:-1.2px;text-shadow:0 2px 16px rgba(244,189,67,.18)}
     .hero p{margin:0;color:#edf3f7;font-size:12px;line-height:1.62;font-weight:700;max-width:520px;text-shadow:0 1px 8px rgba(0,0,0,.65)}
     .hero-features{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:17px;padding-top:11px;border-top:1px solid rgba(255,255,255,.10)}
-    .hero-feature{display:flex;align-items:center;gap:6px;min-width:0;color:#f2f6f8;font-size:10px;font-weight:850;white-space:nowrap}
-    .hero-feature .fi{color:#ffd342;font-size:17px}
+    .hero-feature{display:flex;align-items:center;gap:8px;min-width:0;color:#f2f6f8;font-size:10px;font-weight:850;white-space:nowrap}
+    .hero-feature .fi{width:27px;height:27px;flex:0 0 27px;display:grid;place-items:center;border:1px solid rgba(255,211,66,.26);border-radius:8px;color:#ffd342;background:linear-gradient(145deg,rgba(244,189,67,.10),rgba(255,255,255,.015));box-shadow:inset 0 0 12px rgba(244,189,67,.045)}
+    .hero-feature .fi svg{width:17px;height:17px;display:block;filter:drop-shadow(0 0 4px rgba(255,211,66,.20))}
 
     /* ===== SUMMARY / RANGE ===== */
     .summarybar{
@@ -106,8 +108,12 @@
     .market-top{display:flex;align-items:center;gap:9px}.market-tag{padding:3px 7px;border:1px solid currentColor;border-radius:10px;font-size:12px;font-weight:950}
     .moneyline .market-tag{color:#59adff}.overunder .market-tag{color:#3de2b4}.btts .market-tag{color:#ff9a5a}
     .market-name{font-size:11px;font-weight:950;color:#f3f7f9}
-    .market-main{display:grid;grid-template-columns:42px 1fr;gap:8px;align-items:center;margin-top:11px}
-    .market-icon{font-size:31px;line-height:1}.moneyline .market-icon{color:#4aafff}.overunder .market-icon{color:#2de1ad}.btts .market-icon{color:#ff5963}
+    .market-main{display:grid;grid-template-columns:48px 1fr;gap:9px;align-items:center;margin-top:11px}
+    .market-icon{width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.01));border:1px solid currentColor;box-shadow:inset 0 0 14px rgba(255,255,255,.025),0 0 14px rgba(0,0,0,.14)}
+    .market-icon svg{width:27px;height:27px;display:block}
+    .moneyline .market-icon{color:#4aafff;background:linear-gradient(145deg,rgba(50,142,255,.14),rgba(4,24,36,.42));box-shadow:inset 0 0 18px rgba(69,163,255,.08),0 0 14px rgba(37,136,255,.08)}
+    .overunder .market-icon{color:#2de1ad;background:linear-gradient(145deg,rgba(45,225,173,.13),rgba(4,24,36,.42));box-shadow:inset 0 0 18px rgba(45,225,173,.07),0 0 14px rgba(23,208,161,.07)}
+    .btts .market-icon{color:#ff646d;background:linear-gradient(145deg,rgba(255,89,99,.13),rgba(4,24,36,.42));box-shadow:inset 0 0 18px rgba(255,89,99,.07),0 0 14px rgba(255,98,105,.07)}
     .market-rate{font-size:25px;font-weight:1000;line-height:1;color:#fff}.market-sample{margin-top:4px;color:#d5e0e6;font-size:10px;font-weight:850}
     .market-status{margin:10px auto 0;width:110px;padding:4px 7px;border-radius:999px;text-align:center;font-size:9px;font-weight:950;border:1px solid rgba(33,217,160,.34);background:rgba(33,217,160,.11);color:#28e5ad}
     .market-status.warn{border-color:rgba(244,189,67,.38);background:rgba(244,189,67,.10);color:#ffd04d}
@@ -124,8 +130,8 @@
     .recent-body{padding:13px 12px 11px;min-height:122px}
     .recent-tabs{display:flex;gap:4px;margin-bottom:9px}
     .mini-tab{border:1px solid rgba(255,255,255,.06);border-radius:7px;background:rgba(1,13,21,.40);color:#aabcc7;padding:4px 7px;font-size:8px;font-weight:850;cursor:pointer}.mini-tab.active{background:rgba(244,189,67,.14);border-color:rgba(244,189,67,.36);color:#ffd45c}
-    .recent-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;align-items:center;min-height:34px}
-    .result-chip{width:29px;height:29px;justify-self:center;border-radius:50%;display:grid;place-items:center;color:white;font-size:15px;font-weight:1000;box-shadow:inset 0 0 8px rgba(255,255,255,.08),0 2px 10px rgba(0,0,0,.22)}
+    .recent-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px;align-items:center;min-height:36px;padding:2px 1px}
+    .result-chip{width:30px;height:30px;justify-self:center;border-radius:50%;display:grid;place-items:center;color:white;font-size:15px;font-weight:1000;box-shadow:inset 0 0 8px rgba(255,255,255,.08),0 2px 10px rgba(0,0,0,.22)}
     .result-chip.win{background:linear-gradient(145deg,#21b88c,#0d795d)}.result-chip.loss{background:linear-gradient(145deg,#f05b64,#b82d36)}.result-chip.push{background:linear-gradient(145deg,#667f8e,#405763)}.result-chip.half_win{background:linear-gradient(145deg,#36aa8e,#267661)}.result-chip.half_loss{background:linear-gradient(145deg,#b87962,#875040)}
     .recent-summary{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;font-weight:850;color:#dbe5ea;letter-spacing:.1px}.recent-summary b{color:#ffd34c;font-size:13px}
     .recent-hint{margin-top:6px;color:#708b99;font-size:7px;text-align:right}
@@ -144,7 +150,7 @@
     .league-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.league-strip::-webkit-scrollbar{display:none}
     .league-card{min-width:104px;width:104px;padding:10px 7px 9px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:linear-gradient(180deg,#0b2939,#061b27);text-align:center;box-shadow:inset 0 1px rgba(255,255,255,.03),0 5px 16px rgba(0,0,0,.14)}
     .league-logo-wrap{height:43px;display:grid;place-items:center}.league-logo{max-width:40px;max-height:40px;object-fit:contain;filter:drop-shadow(0 3px 7px rgba(0,0,0,.4))}.league-fallback{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,rgba(255,211,77,.13),rgba(255,255,255,.03));border:1px solid rgba(244,189,67,.18);color:#ffd45f;font-size:9px;font-weight:950}
-    .league-name{margin-top:5px;color:#edf4f7;font-size:9px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.league-rate{margin-top:4px;font-size:17px;font-weight:1000;color:#fff}.league-count{margin-top:2px;color:#8da4b0;font-size:8px;font-weight:800}
+    .league-name{margin-top:5px;min-height:24px;color:#edf4f7;font-size:9px;font-weight:950;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.league-rate{margin-top:4px;font-size:17px;font-weight:1000;color:#fff}.league-count{margin-top:2px;color:#8da4b0;font-size:8px;font-weight:800}
 
     /* ===== RECORDS ===== */
     .more-btn{border:1px solid rgba(244,189,67,.45);border-radius:999px;background:rgba(244,189,67,.08);color:#ffd34d;padding:6px 11px;font-size:9px;font-weight:950;cursor:pointer}
@@ -152,14 +158,14 @@
     table{width:100%;min-width:705px;border-collapse:collapse;font-size:8px}th{height:30px;padding:0 8px;text-align:left;color:#a9bdc8;background:#092536;font-size:8px;font-weight:900;border-right:1px solid rgba(255,255,255,.05)}td{height:36px;padding:4px 8px;border-top:1px solid rgba(255,255,255,.055);border-right:1px solid rgba(255,255,255,.04);color:#dbe5ea}
     td.score{color:#ffd243;font-size:13px;font-weight:1000}.pred-main{font-size:9px;font-weight:950;color:#f2f6f8}.pred-sub{margin-top:2px;color:#8fa6b2;font-size:7px;font-weight:800}.verify-dot{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:#102b39;color:#ffd244;font-size:10px;font-weight:1000}.mark{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:1000}.mark.win,.mark.half_win{background:#139970;color:#fff}.mark.loss,.mark.half_loss{background:#cb3d46;color:#fff}.mark.push{background:#4c6573;color:#fff}.row-arrow{font-size:15px;color:#8aa0ad}
     .mobile-records{display:none}
-    .record-card{border:1px solid rgba(255,255,255,.07);border-radius:12px;background:linear-gradient(180deg,#082636,#061c28);padding:10px;margin-bottom:8px;box-shadow:inset 0 1px rgba(255,255,255,.02)}
+    .record-card{border:1px solid rgba(255,255,255,.075);border-radius:14px;background:linear-gradient(180deg,#08293a,#061c28);padding:11px;margin-bottom:10px;box-shadow:inset 0 1px rgba(255,255,255,.025),0 7px 18px rgba(0,0,0,.12)}
     .record-card:last-child{margin-bottom:0}
     .record-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .record-league{display:flex;align-items:center;gap:7px;min-width:0;color:#dce7ec;font-size:9px;font-weight:950}.record-league img{width:25px;height:25px;object-fit:contain}.record-league span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .record-league{display:flex;align-items:center;gap:8px;min-width:0;color:#dce7ec;font-size:9px;font-weight:950}.record-league img{width:27px;height:27px;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,.34))}.record-league span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .record-time{color:#7f99a7;font-size:8px;font-weight:800;white-space:nowrap}
     .record-match{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:8px}
     .record-teams{color:#f0f5f7;font-size:11px;font-weight:900;line-height:1.35}.record-score{color:#ffd145;font-size:20px;font-weight:1000;letter-spacing:.5px}
-    .record-pred{margin-top:7px;padding:7px 8px;border-radius:9px;background:rgba(0,0,0,.18);color:#9fb3be;font-size:8px;line-height:1.45}.record-pred b{color:#eef4f7}
+    .record-pred{margin-top:8px;padding:8px 9px;border-radius:9px;background:rgba(0,0,0,.19);color:#9fb3be;font-size:8px;line-height:1.5}.record-pred b{color:#eef4f7}
     .record-results{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
     .record-result{display:flex;align-items:center;justify-content:space-between;gap:5px;border:1px solid rgba(255,255,255,.055);border-radius:8px;padding:6px 7px;background:rgba(2,15,23,.36);font-size:8px;color:#9fb3bd;font-weight:850}.record-result .mark{width:20px;height:20px;flex:0 0 20px}
     .method-note{padding:8px 12px 0;color:#6f8998;font-size:8px;line-height:1.5;text-align:center}
@@ -167,7 +173,7 @@
 
     @media(max-width:640px){
       .app{padding:0 10px 34px}.hero{padding:18px 15px 14px;min-height:215px}.hero h1{font-size:35px}.hero p{font-size:11px}.hero-features{grid-template-columns:repeat(2,1fr);row-gap:8px}.summarybar{grid-template-columns:1fr;gap:7px}.filters{height:42px}.rangebox{justify-content:center}.market-grid{grid-template-columns:1fr}.market-card{min-height:118px}.mid-grid{grid-template-columns:1fr}.league-card{min-width:100px;width:100px}
-      .recent-body{padding:12px 10px 11px}.recent-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.mini-tab{padding:6px 3px;font-size:8px}.recent-row{gap:3px}.result-chip{width:27px;height:27px;font-size:14px}
+      .recent-body{padding:12px 10px 11px}.recent-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.mini-tab{padding:6px 3px;font-size:8px}.recent-row{gap:4px}.result-chip{width:28px;height:28px;font-size:14px}
       .trend-controls{align-items:stretch;gap:5px}.trend-period{flex-direction:column}.period-btn{min-width:31px;padding:4px 5px}.trend-body{grid-template-columns:minmax(0,1fr) 76px;gap:5px}.chart-wrap{height:122px}
       .table-wrap{display:none}.mobile-records{display:block;padding:8px}.records-box{background:transparent;border:0;overflow:visible}
     }
@@ -188,15 +194,36 @@
 
     <section class="hero">
       <div class="hero-copy">
-        <div class="hero-kicker"><span class="kicon">⚒</span><span>AI PERFORMANCE</span></div>
+        <div class="hero-kicker"><span class="kicon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M4.5 16.8 9.2 12m5.6-5.1 2.3-2.3 2.3 2.3-2.3 2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m8.4 7.2 8.4 8.4-3 3-8.4-8.4 3-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+</svg></span><span>AI PERFORMANCE</span></div>
         <h1 data-i18n="heroTitle">公開戰績</h1>
         <p data-i18n="heroText">系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。</p>
       </div>
       <div class="hero-features">
-        <div class="hero-feature"><span class="fi">◷</span><span data-i18n="feature1">賽前自動分析</span></div>
-        <div class="hero-feature"><span class="fi">▤</span><span data-i18n="feature2">不依賴會員操作</span></div>
-        <div class="hero-feature"><span class="fi">◇</span><span data-i18n="feature3">真實賽果驗證</span></div>
-        <div class="hero-feature"><span class="fi">▥</span><span data-i18n="feature4">透明公開數據</span></div>
+        <div class="hero-feature"><span class="fi"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <circle cx="10.5" cy="12" r="6.8" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M10.5 8.3V12l2.7 1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="m16.4 5.2 2.6.2-1.2 2.3 2 .6-3.2 3.2.8-2.4-2.1-.5 1.1-3.4Z" fill="currentColor"/>
+</svg></span><span data-i18n="feature1">賽前自動分析</span></div>
+        <div class="hero-feature"><span class="fi"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <rect x="5" y="3.8" width="11.2" height="16.4" rx="2.1" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M8.1 8h5.3M8.1 12h5.3M8.1 16h3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="17.6" cy="15.8" r="3.1" fill="#071521" stroke="currentColor" stroke-width="1.5"/>
+  <path d="m16.3 15.8.9.9 1.8-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span><span data-i18n="feature2">不依賴會員操作</span></div>
+        <div class="hero-feature"><span class="fi"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 3.4 18 5.7v5.1c0 4.2-2.4 7.2-6 9.1-3.6-1.9-6-4.9-6-9.1V5.7L12 3.4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="m8.8 11.9 2.1 2.1 4.4-4.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span><span data-i18n="feature3">真實賽果驗證</span></div>
+        <div class="hero-feature"><span class="fi"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M4 19.5h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <rect x="5.2" y="11.2" width="2.8" height="6.2" rx="1" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="10.2" y="7.4" width="2.8" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="15.2" y="4.4" width="2.8" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+  <path d="m5.7 8.4 4-2.2 3 1.4 5-3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></span><span data-i18n="feature4">透明公開數據</span></div>
       </div>
     </section>
 
@@ -221,17 +248,33 @@
       <div class="market-grid">
         <article class="market-card moneyline">
           <div class="market-top"><span class="market-tag">1X2</span><span class="market-name" data-i18n="moneyline">獨贏</span></div>
-          <div class="market-main"><div class="market-icon">◎</div><div><div id="moneylineRate" class="market-rate">--</div><div id="moneylineSample" class="market-sample">--</div></div></div>
+          <div class="market-main"><div class="market-icon"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+  <circle cx="16" cy="16" r="10.5" stroke="currentColor" stroke-width="2"/>
+  <circle cx="16" cy="16" r="5.2" stroke="currentColor" stroke-width="2"/>
+  <circle cx="16" cy="16" r="1.7" fill="currentColor"/>
+  <path d="M16 2.5v4M16 25.5v4M2.5 16h4M25.5 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+</svg></div><div><div id="moneylineRate" class="market-rate">--</div><div id="moneylineSample" class="market-sample">--</div></div></div>
           <div id="moneylineStatus" class="market-status">--</div>
         </article>
         <article class="market-card overunder">
           <div class="market-top"><span class="market-tag">O/U</span><span class="market-name" data-i18n="overUnder">大小分</span></div>
-          <div class="market-main"><div class="market-icon">▥</div><div><div id="overRate" class="market-rate">--</div><div id="overSample" class="market-sample">--</div></div></div>
+          <div class="market-main"><div class="market-icon"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+  <rect x="5" y="15" width="4.5" height="11" rx="1.2" stroke="currentColor" stroke-width="1.8"/>
+  <rect x="13.8" y="10" width="4.5" height="16" rx="1.2" stroke="currentColor" stroke-width="1.8"/>
+  <rect x="22.5" y="5" width="4.5" height="21" rx="1.2" stroke="currentColor" stroke-width="1.8"/>
+  <path d="m6.2 10.2 4-4 4 4M14.2 6.2v8.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m20 21.8 3.2 3.2 3.2-3.2M23.2 17.6V25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div><div><div id="overRate" class="market-rate">--</div><div id="overSample" class="market-sample">--</div></div></div>
           <div id="overStatus" class="market-status">--</div>
         </article>
         <article class="market-card btts">
           <div class="market-top"><span class="market-tag">BTTS</span><span class="market-name" data-i18n="bttsName">雙方進球</span></div>
-          <div class="market-main"><div class="market-icon">⚽</div><div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div></div>
+          <div class="market-main"><div class="market-icon"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+  <circle cx="10" cy="16" r="6.2" stroke="currentColor" stroke-width="1.8"/>
+  <circle cx="22" cy="16" r="6.2" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M14.6 12.2 17.3 10l2.7 2.2-.9 3.2h-3.6l-.9-3.2ZM15.4 19h3.3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M4.4 13.4 7 12l2 1.8-.8 2.9H5.4M27.6 13.4 25 12l-2 1.8.8 2.9h2.8" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+</svg></div><div><div id="bttsRate" class="market-rate">--</div><div id="bttsSample" class="market-sample">--</div></div></div>
           <div id="bttsStatus" class="market-status">--</div>
         </article>
       </div>
@@ -302,9 +345,9 @@ let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod
 let viewData=null, allData=null;
 
 const I18N={
-  "zh-Hant":{back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
-  "zh-Hans":{back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
-  "en":{back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
+  "zh-Hant":{back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
+  "zh-Hans":{back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",verificationUnit:"笔验证",otherLeague:"其他联赛",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
+  "en":{back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",verificationUnit:"verified picks",otherLeague:"Other League",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
 };
 function getLang(){const s=(localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant").toLowerCase();if(s.includes("en"))return"en";if(s.includes("hans")||s.includes("cn"))return"zh-Hans";return"zh-Hant"}
 function tr(k){return I18N[getLang()]?.[k]??I18N["zh-Hant"][k]??k}
@@ -340,6 +383,7 @@ const LEAGUE_IDS=[
 function leagueId(name){const s=String(name||"").toLowerCase();for(const x of LEAGUE_IDS){if(x.keys.some(k=>s.includes(k.toLowerCase())))return x.id}return null}
 function leagueLogo(name){const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
 function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA",90:"KNV",239:"PRI",265:"COP",128:"ARG"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
+function displayLeagueName(name){const s=String(name||"").trim();return(!s||s==="--"||s.toLowerCase()==="null"||s.toLowerCase()==="undefined")?tr("otherLeague"):s}
 
 function classifyStatus(key){const trend=(allData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
 function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=viewData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
@@ -409,7 +453,7 @@ function renderTrend(){
     ${grid.map(v=>{const y=T+(100-v)/100*plotH;return `<line x1="${L}" y1="${y}" x2="${L+plotW}" y2="${y}" stroke="rgba(255,255,255,.08)" stroke-width="1"/><text x="${L-7}" y="${y+3}" text-anchor="end" fill="#78909d" font-size="9">${v}%</text>`}).join("")}
     <polygon points="${area}" fill="url(#trendArea)"/>
     <polyline points="${pts}" fill="none" stroke="#ffd044" stroke-width="3" vector-effect="non-scaling-stroke" filter="url(#trendGlow)"/>
-    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3.3" fill="#ffe176" stroke="#5b4710" stroke-width="1"/>`).join("")}
+    ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="4.1" fill="#ffe176" stroke="#5b4710" stroke-width="1.2"/><circle cx="${x}" cy="${ys[i]}" r="7.2" fill="none" stroke="rgba(255,209,68,.13)" stroke-width="1"/>`).join("")}
     ${xIdx.map(i=>`<text x="${xs[i]}" y="${H-8}" text-anchor="${i===0?"start":i===cumulative.length-1?"end":"middle"}" fill="#7f98a6" font-size="9">${shortDate(cumulative[i].date)}</text>`).join("")}
   </svg>`;
 
@@ -419,10 +463,10 @@ function renderTrend(){
   ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
   ch.style.color=diff>0?"#21d9a0":diff<0?"#ff696f":"#9eb3bf";
   document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
-  document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("samples")}`;
+  document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
-function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(x.league||"--")}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=leagueLogo(x.league),fallback=leagueShort(x.league);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(displayLeagueName(x.league))}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
 function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
@@ -442,7 +486,7 @@ function renderRecords(){
     const s=x.settlement||{},ov=overallResult(s),mp=predictionPick(x.prediction,"moneyline"),ou=predictionPick(x.prediction,"over_under"),bt=predictionPick(x.prediction,"btts");
     return`<tr>
       <td>${esc(dateFmt(x.kickoff_at))}</td>
-      <td><b>${esc(x.league||"--")}</b></td>
+      <td><b>${esc(displayLeagueName(x.league))}</b></td>
       <td>${esc(x.home)} vs ${esc(x.away)}</td>
       <td class="score">${esc(x.final_score||"-")}</td>
       <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td>
@@ -458,8 +502,8 @@ function renderRecords(){
     return`<article class="record-card">
       <div class="record-top">
         <div class="record-league">
-          ${logo?`<img src="${logo}" alt="${esc(x.league)}" onerror="this.style.display='none'">`:`<span>${esc(fallback)}</span>`}
-          <span>${esc(x.league||"--")}</span>
+          ${logo?`<img src="${logo}" alt="${esc(displayLeagueName(x.league))}" onerror="this.style.display=\'none\'">`:`<span>${esc(fallback)}</span>`}
+          <span>${esc(displayLeagueName(x.league))}</span>
         </div>
         <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
       </div>
