@@ -3075,10 +3075,84 @@ function getAnalysisLocalizedName(
 function getAnalysisLeagueName(
   league
 ) {
-  return getAnalysisLocalizedName(
-    league,
-    ""
-  );
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  const apiName =
+    league?.api_name ||
+    (typeof league === "string" ? league : "") ||
+    league?.name ||
+    "";
+
+  const traditionalMap = {
+    "UEFA Champions League": "歐洲冠軍聯賽",
+    "UEFA Europa League": "歐霸盃",
+    "Premier League": "英格蘭超級聯賽",
+    "La Liga": "西班牙甲級聯賽",
+    "Bundesliga": "德國甲級聯賽",
+    "Serie A": "義大利甲級聯賽",
+    "Ligue 1": "法國甲級聯賽",
+    "J1 League": "日本職業足球甲級聯賽",
+    "K League 1": "韓國職業足球甲級聯賽",
+    "Chinese Super League": "中國足球超級聯賽",
+    "Eredivisie": "荷蘭甲級聯賽",
+    "Serie A Brazil": "巴西甲級聯賽",
+    "Liga Profesional Argentina": "阿根廷甲級聯賽",
+    "KNVB Beker": "荷蘭盃",
+    "Copa Chile": "智利盃",
+    "Primera A": "哥倫比亞甲級聯賽"
+  };
+
+  if (lang === "en") {
+    return apiName || league?.name || "";
+  }
+
+  const traditional =
+    league?.name && /[\u3400-\u9fff]/.test(league.name)
+      ? league.name
+      : traditionalMap[apiName] ||
+        league?.name ||
+        apiName ||
+        "";
+
+  if (lang === "zh-Hans") {
+    return window.HabaoI18n?.toSimplified
+      ? window.HabaoI18n.toSimplified(traditional)
+      : traditional;
+  }
+
+  return traditional;
+}
+
+function getAnalysisVenueText(venue) {
+  if (!venue) return "";
+
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  const name = String(venue?.name || "").trim();
+  const city = String(venue?.city || "").trim();
+
+  if (lang === "en") {
+    return [name, city].filter(Boolean).join(" · ");
+  }
+
+  // 中文介面只顯示已有中文資料的場地資訊，避免整塊混入英文專有名詞。
+  const cjk = /[\u3400-\u9fff]/;
+  const parts = [name, city].filter(part => cjk.test(part));
+  let value = parts.join("・");
+
+  if (
+    lang === "zh-Hans" &&
+    value &&
+    window.HabaoI18n?.toSimplified
+  ) {
+    value = window.HabaoI18n.toSimplified(value);
+  }
+
+  return value;
 }   
 
 if (
@@ -3173,13 +3247,47 @@ const analysisLocale =
       : "zh-TW";
 
 const localizeAnalysisText = value => {
-  const text =
+  let text =
     value === null || value === undefined
       ? ""
       : String(value);
 
   if (!text) {
     return "";
+  }
+
+  if (currentAnalysisLang === "en") {
+    const exact = {
+      "主隊": "Home Team",
+      "主胜": "Home Team",
+      "主勝": "Home Team",
+      "客隊": "Away Team",
+      "客队": "Away Team",
+      "客勝": "Away Team",
+      "客胜": "Away Team",
+      "和局": "Draw",
+      "暫不推薦": "No Recommendation",
+      "暂不推荐": "No Recommendation",
+      "是": "Yes",
+      "否": "No",
+      "低": "Low",
+      "中": "Medium",
+      "中等": "Medium",
+      "高": "High"
+    };
+
+    if (exact[text]) {
+      return exact[text];
+    }
+
+    text = text
+      .replace(/^大\s*([0-9.]+)$/i, "Over $1")
+      .replace(/^小\s*([0-9.]+)$/i, "Under $1")
+      .replace(/^主隊或和局$|^主队或和局$/i, "Home or Draw")
+      .replace(/^主隊或客隊$|^主队或客队$/i, "Home or Away")
+      .replace(/^和局或客隊$|^和局或客队$/i, "Draw or Away");
+
+    return text;
   }
 
   if (
@@ -3291,8 +3399,7 @@ ${getAnalysisLeagueName(
   fixture.league || ""
 )}
 <br>
-        ${timeText}<br>
-        ${localizeAnalysisText(fixture.venue?.name || "")}${fixture.venue?.city ? "・" + localizeAnalysisText(fixture.venue.city) : ""}
+        ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
       </div>
 
       <div class="grid">
@@ -3641,10 +3748,69 @@ function applyAnalysisStaticLanguage() {
 
 applyAnalysisStaticLanguage();   
 
+async function refreshAnalysisLanguage() {
+  try {
+    const rawCurrent =
+      sessionStorage.getItem("matchAnalysis");
+
+    const current = rawCurrent
+      ? JSON.parse(rawCurrent)
+      : null;
+
+    const fixtureId =
+      Number(current?.fixture?.id || 0);
+
+    const member = JSON.parse(
+      sessionStorage.getItem("habao_member") ||
+      "null"
+    );
+
+    const language =
+      window.HabaoI18n?.getLanguage?.() ||
+      "zh-Hant";
+
+    if (!fixtureId || !member?.account) {
+      window.location.reload();
+      return;
+    }
+
+    const response = await fetch(
+      "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fixture_id: fixtureId,
+          account: member.account,
+          language
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data?.success) {
+      sessionStorage.setItem(
+        "matchAnalysis",
+        JSON.stringify(data)
+      );
+    }
+  } catch (error) {
+    console.error(
+      "ANALYSIS LANGUAGE REFRESH ERROR:",
+      error
+    );
+  }
+
+  window.location.reload();
+}
+
 window.addEventListener(
   "habao:languagechange",
   () => {
-    window.location.reload();
+    refreshAnalysisLanguage();
   }
 );
    
