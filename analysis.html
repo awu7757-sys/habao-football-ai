@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AI 賽事分析｜哈寶足球 AI</title>
+<title>AI 賽事分析｜HABAO 賽事預測 AI</title>
    
 <script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
@@ -2655,6 +2655,11 @@ h1{
   border-radius:16px;
   background:linear-gradient(135deg,rgba(233,198,111,.08),rgba(255,255,255,.025));
 }
+.bet-platform-card.is-live{
+  border-color:rgba(233,198,111,.38);
+  box-shadow:inset 0 0 0 1px rgba(233,198,111,.04);
+}
+
 .bet-platform-logo{
   width:54px;height:54px;flex:0 0 54px;object-fit:cover;
   border:1px solid rgba(233,198,111,.22);border-radius:13px;
@@ -2814,13 +2819,148 @@ h1{
    
 <script>
 
+
+const PARTNER_PLATFORMS_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/partner-platforms";
+
+let betPartnerPlatforms = [];
+
+function escapePartnerHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderBetPartnerPlatforms() {
+  const list =
+    document.querySelector(
+      ".bet-platform-list"
+    );
+
+  const note =
+    document.getElementById(
+      "betPlatformNote"
+    );
+
+  if (
+    !list ||
+    !betPartnerPlatforms.length
+  ) {
+    return;
+  }
+
+  list.innerHTML =
+    betPartnerPlatforms
+      .map(platform => {
+        const displayName =
+          platform.display_name ||
+          platform.name ||
+          "合作平台";
+
+        const logo =
+          platform.logo_url ||
+          "habao-hb-logo.png";
+
+        const url =
+          platform.bet_url ||
+          platform.register_url ||
+          "#";
+
+        return `
+          <div class="bet-platform-card is-live">
+            <img
+              src="${escapePartnerHtml(logo)}"
+              alt="${escapePartnerHtml(displayName)}"
+              class="bet-platform-logo"
+            >
+
+            <div class="bet-platform-info">
+              <strong>
+                ${escapePartnerHtml(displayName)}
+              </strong>
+              <span>
+                ${analysisT(
+                  "betPlatformPartner",
+                  "合作平台"
+                )}
+              </span>
+            </div>
+
+            <a
+              href="${escapePartnerHtml(url)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bet-platform-go"
+            >
+              ${analysisT(
+                "betPlatformGo",
+                "前往投注 ↗"
+              )}
+            </a>
+          </div>
+        `;
+      })
+      .join("");
+
+  if (note) {
+    note.textContent =
+      betPartnerPlatforms.length <= 1
+        ? analysisT(
+            "betPlatformNote",
+            "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。"
+          )
+        : `目前共有 ${betPartnerPlatforms.length} 個合作平台可選擇。`;
+  }
+}
+
+async function loadBetPartnerPlatforms() {
+  try {
+    const response =
+      await fetch(
+        PARTNER_PLATFORMS_URL,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data?.success ||
+      !Array.isArray(
+        data?.platforms
+      ) ||
+      !data.platforms.length
+    ) {
+      return;
+    }
+
+    betPartnerPlatforms =
+      data.platforms;
+
+    renderBetPartnerPlatforms();
+
+  } catch (error) {
+    console.error(
+      "PARTNER PLATFORM LOAD ERROR:",
+      error
+    );
+  }
+}
+
 /* =====================================
    HABAO ANALYSIS I18N
 ===================================== */
 
 const analysisTranslations = {
   "zh-Hant": {
-    pageTitle: "AI 賽事分析｜哈寶足球 AI",
+    pageTitle: "AI 賽事分析｜HABAO 賽事預測 AI",
     matchCenter: "賽事中心",
 
     previousMatch: "← 上一場",
@@ -2876,7 +3016,7 @@ const analysisTranslations = {
   },
 
   "zh-Hans": {
-    pageTitle: "AI 赛事分析｜哈宝足球 AI",
+    pageTitle: "AI 赛事分析｜HABAO 赛事预测 AI",
     matchCenter: "赛事中心",
 
     previousMatch: "← 上一场",
@@ -2932,7 +3072,7 @@ const analysisTranslations = {
   },
 
   "en": {
-    pageTitle: "AI Match Analysis | HABAO Football AI",
+    pageTitle: "AI Match Analysis | HABAO Sports Prediction AI",
     matchCenter: "Match Center",
 
     previousMatch: "← Previous",
@@ -3048,6 +3188,8 @@ function syncBetPlatformModalLanguage() {
 
 function openBetPlatformModal() {
   syncBetPlatformModalLanguage();
+  renderBetPartnerPlatforms();
+  loadBetPartnerPlatforms();
 
   const overlay =
     document.getElementById("betPlatformOverlay");
@@ -4115,6 +4257,7 @@ async function refreshAnalysisLanguage() {
 window.addEventListener(
   "habao:languagechange",
   () => {
+    renderBetPartnerPlatforms();
     refreshAnalysisLanguage();
   }
 );
