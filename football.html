@@ -7557,9 +7557,54 @@ if (!matches.length) {
           resultLeague?.name ||
           "";
 
+        const resultLeagueId =
+          Number(
+            resultLeague?.id || 0
+          );
+
+        const resultLeagueCountry =
+          String(
+            resultLeague?.country ||
+            resultFixture?.country ||
+            ""
+          ).toLowerCase();
+
+        const historyIsBrazilSerieA =
+          resultLeagueId === 71 ||
+          (
+            /serie a/i.test(
+              String(
+                resultLeagueApiName ||
+                match.league_name ||
+                resultLeagueZhName ||
+                ""
+              )
+            ) &&
+            (
+              resultLeagueCountry.includes("brazil") ||
+              resultLeagueCountry.includes("brasil")
+            )
+          );
+
         let leagueName;
 
-        if (lang === "en") {
+        if (historyIsBrazilSerieA) {
+          if (lang === "en") {
+            leagueName =
+              "Brazil Serie A";
+          } else {
+            const brazilZh =
+              "巴西甲級聯賽";
+
+            leagueName =
+              lang === "zh-Hans" &&
+              window.HabaoI18n?.toSimplified
+                ? window.HabaoI18n.toSimplified(
+                    brazilZh
+                  )
+                : brazilZh;
+          }
+        } else if (lang === "en") {
           leagueName =
             resultLeagueApiName ||
             match.league_name ||
