@@ -3073,7 +3073,8 @@ function getAnalysisLocalizedName(
 
 
 function getAnalysisLeagueName(
-  league
+  league,
+  fixtureCountry = ""
 ) {
   const lang =
     window.HabaoI18n?.getLanguage?.() ||
@@ -3088,9 +3089,27 @@ function getAnalysisLeagueName(
   const leagueId =
     Number(league?.id || 0);
 
+  const leagueCountry =
+    String(
+      league?.country ||
+      fixtureCountry ||
+      ""
+    ).toLowerCase();
+
+  const isBrazilSerieA =
+    leagueId === 71 ||
+    (
+      /serie a/i.test(apiName) &&
+      (
+        leagueCountry.includes("brazil") ||
+        leagueCountry.includes("brasil")
+      )
+    );
+
   /*
-    API-Football 的義甲與巴甲英文都可能叫 Serie A。
-    因此不能只靠 league name 判斷，白名單聯賽優先使用 league id。
+    舊的「我的分析」紀錄有一部分曾把巴甲 Serie A
+    存成義大利甲級聯賽。這裡除 league id 外，再用 country
+    做 fallback，讓既有歷史紀錄不用重新分析也能顯示正確。
   */
   const traditionalById = {
     2: "歐洲冠軍聯賽",
@@ -3143,6 +3162,10 @@ function getAnalysisLeagueName(
   };
 
   if (lang === "en") {
+    if (isBrazilSerieA) {
+      return "Brazil Serie A";
+    }
+
     return (
       englishById[leagueId] ||
       apiName ||
@@ -3152,13 +3175,15 @@ function getAnalysisLeagueName(
   }
 
   const traditional =
-    traditionalById[leagueId] ||
-    (league?.name && /[\u3400-\u9fff]/.test(league.name)
-      ? league.name
-      : traditionalMap[apiName] ||
-        league?.name ||
-        apiName ||
-        "");
+    isBrazilSerieA
+      ? "巴西甲級聯賽"
+      : traditionalById[leagueId] ||
+        (league?.name && /[\u3400-\u9fff]/.test(league.name)
+          ? league.name
+          : traditionalMap[apiName] ||
+            league?.name ||
+            apiName ||
+            "");
 
   if (lang === "zh-Hans") {
     return window.HabaoI18n?.toSimplified
@@ -3440,7 +3465,8 @@ const timeText = gameDate
 
       <div class="meta">
 ${getAnalysisLeagueName(
-  fixture.league || ""
+  fixture.league || "",
+  fixture.country || ""
 )}
 <br>
         ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
