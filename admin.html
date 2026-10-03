@@ -2,1379 +2,938 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>會員管理後台｜哈寶足球 AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<title>HABAO 賽事預測 AI｜Admin Center</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
-
 :root{
-  --bg:#06141f;
-  --bg2:#081b29;
-  --card:#0c1e2b;
-  --card2:#0a1824;
-  --line:rgba(80,255,190,.14);
-  --green:#39f0a0;
-  --green2:#58f5b5;
-  --text:#f4f8fb;
-  --muted:#7890a3;
-  --red:#ff6f7d;
-  --yellow:#ffc857;
+  --bg:#070a0f;
+  --panel:#0e141d;
+  --panel2:#121b26;
+  --panel3:#0a1017;
+  --border:rgba(255,255,255,.08);
+  --border-gold:rgba(242,189,75,.18);
+  --text:#f7f9fc;
+  --soft:#dce3eb;
+  --muted:#8f9aaa;
+  --gold:#f2bd4b;
+  --gold-light:#ffe39d;
+  --gold-dark:#d99821;
+  --gold-soft:rgba(242,189,75,.10);
+  --green:#3cdd82;
+  --green-soft:rgba(60,221,130,.10);
+  --red:#ff6565;
+  --red-soft:rgba(255,101,101,.10);
+  --blue:#70a8ff;
+  --shadow:0 18px 48px rgba(0,0,0,.34);
 }
 
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
 body{
+  margin:0;
   min-height:100vh;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
   color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   background:
-    radial-gradient(circle at 15% 10%,rgba(0,255,170,.08),transparent 28%),
-    linear-gradient(135deg,#041116 0%,#071522 52%,#08192d 100%);
+    radial-gradient(circle at 50% -10%,rgba(242,189,75,.10),transparent 25%),
+    radial-gradient(circle at 0 40%,rgba(60,221,130,.035),transparent 30%),
+    linear-gradient(180deg,#0c1118 0%,#080b10 42%,#06080c 100%);
+  -webkit-font-smoothing:antialiased;
 }
 
-button,input{
-  font:inherit;
-}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
 
-button{
-  cursor:pointer;
-}
+.shell{min-height:100vh}
 
-.hidden{
-  display:none !important;
-}
-
-.header{
-  height:76px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  background:rgba(2,12,18,.78);
-  backdrop-filter:blur(14px);
-}
-
-.header-inner{
-  max-width:1180px;
-  height:100%;
-  margin:auto;
-  padding:0 24px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.logo{
-  width:44px;
-  height:44px;
-  border-radius:13px;
+/* LOGIN */
+.login-page{
+  min-height:100vh;
   display:grid;
   place-items:center;
-  font-size:23px;
-  background:linear-gradient(135deg,#0b493b,#103025);
-  border:1px solid rgba(70,255,180,.25);
+  padding:28px 18px;
 }
-
-.brand-title{
-  font-size:17px;
-  font-weight:900;
-}
-
-.brand-sub{
-  margin-top:2px;
-  font-size:9px;
-  letter-spacing:2px;
-  color:var(--green);
-}
-
-.header-tag{
-  font-size:12px;
-  color:var(--green);
-  letter-spacing:2px;
-}
-
-.container{
-  max-width:1180px;
-  margin:auto;
-  padding:48px 24px 80px;
-}
-
-.eyebrow{
-  color:var(--green);
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:4px;
-  margin-bottom:14px;
-}
-
-h1{
-  font-size:34px;
-  margin-bottom:8px;
-}
-
-.subtitle{
-  color:var(--muted);
-  line-height:1.7;
-  margin-bottom:30px;
-}
-
-/* 登入 */
-
-.login-wrap{
-  max-width:480px;
-  margin:80px auto;
-}
-
-.panel{
-  background:rgba(11,29,42,.9);
-  border:1px solid var(--line);
-  border-radius:26px;
+.login-card{
+  width:min(100%,430px);
   padding:30px;
-  box-shadow:0 25px 80px rgba(0,0,0,.18);
+  border:1px solid var(--border-gold);
+  border-radius:26px;
+  background:
+    radial-gradient(circle at top right,rgba(242,189,75,.10),transparent 36%),
+    linear-gradient(180deg,rgba(20,28,39,.96),rgba(8,12,18,.98));
+  box-shadow:var(--shadow);
 }
-
-.panel h2{
-  font-size:25px;
-  margin-bottom:8px;
+.login-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:28px;
 }
-
-.panel-desc{
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.6;
-  margin-bottom:24px;
+.brand-logo{
+  width:50px;height:50px;flex:0 0 50px;
+  background:url("./habao-hb-logo.png") center/contain no-repeat;
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.4)) drop-shadow(0 0 12px rgba(242,189,75,.10));
 }
-
-.label{
-  font-size:13px;
-  font-weight:800;
-  color:#b9cad5;
-  display:block;
-  margin-bottom:8px;
-}
-
+.brand-name{font-size:18px;font-weight:950;letter-spacing:.2px}
+.brand-sub{margin-top:4px;color:var(--gold);font-size:9px;font-weight:900;letter-spacing:2px}
+.kicker{color:var(--gold);font-size:10px;font-weight:950;letter-spacing:2.2px}
+.login-card h1{margin:12px 0 8px;font-size:30px;letter-spacing:-1px}
+.desc{color:var(--muted);font-size:13px;line-height:1.75}
+.field{margin-top:18px}
+.label{display:block;margin-bottom:8px;color:#aeb7c3;font-size:11px;font-weight:850}
 .input{
   width:100%;
-  height:52px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.11);
-  background:#07141f;
-  color:white;
+  min-height:46px;
+  padding:11px 13px;
+  border:1px solid var(--border);
+  border-radius:13px;
   outline:none;
-  padding:0 16px;
-  transition:.2s;
+  color:var(--text);
+  background:#080d13;
+  transition:.2s ease;
 }
-
 .input:focus{
-  border-color:rgba(57,240,160,.55);
-  box-shadow:0 0 0 3px rgba(57,240,160,.06);
+  border-color:rgba(242,189,75,.42);
+  box-shadow:0 0 0 3px rgba(242,189,75,.07);
 }
-
-.btn{
-  border:0;
-  border-radius:14px;
-  height:50px;
-  padding:0 20px;
-  font-weight:900;
-}
-
+textarea.input{min-height:116px;resize:vertical}
 .btn-primary{
   width:100%;
+  min-height:48px;
   margin-top:16px;
-  background:linear-gradient(90deg,#25e68d,#60f4b2);
-  color:#04150f;
+  border:0;
+  border-radius:14px;
+  color:#171006;
+  background:linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+  font-weight:950;
+  box-shadow:0 10px 27px rgba(242,189,75,.18);
+}
+.login-message{min-height:20px;margin-top:12px;font-size:12px;color:var(--red)}
+
+/* APP FRAME */
+.admin-app{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;
+  padding:22px 16px;
+  border-right:1px solid var(--border);
+  background:rgba(7,10,15,.94);
+  backdrop-filter:blur(18px);
+  overflow:auto;
+}
+.sidebar-brand{
+  display:flex;align-items:center;gap:11px;
+  padding:5px 7px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-brand .brand-logo{width:43px;height:43px;flex-basis:43px}
+.sidebar-brand .brand-name{font-size:15px}
+.sidebar-brand .brand-sub{font-size:8px;letter-spacing:1.5px}
+.side-section{margin-top:20px}
+.side-label{padding:0 10px 8px;color:#596473;font-size:9px;font-weight:950;letter-spacing:1.5px}
+.nav-btn{
+  width:100%;
+  display:flex;align-items:center;gap:10px;
+  padding:11px 12px;
+  margin:3px 0;
+  border:1px solid transparent;
+  border-radius:13px;
+  color:#aeb7c3;
+  background:transparent;
+  text-align:left;
+  font-size:12px;
+  font-weight:850;
+}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.035)}
+.nav-btn.active{
+  color:var(--gold-light);
+  border-color:rgba(242,189,75,.16);
+  background:linear-gradient(90deg,rgba(242,189,75,.11),rgba(242,189,75,.025));
+}
+.nav-icon{
+  width:27px;height:27px;flex:0 0 27px;
+  display:grid;place-items:center;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:rgba(255,255,255,.025);
+  font-size:12px;
+}
+.nav-btn.active .nav-icon{
+  border-color:rgba(242,189,75,.22);
+  background:var(--gold-soft);
+}
+.nav-btn.disabled{opacity:.34;cursor:not-allowed}
+.phase-tag{
+  margin-left:auto;
+  padding:3px 6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+  color:#697483;
+  font-size:8px;
+}
+.sidebar-bottom{margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+.logout-btn{
+  width:100%;padding:11px 12px;
+  border:1px solid rgba(255,101,101,.13);
+  border-radius:12px;
+  color:#ff9a9a;
+  background:rgba(255,101,101,.045);
+  font-weight:850;
 }
 
-.error{
-  color:#ff8b96;
-  margin-top:14px;
-  font-size:13px;
-  line-height:1.6;
+.main{min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:30;
+  height:70px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,11,16,.84);
+  backdrop-filter:blur(18px);
 }
-
-.success{
-  color:var(--green);
-  margin-top:14px;
-  font-size:13px;
+.topbar-left{display:flex;align-items:center;gap:12px}
+.mobile-menu{display:none}
+.page-name{font-size:14px;font-weight:950}
+.page-sub{margin-top:3px;color:#677281;font-size:9px;font-weight:750;letter-spacing:.5px}
+.top-actions{display:flex;align-items:center;gap:8px}
+.ghost-btn{
+  min-height:36px;padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  color:#d7dde5;
+  background:rgba(255,255,255,.03);
+  font-size:10px;font-weight:850;
 }
+.ghost-btn:hover{border-color:rgba(242,189,75,.22)}
+.content{padding:26px;max-width:1600px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:21px}
+.page-kicker{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:2px}
+.page-title{margin:7px 0 5px;font-size:28px;font-weight:950;letter-spacing:-.8px}
+.page-desc{color:var(--muted);font-size:12px;line-height:1.65}
 
-/* dashboard */
+/* COMPONENTS */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;
+}
+.stat-card{
+  position:relative;overflow:hidden;
+  min-height:118px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.014));
+  box-shadow:0 10px 28px rgba(0,0,0,.16);
+}
+.stat-card.gold{border-color:rgba(242,189,75,.20);background:linear-gradient(145deg,rgba(242,189,75,.11),rgba(255,255,255,.018))}
+.stat-card.green{border-color:rgba(60,221,130,.17);background:linear-gradient(145deg,rgba(60,221,130,.08),rgba(255,255,255,.016))}
+.stat-card.blue{border-color:rgba(112,168,255,.18);background:linear-gradient(145deg,rgba(112,168,255,.08),rgba(255,255,255,.016))}
+.stat-label{color:#778291;font-size:9px;font-weight:850;letter-spacing:.3px}
+.stat-value{margin-top:11px;color:#fff;font-size:28px;font-weight:950;letter-spacing:-.7px}
+.stat-value.gold-text{color:var(--gold-light)}
+.stat-value.green-text{color:var(--green)}
+.stat-note{margin-top:5px;color:#697584;font-size:9px;line-height:1.45}
+
+.panel{
+  margin-top:15px;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:19px;
+  background:linear-gradient(180deg,rgba(17,24,34,.94),rgba(9,14,20,.96));
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-bottom:15px;
+}
+.panel-title{font-size:14px;font-weight:950}
+.panel-desc{margin-top:4px;color:var(--muted);font-size:10px}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.three-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.progress-wrap{margin-top:14px}
+.progress-line{height:8px;border-radius:999px;background:#080c12;overflow:hidden;border:1px solid rgba(255,255,255,.045)}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));border-radius:999px;transition:width .35s ease}
+.progress-fill.green{background:linear-gradient(90deg,#169d5b,var(--green))}
+.progress-meta{display:flex;justify-content:space-between;gap:10px;margin-top:7px;color:#758190;font-size:9px}
 
 .toolbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:13px;
 }
+.filters{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.filters .input{width:auto;min-width:150px;min-height:40px}
+.search{min-width:270px!important;flex:1;max-width:420px}
 
-.stats{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.stat{
-  min-width:150px;
-  padding:16px 18px;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:16px;
-}
-
-.stat-label{
-  color:var(--muted);
-  font-size:11px;
-  margin-bottom:6px;
-}
-
-.stat-value{
-  font-size:25px;
-  font-weight:900;
-  color:var(--green);
-}
-
-.toolbar-actions{
-  display:flex;
-  gap:10px;
-}
-
-.small-btn{
-  height:44px;
-  border-radius:12px;
-  padding:0 17px;
-  border:1px solid rgba(255,255,255,.1);
-  background:#0c1c29;
-  color:white;
-  font-weight:800;
-}
-
-.green-btn{
-  background:var(--green);
-  color:#04140e;
-  border-color:transparent;
-}
-
-/* 新增會員 */
-
-.create-card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:22px;
-  margin-bottom:22px;
-}
-
-.create-title{
-  font-size:18px;
-  font-weight:900;
-  margin-bottom:18px;
-}
-
-.create-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr 180px;
-  gap:12px;
-  align-items:end;
-}
-
-.create-grid .btn{
-  margin:0;
-}
-
-/* 搜尋 */
-
-.search-row{
-  margin-bottom:16px;
-}
-
-.search-input{
-  max-width:420px;
-}
-
-/* table */
-
-.table-wrap{
-  border:1px solid var(--line);
-  border-radius:20px;
+.table-shell{
   overflow:hidden;
-  background:rgba(10,27,39,.86);
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:#091019;
 }
-
-.table-scroll{
-  max-height: 560px;
-  overflow-x: auto;
-  overflow-y: auto;
-}
-
-#benefitsAdminList{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:16px;
-  max-height:520px;
-  overflow-y:auto;
-  padding-right:6px;
-}  
-
-.announcement-admin-section{
-  margin-top:24px;
-  background:#0c202d;
-  border:1px solid rgba(80,255,190,.14);
-  border-radius:18px;
-  padding:20px;
-}
-
-.push-admin-section{
-  background:#0c202d;
-  border:1px solid rgba(80,255,190,.14);
-  border-radius:18px;
-  padding:20px;
-}
-
-.push-admin-section .section-title{
-  font-size:20px;
-  font-weight:900;
-  margin-bottom:16px;
-}
-
-.push-admin-section .input{
-  background:#081923;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:12px;
-}  
-
-.announcement-admin-section h2{
-  margin-bottom:16px;
-}
-
-.announcement-admin-section .input{
-  background:#081923;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:12px;
-}  
-
-.benefit-admin-item{
-  background:#0c202d;
-  border:1px solid rgba(80,255,190,.14);
-  border-radius:16px;
-  padding:16px;
-  min-width:0;
-}
-
-.benefit-admin-item img{
-  width:100% !important;
-  height:150px !important;
-  object-fit:cover !important;
-  border-radius:12px !important;
-  display:block;
-  margin-bottom:12px;
-}  
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:1350px;
-}
-
+.table-scroll{overflow:auto;max-height:650px}
+table{width:100%;border-collapse:collapse;min-width:1120px}
 th{
+  position:sticky;top:0;z-index:2;
+  padding:12px 13px;
+  color:#7f8a98;
+  background:#0d1620;
+  border-bottom:1px solid var(--border);
   text-align:left;
-  padding:15px 16px;
-  background:#0c202d;
-  color:#8097a8;
-  font-size:11px;
-  letter-spacing:1px;
-  white-space:nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  font-size:9px;font-weight:950;white-space:nowrap;
 }
-
 td{
-  padding:16px;
-  border-top:1px solid rgba(255,255,255,.055);
+  padding:13px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  color:#dce3eb;
+  font-size:10px;
   vertical-align:middle;
 }
-
-.account{
-  font-weight:900;
-  font-size:15px;
-}
-
-.id-text{
-  color:#5f788a;
-  font-size:11px;
-  margin-top:4px;
-}
-
+tr:last-child td{border-bottom:0}
+.account-name{color:#fff;font-weight:900;font-size:11px}
+.subline{margin-top:4px;color:#667281;font-size:8px}
 .status{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  border-radius:99px;
-  padding:6px 10px;
-  font-size:11px;
-  font-weight:900;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 8px;border-radius:999px;
+  font-size:9px;font-weight:900;
 }
-
-.status-active{
-  background:rgba(57,240,160,.1);
-  color:var(--green);
-}
-
-.status-off{
-  background:rgba(255,111,125,.1);
-  color:#ff8b96;
-}
-
-.dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:currentColor;
-}
-
-.expire{
-  font-size:13px;
-  color:#c2d0da;
-  white-space:nowrap;
-}
-
-.row-actions{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-}
-
+.status.active{color:var(--green);background:var(--green-soft)}
+.status.off{color:#ff9595;background:var(--red-soft)}
+.status.vip{color:var(--gold-light);background:var(--gold-soft)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
 .action-btn{
+  padding:7px 9px;
+  border:1px solid var(--border);
   border-radius:9px;
-  padding:8px 11px;
-  border:1px solid rgba(255,255,255,.09);
-  background:#102432;
-  color:white;
-  font-size:11px;
-  font-weight:800;
+  color:#d7dde5;
+  background:rgba(255,255,255,.025);
+  font-size:9px;font-weight:850;
+}
+.action-btn.gold{color:var(--gold-light);border-color:rgba(242,189,75,.16);background:rgba(242,189,75,.055)}
+.action-btn.red{color:#ff9595;border-color:rgba(255,101,101,.14);background:rgba(255,101,101,.045)}
+.action-btn.green{color:var(--green);border-color:rgba(60,221,130,.14);background:rgba(60,221,130,.045)}
+.empty,.loading{padding:48px 20px;text-align:center;color:#6d7988;font-size:11px}
+
+/* ANNOUNCEMENTS / PUSH */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-box{
+  padding:16px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.018)
+}
+.switch-row{
+  display:flex;align-items:center;gap:9px;margin-top:11px;
+  color:#b8c0ca;font-size:10px;font-weight:800
+}
+.switch-row input{accent-color:var(--gold)}
+.save-btn{
+  min-height:42px;padding:10px 16px;border:0;border-radius:11px;
+  color:#171006;background:linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+  font-size:10px;font-weight:950
+}
+.danger-note{
+  margin-top:10px;padding:10px 12px;border:1px solid rgba(255,101,101,.12);
+  border-radius:11px;color:#d69292;background:rgba(255,101,101,.035);font-size:9px;line-height:1.55
+}
+.result-box{
+  min-height:40px;margin-top:12px;padding:11px 13px;
+  border:1px solid var(--border);border-radius:11px;
+  color:#99a5b3;background:#080d13;font-size:10px;line-height:1.5
 }
 
-.action-btn:hover{
-  border-color:rgba(57,240,160,.35);
+/* API */
+.api-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:15px}
+.api-big{
+  padding:21px;border:1px solid rgba(242,189,75,.18);border-radius:20px;
+  background:linear-gradient(145deg,rgba(242,189,75,.09),rgba(255,255,255,.014));
 }
-
-.danger-btn{
-  color:#ff8994;
+.api-number{margin-top:10px;font-size:36px;font-weight:950;letter-spacing:-1px}
+.mini-list{display:grid;gap:9px}
+.mini-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px;border:1px solid var(--border);border-radius:13px;background:rgba(255,255,255,.018)
 }
+.mini-key{color:#7f8a98;font-size:10px}
+.mini-val{color:#fff;font-size:11px;font-weight:900}
 
-.enable-btn{
-  color:var(--green);
-}
-
-/* modal */
-
+/* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  backdrop-filter:blur(8px);
-  z-index:20;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
+  position:fixed;inset:0;z-index:1000;
+  display:grid;place-items:center;padding:18px;
+  background:rgba(0,0,0,.76);backdrop-filter:blur(12px)
 }
-
 .modal-card{
-  width:min(460px,100%);
-  padding:26px;
-  border-radius:20px;
-  background:#0b1d2a;
-  border:1px solid rgba(57,240,160,.18);
+  width:min(100%,430px);padding:22px;
+  border:1px solid var(--border-gold);border-radius:20px;
+  background:linear-gradient(180deg,#151c26,#090d13);
+  box-shadow:0 30px 90px rgba(0,0,0,.55)
+}
+.modal-title{font-size:17px;font-weight:950}
+.modal-account{margin:7px 0 17px;color:var(--gold-light);font-size:11px}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.modal-actions button{flex:1}
+.modal-close{
+  padding:10px;border:1px solid var(--border);border-radius:10px;color:#c4ccd5;background:rgba(255,255,255,.03);font-size:10px;font-weight:850
 }
 
-.modal-title{
-  font-size:21px;
-  font-weight:900;
-  margin-bottom:6px;
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .api-grid,.split-grid{grid-template-columns:1fr}
 }
-
-.modal-account{
-  color:var(--green);
-  margin-bottom:20px;
+@media(max-width:820px){
+  .admin-app{grid-template-columns:1fr}
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:100;
+    width:255px;transform:translateX(-102%);transition:.22s ease;
+    box-shadow:30px 0 80px rgba(0,0,0,.45)
+  }
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:inline-flex}
+  .content{padding:18px 14px 40px}
+  .topbar{padding:0 14px}
+  .page-title{font-size:24px}
+  .form-grid,.three-grid{grid-template-columns:1fr}
 }
-
-.modal-actions{
-  display:flex;
-  gap:10px;
-  margin-top:18px;
-}
-
-.modal-actions button{
-  flex:1;
-}
-
-.empty{
-  padding:60px 20px;
-  text-align:center;
-  color:var(--muted);
-}
-
-.loading{
-  padding:50px;
-  text-align:center;
-  color:var(--green);
-}
-
-@media(max-width:720px){
-
-  .header-inner{
-    padding:0 16px;
-  }
-
-  .header-tag{
-    display:none;
-  }
-
-  .container{
-    padding:32px 16px 70px;
-  }
-
-  h1{
-    font-size:28px;
-  }
-
-  .toolbar{
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .toolbar-actions{
-    width:100%;
-  }
-
-  .toolbar-actions button{
-    flex:1;
-  }
-
-  .stat{
-    min-width:120px;
-    flex:1;
-  }
-
-  .create-grid{
-    grid-template-columns:1fr;
-  }
-
-  .login-wrap{
-    margin:45px auto;
-  }
-
-  .panel{
-    padding:24px 20px;
-  }
+@media(max-width:560px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-card{min-height:103px;padding:13px}
+  .stat-value{font-size:23px}
+  .toolbar{align-items:stretch;flex-direction:column}
+  .filters{display:grid;grid-template-columns:1fr 1fr}
+  .filters .input,.search{width:100%!important;min-width:0!important;max-width:none}
 }
 </style>
 </head>
 
 <body>
 
-<header class="header">
-  <div class="header-inner">
-    <div class="brand">
-      <div class="logo">⚽</div>
+<!-- LOGIN -->
+<section id="loginPage" class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-logo"></div>
       <div>
-        <div class="brand-title">哈寶足球 AI</div>
-        <div class="brand-sub">HABAO FOOTBALL AI</div>
+        <div class="brand-name">HABAO 賽事預測 AI</div>
+        <div class="brand-sub">SPORTS INTELLIGENCE</div>
       </div>
     </div>
 
-    <div class="header-tag">ADMIN CENTER</div>
-  </div>
-</header>
+    <div class="kicker">HABAO ADMIN CENTER</div>
+    <h1>管理後台</h1>
+    <div class="desc">使用管理密碼進入後台。第一階段保留目前既有會員、公告、推播與 API 管理功能。</div>
 
-<!-- 管理登入 -->
-<div id="loginPage" class="container">
-  <div class="login-wrap">
-
-    <div class="eyebrow">ADMIN CENTER</div>
-
-    <div class="panel">
-      <h2>管理後台</h2>
-
-      <div class="panel-desc">
-        請輸入管理密碼進入會員管理系統
-      </div>
-
-      <label class="label">管理密碼</label>
-
-      <input
-        id="adminPassword"
-        class="input"
-        type="password"
-        placeholder="請輸入管理密碼"
-        autocomplete="current-password"
-      >
-
-      <button
-        id="loginBtn"
-        class="btn btn-primary"
-        onclick="adminLogin()"
-      >
-        進入管理後台 →
-      </button>
-
-      <div id="loginMessage"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 後台 -->
-<main id="dashboard" class="container hidden">
-
-  <div class="eyebrow">HABAO ADMIN CENTER</div>
-
-  <h1>會員管理後台</h1>
-
-  <div class="subtitle">
-    新增會員、修改使用期限與管理會員使用狀態。
-  </div>
-
-  <div class="toolbar">
-
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-label">會員總數</div>
-        <div id="totalCount" class="stat-value">0</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">正常使用</div>
-        <div id="activeCount" class="stat-value">0</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">已停權</div>
-        <div id="inactiveCount" class="stat-value">0</div>
-      </div>
-      <div class="stat">
-  <div class="stat-label">今日 AI 分析次數</div>
-  <div id="todayAnalysisCount" class="stat-value">0</div>
-</div> 
-      <div class="stat">
-  <div class="stat-label">今日 API 使用量</div>
- <div id="todayApiCount" class="stat-value">0 / --</div>
-</div>
-
-<div class="stat">
-  <div class="stat-label">API 續費</div>
-  <div id="apiRenewalDate" class="stat-value">--</div>
-  <div id="apiRenewalDays" style="margin-top:6px;font-size:13px;color:#94a3b8;">
-    --
-  </div>
-</div>
-
-<div class="stat">
-  <div class="stat-label">近 7 天平均 API</div>
-  <div id="avgApiUsage" class="stat-value">--</div>
-  <div id="apiUsageStatus" style="margin-top:6px;font-size:13px;color:#94a3b8;">
-    --
-  </div>
-</div>
-      
+    <div class="field">
+      <label class="label" for="adminPassword">管理密碼</label>
+      <input id="adminPassword" class="input" type="password" placeholder="請輸入管理密碼" autocomplete="current-password">
     </div>
 
-    <div class="toolbar-actions">
-      <button class="small-btn" onclick="loadMembers()">
-        ↻ 重新整理
-      </button>
-
-      <button class="small-btn" onclick="logoutAdmin()">
-        登出
-      </button>
-    </div>
-
-  </div>
-
-  <!-- 新增會員 -->
-  <div class="create-card">
-
-    <div class="create-title">
-      ＋ 新增會員
-    </div>
-
-<div class="create-grid">
-
-  <div>
-    <label class="label">會員帳號</label>
-    <input
-      id="newAccount"
-      class="input"
-      placeholder="例如：habao001"
-    >
-  </div>
-
-  <button
-    id="createBtn"
-    class="btn green-btn"
-    onclick="createMember()"
-  >
-    新增會員
-  </button>
-
-</div>
-
-    <div id="createMessage"></div>
-
-  </div>
-
-  <!-- 搜尋 -->
-  <div class="search-row">
-    <input
-      id="searchInput"
-      class="input search-input"
-      placeholder="搜尋會員帳號..."
-      oninput="renderMembers()"
-    >
-  </div>
-
-  <!-- 會員列表 -->
-  <div class="table-wrap">
-
-    <div id="loading" class="loading hidden">
-      正在載入會員資料...
-    </div>
-
-    <div class="table-scroll">
-      <table id="memberTable">
-
-<thead>
-  <tr>
-    <th>會員帳號</th>
-    <th>會員等級</th>
-    <th>使用狀態</th>
-    <th>VIP 每日積分</th>
-    <th>原有積分</th>
-    <th>總可用積分</th>
-    <th>建立時間</th>
-    <th>最後登入時間</th>
-    <th>操作</th>
-  </tr>
-</thead>
-
-        <tbody id="memberBody"></tbody>
-
-      </table>
-    </div>
-
-    <div id="emptyState" class="empty hidden">
-      尚無會員資料
-    </div>
-
-  </div>
-    <!-- 福利管理 -->
-    <section class="benefits-admin-section">
-      <h2>本站福利管理</h2>
-
-      <div class="benefits-admin-actions">
-        <button
-  type="button"
-  class="btn green-btn"
-  onclick="openBenefitModal()"
->
-  ＋ 新增福利活動
-</button>
-      </div>
-
-      <div id="benefitsAdminList">
-        尚無福利資料
-      </div>
-    </section>
-<!-- 公告管理 -->
-<section class="benefits-admin-section announcement-admin-section">
-  <h2>公告管理</h2>
-
-  <div style="margin-top:16px;">
-    <label class="label">一般公告</label>
-
-    <textarea
-      id="normalAnnouncement"
-      class="input"
-      rows="4"
-      placeholder="例如：哈寶足球 AI 系統已更新，祝大家使用愉快！"
-      style="width:100%;resize:vertical;"
-    ></textarea>
-    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
-  <input
-    type="checkbox"
-    id="normalAnnouncementEnabled"
-  >
-  啟用一般公告
-</label>
-    
-  </div>
-
-  <div style="margin-top:16px;">
-    <label class="label">緊急維護公告</label>
-
-    <textarea
-      id="maintenanceAnnouncement"
-      class="input"
-      rows="4"
-      placeholder="例如：系統維護中，部分功能暫時無法使用。"
-      style="width:100%;resize:vertical;"
-    ></textarea>
-    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
-  <input
-    type="checkbox"
-    id="maintenanceAnnouncementEnabled"
-  >
-  開啟系統維護模式（會員將無法登入）
-</label>
-    
-  </div>
-
-  <div style="margin-top:16px;">
-    <button
-  type="button"
-  class="btn green-btn"
-  id="saveAnnouncementBtn"
-  onclick="saveAnnouncementSettings()"
->
-  儲存公告與系統設定
-</button>
+    <button id="loginBtn" class="btn-primary" onclick="adminLogin()">進入管理後台 →</button>
+    <div id="loginMessage" class="login-message"></div>
   </div>
 </section>
 
-<!-- 推播通知管理 -->
-<section class="card push-admin-section" style="margin-top:20px;">
-  <div class="section-title">
-    🔔 推播通知管理
-  </div>
+<!-- APP -->
+<div id="adminApp" class="admin-app hidden">
 
-  <div style="margin-top:16px;">
-    <label class="label">通知標題</label>
-    <input
-      id="pushTitle"
-      class="input"
-      type="text"
-      maxlength="60"
-      placeholder="例如：哈寶足球 AI"
-      value="哈寶足球 AI"
-    >
-  </div>
-
-  <div style="margin-top:16px;">
-    <label class="label">通知內容</label>
-    <textarea
-      id="pushBody"
-      class="input"
-      rows="4"
-      maxlength="200"
-      placeholder="例如：今晚賽事分析已更新，點擊立即查看"
-      style="width:100%;resize:vertical;"
-    ></textarea>
-  </div>
-
-  <div style="margin-top:16px;">
-    <label class="label">點擊通知後前往</label>
-    <select
-      id="pushUrl"
-      class="input"
-      style="width:100%;"
-    >
-      <option value="https://awu7757-sys.github.io/habao-football-ai/home.html">
-        會員首頁
-      </option>
-      <option value="https://awu7757-sys.github.io/habao-football-ai/football.html">
-        足球賽事
-      </option>
-    </select>
-  </div>
-
-  <div style="margin-top:18px;">
-    <button
-      type="button"
-      class="btn green-btn"
-      id="sendPushBtn"
-    >
-      🚀 發送推播
-    </button>
-  </div>
-
-  <div
-    id="pushSendResult"
-    style="margin-top:12px;font-size:13px;"
-  ></div>
-</section>  
-
-</main>
-
-<!-- 新增福利活動 Modal -->
-<div id="benefitModal" class="modal hidden">
-  <div class="modal-card">
-
-    <div class="modal-title">
-      新增福利活動
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"></div>
+      <div>
+        <div class="brand-name">HABAO 賽事預測 AI</div>
+        <div class="brand-sub">ADMIN CENTER</div>
+      </div>
     </div>
 
-    <label class="label">活動名稱</label>
-    <input
-      id="benefitTitle"
-      class="input"
-      type="text"
-      placeholder="例如：新人加碼500紅包"
-    >
+    <div class="side-section">
+      <div class="side-label">核心管理</div>
 
-    <label class="label">活動圖片</label>
-    <input
-      id="benefitImage"
-      class="input"
-      type="file"
-      accept="image/*"
-    >
-
-    <label class="label">跳轉連結（選填）</label>
-    <input
-      id="benefitLink"
-      class="input"
-      type="url"
-      placeholder="https://..."
-    >
-
-    <label class="label">排序</label>
-    <input
-      id="benefitSortOrder"
-      class="input"
-      type="number"
-      value="0"
-      min="0"
-    >
-
-    <div class="modal-actions">
-      <button
-        class="btn small-btn"
-        type="button"
-        onclick="closeBenefitModal()"
-      >
-        取消
+      <button class="nav-btn active" data-page="dashboardPage" onclick="switchPage('dashboardPage',this)">
+        <span class="nav-icon">◫</span> Dashboard
       </button>
 
-      <button
-        class="btn green-btn"
-        type="button"
-        onclick="saveBenefit()"
-      >
-        新增活動
+      <button class="nav-btn" data-page="membersPage" onclick="switchPage('membersPage',this)">
+        <span class="nav-icon">◎</span> 會員管理
+      </button>
+
+      <button class="nav-btn" data-page="announcementPage" onclick="switchPage('announcementPage',this)">
+        <span class="nav-icon">✦</span> 公告管理
+      </button>
+
+      <button class="nav-btn" data-page="pushPage" onclick="switchPage('pushPage',this)">
+        <span class="nav-icon">↗</span> 推播通知
+      </button>
+
+      <button class="nav-btn" data-page="apiPage" onclick="switchPage('apiPage',this)">
+        <span class="nav-icon">⌁</span> API 配額
       </button>
     </div>
 
+    <div class="side-section">
+      <div class="side-label">第二階段</div>
+
+      <button class="nav-btn disabled" disabled><span class="nav-icon">AI</span> AI 分析紀錄 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn disabled" disabled><span class="nav-icon">J</span> Job 管理 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn disabled" disabled><span class="nav-icon">⚽</span> 賽事管理 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn disabled" disabled><span class="nav-icon">✓</span> 公開 AI 戰績 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn disabled" disabled><span class="nav-icon">P</span> 合作平台 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn disabled" disabled><span class="nav-icon">!</span> 系統健康 <span class="phase-tag">NEXT</span></button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="logoutAdmin()">登出管理後台</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ghost-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div id="topPageName" class="page-name">Dashboard</div>
+          <div class="page-sub">HABAO ADMIN CENTER</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="ghost-btn" onclick="refreshAll()">↻ 重新整理</button>
+        <button class="ghost-btn" onclick="logoutAdmin()">登出</button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <section id="dashboardPage" class="page active">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SYSTEM OVERVIEW</div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-desc">快速查看會員、分析與 API 使用狀況。</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card gold">
+            <div class="stat-label">會員總數</div>
+            <div id="dashTotalMembers" class="stat-value gold-text">0</div>
+            <div class="stat-note">目前資料庫會員總量</div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-label">正常使用</div>
+            <div id="dashActiveMembers" class="stat-value green-text">0</div>
+            <div class="stat-note">可正常使用 HABAO AI</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">VIP 會員</div>
+            <div id="dashVipMembers" class="stat-value">0</div>
+            <div class="stat-note">目前會員等級為 VIP</div>
+          </div>
+
+          <div class="stat-card blue">
+            <div class="stat-label">今日登入</div>
+            <div id="dashTodayLogin" class="stat-value">0</div>
+            <div class="stat-note">依最後登入時間統計</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">今日 AI 分析</div>
+            <div id="dashTodayAnalysis" class="stat-value">0</div>
+            <div class="stat-note">analysis_usage 今日筆數</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">今日 API 使用量</div>
+            <div id="dashTodayApi" class="stat-value">0 / 7500</div>
+            <div class="stat-note">API-Football 使用紀錄</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">近 7 天平均 API</div>
+            <div id="dashAvgApi" class="stat-value">0</div>
+            <div id="dashAvgApiNote" class="stat-note">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">API 續費日期</div>
+            <div id="dashRenewalDate" class="stat-value" style="font-size:20px">—</div>
+            <div id="dashRenewalDays" class="stat-note">—</div>
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">今日 API 配額</div>
+                <div class="panel-desc">依目前每日上限顯示使用比例</div>
+              </div>
+              <button class="ghost-btn" onclick="switchPageById('apiPage')">查看 API</button>
+            </div>
+
+            <div class="progress-wrap">
+              <div class="progress-line">
+                <div id="dashApiProgress" class="progress-fill"></div>
+              </div>
+              <div class="progress-meta">
+                <span id="dashApiProgressText">0 / 7500</span>
+                <span id="dashApiRemaining">剩餘 7500</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">管理快速入口</div>
+                <div class="panel-desc">常用操作直接前往</div>
+              </div>
+            </div>
+
+            <div class="three-grid">
+              <button class="ghost-btn" onclick="switchPageById('membersPage')">會員管理</button>
+              <button class="ghost-btn" onclick="switchPageById('announcementPage')">公告管理</button>
+              <button class="ghost-btn" onclick="switchPageById('pushPage')">發送推播</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEMBERS -->
+      <section id="membersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">MEMBER MANAGEMENT</div>
+            <div class="page-title">會員管理</div>
+            <div class="page-desc">管理會員積分、VIP 等級、使用狀態與查看最後登入時間。新版已移除「新增會員」。</div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">會員總數</div>
+            <div id="memberTotalCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">正常使用</div>
+            <div id="memberActiveCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已停權</div>
+            <div id="memberInactiveCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">VIP</div>
+            <div id="memberVipCount" class="stat-value gold-text">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="searchInput" class="input search" placeholder="搜尋會員帳號或平台帳號..." oninput="renderMembers()">
+
+              <select id="levelFilter" class="input" onchange="renderMembers()">
+                <option value="all">全部等級</option>
+                <option value="vip">VIP</option>
+                <option value="normal">一般會員</option>
+              </select>
+
+              <select id="statusFilter" class="input" onchange="renderMembers()">
+                <option value="all">全部狀態</option>
+                <option value="active">正常使用</option>
+                <option value="inactive">已停權</option>
+              </select>
+            </div>
+
+            <button class="ghost-btn" onclick="loadMembers()">↻ 更新會員</button>
+          </div>
+
+          <div class="table-shell">
+            <div id="memberLoading" class="loading hidden">正在載入會員資料...</div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>會員帳號</th>
+                    <th>等級</th>
+                    <th>狀態</th>
+                    <th>VIP 每日積分</th>
+                    <th>原有積分</th>
+                    <th>總可用積分</th>
+                    <th>建立時間</th>
+                    <th>最後登入</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="memberBody"></tbody>
+              </table>
+            </div>
+            <div id="memberEmpty" class="empty hidden">沒有符合條件的會員</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNOUNCEMENTS -->
+      <section id="announcementPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SITE NOTICE</div>
+            <div class="page-title">公告管理</div>
+            <div class="page-desc">管理一般公告與系統維護模式。福利活動管理已從新版後台移除。</div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-box">
+            <div class="panel-title">一般公告</div>
+            <div class="panel-desc">前台公告訊息，可隨時啟用或停用。</div>
+
+            <div class="field">
+              <label class="label">公告內容</label>
+              <textarea id="normalAnnouncement" class="input" placeholder="輸入一般公告內容..."></textarea>
+            </div>
+
+            <label class="switch-row">
+              <input type="checkbox" id="normalAnnouncementEnabled">
+              啟用一般公告
+            </label>
+          </div>
+
+          <div class="form-box">
+            <div class="panel-title">緊急維護公告</div>
+            <div class="panel-desc">啟用後將依前台現有維護流程限制會員進入。</div>
+
+            <div class="field">
+              <label class="label">維護內容</label>
+              <textarea id="maintenanceAnnouncement" class="input" placeholder="輸入維護公告內容..."></textarea>
+            </div>
+
+            <label class="switch-row">
+              <input type="checkbox" id="maintenanceAnnouncementEnabled">
+              開啟系統維護模式
+            </label>
+
+            <div class="danger-note">開啟後會員將受到目前網站既有的維護模式限制，儲存前請再次確認。</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">儲存設定</div>
+              <div class="panel-desc">此功能仍沿用目前 admin-benefits → site_settings 的設定方式。</div>
+            </div>
+            <button id="saveAnnouncementBtn" class="save-btn" onclick="saveAnnouncementSettings()">儲存公告與系統設定</button>
+          </div>
+
+          <div id="announcementResult" class="result-box">尚未變更</div>
+        </div>
+      </section>
+
+      <!-- PUSH -->
+      <section id="pushPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PUSH NOTIFICATION</div>
+            <div class="page-title">推播通知</div>
+            <div class="page-desc">第一階段沿用目前 push-send 邏輯，發送給所有已開啟通知的會員。</div>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:760px">
+          <div class="field">
+            <label class="label">通知標題</label>
+            <input id="pushTitle" class="input" type="text" maxlength="60" value="HABAO 賽事預測 AI">
+          </div>
+
+          <div class="field">
+            <label class="label">通知內容</label>
+            <textarea id="pushBody" class="input" maxlength="200" placeholder="例如：今晚賽事分析已更新，點擊立即查看"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">點擊通知後前往</label>
+            <select id="pushUrl" class="input">
+              <option value="https://awu7757-sys.github.io/habao-football-ai/home-v2.html">會員首頁</option>
+              <option value="https://awu7757-sys.github.io/habao-football-ai/football.html">賽事中心</option>
+              <option value="https://awu7757-sys.github.io/habao-football-ai/performance.html">AI 戰績</option>
+            </select>
+          </div>
+
+          <div style="margin-top:18px">
+            <button type="button" id="sendPushBtn" class="save-btn">發送推播</button>
+          </div>
+
+          <div id="pushSendResult" class="result-box">尚未發送</div>
+        </div>
+      </section>
+
+      <!-- API -->
+      <section id="apiPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">API QUOTA</div>
+            <div class="page-title">API 配額</div>
+            <div class="page-desc">查看 API-Football 今日使用量、近 7 天平均與續費日期。</div>
+          </div>
+        </div>
+
+        <div class="api-grid">
+          <div class="api-big">
+            <div class="stat-label">今日 API 使用量</div>
+            <div id="apiTodayBig" class="api-number">0 / 7500</div>
+
+            <div class="progress-wrap">
+              <div class="progress-line">
+                <div id="apiPageProgress" class="progress-fill"></div>
+              </div>
+              <div class="progress-meta">
+                <span id="apiPagePercent">0%</span>
+                <span id="apiPageRemaining">剩餘 7500 次</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mini-list">
+            <div class="mini-item">
+              <span class="mini-key">每日上限</span>
+              <span id="apiDailyLimitText" class="mini-val">7500</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">近 7 天平均</span>
+              <span id="apiAvgText" class="mini-val">0</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">平均剩餘</span>
+              <span id="apiAvgRemainingText" class="mini-val">7500</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">API 續費日期</span>
+              <span id="apiRenewalText" class="mini-val">—</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">剩餘天數</span>
+              <span id="apiRenewalDaysText" class="mini-val">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">目前第一階段資料範圍</div>
+          <div class="panel-desc" style="margin-top:8px;line-height:1.75">
+            目前後端可直接提供今日 API 使用量與近 7 天總量，因此本頁先顯示「今日使用比例＋近 7 天平均」。第二階段若要加入每日歷史圖表，再擴充管理端 API。
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
 </div>
 
-  
+<!-- CREDITS MODAL -->
+<div id="creditsModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-title">積分管理</div>
+    <div class="modal-account">會員：<strong id="creditsModalAccount">—</strong></div>
+
+    <label class="label" for="editCredits">輸入要增加或扣除的積分數量</label>
+    <input id="editCredits" class="input" type="number" min="1" step="1" placeholder="例如：5">
+
+    <div class="modal-actions">
+      <button class="action-btn red" onclick="adjustCredits('subtract')">－ 扣除</button>
+      <button class="action-btn green" onclick="adjustCredits('add')">＋ 增加</button>
+      <button class="modal-close" onclick="closeCreditsModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
-
-/*
-=================================================
-請把下面網址換成你自己的 admin-members Function URL
-=================================================
-*/
-
 const API_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-members";
+
+const BENEFITS_ADMIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
+
+const PUSH_SEND_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
 
 let adminPassword = "";
 let members = [];
 let editingMemberId = null;
 
-// ==============================
-// 福利管理 Modal
-// ==============================
+let dashboardData = {
+  todayAnalysisCount: 0,
+  todayApiCount: 0,
+  last7DaysApiCount: 0
+};
+
+window.apiDailyLimit = 7500;
+window.apiRenewalDate = null;
 
-function openBenefitModal() {
-  const modal = document.getElementById("benefitModal");
-  if (!modal) return;
-
-  modal.classList.remove("hidden");
-}
-
-function closeBenefitModal() {
-  const modal = document.getElementById("benefitModal");
-  if (!modal) return;
-
-  modal.classList.add("hidden");
-}
-
-const BENEFITS_ADMIN_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
-
-  async function loadAnnouncementSettings() {
-  try {
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "get_settings",
-        admin_password: adminPassword
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "讀取公告設定失敗");
-    }
-
-    const settings = data.settings;
-
-    if (!settings) return;
-
-    window.apiDailyLimit = Number(settings.api_daily_limit || 7500);
-    window.apiRenewalDate = settings.api_renewal_date || null;
-
-    const renewalDateEl = document.getElementById("apiRenewalDate");
-const renewalDaysEl = document.getElementById("apiRenewalDays");
-
-if (window.apiRenewalDate) {
-  const renewalDate = new Date(window.apiRenewalDate + "T00:00:00");
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const daysLeft = Math.ceil(
-    (renewalDate - today) / (1000 * 60 * 60 * 24)
-  );
-
-  if (renewalDateEl) {
-    renewalDateEl.textContent = window.apiRenewalDate.replace(/-/g, "/");
-  }
-
-  if (renewalDaysEl) {
-    if (daysLeft < 0) {
-      renewalDaysEl.textContent = "已到期，請續費";
-      renewalDaysEl.style.color = "#ff4d6d";
-    } else if (daysLeft <= 3) {
-      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
-      renewalDaysEl.style.color = "#ff4d6d";
-    } else if (daysLeft <= 7) {
-      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
-      renewalDaysEl.style.color = "#f5b942";
-    } else {
-      renewalDaysEl.textContent = `剩餘 ${daysLeft} 天`;
-      renewalDaysEl.style.color = "#32e6a1";
-    }
-  }
-}
-
-    const normalEl = document.getElementById("normalAnnouncement");
-    const maintenanceEl = document.getElementById("maintenanceAnnouncement");
-
-    if (normalEl) {
-      normalEl.value = settings.normal_announcement || "";
-    }
-
-    if (maintenanceEl) {
-      maintenanceEl.value = settings.maintenance_announcement || "";
-    }
-
-    const normalEnabledEl =
-  document.getElementById("normalAnnouncementEnabled");
-
-const maintenanceEnabledEl =
-  document.getElementById("maintenanceAnnouncementEnabled");
-
-if (normalEnabledEl) {
-  normalEnabledEl.checked = settings.normal_enabled === true;
-}
-
-if (maintenanceEnabledEl) {
-  maintenanceEnabledEl.checked = settings.maintenance_enabled === true;
-}
-
-  } catch (error) {
-    console.error("LOAD ANNOUNCEMENT SETTINGS ERROR:", error);
-  }
-}
-  
-async function saveAnnouncementSettings() {
-  const normalEl = document.getElementById("normalAnnouncement");
-  const maintenanceEl = document.getElementById("maintenanceAnnouncement");
-
-  const normalEnabledEl =
-  document.getElementById("normalAnnouncementEnabled");
-
-const maintenanceEnabledEl =
-  document.getElementById("maintenanceAnnouncementEnabled");
-
-  const normalAnnouncement = normalEl?.value.trim() || "";
-  const maintenanceAnnouncement = maintenanceEl?.value.trim() || "";
-
-  try {
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "save_settings",
-        admin_password: adminPassword,
-        normal_announcement: normalAnnouncement,
-        maintenance_announcement: maintenanceAnnouncement,
-        normal_enabled: normalEnabledEl?.checked === true,
-        maintenance_enabled: maintenanceEnabledEl?.checked === true
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "儲存公告失敗");
-    }
-
-    alert("公告已儲存");
-
-  } catch (error) {
-    console.error("SAVE ANNOUNCEMENT SETTINGS ERROR:", error);
-    alert(error.message || "儲存公告失敗");
-  }
-}
-  
-async function saveBenefit() {
-  const titleEl = document.getElementById("benefitTitle");
-  const imageEl = document.getElementById("benefitImage");
-  const linkEl = document.getElementById("benefitLink");
-  const sortEl = document.getElementById("benefitSortOrder");
-
-  const title = titleEl?.value.trim() || "";
-  const file = imageEl?.files?.[0];
-  const linkUrl = linkEl?.value.trim() || "";
-  const sortOrder = Number(sortEl?.value || 0);
-
-  if (!title) {
-    alert("請輸入活動名稱");
-    return;
-  }
-
-  if (!file) {
-    alert("請選擇活動圖片");
-    return;
-  }
-
-  try {
-    const imageBase64 = await fileToBase64(file);
-
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "create",
-        admin_password: adminPassword,
-        title: title,
-        image_base64: imageBase64,
-        image_type: file.type,
-        image_name: file.name,
-        link_url: linkUrl,
-        sort_order: sortOrder
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "新增福利失敗");
-    }
-
-    alert("福利活動新增成功");
-
-    titleEl.value = "";
-    imageEl.value = "";
-    linkEl.value = "";
-    sortEl.value = "0";
-
-    closeBenefitModal();
-
-  } catch (error) {
-    console.error("SAVE BENEFIT ERROR:", error);
-    alert(error.message || "新增福利失敗");
-  }
-}
-  
-async function loadBenefitsAdmin() {
-  const listEl = document.getElementById("benefitsAdminList");
-  if (!listEl) return;
-
-  listEl.innerHTML = "載入福利資料中...";
-
-  try {
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "list",
-        admin_password: adminPassword
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "讀取福利資料失敗");
-    }
-
-    const benefits = data.benefits || [];
-
-    if (benefits.length === 0) {
-      listEl.innerHTML = "尚無福利資料";
-      return;
-    }
-
-    listEl.innerHTML = benefits.map(item => `
-      <div class="benefit-admin-item">
-        <img
-          src="${item.image_url}"
-          alt="${item.title || "福利活動"}"
-          style="width:120px;height:80px;object-fit:cover;border-radius:10px;"
-        >
-
-        <div>
-  <strong>${item.title || "未命名活動"}</strong>
-  <div>排序：${item.sort_order ?? 0}</div>
-  <div>
-    狀態：${item.is_active ? "啟用中" : "已停用"}
-  </div>
-
-  <button
-  type="button"
-  onclick="toggleBenefit(${item.id}, ${!item.is_active})"
-  style="margin-top:8px;padding:6px 12px;cursor:pointer;"
->
-  ${item.is_active ? "停用" : "啟用"}
-</button>
-
-<button
-  type="button"
-  onclick="deleteBenefit(${item.id})"
-  style="margin-top:8px;margin-left:6px;padding:6px 12px;cursor:pointer;color:#ff4d6d;"
->
-  刪除
-</button>
-  
-</div>
-      </div>
-    `).join("");
-
-  } catch (error) {
-    console.error("LOAD ADMIN BENEFITS ERROR:", error);
-    listEl.innerHTML = "福利資料載入失敗";
-  }
-}
-async function toggleBenefit(id, nextStatus) {
-  try {
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "toggle",
-        admin_password: adminPassword,
-        id: id,
-        is_active: nextStatus
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "更新福利狀態失敗");
-    }
-
-    await loadBenefitsAdmin();
-
-  } catch (error) {
-    console.error("TOGGLE BENEFIT ERROR:", error);
-    alert(error.message || "更新福利狀態失敗");
-  }
-}
-async function deleteBenefit(id) {
-  const confirmed = confirm("確定要刪除這筆福利嗎？此操作無法復原。");
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    const response = await fetch(BENEFITS_ADMIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "delete",
-        admin_password: adminPassword,
-        id: id
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "刪除福利失敗");
-    }
-
-    await loadBenefitsAdmin();
-
-    alert("福利已刪除");
-
-  } catch (error) {
-    console.error("DELETE BENEFIT ERROR:", error);
-    alert(error.message || "刪除福利失敗");
-  }
-}
-  
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("圖片讀取失敗"));
-
-    reader.readAsDataURL(file);
-  });
-}
-  
 /* =========================
-   API
+   UI
 ========================= */
 
-async function apiRequest(payload){
+const PAGE_NAMES = {
+  dashboardPage: "Dashboard",
+  membersPage: "會員管理",
+  announcementPage: "公告管理",
+  pushPage: "推播通知",
+  apiPage: "API 配額"
+};
 
-  const response = await fetch(API_URL,{
-    method:"POST",
+function switchPage(pageId, button) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
 
-    headers:{
-      "Content-Type":"application/json"
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.page === pageId);
+  });
+
+  const topPageName = document.getElementById("topPageName");
+  if (topPageName) {
+    topPageName.textContent = PAGE_NAMES[pageId] || "Admin Center";
+  }
+
+  if (window.innerWidth <= 820) {
+    document.getElementById("sidebar")?.classList.remove("open");
+  }
+}
+
+function switchPageById(pageId) {
+  const btn = document.querySelector(`.nav-btn[data-page="${pageId}"]`);
+  switchPage(pageId, btn);
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar")?.classList.toggle("open");
+}
+
+/* =========================
+   API HELPERS
+========================= */
+
+async function apiRequest(payload) {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     },
-
-    body:JSON.stringify({
+    body: JSON.stringify({
       ...payload,
-      admin_password:adminPassword
+      admin_password: adminPassword
     })
   });
 
   const data = await response.json();
 
-  if(!response.ok || !data.success){
-
+  if (!response.ok || !data.success) {
     throw new Error(
       data.message ||
       data.error ||
@@ -1385,13 +944,11 @@ async function apiRequest(payload){
   return data;
 }
 
-
 /* =========================
-   管理員登入
+   LOGIN
 ========================= */
 
-async function adminLogin(){
-
+async function adminLogin() {
   const passwordInput =
     document.getElementById("adminPassword");
 
@@ -1404,551 +961,746 @@ async function adminLogin(){
   const password =
     passwordInput.value.trim();
 
-  if(!password){
-
-    message.className="error";
-    message.textContent="請輸入管理密碼。";
+  if (!password) {
+    message.textContent =
+      "請輸入管理密碼。";
     return;
   }
 
   adminPassword = password;
 
-  button.disabled=true;
-  button.textContent="驗證中...";
+  button.disabled = true;
+  button.textContent = "驗證中...";
 
-  message.textContent="";
+  message.textContent = "";
 
-  try{
-
+  try {
     await loadAnnouncementSettings();
 
     const data =
       await apiRequest({
-        action:"list"
+        action: "list"
       });
 
-    members=data.members || [];
-    document
-  .getElementById("todayAnalysisCount")
-  .textContent = data.today_analysis_count ?? 0;
-    
-  const apiUsed = data.today_api_count ?? 0;
-  const apiLimit = window.apiDailyLimit || 7500;
-    
-  const last7DaysApiCount = data.last_7_days_api_count ?? 0;
-  const avgDailyApiUsage = Math.ceil(last7DaysApiCount / 7);  
-  const remainingApi = Math.max(apiLimit - avgDailyApiUsage, 0);  
-    
-  const avgApiUsageEl = document.getElementById("avgApiUsage");
-  const apiUsageStatusEl = document.getElementById("apiUsageStatus");
+    applyMemberPayload(data);
 
-if (avgApiUsageEl) {
-  avgApiUsageEl.textContent = `${avgDailyApiUsage} / ${apiLimit}`;
-}
-
-if (apiUsageStatusEl) {
-  const avgPercent = (avgDailyApiUsage / apiLimit) * 100;
-
-  if (avgPercent >= 90) {
-    apiUsageStatusEl.textContent = `⚠️ 高用量｜平均剩餘 ${remainingApi} 次`;
-    apiUsageStatusEl.style.color = "#ff4d6d";
-  } else if (avgPercent >= 70) {
-    apiUsageStatusEl.textContent = `⚠️ 建議注意｜平均剩餘 ${remainingApi} 次`;
-    apiUsageStatusEl.style.color = "#f5b942";
-  } else {
-    apiUsageStatusEl.textContent = `✓ 用量正常｜平均剩餘 ${remainingApi} 次`;
-    apiUsageStatusEl.style.color = "#32e6a1";
-  }
-}  
-
-document
-  .getElementById("todayApiCount")
-  .textContent = `${apiUsed} / ${apiLimit}`;
-
-  const apiCountEl = document.getElementById("todayApiCount");
-const apiPercent = (apiUsed / apiLimit) * 100;
-
-if (apiPercent >= 90) {
-  apiCountEl.style.color = "#ff4d6d";
-} else if (apiPercent >= 70) {
-  apiCountEl.style.color = "#f5b942";
-} else {
-  apiCountEl.style.color = "#32e6a1";
-}  
-    
     document
       .getElementById("loginPage")
       .classList.add("hidden");
 
     document
-      .getElementById("dashboard")
+      .getElementById("adminApp")
       .classList.remove("hidden");
 
     renderMembers();
-loadBenefitsAdmin();
+    renderDashboard();
+    renderApiPage();
 
-
-  }catch(error){
-
-    adminPassword="";
-
-    message.className="error";
-    message.textContent=error.message;
-
-  }finally{
-
-    button.disabled=false;
-    button.textContent="進入管理後台 →";
-
+  } catch (error) {
+    adminPassword = "";
+    message.textContent =
+      error?.message || "登入失敗";
+  } finally {
+    button.disabled = false;
+    button.textContent =
+      "進入管理後台 →";
   }
-
 }
-
-
-/* Enter 登入 */
 
 document
   .getElementById("adminPassword")
-  .addEventListener("keydown",event=>{
-
-    if(event.key==="Enter"){
+  .addEventListener("keydown", event => {
+    if (event.key === "Enter") {
       adminLogin();
     }
-
   });
 
-
-/* =========================
-   讀取會員
-========================= */
-
-async function loadMembers(){
-
-  const loading=
-    document.getElementById("loading");
-
-  loading.classList.remove("hidden");
-
-  try{
-    
-    await loadAnnouncementSettings();
-
-    const data=
-      await apiRequest({
-        action:"list"
-      });
-
-    members=data.members || [];
-    document
-  .getElementById("todayAnalysisCount")
-  .textContent = data.today_analysis_count ?? 0;
-   
-  const apiUsed = data.today_api_count ?? 0;
-  const apiLimit = window.apiDailyLimit || 7500;
+function logoutAdmin() {
+  adminPassword = "";
+  members = [];
+  editingMemberId = null;
 
   document
-  .getElementById("todayApiCount")
-  .textContent = `${apiUsed} / ${apiLimit}`;
-    
-    renderMembers();
+    .getElementById("adminPassword")
+    .value = "";
 
-  }catch(error){
+  document
+    .getElementById("adminApp")
+    .classList.add("hidden");
 
-    alert(error.message);
-
-  }finally{
-
-    loading.classList.add("hidden");
-
-  }
-
+  document
+    .getElementById("loginPage")
+    .classList.remove("hidden");
 }
 
-
 /* =========================
-   顯示會員
+   LOAD / DASHBOARD
 ========================= */
 
-function renderMembers(){
+function applyMemberPayload(data) {
+  members =
+    Array.isArray(data?.members)
+      ? data.members
+      : [];
 
-  const tbody=
-    document.getElementById("memberBody");
+  dashboardData.todayAnalysisCount =
+    Number(data?.today_analysis_count || 0);
 
-  const empty=
-    document.getElementById("emptyState");
+  dashboardData.todayApiCount =
+    Number(data?.today_api_count || 0);
 
-  const search=
-    document
-      .getElementById("searchInput")
-      .value
+  dashboardData.last7DaysApiCount =
+    Number(data?.last_7_days_api_count || 0);
+}
+
+async function loadMembers() {
+  const loading =
+    document.getElementById("memberLoading");
+
+  loading?.classList.remove("hidden");
+
+  try {
+    const data =
+      await apiRequest({
+        action: "list"
+      });
+
+    applyMemberPayload(data);
+
+    renderMembers();
+    renderDashboard();
+    renderApiPage();
+
+  } catch (error) {
+    alert(
+      error?.message ||
+      "會員資料載入失敗"
+    );
+  } finally {
+    loading?.classList.add("hidden");
+  }
+}
+
+async function refreshAll() {
+  try {
+    await Promise.all([
+      loadAnnouncementSettings(),
+      loadMembers()
+    ]);
+
+    renderDashboard();
+    renderApiPage();
+
+  } catch (error) {
+    console.error(
+      "REFRESH ALL ERROR:",
+      error
+    );
+  }
+}
+
+function isTodayTaipei(value) {
+  if (!value) return false;
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    return false;
+  }
+
+  const valueDate =
+    d.toLocaleDateString(
+      "en-CA",
+      {
+        timeZone: "Asia/Taipei"
+      }
+    );
+
+  const today =
+    new Date()
+      .toLocaleDateString(
+        "en-CA",
+        {
+          timeZone: "Asia/Taipei"
+        }
+      );
+
+  return valueDate === today;
+}
+
+function renderDashboard() {
+  const total =
+    members.length;
+
+  const active =
+    members.filter(
+      item =>
+        item?.is_active === true
+    ).length;
+
+  const vip =
+    members.filter(
+      item =>
+        String(
+          item?.member_level || ""
+        ).toLowerCase() === "vip"
+    ).length;
+
+  const todayLogin =
+    members.filter(
+      item =>
+        isTodayTaipei(
+          item?.last_login_at
+        )
+    ).length;
+
+  const apiLimit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  const apiUsed =
+    dashboardData.todayApiCount;
+
+  const avgApi =
+    Math.ceil(
+      dashboardData
+        .last7DaysApiCount /
+      7
+    );
+
+  setText(
+    "dashTotalMembers",
+    total
+  );
+
+  setText(
+    "dashActiveMembers",
+    active
+  );
+
+  setText(
+    "dashVipMembers",
+    vip
+  );
+
+  setText(
+    "dashTodayLogin",
+    todayLogin
+  );
+
+  setText(
+    "dashTodayAnalysis",
+    dashboardData
+      .todayAnalysisCount
+  );
+
+  setText(
+    "dashTodayApi",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "dashAvgApi",
+    `${avgApi}`
+  );
+
+  setText(
+    "dashAvgApiNote",
+    `平均剩餘 ${Math.max(
+      apiLimit - avgApi,
+      0
+    )} 次`
+  );
+
+  setText(
+    "dashRenewalDate",
+    window.apiRenewalDate
+      ? String(
+          window.apiRenewalDate
+        ).replace(/-/g, "/")
+      : "—"
+  );
+
+  const renewal =
+    calculateRenewalDays(
+      window.apiRenewalDate
+    );
+
+  setText(
+    "dashRenewalDays",
+    renewal.text
+  );
+
+  const percent =
+    apiLimit > 0
+      ? Math.min(
+          (apiUsed / apiLimit) *
+          100,
+          100
+        )
+      : 0;
+
+  const progress =
+    document.getElementById(
+      "dashApiProgress"
+    );
+
+  if (progress) {
+    progress.style.width =
+      `${percent}%`;
+  }
+
+  setText(
+    "dashApiProgressText",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "dashApiRemaining",
+    `剩餘 ${Math.max(
+      apiLimit - apiUsed,
+      0
+    )}`
+  );
+}
+
+/* =========================
+   MEMBERS
+========================= */
+
+function renderMembers() {
+  const tbody =
+    document.getElementById(
+      "memberBody"
+    );
+
+  const empty =
+    document.getElementById(
+      "memberEmpty"
+    );
+
+  if (!tbody) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "searchInput"
+        )?.value || ""
+    )
       .trim()
       .toLowerCase();
 
-  const filtered=
-    members.filter(member=>
-      String(member.account || "")
-        .toLowerCase()
-        .includes(search)
-    );
+  const levelFilter =
+    document
+      .getElementById(
+        "levelFilter"
+      )?.value ||
+    "all";
 
-  tbody.innerHTML="";
+  const statusFilter =
+    document
+      .getElementById(
+        "statusFilter"
+      )?.value ||
+    "all";
 
-  if(filtered.length===0){
+  const filtered =
+    members.filter(member => {
+      const account =
+        String(
+          member?.account || ""
+        ).toLowerCase();
 
-    empty.classList.remove("hidden");
+      const platform =
+        String(
+          member?.platform_account ||
+          ""
+        ).toLowerCase();
 
-  }else{
+      const level =
+        String(
+          member?.member_level ||
+          "normal"
+        ).toLowerCase();
 
-    empty.classList.add("hidden");
+      const active =
+        member?.is_active === true;
 
-  }
+      const searchOk =
+        !search ||
+        account.includes(search) ||
+        platform.includes(search);
 
-  filtered.forEach(member=>{
+      const levelOk =
+        levelFilter === "all" ||
+        level === levelFilter;
 
-    const tr=document.createElement("tr");
+      const statusOk =
+        statusFilter === "all" ||
+        (
+          statusFilter ===
+            "active" &&
+          active
+        ) ||
+        (
+          statusFilter ===
+            "inactive" &&
+          !active
+        );
 
-    const active=
-      member.is_active === true;
+      return (
+        searchOk &&
+        levelOk &&
+        statusOk
+      );
+    });
 
-    tr.innerHTML=`
+  tbody.innerHTML = "";
 
-<td>
-  <div class="account">
-    ${escapeHtml(member.account || "")}
-  </div>
+  empty?.classList.toggle(
+    "hidden",
+    filtered.length > 0
+  );
 
-  <div class="id-text">
-    ID ${member.id}
-  </div>
+  filtered.forEach(member => {
+    const tr =
+      document.createElement(
+        "tr"
+      );
 
-  ${
-    member.platform_account
-      ? `
-        <div class="id-text" style="margin-top:5px;color:#d5b86a;">
-          平台：${escapeHtml(member.platform_account)}
+    const active =
+      member?.is_active === true;
+
+    const isVip =
+      String(
+        member?.member_level ||
+        ""
+      ).toLowerCase() === "vip";
+
+    const paidCredits =
+      Number(
+        member?.analysis_credits ||
+        0
+      );
+
+    const dailyCredits =
+      isVip
+        ? Number(
+            member
+              ?.daily_free_credits ||
+            0
+          )
+        : 0;
+
+    const totalCredits =
+      paidCredits +
+      dailyCredits;
+
+    tr.innerHTML = `
+      <td>
+        <div class="account-name">
+          ${escapeHtml(
+            member?.account ||
+            ""
+          )}
         </div>
-      `
-      : ""
-  }
-</td>
-
-<td>
-  ${
-    String(member.member_level || "").toLowerCase() === "vip"
-      ? `
-        <span
-          class="status"
-          style="
-            background:rgba(255,200,87,.12);
-            color:#ffc857;
-          "
-        >
-          VIP
-        </span>
-      `
-      : `
-        <span class="status" style="color:#9ca3af;">
-          一般會員
-        </span>
-      `
-  }
-</td>
+        <div class="subline">
+          ID ${escapeHtml(
+            member?.id ?? "—"
+          )}
+        </div>
+        ${
+          member
+            ?.platform_account
+            ? `
+              <div class="subline" style="color:#b99c56">
+                平台：${escapeHtml(
+                  member
+                    .platform_account
+                )}
+              </div>
+            `
+            : ""
+        }
+      </td>
 
       <td>
+        ${
+          isVip
+            ? `<span class="status vip">VIP</span>`
+            : `<span class="status">一般會員</span>`
+        }
+      </td>
 
-        <span class="
-          status
-          ${active
-            ? "status-active"
-            : "status-off"
-          }
-        ">
-
+      <td>
+        <span class="status ${
+          active
+            ? "active"
+            : "off"
+        }">
           <span class="dot"></span>
-
-          ${active
-            ? "正常使用"
-            : "已停權"
+          ${
+            active
+              ? "正常使用"
+              : "已停權"
           }
-
         </span>
-
       </td>
-
-<td>
-  <strong style="color:#ffc857;">
-    ${
-      String(member.member_level || "").toLowerCase() === "vip"
-        ? `${Number(member.daily_free_credits || 0)} 點`
-        : "—"
-    }
-  </strong>
-
-  ${
-    String(member.member_level || "").toLowerCase() === "vip" &&
-    member.daily_free_credits_date
-      ? `
-        <div class="id-text">
-          ${escapeHtml(member.daily_free_credits_date)}
-        </div>
-      `
-      : ""
-  }
-</td>
-
-<td>
-  <strong>
-    ${Number(member.analysis_credits || 0)} 點
-  </strong>
-</td>
-
-<td>
-  <strong>
-    ${
-      Number(member.analysis_credits || 0) +
-      (
-        String(member.member_level || "").toLowerCase() === "vip"
-          ? Number(member.daily_free_credits || 0)
-          : 0
-      )
-    } 點
-  </strong>
-</td>
-
-      <td class="expire">
-
-        ${formatDate(member.created_at)}
-
-      </td>
-
-      <td class="expire">
-
-  ${member.last_login_at ? formatDate(member.last_login_at) : "--"}
-
-</td>
 
       <td>
-
-<div class="row-actions">
-
-  <button
-    class="action-btn"
-    onclick="openCreditsModal(${member.id})"
-  >
-    積分管理
-  </button>
-
-  <button
-    class="action-btn"
-    onclick="changeMemberLevel(${member.id})"
-  >
-    ${
-      String(member.member_level || "").toLowerCase() === "vip"
-        ? "降為一般會員"
-        : "升級 VIP"
-    }
-  </button>
-
-  <button
-    class="
-      action-btn
-      ${active
-        ? "danger-btn"
-        : "enable-btn"
-      }
-    "
-    onclick="
-      changeActive(
-        ${member.id},
-        ${!active}
-      )
-    "
-  >
-
-    ${active
-      ? "停權"
-      : "恢復"
-    }
-
-  </button>
-
-</div>
-
+        ${
+          isVip
+            ? `<strong style="color:#ffe39d">${dailyCredits} 點</strong>`
+            : "—"
+        }
+        ${
+          isVip &&
+          member
+            ?.daily_free_credits_date
+            ? `
+              <div class="subline">
+                ${escapeHtml(
+                  member
+                    .daily_free_credits_date
+                )}
+              </div>
+            `
+            : ""
+        }
       </td>
 
+      <td>
+        <strong>
+          ${paidCredits} 點
+        </strong>
+      </td>
+
+      <td>
+        <strong>
+          ${totalCredits} 點
+        </strong>
+      </td>
+
+      <td>
+        ${formatDate(
+          member?.created_at
+        )}
+      </td>
+
+      <td>
+        ${
+          member?.last_login_at
+            ? formatDate(
+                member
+                  .last_login_at
+              )
+            : "—"
+        }
+      </td>
+
+      <td>
+        <div class="row-actions">
+          <button
+            class="action-btn gold"
+            onclick="openCreditsModal(${Number(member.id)})"
+          >
+            積分
+          </button>
+
+          <button
+            class="action-btn"
+            onclick="changeMemberLevel(${Number(member.id)})"
+          >
+            ${
+              isVip
+                ? "降為一般"
+                : "升級 VIP"
+            }
+          </button>
+
+          <button
+            class="action-btn ${
+              active
+                ? "red"
+                : "green"
+            }"
+            onclick="changeActive(${Number(member.id)},${!active})"
+          >
+            ${
+              active
+                ? "停權"
+                : "恢復"
+            }
+          </button>
+        </div>
+      </td>
     `;
 
     tbody.appendChild(tr);
-
   });
 
-  document
-    .getElementById("totalCount")
-    .textContent=members.length;
+  const total =
+    members.length;
 
-  document
-    .getElementById("activeCount")
-    .textContent=
-      members.filter(m=>m.is_active===true).length;
+  const activeCount =
+    members.filter(
+      item =>
+        item?.is_active === true
+    ).length;
 
-  document
-    .getElementById("inactiveCount")
-    .textContent=
-      members.filter(m=>m.is_active!==true).length;
+  const inactiveCount =
+    total -
+    activeCount;
 
-}
+  const vipCount =
+    members.filter(
+      item =>
+        String(
+          item?.member_level ||
+          ""
+        ).toLowerCase() ===
+        "vip"
+    ).length;
 
+  setText(
+    "memberTotalCount",
+    total
+  );
 
-/* =========================
-   新增會員
-========================= */
+  setText(
+    "memberActiveCount",
+    activeCount
+  );
 
-async function createMember(){
+  setText(
+    "memberInactiveCount",
+    inactiveCount
+  );
 
-  const account =
-    document
-      .getElementById("newAccount")
-      .value
-      .trim();
-
-  const message =
-    document.getElementById("createMessage");
-
-  const button =
-    document.getElementById("createBtn");
-
-  if(!account){
-
-    message.className = "error";
-    message.textContent = "請輸入會員帳號。";
-    return;
-
-  }
-
-  button.disabled = true;
-  button.textContent = "新增中...";
-
-  try{
-
-    await apiRequest({
-      action:"create",
-      account
-    });
-
-    message.className = "success";
-    message.textContent = "會員新增成功。";
-
-    document
-      .getElementById("newAccount")
-      .value = "";
-
-    await loadMembers();
-
-  }catch(error){
-
-    message.className = "error";
-    message.textContent = error.message;
-
-  }finally{
-
-    button.disabled = false;
-    button.textContent = "新增會員";
-
-  }
-
+  setText(
+    "memberVipCount",
+    vipCount
+  );
 }
 
 /* =========================
-   積分管理
+   CREDITS
 ========================= */
 
-function openCreditsModal(id){
-
+function openCreditsModal(id) {
   const member =
     members.find(
-      item => Number(item.id) === Number(id)
+      item =>
+        Number(item.id) ===
+        Number(id)
     );
 
-  if(!member) return;
+  if (!member) return;
 
-  editingMemberId = id;
+  editingMemberId =
+    Number(id);
 
-  document
-    .getElementById("creditsModalAccount")
-    .textContent = member.account;
+  setText(
+    "creditsModalAccount",
+    member.account
+  );
 
   const input =
-    document.getElementById("editCredits");
+    document.getElementById(
+      "editCredits"
+    );
 
-  if(input){
+  if (input) {
     input.value = "";
   }
 
   document
-    .getElementById("creditsModal")
-    .classList.remove("hidden");
+    .getElementById(
+      "creditsModal"
+    )
+    ?.classList
+    .remove("hidden");
 }
 
-
-function closeCreditsModal(){
-
+function closeCreditsModal() {
   editingMemberId = null;
 
   document
-    .getElementById("creditsModal")
-    .classList.add("hidden");
+    .getElementById(
+      "creditsModal"
+    )
+    ?.classList
+    .add("hidden");
 }
 
-
-async function adjustCredits(type){
-
-  if(!editingMemberId) return;
+async function adjustCredits(type) {
+  if (!editingMemberId) {
+    return;
+  }
 
   const member =
     members.find(
-      item => Number(item.id) === Number(editingMemberId)
+      item =>
+        Number(item.id) ===
+        Number(
+          editingMemberId
+        )
     );
 
-  if(!member) return;
-
-  const input =
-    document.getElementById("editCredits");
+  if (!member) return;
 
   const amount =
-    Number(input?.value);
+    Number(
+      document
+        .getElementById(
+          "editCredits"
+        )?.value
+    );
 
-  if(
+  if (
     !Number.isInteger(amount) ||
     amount <= 0
-  ){
-    alert("請輸入 1 以上的整數積分。");
+  ) {
+    alert(
+      "請輸入 1 以上的整數積分。"
+    );
     return;
   }
 
   const currentCredits =
-    Number(member.analysis_credits || 0);
+    Number(
+      member
+        .analysis_credits ||
+      0
+    );
 
-  let newCredits = currentCredits;
+  let newCredits =
+    currentCredits;
 
-  if(type === "add"){
-
+  if (type === "add") {
     newCredits =
-      currentCredits + amount;
-
-  }else if(type === "subtract"){
-
-    if(amount > currentCredits){
-      alert("扣除積分不能大於會員目前積分。");
+      currentCredits +
+      amount;
+  } else if (
+    type === "subtract"
+  ) {
+    if (
+      amount >
+      currentCredits
+    ) {
+      alert(
+        "扣除積分不能大於會員目前積分。"
+      );
       return;
     }
 
     newCredits =
-      currentCredits - amount;
-
-  }else{
-
+      currentCredits -
+      amount;
+  } else {
     return;
-
   }
 
   const actionText =
@@ -1956,394 +1708,790 @@ async function adjustCredits(type){
       ? "增加"
       : "扣除";
 
-  if(
+  if (
     !confirm(
       `確定為「${member.account}」${actionText} ${amount} 點積分？`
     )
-  ){
+  ) {
     return;
   }
 
-  try{
-
+  try {
     await apiRequest({
-
-      action:"update_credits",
-
-      id:editingMemberId,
-
-      analysis_credits:newCredits
-
+      action:
+        "update_credits",
+      id:
+        editingMemberId,
+      analysis_credits:
+        newCredits
     });
 
     closeCreditsModal();
 
     await loadMembers();
 
-  }catch(error){
-
-    alert(error.message);
-
+  } catch (error) {
+    alert(
+      error?.message ||
+      "積分修改失敗"
+    );
   }
-
 }
 
-
 /* =========================
-   會員等級
+   MEMBER LEVEL
 ========================= */
 
-async function changeMemberLevel(id){
-
+async function changeMemberLevel(id) {
   const member =
     members.find(
-      item => Number(item.id) === Number(id)
+      item =>
+        Number(item.id) ===
+        Number(id)
     );
 
-  if(!member) return;
+  if (!member) return;
 
   const isVip =
     String(
-      member.member_level || ""
-    ).toLowerCase() === "vip";
+      member
+        .member_level ||
+      ""
+    ).toLowerCase() ===
+    "vip";
 
   const newLevel =
     isVip
       ? "normal"
       : "vip";
 
-  const actionText =
+  const text =
     isVip
-      ? "降為一般會員"
-      : "升級為 VIP";
+      ? `確定將「${member.account}」降為一般會員？`
+      : `確定將「${member.account}」升級為 VIP？`;
 
-  if(
-    !confirm(
-      `確定將「${member.account}」${actionText}？`
-    )
-  ){
+  if (!confirm(text)) {
     return;
   }
 
-  try{
-
+  try {
     await apiRequest({
-
-      action:"update_member_level",
-
+      action:
+        "update_member_level",
       id,
-
-      member_level:newLevel
-
+      member_level:
+        newLevel
     });
 
     await loadMembers();
 
-  }catch(error){
-
-    alert(error.message);
-
+  } catch (error) {
+    alert(
+      error?.message ||
+      "會員等級修改失敗"
+    );
   }
+}
 
-}  
- 
 /* =========================
-   停權 / 恢復
+   ACTIVE / INACTIVE
 ========================= */
 
 async function changeActive(
   id,
   newState
-){
-
-  const member=
+) {
+  const member =
     members.find(
-      item=>Number(item.id)===Number(id)
+      item =>
+        Number(item.id) ===
+        Number(id)
     );
 
-  if(!member)return;
+  if (!member) return;
 
-  const text=
+  const text =
     newState
       ? `確定恢復「${member.account}」使用權限？`
       : `確定停權「${member.account}」？`;
 
-  if(!confirm(text))return;
-
-  try{
-
-    await apiRequest({
-
-      action:"set_active",
-
-      id,
-
-      is_active:newState
-
-    });
-
-    await loadMembers();
-
-  }catch(error){
-
-    alert(error.message);
-
-  }
-
-}
-
-
-/* =========================
-   登出
-========================= */
-
-function logoutAdmin(){
-
-  adminPassword="";
-
-  members=[];
-
-  document
-    .getElementById("adminPassword")
-    .value="";
-
-  document
-    .getElementById("dashboard")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginPage")
-    .classList.remove("hidden");
-
-}
-
-
-/* =========================
-   日期
-========================= */
-
-function formatDate(value){
-
-  if(!value)return "—";
-
-  const date=
-    new Date(value);
-
-  if(Number.isNaN(date.getTime())){
-    return value;
-  }
-
-  return date.toLocaleString(
-    "zh-TW",
-    {
-      timeZone:"Asia/Taipei",
-      year:"numeric",
-      month:"2-digit",
-      day:"2-digit",
-      hour:"2-digit",
-      minute:"2-digit",
-      hour12:false
-    }
-  );
-
-}
-
-
-function toDateTimeLocal(value){
-
-  if(!value)return "";
-
-  const date=
-    new Date(value);
-
-  if(Number.isNaN(date.getTime())){
-    return "";
-  }
-
-  const parts=
-    new Intl.DateTimeFormat(
-      "sv-SE",
-      {
-        timeZone:"Asia/Taipei",
-        year:"numeric",
-        month:"2-digit",
-        day:"2-digit",
-        hour:"2-digit",
-        minute:"2-digit",
-        hour12:false
-      }
-    )
-    .format(date)
-    .replace(" ","T");
-
-  return parts;
-
-}
-
-
-/* =========================
-   HTML 安全
-========================= */
-
-function escapeHtml(value){
-
-  return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-
-}
-
-/* =========================
-   推播通知管理
-========================= */
-
-const PUSH_SEND_URL =
-  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
-
-const sendPushBtn = document.getElementById("sendPushBtn");
-
-sendPushBtn?.addEventListener("click", async () => {
-  const title = document.getElementById("pushTitle")?.value.trim();
-  const body = document.getElementById("pushBody")?.value.trim();
-  const url = document.getElementById("pushUrl")?.value;
-  const resultEl = document.getElementById("pushSendResult");
-
-  if (!title) {
-    alert("請輸入通知標題");
-    return;
-  }
-
-  if (!body) {
-    alert("請輸入通知內容");
-    return;
-  }
-
-  const confirmed = confirm(
-    `確定要發送這則推播給所有已開啟通知的會員嗎？\n\n` +
-    `標題：${title}\n` +
-    `內容：${body}`
-  );
-
-  if (!confirmed) {
+  if (!confirm(text)) {
     return;
   }
 
   try {
-    sendPushBtn.disabled = true;
-    sendPushBtn.textContent = "正在發送...";
-
-    if (resultEl) {
-      resultEl.textContent = "推播發送中，請稍候...";
-    }
-
-    const response = await fetch(PUSH_SEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        title,
-        body,
-        url,
-        admin_password: adminPassword
-      })
+    await apiRequest({
+      action: "set_active",
+      id,
+      is_active:
+        newState
     });
 
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "推播發送失敗");
-    }
-
-    if (resultEl) {
-      resultEl.textContent =
-        `✅ 發送完成｜成功 ${data.sent}｜失敗 ${data.failed}`;
-    }
-
-    alert(
-      `推播發送完成！\n\n` +
-      `總訂閱：${data.total}\n` +
-      `成功：${data.sent}\n` +
-      `失敗：${data.failed}`
-    );
+    await loadMembers();
 
   } catch (error) {
-    console.error("推播發送失敗：", error);
+    alert(
+      error?.message ||
+      "會員狀態修改失敗"
+    );
+  }
+}
 
-    if (resultEl) {
-      resultEl.textContent =
-        "❌ " + (error?.message || "推播發送失敗");
+/* =========================
+   ANNOUNCEMENTS / SETTINGS
+========================= */
+
+async function loadAnnouncementSettings() {
+  try {
+    const response =
+      await fetch(
+        BENEFITS_ADMIN_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body:
+            JSON.stringify({
+              action:
+                "get_settings",
+              admin_password:
+                adminPassword
+            })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+        "讀取公告設定失敗"
+      );
+    }
+
+    const settings =
+      data.settings || {};
+
+    window.apiDailyLimit =
+      Number(
+        settings
+          .api_daily_limit ||
+        7500
+      );
+
+    window.apiRenewalDate =
+      settings
+        .api_renewal_date ||
+      null;
+
+    const normal =
+      document.getElementById(
+        "normalAnnouncement"
+      );
+
+    const maintenance =
+      document.getElementById(
+        "maintenanceAnnouncement"
+      );
+
+    const normalEnabled =
+      document.getElementById(
+        "normalAnnouncementEnabled"
+      );
+
+    const maintenanceEnabled =
+      document.getElementById(
+        "maintenanceAnnouncementEnabled"
+      );
+
+    if (normal) {
+      normal.value =
+        settings
+          .normal_announcement ||
+        "";
+    }
+
+    if (maintenance) {
+      maintenance.value =
+        settings
+          .maintenance_announcement ||
+        "";
+    }
+
+    if (normalEnabled) {
+      normalEnabled.checked =
+        settings
+          .normal_enabled ===
+        true;
+    }
+
+    if (
+      maintenanceEnabled
+    ) {
+      maintenanceEnabled.checked =
+        settings
+          .maintenance_enabled ===
+        true;
+    }
+
+    renderDashboard();
+    renderApiPage();
+
+  } catch (error) {
+    console.error(
+      "LOAD SETTINGS ERROR:",
+      error
+    );
+  }
+}
+
+async function saveAnnouncementSettings() {
+  const button =
+    document.getElementById(
+      "saveAnnouncementBtn"
+    );
+
+  const result =
+    document.getElementById(
+      "announcementResult"
+    );
+
+  const normal =
+    document
+      .getElementById(
+        "normalAnnouncement"
+      )?.value
+      .trim() || "";
+
+  const maintenance =
+    document
+      .getElementById(
+        "maintenanceAnnouncement"
+      )?.value
+      .trim() || "";
+
+  const normalEnabled =
+    document
+      .getElementById(
+        "normalAnnouncementEnabled"
+      )?.checked === true;
+
+  const maintenanceEnabled =
+    document
+      .getElementById(
+        "maintenanceAnnouncementEnabled"
+      )?.checked === true;
+
+  try {
+    button.disabled = true;
+    button.textContent =
+      "儲存中...";
+
+    if (result) {
+      result.textContent =
+        "正在儲存設定...";
+    }
+
+    const response =
+      await fetch(
+        BENEFITS_ADMIN_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body:
+            JSON.stringify({
+              action:
+                "save_settings",
+              admin_password:
+                adminPassword,
+              normal_announcement:
+                normal,
+              maintenance_announcement:
+                maintenance,
+              normal_enabled:
+                normalEnabled,
+              maintenance_enabled:
+                maintenanceEnabled
+            })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+        "儲存公告失敗"
+      );
+    }
+
+    if (result) {
+      result.textContent =
+        "✅ 公告與系統設定已儲存";
+    }
+
+  } catch (error) {
+    console.error(
+      "SAVE SETTINGS ERROR:",
+      error
+    );
+
+    if (result) {
+      result.textContent =
+        "❌ " +
+        (
+          error?.message ||
+          "儲存失敗"
+        );
     }
 
     alert(
-      "推播發送失敗：" +
-      (error?.message || "未知錯誤")
+      error?.message ||
+      "儲存公告失敗"
     );
 
   } finally {
-    sendPushBtn.disabled = false;
-    sendPushBtn.textContent = "🚀 發送推播";
+    button.disabled = false;
+    button.textContent =
+      "儲存公告與系統設定";
   }
-});
-  
+}
+
+/* =========================
+   PUSH
+========================= */
+
+const sendPushBtn =
+  document.getElementById(
+    "sendPushBtn"
+  );
+
+sendPushBtn?.addEventListener(
+  "click",
+  async () => {
+    const title =
+      document
+        .getElementById(
+          "pushTitle"
+        )?.value
+        .trim();
+
+    const body =
+      document
+        .getElementById(
+          "pushBody"
+        )?.value
+        .trim();
+
+    const url =
+      document
+        .getElementById(
+          "pushUrl"
+        )?.value;
+
+    const resultEl =
+      document.getElementById(
+        "pushSendResult"
+      );
+
+    if (!title) {
+      alert(
+        "請輸入通知標題"
+      );
+      return;
+    }
+
+    if (!body) {
+      alert(
+        "請輸入通知內容"
+      );
+      return;
+    }
+
+    if (
+      !confirm(
+        `確定發送這則推播給所有已開啟通知的會員？\n\n標題：${title}\n內容：${body}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      sendPushBtn.disabled =
+        true;
+
+      sendPushBtn.textContent =
+        "正在發送...";
+
+      if (resultEl) {
+        resultEl.textContent =
+          "推播發送中，請稍候...";
+      }
+
+      const response =
+        await fetch(
+          PUSH_SEND_URL,
+          {
+            method:
+              "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body:
+              JSON.stringify({
+                title,
+                body,
+                url,
+                admin_password:
+                  adminPassword
+              })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+        throw new Error(
+          data.error ||
+          data.message ||
+          "推播發送失敗"
+        );
+      }
+
+      if (resultEl) {
+        resultEl.textContent =
+          `✅ 發送完成｜總訂閱 ${data.total ?? 0}｜成功 ${data.sent ?? 0}｜失敗 ${data.failed ?? 0}`;
+      }
+
+      alert(
+        `推播發送完成！\n\n總訂閱：${data.total ?? 0}\n成功：${data.sent ?? 0}\n失敗：${data.failed ?? 0}`
+      );
+
+    } catch (error) {
+      console.error(
+        "PUSH SEND ERROR:",
+        error
+      );
+
+      if (resultEl) {
+        resultEl.textContent =
+          "❌ " +
+          (
+            error?.message ||
+            "推播發送失敗"
+          );
+      }
+
+      alert(
+        "推播發送失敗：" +
+        (
+          error?.message ||
+          "未知錯誤"
+        )
+      );
+
+    } finally {
+      sendPushBtn.disabled =
+        false;
+
+      sendPushBtn.textContent =
+        "發送推播";
+    }
+  }
+);
+
+/* =========================
+   API PAGE
+========================= */
+
+function calculateRenewalDays(
+  dateValue
+) {
+  if (!dateValue) {
+    return {
+      days: null,
+      text: "尚未設定"
+    };
+  }
+
+  const renewal =
+    new Date(
+      `${dateValue}T00:00:00`
+    );
+
+  const today =
+    new Date();
+
+  const taipeiToday =
+    new Date(
+      today.toLocaleString(
+        "en-US",
+        {
+          timeZone:
+            "Asia/Taipei"
+        }
+      )
+    );
+
+  taipeiToday.setHours(
+    0,0,0,0
+  );
+
+  const days =
+    Math.ceil(
+      (
+        renewal -
+        taipeiToday
+      ) /
+      (
+        1000 *
+        60 *
+        60 *
+        24
+      )
+    );
+
+  if (days < 0) {
+    return {
+      days,
+      text:
+        "已到期，請續費"
+    };
+  }
+
+  return {
+    days,
+    text:
+      `剩餘 ${days} 天`
+  };
+}
+
+function renderApiPage() {
+  const apiLimit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  const apiUsed =
+    Number(
+      dashboardData
+        .todayApiCount ||
+      0
+    );
+
+  const avg =
+    Math.ceil(
+      Number(
+        dashboardData
+          .last7DaysApiCount ||
+        0
+      ) /
+      7
+    );
+
+  const remaining =
+    Math.max(
+      apiLimit -
+      apiUsed,
+      0
+    );
+
+  const avgRemaining =
+    Math.max(
+      apiLimit -
+      avg,
+      0
+    );
+
+  const percent =
+    apiLimit > 0
+      ? Math.min(
+          (
+            apiUsed /
+            apiLimit
+          ) * 100,
+          100
+        )
+      : 0;
+
+  setText(
+    "apiTodayBig",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "apiDailyLimitText",
+    apiLimit
+  );
+
+  setText(
+    "apiAvgText",
+    avg
+  );
+
+  setText(
+    "apiAvgRemainingText",
+    avgRemaining
+  );
+
+  setText(
+    "apiRenewalText",
+    window.apiRenewalDate
+      ? String(
+          window.apiRenewalDate
+        ).replace(/-/g,"/")
+      : "—"
+  );
+
+  const renewal =
+    calculateRenewalDays(
+      window.apiRenewalDate
+    );
+
+  setText(
+    "apiRenewalDaysText",
+    renewal.text
+  );
+
+  setText(
+    "apiPagePercent",
+    `${percent.toFixed(1)}%`
+  );
+
+  setText(
+    "apiPageRemaining",
+    `剩餘 ${remaining} 次`
+  );
+
+  const progress =
+    document.getElementById(
+      "apiPageProgress"
+    );
+
+  if (progress) {
+    progress.style.width =
+      `${percent}%`;
+
+    if (percent >= 90) {
+      progress.style.background =
+        "linear-gradient(90deg,#b93a3a,#ff6565)";
+    } else if (
+      percent >= 70
+    ) {
+      progress.style.background =
+        "linear-gradient(90deg,#b2771f,#f2bd4b)";
+    } else {
+      progress.style.background =
+        "linear-gradient(90deg,#d99821,#ffe39d)";
+    }
+  }
+}
+
+/* =========================
+   UTILITIES
+========================= */
+
+function setText(
+  id,
+  value
+) {
+  const el =
+    document.getElementById(
+      id
+    );
+
+  if (el) {
+    el.textContent =
+      String(
+        value ??
+        ""
+      );
+  }
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return String(value);
+  }
+
+  return date
+    .toLocaleString(
+      "zh-TW",
+      {
+        timeZone:
+          "Asia/Taipei",
+        year:
+          "numeric",
+        month:
+          "2-digit",
+        day:
+          "2-digit",
+        hour:
+          "2-digit",
+        minute:
+          "2-digit",
+        hour12:
+          false
+      }
+    );
+}
+
+function escapeHtml(value) {
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
 </script>
 
-<!-- 積分管理 Modal -->
-<div id="creditsModal" class="modal hidden">
-  <div class="modal-card">
-
-    <h3>積分管理</h3>
-
-    <p>
-      會員：
-      <strong id="creditsModalAccount">—</strong>
-    </p>
-
-    <label for="editCredits">
-      輸入要增加或扣除的積分數量
-    </label>
-
-    <input
-      id="editCredits"
-      type="number"
-      min="1"
-      step="1"
-      placeholder="例如：5"
-    >
-
-    <div class="modal-actions">
-
-      <button
-        type="button"
-        class="btn small-btn danger-btn"
-        onclick="adjustCredits('subtract')"
-      >
-        - 扣除積分
-      </button>
-
-      <button
-        type="button"
-        class="btn small-btn green-btn"
-        onclick="adjustCredits('add')"
-      >
-        + 增加積分
-      </button>
-
-      <button
-        type="button"
-        class="btn small-btn"
-        onclick="closeCreditsModal()"
-      >
-        取消
-      </button>
-
-    </div>
-
-  </div>
-</div>
-  
 </body>
 </html>
