@@ -7743,6 +7743,123 @@ if (!matches.length) {
     matches;
 }
 
+
+/* ==========================================
+   My Analysis 英文版本機快取
+   - 只快取英文
+   - 有效 6 小時，與分析快取更新週期一致
+   - 同一場第二次開啟直接進 analysis.html
+========================================== */
+
+const HABAO_EN_HISTORY_CACHE_MS =
+  6 * 60 * 60 * 1000;
+
+function getEnglishHistoryCacheKey(
+  historyId,
+  fixtureId
+) {
+  return (
+    "habao_history_en_" +
+    String(historyId || "") +
+    "_" +
+    String(fixtureId || "")
+  );
+}
+
+function readEnglishHistoryCache(
+  historyId,
+  fixtureId
+) {
+  try {
+    const raw =
+      localStorage.getItem(
+        getEnglishHistoryCacheKey(
+          historyId,
+          fixtureId
+        )
+      );
+
+    if (!raw) {
+      return null;
+    }
+
+    const cached =
+      JSON.parse(raw);
+
+    const savedAt =
+      Number(
+        cached?.saved_at || 0
+      );
+
+    if (
+      !savedAt ||
+      Date.now() - savedAt >
+        HABAO_EN_HISTORY_CACHE_MS ||
+      !cached?.payload
+    ) {
+      localStorage.removeItem(
+        getEnglishHistoryCacheKey(
+          historyId,
+          fixtureId
+        )
+      );
+
+      return null;
+    }
+
+    return cached.payload;
+
+  } catch (error) {
+    console.warn(
+      "READ EN HISTORY CACHE FAILED:",
+      error
+    );
+
+    return null;
+  }
+}
+
+function saveEnglishHistoryCache(
+  historyId,
+  fixtureId,
+  payload
+) {
+  if (!payload) return;
+
+  try {
+    localStorage.setItem(
+      getEnglishHistoryCacheKey(
+        historyId,
+        fixtureId
+      ),
+      JSON.stringify({
+        saved_at:
+          Date.now(),
+        payload
+      })
+    );
+  } catch (error) {
+    console.warn(
+      "SAVE EN HISTORY CACHE FAILED:",
+      error
+    );
+  }
+}
+
+function openHistoryAnalysisResult(
+  resultData
+) {
+  sessionStorage.setItem(
+    "matchAnalysis",
+    JSON.stringify(
+      resultData
+    )
+  );
+
+  window.location.href =
+    "analysis.html";
+}
+
 async function viewAnalysisHistory(historyId) {
   const history =
     window.habaoAnalysisHistory?.[String(historyId)];
@@ -7765,23 +7882,53 @@ async function viewAnalysisHistory(historyId) {
   let resultData =
     history.result_data;
 
-  /*
-    舊分析紀錄可能是在繁中模式建立。
-    查看紀錄時依目前語言重新讀取同一場快取，
-    不重新扣點，讓英文分析內文也能完整切換。
-  */
-  try {
-    const language =
-      window.HabaoI18n?.getLanguage?.() ||
-      "zh-Hant";
+  const language =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
 
-    const fixtureId =
-      Number(
-        history.fixture_id ||
-        resultData?.fixture?.id ||
-        0
+  const fixtureId =
+    Number(
+      history.fixture_id ||
+      resultData?.fixture?.id ||
+      0
+    );
+
+  /*
+    英文版：
+    先查瀏覽器本機快取。
+    命中時不再呼叫 match-analysis，
+    直接進完成分析頁。
+  */
+  if (
+    language === "en" &&
+    fixtureId
+  ) {
+    const cachedEnglish =
+      readEnglishHistoryCache(
+        historyId,
+        fixtureId
       );
 
+    if (cachedEnglish) {
+      console.log(
+        "MY ANALYSIS EN LOCAL CACHE HIT:",
+        fixtureId
+      );
+
+      openHistoryAnalysisResult(
+        cachedEnglish
+      );
+
+      return;
+    }
+  }
+
+  /*
+    舊分析紀錄可能是在繁中模式建立。
+    英文第一次查看仍由後端取得英文版本。
+    成功後寫入本機 6 小時快取。
+  */
+  try {
     const member = JSON.parse(
       sessionStorage.getItem(
         "habao_member"
@@ -7816,6 +7963,14 @@ async function viewAnalysisHistory(historyId) {
         freshData?.success
       ) {
         resultData = freshData;
+
+        if (language === "en") {
+          saveEnglishHistoryCache(
+            historyId,
+            fixtureId,
+            freshData
+          );
+        }
       }
     }
   } catch (error) {
@@ -7825,13 +7980,9 @@ async function viewAnalysisHistory(historyId) {
     );
   }
 
-  sessionStorage.setItem(
-    "matchAnalysis",
-    JSON.stringify(resultData)
+  openHistoryAnalysisResult(
+    resultData
   );
-
-  window.location.href =
-    "analysis.html";
 }  
 
 window.addEventListener(
