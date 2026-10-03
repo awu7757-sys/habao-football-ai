@@ -1306,6 +1306,8 @@ h1{
 /* ===== 立即投注 ===== */
 
 .bet-btn{
+  border:0;
+  cursor:pointer;
   color:#171208;
 
   background:
@@ -2601,6 +2603,87 @@ h1{
   }
 }
    
+
+/* ========================================
+   BET PLATFORM SELECT MODAL
+======================================== */
+.bet-platform-overlay{
+  position:fixed; inset:0; z-index:99999;
+  display:none; align-items:center; justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.bet-platform-overlay.show{display:flex}
+.bet-platform-modal{
+  position:relative;
+  width:min(100%,420px);
+  padding:28px 20px 22px;
+  border:1px solid rgba(233,198,111,.25);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at top,rgba(233,198,111,.09),transparent 42%),
+    #111315;
+  box-shadow:0 28px 80px rgba(0,0,0,.55);
+}
+.bet-platform-close{
+  position:absolute; top:12px; right:14px;
+  width:34px; height:34px;
+  border:0; background:transparent;
+  color:rgba(255,255,255,.52);
+  font-size:27px; line-height:1; cursor:pointer;
+}
+.bet-platform-badge{
+  width:fit-content; margin:0 auto 12px; padding:5px 12px;
+  border:1px solid rgba(233,198,111,.42);
+  border-radius:999px;
+  background:rgba(233,198,111,.1);
+  color:#f0d48b;
+  font-size:12px; font-weight:900; letter-spacing:1.6px;
+}
+.bet-platform-title{color:#fff;font-size:22px;font-weight:900;text-align:center}
+.bet-platform-subtitle{
+  max-width:330px;margin:9px auto 20px;
+  color:rgba(255,255,255,.53);
+  font-size:12px;line-height:1.65;text-align:center;
+}
+.bet-platform-list{display:grid;gap:10px}
+.bet-platform-card{
+  display:flex;align-items:center;gap:12px;padding:13px;
+  border:1px solid rgba(233,198,111,.22);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(233,198,111,.08),rgba(255,255,255,.025));
+}
+.bet-platform-logo{
+  width:54px;height:54px;flex:0 0 54px;object-fit:cover;
+  border:1px solid rgba(233,198,111,.22);border-radius:13px;
+}
+.bet-platform-info{min-width:0;flex:1}
+.bet-platform-info strong{
+  display:block;margin-bottom:4px;color:#fff;font-size:14px;font-weight:900;
+}
+.bet-platform-info span{
+  display:block;color:rgba(255,255,255,.46);font-size:10px;line-height:1.45;
+}
+.bet-platform-go{
+  flex:0 0 auto;padding:9px 11px;
+  border:1px solid rgba(233,198,111,.42);border-radius:10px;
+  background:rgba(233,198,111,.1);color:#f0d48b;
+  font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;
+}
+.bet-platform-go:active{transform:scale(.97)}
+.bet-platform-note{
+  margin-top:15px;color:rgba(255,255,255,.34);
+  font-size:10px;line-height:1.55;text-align:center;
+}
+@media(max-width:480px){
+  .bet-platform-modal{padding:26px 16px 18px}
+  .bet-platform-card{gap:10px;padding:11px}
+  .bet-platform-logo{width:48px;height:48px;flex-basis:48px}
+  .bet-platform-go{padding:9px;font-size:10px}
+}
+
 </style>
 </head>
 
@@ -2668,6 +2751,66 @@ h1{
 </div>
    
 <main id="app"></main>
+
+<!-- ========================================
+     立即投注｜合作平台選擇
+========================================= -->
+<div
+  class="bet-platform-overlay"
+  id="betPlatformOverlay"
+  onclick="closeBetPlatformModal(event)"
+>
+  <div
+    class="bet-platform-modal"
+    onclick="event.stopPropagation()"
+  >
+    <button
+      type="button"
+      class="bet-platform-close"
+      id="betPlatformClose"
+      onclick="closeBetPlatformModal()"
+      aria-label="關閉"
+    >×</button>
+
+    <div class="bet-platform-badge">PARTNER</div>
+
+    <div class="bet-platform-title" id="betPlatformTitle">
+      選擇合作平台
+    </div>
+
+    <div class="bet-platform-subtitle" id="betPlatformSubtitle">
+      選擇您要前往的娛樂平台
+    </div>
+
+    <div class="bet-platform-list">
+      <div class="bet-platform-card">
+        <img
+          src="hd-logo.png"
+          alt="HD 皇鼎"
+          class="bet-platform-logo"
+        >
+
+        <div class="bet-platform-info">
+          <strong>HD 皇鼎</strong>
+          <span id="betPlatformHdText">合作平台</span>
+        </div>
+
+        <a
+          href="https://www.hd5957.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bet-platform-go"
+          id="betPlatformHdButton"
+        >前往投注 ↗</a>
+      </div>
+    </div>
+
+    <div class="bet-platform-note" id="betPlatformNote">
+      目前僅開放 HD 皇鼎，其他合作平台將陸續新增。
+    </div>
+  </div>
+</div>
+
    
 <script>
 
@@ -2710,6 +2853,13 @@ const analysisTranslations = {
 
     betNow: "立即投注 →",
     expertAnalysis: "專人分析 →",
+
+    betPlatformTitle: "選擇合作平台",
+    betPlatformSubtitle: "選擇您要前往的娛樂平台",
+    betPlatformPartner: "合作平台",
+    betPlatformGo: "前往投注 ↗",
+    betPlatformNote: "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。",
+    close: "關閉",
 
     intelligenceTitle: "深度賽事情報",
     analysisFocus: "AI 分析重點",
@@ -2760,6 +2910,13 @@ const analysisTranslations = {
     betNow: "立即投注 →",
     expertAnalysis: "专人分析 →",
 
+    betPlatformTitle: "选择合作平台",
+    betPlatformSubtitle: "选择您要前往的娱乐平台",
+    betPlatformPartner: "合作平台",
+    betPlatformGo: "前往投注 ↗",
+    betPlatformNote: "目前仅开放 HD 皇鼎，其他合作平台将陆续新增。",
+    close: "关闭",
+
     intelligenceTitle: "深度赛事情报",
     analysisFocus: "AI 分析重点",
     noSummary: "目前没有摘要资料。",
@@ -2809,6 +2966,13 @@ const analysisTranslations = {
     betNow: "Bet Now →",
     expertAnalysis: "Expert Analysis →",
 
+    betPlatformTitle: "Choose a Partner Platform",
+    betPlatformSubtitle: "Select the platform you would like to visit",
+    betPlatformPartner: "Partner Platform",
+    betPlatformGo: "Go to Platform ↗",
+    betPlatformNote: "HD Huang Ding is currently available. More partner platforms will be added soon.",
+    close: "Close",
+
     intelligenceTitle: "Match Intelligence",
     analysisFocus: "AI Analysis Highlights",
     noSummary: "No summary is currently available.",
@@ -2837,6 +3001,78 @@ const analysisT = (
     fallback
   ) || fallback;
    
+
+function syncBetPlatformModalLanguage() {
+  const title = document.getElementById("betPlatformTitle");
+  const subtitle = document.getElementById("betPlatformSubtitle");
+  const hdText = document.getElementById("betPlatformHdText");
+  const hdButton = document.getElementById("betPlatformHdButton");
+  const note = document.getElementById("betPlatformNote");
+  const close = document.getElementById("betPlatformClose");
+
+  if (title) {
+    title.textContent =
+      analysisT("betPlatformTitle", "選擇合作平台");
+  }
+
+  if (subtitle) {
+    subtitle.textContent =
+      analysisT("betPlatformSubtitle", "選擇您要前往的娛樂平台");
+  }
+
+  if (hdText) {
+    hdText.textContent =
+      analysisT("betPlatformPartner", "合作平台");
+  }
+
+  if (hdButton) {
+    hdButton.textContent =
+      analysisT("betPlatformGo", "前往投注 ↗");
+  }
+
+  if (note) {
+    note.textContent =
+      analysisT(
+        "betPlatformNote",
+        "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。"
+      );
+  }
+
+  if (close) {
+    close.setAttribute(
+      "aria-label",
+      analysisT("close", "關閉")
+    );
+  }
+}
+
+function openBetPlatformModal() {
+  syncBetPlatformModalLanguage();
+
+  const overlay =
+    document.getElementById("betPlatformOverlay");
+
+  if (overlay) {
+    overlay.classList.add("show");
+  }
+}
+
+function closeBetPlatformModal(event) {
+  if (
+    event &&
+    event.target !== event.currentTarget
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.getElementById("betPlatformOverlay");
+
+  if (overlay) {
+    overlay.classList.remove("show");
+  }
+}
+
 const app =
   document.getElementById("app");
 
@@ -3607,14 +3843,13 @@ handicap.pick !== "No Recommendation"
       </div>
       
       <div class="bet-action">
-  <a
-    href="https://www.hd5957.com/"
-    target="_blank"
-    rel="noopener noreferrer"
+  <button
+    type="button"
     class="bet-btn"
+    onclick="openBetPlatformModal()"
   >
     ${analysisT("betNow", "立即投注 →")}
-  </a>
+  </button>
 
 <a
   href="https://lin.ee/xmU6Cn8"
