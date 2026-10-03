@@ -405,6 +405,90 @@ tr:last-child td{border-bottom:0}
   .filters{display:grid;grid-template-columns:1fr 1fr}
   .filters .input,.search{width:100%!important;min-width:0!important;max-width:none}
 }
+
+/* ===== ADMIN V3 MODULES ===== */
+.metric-row{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;
+  margin-top:11px;
+}
+.table-tools{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.compact-select{
+  min-height:38px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:#dce3eb;
+  background:#080d13;
+  outline:none;
+  font-size:10px;
+}
+.json-pre{
+  max-height:58vh;
+  overflow:auto;
+  margin:14px 0 0;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:#b7c3ce;
+  background:#070b10;
+  font:10px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.modal-card.wide{
+  width:min(100%,760px);
+}
+.partner-form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.partner-logo{
+  width:42px;
+  height:42px;
+  object-fit:cover;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#090d12;
+}
+.health-ok{color:var(--green)}
+.health-warn{color:var(--gold-light)}
+.health-bad{color:#ff9696}
+.mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9px;
+}
+.table-chip{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:#aeb9c4;
+  background:rgba(255,255,255,.025);
+  font-size:8px;
+  font-weight:850;
+}
+.inline-loader{
+  color:#7f8a98;
+  font-size:10px;
+}
+@media(max-width:1100px){
+  .metric-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .partner-form-grid{grid-template-columns:1fr}
+  .metric-row{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 
@@ -472,14 +556,35 @@ tr:last-child td{border-bottom:0}
     </div>
 
     <div class="side-section">
-      <div class="side-label">第二階段</div>
+      <div class="side-label">AI 與賽事</div>
 
-      <button class="nav-btn disabled" disabled><span class="nav-icon">AI</span> AI 分析紀錄 <span class="phase-tag">NEXT</span></button>
-      <button class="nav-btn disabled" disabled><span class="nav-icon">J</span> Job 管理 <span class="phase-tag">NEXT</span></button>
-      <button class="nav-btn disabled" disabled><span class="nav-icon">⚽</span> 賽事管理 <span class="phase-tag">NEXT</span></button>
-      <button class="nav-btn disabled" disabled><span class="nav-icon">✓</span> 公開 AI 戰績 <span class="phase-tag">NEXT</span></button>
-      <button class="nav-btn disabled" disabled><span class="nav-icon">P</span> 合作平台 <span class="phase-tag">NEXT</span></button>
-      <button class="nav-btn disabled" disabled><span class="nav-icon">!</span> 系統健康 <span class="phase-tag">NEXT</span></button>
+      <button class="nav-btn" data-page="analysisLogPage" onclick="switchPage('analysisLogPage',this)">
+        <span class="nav-icon">AI</span> AI 分析紀錄
+      </button>
+
+      <button class="nav-btn" data-page="jobsPage" onclick="switchPage('jobsPage',this)">
+        <span class="nav-icon">J</span> Job 管理
+      </button>
+
+      <button class="nav-btn" data-page="fixturesPage" onclick="switchPage('fixturesPage',this)">
+        <span class="nav-icon">⚽</span> 賽事管理
+      </button>
+
+      <button class="nav-btn" data-page="performanceAdminPage" onclick="switchPage('performanceAdminPage',this)">
+        <span class="nav-icon">✓</span> 公開 AI 戰績
+      </button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">營運與系統</div>
+
+      <button class="nav-btn" data-page="partnersPage" onclick="switchPage('partnersPage',this)">
+        <span class="nav-icon">P</span> 合作平台
+      </button>
+
+      <button class="nav-btn" data-page="healthPage" onclick="switchPage('healthPage',this)">
+        <span class="nav-icon">!</span> 系統健康
+      </button>
     </div>
 
     <div class="sidebar-bottom">
@@ -562,6 +667,32 @@ tr:last-child td{border-bottom:0}
             <div class="stat-label">API 續費日期</div>
             <div id="dashRenewalDate" class="stat-value" style="font-size:20px">—</div>
             <div id="dashRenewalDays" class="stat-note">—</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="stat-card">
+            <div class="stat-label">今日 / 明日可分析賽事</div>
+            <div id="dashFixtureCount" class="stat-value">0 / 0</div>
+            <div class="stat-note">fixture_cache</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">執行中 Job</div>
+            <div id="dashRunningJobs" class="stat-value">0</div>
+            <div class="stat-note">queued + processing</div>
+          </div>
+
+          <div class="stat-card gold">
+            <div class="stat-label">公開戰績待驗證</div>
+            <div id="dashPendingSnapshots" class="stat-value gold-text">0</div>
+            <div class="stat-note">pending snapshots</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">分析 Processing Lock</div>
+            <div id="dashProcessingLocks" class="stat-value">0</div>
+            <div class="stat-note">match_analysis_cache</div>
           </div>
         </div>
 
@@ -741,11 +872,26 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">PUSH NOTIFICATION</div>
             <div class="page-title">推播通知</div>
-            <div class="page-desc">第一階段沿用目前 push-send 邏輯，發送給所有已開啟通知的會員。</div>
+            <div class="page-desc">可發送給全部會員、VIP、一般會員或指定會員。</div>
           </div>
         </div>
 
         <div class="panel" style="max-width:760px">
+          <div class="field">
+            <label class="label">發送對象</label>
+            <select id="pushAudience" class="input" onchange="togglePushMemberField()">
+              <option value="all">全部已開啟通知的會員</option>
+              <option value="vip">僅 VIP 會員</option>
+              <option value="normal">僅一般會員</option>
+              <option value="member">指定會員</option>
+            </select>
+          </div>
+
+          <div id="pushMemberField" class="field hidden">
+            <label class="label">指定會員帳號</label>
+            <input id="pushMemberUsername" class="input" placeholder="輸入 HABAO 會員帳號">
+          </div>
+
           <div class="field">
             <label class="label">通知標題</label>
             <input id="pushTitle" class="input" type="text" maxlength="60" value="HABAO 賽事預測 AI">
@@ -779,7 +925,7 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">API QUOTA</div>
             <div class="page-title">API 配額</div>
-            <div class="page-desc">查看 API-Football 今日使用量、近 7 天平均與續費日期。</div>
+            <div class="page-desc">API-Football PRO｜月費 US$19｜每日上限 7,500 requests，每日重置。</div>
           </div>
         </div>
 
@@ -824,9 +970,420 @@ tr:last-child td{border-bottom:0}
         </div>
 
         <div class="panel">
-          <div class="panel-title">目前第一階段資料範圍</div>
+          <div class="panel-title">近 7 天 API 使用紀錄</div>
           <div class="panel-desc" style="margin-top:8px;line-height:1.75">
-            目前後端可直接提供今日 API 使用量與近 7 天總量，因此本頁先顯示「今日使用比例＋近 7 天平均」。第二階段若要加入每日歷史圖表，再擴充管理端 API。
+            每日配額各自重置；下方顯示最近 7 天實際記錄量。
+          </div>
+
+          <div class="table-shell" style="margin-top:14px">
+            <div class="table-scroll" style="max-height:360px">
+              <table style="min-width:620px">
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>使用量</th>
+                    <th>每日上限</th>
+                    <th>剩餘</th>
+                    <th>使用率</th>
+                  </tr>
+                </thead>
+                <tbody id="apiDailyBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-title" style="margin-top:18px">今日來源統計</div>
+          <div id="apiSourceStats" class="mini-list" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+    
+      <!-- AI ANALYSIS LOG -->
+      <section id="analysisLogPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">AI ANALYSIS HISTORY</div>
+            <div class="page-title">AI 分析紀錄</div>
+            <div class="page-desc">查看會員已完成的分析紀錄與當時保存的分析結果。</div>
+          </div>
+          <button class="ghost-btn" onclick="loadAnalysisHistory(true)">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">目前載入紀錄</div>
+            <div id="analysisRecordCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">今日完成</div>
+            <div id="analysisTodayCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">不同會員</div>
+            <div id="analysisMemberCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">有保存結果</div>
+            <div id="analysisPayloadCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="analysisSearch" class="input search" placeholder="搜尋會員、賽事、聯賽..." oninput="renderAnalysisHistory()">
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>更新時間</th>
+                    <th>會員</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>賽事</th>
+                    <th>開賽時間</th>
+                    <th>狀態</th>
+                    <th>分析結果</th>
+                  </tr>
+                </thead>
+                <tbody id="analysisHistoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOBS -->
+      <section id="jobsPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">ANALYSIS QUEUE</div>
+            <div class="page-title">Job 管理</div>
+            <div class="page-desc">查看背景分析工作、失敗原因與重新執行失敗任務。</div>
+          </div>
+          <button class="ghost-btn" onclick="loadJobs(true)">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">排隊中</div>
+            <div id="jobQueuedCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">執行中</div>
+            <div id="jobProcessingCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">已完成</div>
+            <div id="jobCompletedCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">失敗 / 部分失敗</div>
+            <div id="jobFailedCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="jobSearch" class="input search" placeholder="搜尋會員或 Job ID..." oninput="renderJobs()">
+              <select id="jobStatusFilter" class="input" onchange="renderJobs()">
+                <option value="all">全部狀態</option>
+                <option value="queued">queued</option>
+                <option value="processing">processing</option>
+                <option value="completed">completed</option>
+                <option value="partial">partial</option>
+                <option value="failed">failed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>建立時間</th>
+                    <th>Job ID</th>
+                    <th>會員</th>
+                    <th>類型</th>
+                    <th>賽事數</th>
+                    <th>進度</th>
+                    <th>狀態</th>
+                    <th>目前 Fixture</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="jobsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FIXTURES -->
+      <section id="fixturesPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">FIXTURE CACHE</div>
+            <div class="page-title">賽事管理</div>
+            <div class="page-desc">查看今天與明天的可分析賽事及快取更新時間。</div>
+          </div>
+          <div class="table-tools">
+            <button class="ghost-btn" onclick="refreshFixtureSource(0)">同步今日</button>
+            <button class="ghost-btn" onclick="refreshFixtureSource(1)">同步明日</button>
+            <button class="ghost-btn" onclick="loadFixtures(true)">↻ 更新</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card gold">
+            <div class="stat-label">今日賽事</div>
+            <div id="fixtureTodayCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">明日賽事</div>
+            <div id="fixtureTomorrowCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">今日快取更新</div>
+            <div id="fixtureTodayFetched" class="stat-value" style="font-size:16px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">明日快取更新</div>
+            <div id="fixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="fixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderFixtures()">
+              <select id="fixtureDateFilter" class="input" onchange="renderFixtures()">
+                <option value="all">今日＋明日</option>
+                <option value="today">今日</option>
+                <option value="tomorrow">明日</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>時間</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>主隊</th>
+                    <th>客隊</th>
+                    <th>狀態</th>
+                    <th>比分</th>
+                  </tr>
+                </thead>
+                <tbody id="fixturesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERFORMANCE -->
+      <section id="performanceAdminPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PUBLIC PERFORMANCE</div>
+            <div class="page-title">公開 AI 戰績</div>
+            <div class="page-desc">管理公開預測快照、驗證狀態與市場結果。</div>
+          </div>
+          <div class="table-tools">
+            <button class="save-btn" onclick="runPublicRunner()">立即執行 Runner</button>
+            <button class="ghost-btn" onclick="loadPerformanceAdmin(true)">↻ 更新</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card gold">
+            <div class="stat-label">待驗證</div>
+            <div id="performancePendingCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">已驗證</div>
+            <div id="performanceVerifiedCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">獨贏命中</div>
+            <div id="performanceMoneylineRate" class="stat-value">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">大小球命中</div>
+            <div id="performanceOuRate" class="stat-value">—</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="performanceSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderPerformanceAdmin()">
+              <select id="performanceStatusFilter" class="input" onchange="renderPerformanceAdmin()">
+                <option value="all">全部狀態</option>
+                <option value="pending">pending</option>
+                <option value="verified">verified</option>
+                <option value="finished">finished</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>開賽時間</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>賽事</th>
+                    <th>比分</th>
+                    <th>狀態</th>
+                    <th>獨贏</th>
+                    <th>大小球</th>
+                    <th>BTTS</th>
+                    <th>詳細</th>
+                  </tr>
+                </thead>
+                <tbody id="performanceBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PARTNERS -->
+      <section id="partnersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PARTNER PLATFORMS</div>
+            <div class="page-title">合作平台管理</div>
+            <div class="page-desc">控制分析頁「立即投注」與首頁 VIP 綁定平台。修改後前台會讀取最新資料。</div>
+          </div>
+          <button class="save-btn" onclick="openPartnerModal()">＋ 新增平台</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">平台總數</div>
+            <div id="partnerTotalCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">目前啟用</div>
+            <div id="partnerEnabledCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">停用</div>
+            <div id="partnerDisabledCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">VIP 可選平台</div>
+            <div id="partnerVipCount" class="stat-value gold-text">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">平台列表</div>
+              <div class="panel-desc">Logo 可填 GitHub 同站檔名（例如 hd-logo.png）或完整圖片網址。</div>
+            </div>
+            <button class="ghost-btn" onclick="loadPartners(true)">↻ 更新</button>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>排序</th>
+                    <th>Logo</th>
+                    <th>平台</th>
+                    <th>代碼</th>
+                    <th>投注網址</th>
+                    <th>註冊網址</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="partnersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HEALTH -->
+      <section id="healthPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SYSTEM HEALTH</div>
+            <div class="page-title">系統健康 / Debug</div>
+            <div class="page-desc">集中查看賽事快取、Job、公開驗證、Processing Lock 與近期失敗紀錄。</div>
+          </div>
+          <button class="ghost-btn" onclick="loadHealth(true)">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">賽事快取最後更新</div>
+            <div id="healthFixtureTime" class="stat-value" style="font-size:16px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">最後 Job</div>
+            <div id="healthJobStatus" class="stat-value" style="font-size:18px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Processing Lock</div>
+            <div id="healthLockCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">近期失敗 Job</div>
+            <div id="healthFailedCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <div class="panel-title">服務資料狀態</div>
+            <div id="healthServiceList" class="mini-list" style="margin-top:12px"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Debug Logs</div>
+            <div id="healthDebugInfo" class="panel-desc" style="margin-top:10px;line-height:1.75"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">近期失敗 / Partial Job</div>
+          <div class="table-shell" style="margin-top:12px">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>時間</th>
+                    <th>Job ID</th>
+                    <th>會員</th>
+                    <th>狀態</th>
+                    <th>錯誤</th>
+                    <th>詳細</th>
+                  </tr>
+                </thead>
+                <tbody id="healthFailedJobsBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -852,6 +1409,77 @@ tr:last-child td{border-bottom:0}
   </div>
 </div>
 
+
+<!-- JSON DETAIL MODAL -->
+<div id="jsonModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="jsonModalTitle">詳細資料</div>
+    <pre id="jsonModalContent" class="json-pre"></pre>
+    <div class="modal-actions">
+      <button class="modal-close" onclick="closeJsonModal()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTNER EDIT MODAL -->
+<div id="partnerModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="partnerModalTitle">合作平台</div>
+
+    <input type="hidden" id="partnerId">
+
+    <div class="partner-form-grid">
+      <div class="field">
+        <label class="label">平台代碼（英文）</label>
+        <input id="partnerSlug" class="input" placeholder="例如 huangding">
+      </div>
+
+      <div class="field">
+        <label class="label">平台名稱（存入會員資料）</label>
+        <input id="partnerName" class="input" placeholder="例如 皇鼎">
+      </div>
+
+      <div class="field">
+        <label class="label">前台顯示名稱</label>
+        <input id="partnerDisplayName" class="input" placeholder="例如 HD 皇鼎">
+      </div>
+
+      <div class="field">
+        <label class="label">Logo</label>
+        <input id="partnerLogoUrl" class="input" placeholder="hd-logo.png">
+      </div>
+
+      <div class="field">
+        <label class="label">立即投注網址</label>
+        <input id="partnerBetUrl" class="input" placeholder="https://...">
+      </div>
+
+      <div class="field">
+        <label class="label">免費註冊網址</label>
+        <input id="partnerRegisterUrl" class="input" placeholder="https://...">
+      </div>
+
+      <div class="field">
+        <label class="label">排序</label>
+        <input id="partnerSortOrder" class="input" type="number" value="10">
+      </div>
+
+      <div class="field">
+        <label class="label">狀態</label>
+        <select id="partnerEnabled" class="input">
+          <option value="true">啟用</option>
+          <option value="false">停用</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="save-btn" onclick="savePartner()">儲存平台</button>
+      <button class="modal-close" onclick="closePartnerModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-members";
@@ -862,6 +1490,10 @@ const BENEFITS_ADMIN_URL =
 const PUSH_SEND_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
 
+const ADMIN_CENTER_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-center";
+
+
 let adminPassword = "";
 let members = [];
 let editingMemberId = null;
@@ -871,6 +1503,18 @@ let dashboardData = {
   todayApiCount: 0,
   last7DaysApiCount: 0
 };
+
+let adminOverview = {};
+let analysisHistoryRecords = [];
+let analysisJobs = [];
+let fixtureCacheRows = [];
+let performanceSnapshots = [];
+let partnerPlatforms = [];
+let healthPayload = null;
+let apiStatsPayload = null;
+
+const pageLoaded = new Set();
+
 
 window.apiDailyLimit = 7500;
 window.apiRenewalDate = null;
@@ -884,7 +1528,13 @@ const PAGE_NAMES = {
   membersPage: "會員管理",
   announcementPage: "公告管理",
   pushPage: "推播通知",
-  apiPage: "API 配額"
+  apiPage: "API 配額",
+  analysisLogPage: "AI 分析紀錄",
+  jobsPage: "Job 管理",
+  fixturesPage: "賽事管理",
+  performanceAdminPage: "公開 AI 戰績",
+  partnersPage: "合作平台",
+  healthPage: "系統健康 / Debug"
 };
 
 function switchPage(pageId, button) {
@@ -904,6 +1554,8 @@ function switchPage(pageId, button) {
   if (window.innerWidth <= 820) {
     document.getElementById("sidebar")?.classList.remove("open");
   }
+
+  ensurePageData(pageId);
 }
 
 function switchPageById(pageId) {
@@ -938,6 +1590,40 @@ async function apiRequest(payload) {
       data.message ||
       data.error ||
       "操作失敗"
+    );
+  }
+
+  return data;
+}
+
+async function adminCenterRequest(payload) {
+  const response = await fetch(
+    ADMIN_CENTER_URL,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify({
+        ...payload,
+        admin_password:
+          adminPassword
+      })
+    }
+  );
+
+  const data =
+    await response.json();
+
+  if (
+    !response.ok ||
+    !data?.success
+  ) {
+    throw new Error(
+      data?.message ||
+      data?.error ||
+      "管理中心操作失敗"
     );
   }
 
@@ -996,6 +1682,10 @@ async function adminLogin() {
     renderDashboard();
     renderApiPage();
 
+    await loadAdminOverview();
+    loadApiStats(false);
+
+
   } catch (error) {
     adminPassword = "";
     message.textContent =
@@ -1019,6 +1709,15 @@ function logoutAdmin() {
   adminPassword = "";
   members = [];
   editingMemberId = null;
+  adminOverview = {};
+  analysisHistoryRecords = [];
+  analysisJobs = [];
+  fixtureCacheRows = [];
+  performanceSnapshots = [];
+  partnerPlatforms = [];
+  healthPayload = null;
+  apiStatsPayload = null;
+  pageLoaded.clear();
 
   document
     .getElementById("adminPassword")
@@ -1085,11 +1784,23 @@ async function refreshAll() {
   try {
     await Promise.all([
       loadAnnouncementSettings(),
-      loadMembers()
+      loadMembers(),
+      loadAdminOverview()
     ]);
 
     renderDashboard();
     renderApiPage();
+
+    const activePage =
+      document.querySelector(
+        ".page.active"
+      )?.id;
+
+    if (activePage) {
+      refreshPageData(
+        activePage
+      );
+    }
 
   } catch (error) {
     console.error(
@@ -1412,13 +2123,17 @@ function renderMembers() {
           )}
         </div>
         ${
-          member
-            ?.platform_account
+          member?.platform_account
             ? `
               <div class="subline" style="color:#b99c56">
-                平台：${escapeHtml(
-                  member
-                    .platform_account
+                綁定平台：${escapeHtml(
+                  member?.platform_name ||
+                  "皇鼎"
+                )}
+              </div>
+              <div class="subline" style="color:#8f9aaa">
+                平台帳號：${escapeHtml(
+                  member.platform_account
                 )}
               </div>
             `
@@ -2123,7 +2838,7 @@ sendPushBtn?.addEventListener(
 
     if (
       !confirm(
-        `確定發送這則推播給所有已開啟通知的會員？\n\n標題：${title}\n內容：${body}`
+        `確定發送這則推播？\n\n標題：${title}\n內容：${body}`
       )
     ) {
       return;
@@ -2141,6 +2856,28 @@ sendPushBtn?.addEventListener(
           "推播發送中，請稍候...";
       }
 
+      const audience =
+        document
+          .getElementById(
+            "pushAudience"
+          )?.value || "all";
+
+      const memberUsername =
+        document
+          .getElementById(
+            "pushMemberUsername"
+          )?.value
+          .trim() || "";
+
+      if (
+        audience === "member" &&
+        !memberUsername
+      ) {
+        throw new Error(
+          "請輸入指定會員帳號"
+        );
+      }
+
       const response =
         await fetch(
           PUSH_SEND_URL,
@@ -2156,6 +2893,11 @@ sendPushBtn?.addEventListener(
                 title,
                 body,
                 url,
+                audience,
+                member_username:
+                  audience === "member"
+                    ? memberUsername
+                    : null,
                 admin_password:
                   adminPassword
               })
@@ -2405,6 +3147,1615 @@ function renderApiPage() {
     }
   }
 }
+
+
+/* =========================
+   ADMIN CENTER V3
+========================= */
+
+function togglePushMemberField() {
+  const audience =
+    document.getElementById(
+      "pushAudience"
+    )?.value;
+
+  document
+    .getElementById(
+      "pushMemberField"
+    )
+    ?.classList.toggle(
+      "hidden",
+      audience !== "member"
+    );
+}
+
+async function loadAdminOverview() {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "overview"
+      });
+
+    adminOverview =
+      data.overview || {};
+
+    setText(
+      "dashFixtureCount",
+      `${Number(adminOverview.today_fixtures || 0)} / ${Number(adminOverview.tomorrow_fixtures || 0)}`
+    );
+
+    setText(
+      "dashRunningJobs",
+      adminOverview.running_jobs || 0
+    );
+
+    setText(
+      "dashPendingSnapshots",
+      adminOverview.pending_snapshots || 0
+    );
+
+    setText(
+      "dashProcessingLocks",
+      adminOverview.processing_locks || 0
+    );
+
+  } catch (error) {
+    console.error(
+      "OVERVIEW ERROR:",
+      error
+    );
+  }
+}
+
+function ensurePageData(pageId) {
+  if (
+    !adminPassword ||
+    pageLoaded.has(pageId)
+  ) {
+    return;
+  }
+
+  pageLoaded.add(pageId);
+
+  if (pageId === "analysisLogPage") {
+    loadAnalysisHistory(false);
+  } else if (pageId === "jobsPage") {
+    loadJobs(false);
+  } else if (pageId === "fixturesPage") {
+    loadFixtures(false);
+  } else if (pageId === "performanceAdminPage") {
+    loadPerformanceAdmin(false);
+  } else if (pageId === "partnersPage") {
+    loadPartners(false);
+  } else if (pageId === "healthPage") {
+    loadHealth(false);
+  } else if (pageId === "apiPage") {
+    loadApiStats(false);
+  }
+}
+
+function refreshPageData(pageId) {
+  if (pageId === "analysisLogPage") {
+    loadAnalysisHistory(true);
+  } else if (pageId === "jobsPage") {
+    loadJobs(true);
+  } else if (pageId === "fixturesPage") {
+    loadFixtures(true);
+  } else if (pageId === "performanceAdminPage") {
+    loadPerformanceAdmin(true);
+  } else if (pageId === "partnersPage") {
+    loadPartners(true);
+  } else if (pageId === "healthPage") {
+    loadHealth(true);
+  } else if (pageId === "apiPage") {
+    loadApiStats(true);
+  }
+}
+
+/* ---------- Analysis History ---------- */
+
+async function loadAnalysisHistory(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action:
+          "analysis_history",
+        limit: 400
+      });
+
+    analysisHistoryRecords =
+      data.records || [];
+
+    renderAnalysisHistory();
+
+  } catch (error) {
+    console.error(
+      "ANALYSIS HISTORY ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "分析紀錄讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderAnalysisHistory() {
+  const body =
+    document.getElementById(
+      "analysisHistoryBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "analysisSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const filtered =
+    analysisHistoryRecords.filter(
+      item => {
+        const haystack = [
+          item?.account,
+          item?.fixture_id,
+          item?.league_name,
+          item?.home_team,
+          item?.away_team
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          !search ||
+          haystack.includes(search)
+        );
+      }
+    );
+
+  body.innerHTML =
+    filtered
+      .map(item => `
+        <tr>
+          <td>${formatDate(item?.updated_at)}</td>
+          <td class="account-name">${escapeHtml(item?.account || "—")}</td>
+          <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
+          <td>${escapeHtml(item?.league_name || "—")}</td>
+          <td>
+            <strong>${escapeHtml(item?.home_team || "—")}</strong>
+            <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
+          </td>
+          <td>${formatDate(item?.fixture_time)}</td>
+          <td>
+            <span class="status active">
+              <span class="dot"></span>
+              ${escapeHtml(item?.match_status || "已分析")}
+            </span>
+          </td>
+          <td>
+            <button
+              class="action-btn gold"
+              onclick='showJsonModal("分析結果", analysisHistoryRecords.find(x => String(x.id) === "${String(item?.id)}")?.result_data || {})'
+            >查看</button>
+          </td>
+        </tr>
+      `)
+      .join("");
+
+  const today =
+    new Date()
+      .toLocaleDateString(
+        "en-CA",
+        { timeZone: "Asia/Taipei" }
+      );
+
+  const todayCount =
+    analysisHistoryRecords.filter(
+      item => {
+        if (!item?.updated_at) {
+          return false;
+        }
+
+        return new Date(
+          item.updated_at
+        ).toLocaleDateString(
+          "en-CA",
+          { timeZone: "Asia/Taipei" }
+        ) === today;
+      }
+    ).length;
+
+  const memberCount =
+    new Set(
+      analysisHistoryRecords
+        .map(item =>
+          String(
+            item?.account || ""
+          )
+        )
+        .filter(Boolean)
+    ).size;
+
+  const payloadCount =
+    analysisHistoryRecords.filter(
+      item =>
+        item?.result_data != null
+    ).length;
+
+  setText(
+    "analysisRecordCount",
+    analysisHistoryRecords.length
+  );
+  setText(
+    "analysisTodayCount",
+    todayCount
+  );
+  setText(
+    "analysisMemberCount",
+    memberCount
+  );
+  setText(
+    "analysisPayloadCount",
+    payloadCount
+  );
+}
+
+/* ---------- Jobs ---------- */
+
+async function loadJobs(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "jobs",
+        limit: 400
+      });
+
+    analysisJobs =
+      data.jobs || [];
+
+    renderJobs();
+
+  } catch (error) {
+    console.error(
+      "JOBS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "Job 資料讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderJobs() {
+  const body =
+    document.getElementById(
+      "jobsBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "jobSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const status =
+    document
+      .getElementById(
+        "jobStatusFilter"
+      )?.value || "all";
+
+  const filtered =
+    analysisJobs.filter(job => {
+      const haystack =
+        `${job?.id || ""} ${job?.account || ""}`
+          .toLowerCase();
+
+      const searchOk =
+        !search ||
+        haystack.includes(search);
+
+      const statusOk =
+        status === "all" ||
+        String(job?.status) ===
+          status;
+
+      return searchOk && statusOk;
+    });
+
+  body.innerHTML =
+    filtered
+      .map(job => {
+        const completed =
+          Number(
+            job?.completed_count || 0
+          );
+        const failed =
+          Number(
+            job?.failed_count || 0
+          );
+        const total =
+          Number(
+            job?.total_count ||
+            job?.fixture_ids?.length ||
+            0
+          );
+
+        const retryable =
+          ["failed","partial"]
+            .includes(
+              String(job?.status)
+            );
+
+        return `
+          <tr>
+            <td>${formatDate(job?.created_at)}</td>
+            <td class="mono">${escapeHtml(job?.id || "—")}</td>
+            <td class="account-name">${escapeHtml(job?.account || "—")}</td>
+            <td>${escapeHtml(job?.job_type || "—")}</td>
+            <td>${total}</td>
+            <td>${completed} 完成 / ${failed} 失敗</td>
+            <td>${statusBadge(job?.status)}</td>
+            <td class="mono">${escapeHtml(job?.current_fixture_id ?? "—")}</td>
+            <td>
+              <div class="row-actions">
+                <button
+                  class="action-btn"
+                  onclick='showJsonModal("Job 詳細", analysisJobs.find(x => String(x.id) === "${String(job?.id)}") || {})'
+                >詳細</button>
+
+                ${
+                  retryable
+                    ? `
+                      <button
+                        class="action-btn gold"
+                        onclick='retryAnalysisJob("${String(job?.id)}")'
+                      >重試</button>
+                    `
+                    : ""
+                }
+              </div>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+  setText(
+    "jobQueuedCount",
+    analysisJobs.filter(
+      j => j?.status === "queued"
+    ).length
+  );
+
+  setText(
+    "jobProcessingCount",
+    analysisJobs.filter(
+      j => j?.status === "processing"
+    ).length
+  );
+
+  setText(
+    "jobCompletedCount",
+    analysisJobs.filter(
+      j => j?.status === "completed"
+    ).length
+  );
+
+  setText(
+    "jobFailedCount",
+    analysisJobs.filter(
+      j =>
+        ["failed","partial"]
+          .includes(j?.status)
+    ).length
+  );
+}
+
+async function retryAnalysisJob(jobId) {
+  if (
+    !confirm(
+      "確定重新執行此失敗 Job？"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action: "retry_job",
+      job_id: jobId
+    });
+
+    alert(
+      "已建立重新分析任務"
+    );
+
+    setTimeout(
+      () => loadJobs(true),
+      800
+    );
+
+  } catch (error) {
+    alert(
+      "重試失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Fixtures ---------- */
+
+async function loadFixtures(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "fixtures"
+      });
+
+    fixtureCacheRows =
+      data.caches || [];
+
+    window.adminFixtureDates =
+      data.dates || {};
+
+    renderFixtures();
+
+  } catch (error) {
+    console.error(
+      "FIXTURE ADMIN ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "賽事資料讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function flattenFixtures() {
+  const list = [];
+
+  fixtureCacheRows
+    .forEach(cache => {
+      const fixtures =
+        Array.isArray(
+          cache?.fixtures
+        )
+          ? cache.fixtures
+          : [];
+
+      fixtures.forEach(
+        fixture => {
+          list.push({
+            ...fixture,
+            cache_date:
+              cache.fixture_date,
+            cache_fetched_at:
+              cache.fetched_at
+          });
+        }
+      );
+    });
+
+  return list;
+}
+
+function renderFixtures() {
+  const body =
+    document.getElementById(
+      "fixturesBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "fixtureSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const dateFilter =
+    document
+      .getElementById(
+        "fixtureDateFilter"
+      )?.value || "all";
+
+  const today =
+    window.adminFixtureDates
+      ?.today;
+
+  const tomorrow =
+    window.adminFixtureDates
+      ?.tomorrow;
+
+  const rows =
+    flattenFixtures()
+      .filter(item => {
+        const dateOk =
+          dateFilter === "all" ||
+          (
+            dateFilter === "today" &&
+            item.cache_date === today
+          ) ||
+          (
+            dateFilter === "tomorrow" &&
+            item.cache_date === tomorrow
+          );
+
+        const haystack = [
+          item?.fixtureId,
+          item?.league?.name,
+          item?.league?.api_name,
+          item?.home?.name,
+          item?.home?.api_name,
+          item?.away?.name,
+          item?.away?.api_name
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          dateOk &&
+          (
+            !search ||
+            haystack.includes(search)
+          )
+        );
+      });
+
+  body.innerHTML =
+    rows.map(item => {
+      const kickoff =
+        item?.time
+          ? new Date(item.time)
+          : null;
+
+      const time =
+        kickoff &&
+        !Number.isNaN(
+          kickoff.getTime()
+        )
+          ? kickoff.toLocaleTimeString(
+              "zh-TW",
+              {
+                timeZone:
+                  "Asia/Taipei",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+              }
+            )
+          : "—";
+
+      const score =
+        item?.home_score != null &&
+        item?.away_score != null
+          ? `${item.home_score} - ${item.away_score}`
+          : "—";
+
+      return `
+        <tr>
+          <td>${escapeHtml(item?.cache_date || "—")}</td>
+          <td>${time}</td>
+          <td class="mono">${escapeHtml(item?.fixtureId ?? "—")}</td>
+          <td>${escapeHtml(item?.league?.name || item?.league?.api_name || "—")}</td>
+          <td>${escapeHtml(item?.home?.name || item?.home?.api_name || "—")}</td>
+          <td>${escapeHtml(item?.away?.name || item?.away?.api_name || "—")}</td>
+          <td>${statusBadge(item?.status || "—")}</td>
+          <td>${score}</td>
+        </tr>
+      `;
+    }).join("");
+
+  const todayCache =
+    fixtureCacheRows.find(
+      row =>
+        row?.fixture_date ===
+        today
+    );
+
+  const tomorrowCache =
+    fixtureCacheRows.find(
+      row =>
+        row?.fixture_date ===
+        tomorrow
+    );
+
+  setText(
+    "fixtureTodayCount",
+    Number(
+      todayCache?.total ||
+      todayCache?.fixtures?.length ||
+      0
+    )
+  );
+
+  setText(
+    "fixtureTomorrowCount",
+    Number(
+      tomorrowCache?.total ||
+      tomorrowCache?.fixtures?.length ||
+      0
+    )
+  );
+
+  setText(
+    "fixtureTodayFetched",
+    todayCache?.fetched_at
+      ? formatDate(
+          todayCache.fetched_at
+        )
+      : "—"
+  );
+
+  setText(
+    "fixtureTomorrowFetched",
+    tomorrowCache?.fetched_at
+      ? formatDate(
+          tomorrowCache.fetched_at
+        )
+      : "—"
+  );
+}
+
+async function refreshFixtureSource(offset) {
+  try {
+    const label =
+      offset === 0
+        ? "今日"
+        : "明日";
+
+    if (
+      !confirm(
+        `確定同步${label}賽事資料？若快取仍有效，系統會沿用快取。`
+      )
+    ) {
+      return;
+    }
+
+    await adminCenterRequest({
+      action:
+        "refresh_fixtures",
+      offset
+    });
+
+    await loadFixtures(true);
+    await loadAdminOverview();
+
+    alert(
+      `${label}賽事同步完成`
+    );
+
+  } catch (error) {
+    alert(
+      "同步失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Public Performance ---------- */
+
+async function loadPerformanceAdmin(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "performance",
+        limit: 400
+      });
+
+    performanceSnapshots =
+      data.snapshots || [];
+
+    renderPerformanceAdmin();
+
+  } catch (error) {
+    console.error(
+      "PERFORMANCE ADMIN ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "公開戰績讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function settlementResult(
+  settlement,
+  market
+) {
+  const value =
+    settlement?.[market];
+
+  if (
+    value &&
+    typeof value === "object"
+  ) {
+    return String(
+      value?.result ||
+      value?.status ||
+      ""
+    ).toLowerCase();
+  }
+
+  return String(
+    value || ""
+  ).toLowerCase();
+}
+
+function resultBadge(value) {
+  const v =
+    String(value || "")
+      .toLowerCase();
+
+  if (
+    v === "win" ||
+    v === "half_win"
+  ) {
+    return `<span class="status active">${escapeHtml(v)}</span>`;
+  }
+
+  if (
+    v === "loss" ||
+    v === "half_loss"
+  ) {
+    return `<span class="status off">${escapeHtml(v)}</span>`;
+  }
+
+  if (v === "push") {
+    return `<span class="table-chip">push</span>`;
+  }
+
+  return "—";
+}
+
+function marketWinRate(market) {
+  const results =
+    performanceSnapshots
+      .filter(
+        row =>
+          row?.status ===
+          "verified"
+      )
+      .map(
+        row =>
+          settlementResult(
+            row?.settlement,
+            market
+          )
+      )
+      .filter(Boolean);
+
+  const decided =
+    results.filter(
+      r =>
+        ["win","loss","half_win","half_loss"]
+          .includes(r)
+    );
+
+  if (!decided.length) {
+    return "—";
+  }
+
+  const score =
+    decided.reduce(
+      (sum, r) =>
+        sum +
+        (
+          r === "win"
+            ? 1
+            : r === "half_win"
+              ? .5
+              : 0
+        ),
+      0
+    );
+
+  return (
+    (
+      score /
+      decided.length
+    ) *
+    100
+  ).toFixed(1) + "%";
+}
+
+function renderPerformanceAdmin() {
+  const body =
+    document.getElementById(
+      "performanceBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "performanceSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const status =
+    document
+      .getElementById(
+        "performanceStatusFilter"
+      )?.value || "all";
+
+  const filtered =
+    performanceSnapshots
+      .filter(row => {
+        const haystack = [
+          row?.fixture_id,
+          row?.league_name,
+          row?.home_team,
+          row?.away_team
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          (
+            status === "all" ||
+            row?.status === status
+          ) &&
+          (
+            !search ||
+            haystack.includes(search)
+          )
+        );
+      });
+
+  body.innerHTML =
+    filtered
+      .map(row => `
+        <tr>
+          <td>${formatDate(row?.kickoff_at)}</td>
+          <td class="mono">${escapeHtml(row?.fixture_id ?? "—")}</td>
+          <td>${escapeHtml(row?.league_name || "—")}</td>
+          <td>
+            <strong>${escapeHtml(row?.home_team || "—")}</strong>
+            <div class="subline">vs ${escapeHtml(row?.away_team || "—")}</div>
+          </td>
+          <td>${
+            row?.home_score != null &&
+            row?.away_score != null
+              ? `${row.home_score} - ${row.away_score}`
+              : "—"
+          }</td>
+          <td>${statusBadge(row?.status)}</td>
+          <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
+          <td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
+          <td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+          <td>
+            <button
+              class="action-btn"
+              onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x => String(x.fixture_id) === "${String(row?.fixture_id)}") || {})'
+            >查看</button>
+          </td>
+        </tr>
+      `)
+      .join("");
+
+  setText(
+    "performancePendingCount",
+    performanceSnapshots
+      .filter(
+        x => x?.status === "pending"
+      ).length
+  );
+
+  setText(
+    "performanceVerifiedCount",
+    performanceSnapshots
+      .filter(
+        x => x?.status === "verified"
+      ).length
+  );
+
+  setText(
+    "performanceMoneylineRate",
+    marketWinRate("moneyline")
+  );
+
+  setText(
+    "performanceOuRate",
+    marketWinRate("over_under")
+  );
+}
+
+async function runPublicRunner() {
+  if (
+    !confirm(
+      "確定立即執行公開戰績 Runner？"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const data =
+      await adminCenterRequest({
+        action:
+          "run_public_runner"
+      });
+
+    showJsonModal(
+      "Runner 執行結果",
+      data.report || data
+    );
+
+    await loadPerformanceAdmin(true);
+    await loadAdminOverview();
+
+  } catch (error) {
+    alert(
+      "Runner 執行失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Partners ---------- */
+
+async function loadPartners(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "partners"
+      });
+
+    partnerPlatforms =
+      data.platforms || [];
+
+    renderPartners();
+
+  } catch (error) {
+    console.error(
+      "PARTNERS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "合作平台讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderPartners() {
+  const body =
+    document.getElementById(
+      "partnersBody"
+    );
+
+  if (!body) return;
+
+  body.innerHTML =
+    partnerPlatforms
+      .map(platform => `
+        <tr>
+          <td>${Number(platform?.sort_order || 0)}</td>
+          <td>
+            <img
+              class="partner-logo"
+              src="${escapeHtml(platform?.logo_url || "habao-hb-logo.png")}"
+              alt=""
+            >
+          </td>
+          <td>
+            <strong>${escapeHtml(platform?.display_name || platform?.name || "—")}</strong>
+            <div class="subline">${escapeHtml(platform?.name || "—")}</div>
+          </td>
+          <td class="mono">${escapeHtml(platform?.slug || "—")}</td>
+          <td class="mono">${escapeHtml(platform?.bet_url || "—")}</td>
+          <td class="mono">${escapeHtml(platform?.register_url || "—")}</td>
+          <td>
+            ${
+              platform?.enabled
+                ? `<span class="status active"><span class="dot"></span>啟用</span>`
+                : `<span class="status off"><span class="dot"></span>停用</span>`
+            }
+          </td>
+          <td>
+            <div class="row-actions">
+              <button
+                class="action-btn gold"
+                onclick="editPartner(${Number(platform.id)})"
+              >編輯</button>
+
+              <button
+                class="action-btn ${platform?.enabled ? "red" : "green"}"
+                onclick="togglePartner(${Number(platform.id)},${!platform?.enabled})"
+              >
+                ${platform?.enabled ? "停用" : "啟用"}
+              </button>
+
+              <button
+                class="action-btn red"
+                onclick="deletePartner(${Number(platform.id)})"
+              >刪除</button>
+            </div>
+          </td>
+        </tr>
+      `)
+      .join("");
+
+  const enabled =
+    partnerPlatforms
+      .filter(
+        x => x?.enabled === true
+      ).length;
+
+  setText(
+    "partnerTotalCount",
+    partnerPlatforms.length
+  );
+
+  setText(
+    "partnerEnabledCount",
+    enabled
+  );
+
+  setText(
+    "partnerDisabledCount",
+    partnerPlatforms.length -
+    enabled
+  );
+
+  setText(
+    "partnerVipCount",
+    enabled
+  );
+}
+
+function openPartnerModal(platform = null) {
+  setText(
+    "partnerModalTitle",
+    platform
+      ? "編輯合作平台"
+      : "新增合作平台"
+  );
+
+  document.getElementById("partnerId").value =
+    platform?.id || "";
+
+  document.getElementById("partnerSlug").value =
+    platform?.slug || "";
+
+  document.getElementById("partnerName").value =
+    platform?.name || "";
+
+  document.getElementById("partnerDisplayName").value =
+    platform?.display_name || "";
+
+  document.getElementById("partnerLogoUrl").value =
+    platform?.logo_url || "";
+
+  document.getElementById("partnerBetUrl").value =
+    platform?.bet_url || "";
+
+  document.getElementById("partnerRegisterUrl").value =
+    platform?.register_url || "";
+
+  document.getElementById("partnerSortOrder").value =
+    Number(
+      platform?.sort_order ??
+      10
+    );
+
+  document.getElementById("partnerEnabled").value =
+    platform?.enabled === false
+      ? "false"
+      : "true";
+
+  document
+    .getElementById(
+      "partnerModal"
+    )
+    ?.classList
+    .remove("hidden");
+}
+
+function editPartner(id) {
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (platform) {
+    openPartnerModal(platform);
+  }
+}
+
+function closePartnerModal() {
+  document
+    .getElementById(
+      "partnerModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+async function savePartner() {
+  const payload = {
+    action: "partner_save",
+    id:
+      Number(
+        document.getElementById("partnerId")?.value || 0
+      ) || undefined,
+    slug:
+      document.getElementById("partnerSlug")?.value.trim(),
+    name:
+      document.getElementById("partnerName")?.value.trim(),
+    display_name:
+      document.getElementById("partnerDisplayName")?.value.trim(),
+    logo_url:
+      document.getElementById("partnerLogoUrl")?.value.trim(),
+    bet_url:
+      document.getElementById("partnerBetUrl")?.value.trim(),
+    register_url:
+      document.getElementById("partnerRegisterUrl")?.value.trim(),
+    sort_order:
+      Number(
+        document.getElementById("partnerSortOrder")?.value || 0
+      ),
+    enabled:
+      document.getElementById("partnerEnabled")?.value === "true"
+  };
+
+  try {
+    await adminCenterRequest(
+      payload
+    );
+
+    closePartnerModal();
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "平台儲存失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+async function togglePartner(
+  id,
+  enabled
+) {
+  try {
+    await adminCenterRequest({
+      action:
+        "partner_toggle",
+      id,
+      enabled
+    });
+
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "狀態修改失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+async function deletePartner(id) {
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (
+    !confirm(
+      `確定刪除「${platform?.display_name || platform?.name || id}」？`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action:
+        "partner_delete",
+      id
+    });
+
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "平台刪除失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- API stats ---------- */
+
+async function loadApiStats(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "api_stats"
+      });
+
+    apiStatsPayload =
+      data;
+
+    renderApiStats();
+
+  } catch (error) {
+    console.error(
+      "API STATS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "API 統計讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderApiStats() {
+  if (!apiStatsPayload) {
+    return;
+  }
+
+  const body =
+    document.getElementById(
+      "apiDailyBody"
+    );
+
+  const limit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  if (body) {
+    body.innerHTML =
+      (apiStatsPayload.days || [])
+        .slice()
+        .reverse()
+        .map(day => {
+          const count =
+            Number(
+              day?.count || 0
+            );
+
+          const remaining =
+            Math.max(
+              limit - count,
+              0
+            );
+
+          const rate =
+            limit > 0
+              ? (
+                  count /
+                  limit *
+                  100
+                ).toFixed(1)
+              : "0.0";
+
+          return `
+            <tr>
+              <td>${escapeHtml(day?.date || "—")}</td>
+              <td><strong>${count}</strong></td>
+              <td>${limit}</td>
+              <td>${remaining}</td>
+              <td>${rate}%</td>
+            </tr>
+          `;
+        })
+        .join("");
+  }
+
+  const sourceBox =
+    document.getElementById(
+      "apiSourceStats"
+    );
+
+  if (sourceBox) {
+    sourceBox.innerHTML =
+      (apiStatsPayload.sources || [])
+        .map(item => `
+          <div class="mini-item">
+            <span class="mini-key">${escapeHtml(item?.source || "unknown")}</span>
+            <span class="mini-val">${Number(item?.count || 0)}</span>
+          </div>
+        `)
+        .join("");
+  }
+}
+
+/* ---------- Health ---------- */
+
+async function loadHealth(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "health"
+      });
+
+    healthPayload =
+      data.health || {};
+
+    renderHealth();
+
+  } catch (error) {
+    console.error(
+      "HEALTH ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "系統健康讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderHealth() {
+  if (!healthPayload) {
+    return;
+  }
+
+  const latestFixture =
+    healthPayload
+      .latest_fixture;
+
+  const latestJob =
+    healthPayload
+      .latest_job;
+
+  const latestSnapshot =
+    healthPayload
+      .latest_snapshot;
+
+  const locks =
+    healthPayload
+      .processing_locks || [];
+
+  const failed =
+    healthPayload
+      .failed_jobs || [];
+
+  setText(
+    "healthFixtureTime",
+    latestFixture?.fetched_at
+      ? formatDate(
+          latestFixture.fetched_at
+        )
+      : "—"
+  );
+
+  setText(
+    "healthJobStatus",
+    latestJob?.status || "—"
+  );
+
+  setText(
+    "healthLockCount",
+    locks.length
+  );
+
+  setText(
+    "healthFailedCount",
+    failed.length
+  );
+
+  const services =
+    document.getElementById(
+      "healthServiceList"
+    );
+
+  if (services) {
+    services.innerHTML = `
+      <div class="mini-item">
+        <span class="mini-key">fixture_cache</span>
+        <span class="mini-val ${latestFixture ? "health-ok" : "health-warn"}">
+          ${latestFixture ? "有資料" : "無資料"}
+        </span>
+      </div>
+
+      <div class="mini-item">
+        <span class="mini-key">analysis_jobs</span>
+        <span class="mini-val">
+          ${escapeHtml(latestJob?.status || "無紀錄")}
+        </span>
+      </div>
+
+      <div class="mini-item">
+        <span class="mini-key">ai_prediction_snapshots</span>
+        <span class="mini-val">
+          ${escapeHtml(latestSnapshot?.status || "無紀錄")}
+        </span>
+      </div>
+
+      <div class="mini-item">
+        <span class="mini-key">processing locks</span>
+        <span class="mini-val ${locks.length ? "health-warn" : "health-ok"}">
+          ${locks.length}
+        </span>
+      </div>
+    `;
+  }
+
+  const debug =
+    document.getElementById(
+      "healthDebugInfo"
+    );
+
+  if (debug) {
+    if (
+      healthPayload
+        .debug_logs_available
+    ) {
+      debug.innerHTML =
+        `已連接 debug_logs，讀到 <strong>${healthPayload.debug_logs?.length || 0}</strong> 筆資料。<br>` +
+        `<button class="action-btn gold" style="margin-top:10px" onclick='showJsonModal("Debug Logs", healthPayload.debug_logs || [])'>查看 Logs</button>`;
+    } else {
+      debug.textContent =
+        "目前沒有可讀取的 debug_logs 資料表；Edge Function 即時 Log 仍請至 Supabase Logs 查看。";
+    }
+  }
+
+  const body =
+    document.getElementById(
+      "healthFailedJobsBody"
+    );
+
+  if (body) {
+    body.innerHTML =
+      failed.map(job => `
+        <tr>
+          <td>${formatDate(job?.created_at)}</td>
+          <td class="mono">${escapeHtml(job?.id || "—")}</td>
+          <td>${escapeHtml(job?.account || "—")}</td>
+          <td>${statusBadge(job?.status)}</td>
+          <td>${escapeHtml(job?.error_message || job?.failures?.[0]?.message || "—")}</td>
+          <td>
+            <button
+              class="action-btn"
+              onclick='showJsonModal("失敗 Job", healthPayload.failed_jobs.find(x => String(x.id) === "${String(job?.id)}") || {})'
+            >查看</button>
+          </td>
+        </tr>
+      `).join("");
+  }
+}
+
+/* ---------- Generic Detail ---------- */
+
+function showJsonModal(
+  title,
+  data
+) {
+  setText(
+    "jsonModalTitle",
+    title || "詳細資料"
+  );
+
+  const pre =
+    document.getElementById(
+      "jsonModalContent"
+    );
+
+  if (pre) {
+    pre.textContent =
+      JSON.stringify(
+        data ?? {},
+        null,
+        2
+      );
+  }
+
+  document
+    .getElementById(
+      "jsonModal"
+    )
+    ?.classList
+    .remove("hidden");
+}
+
+function closeJsonModal() {
+  document
+    .getElementById(
+      "jsonModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+function statusBadge(value) {
+  const status =
+    String(value || "—");
+
+  const lower =
+    status.toLowerCase();
+
+  if (
+    [
+      "active",
+      "completed",
+      "verified",
+      "ready",
+      "ft"
+    ].includes(lower)
+  ) {
+    return `<span class="status active"><span class="dot"></span>${escapeHtml(status)}</span>`;
+  }
+
+  if (
+    [
+      "failed",
+      "inactive",
+      "cancelled"
+    ].includes(lower)
+  ) {
+    return `<span class="status off"><span class="dot"></span>${escapeHtml(status)}</span>`;
+  }
+
+  if (
+    [
+      "processing",
+      "queued",
+      "pending",
+      "partial"
+    ].includes(lower)
+  ) {
+    return `<span class="status vip">${escapeHtml(status)}</span>`;
+  }
+
+  return `<span class="table-chip">${escapeHtml(status)}</span>`;
+}
+
 
 /* =========================
    UTILITIES
