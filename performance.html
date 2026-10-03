@@ -190,6 +190,34 @@
       color:#231805;background:linear-gradient(180deg,#ffd658,#eda925);
       box-shadow:0 4px 15px rgba(244,189,67,.20)
     }
+
+    .sport-toast{
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      z-index:9999;
+      max-width:calc(100vw - 32px);
+      transform:translate(-50%,18px);
+      opacity:0;
+      pointer-events:none;
+      padding:11px 16px;
+      border:1px solid rgba(244,189,67,.34);
+      border-radius:999px;
+      background:rgba(5,23,33,.96);
+      color:#ffd253;
+      box-shadow:0 12px 32px rgba(0,0,0,.34);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.15px;
+      text-align:center;
+      transition:opacity .18s ease,transform .18s ease;
+    }
+    .sport-toast.show{
+      opacity:1;
+      transform:translate(-50%,0);
+    }
     .sport-coming{display:none}
     .sport-coming.active{display:block}
     .coming-hero{
@@ -289,6 +317,13 @@
       <button class="sport-tab" type="button" data-sport="basketball"><span class="sport-emoji">🏀</span><span data-i18n="basketball">籃球</span></button>
       <button class="sport-tab" type="button" data-sport="baseball"><span class="sport-emoji">⚾</span><span data-i18n="baseball">棒球</span></button>
     </nav>
+
+    <div
+      id="performanceSportToast"
+      class="sport-toast"
+      role="status"
+      aria-live="polite"
+    ></div>
 
     <div id="footballPerformance">
     <section class="summarybar">
@@ -450,9 +485,9 @@ let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod
 let viewData=null, allData=null;
 
 const I18N={
-  "zh-Hant":{brandTitle:"HABAO 賽事預測 AI",football:"足球",basketball:"籃球",baseball:"棒球",comingSoon:"敬請期待",comingText:"目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。",sportPerformance:"{sport}公開戰績",winLoss:"勝負",handicap:"讓分",back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
-  "zh-Hans":{brandTitle:"HABAO 赛事预测 AI",football:"足球",basketball:"篮球",baseball:"棒球",comingSoon:"敬请期待",comingText:"目前先完成版面骨架；数据源与自动验证接通后，将使用与足球相同的公开验证机制。",sportPerformance:"{sport}公开战绩",winLoss:"胜负",handicap:"让分",back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",verificationUnit:"笔验证",otherLeague:"其他联赛",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
-  "en":{brandTitle:"HABAO Match Prediction AI",football:"Football",basketball:"Basketball",baseball:"Baseball",comingSoon:"Coming Soon",comingText:"The interface skeleton is ready. Once the data feed and automatic verification are connected, it will use the same public verification workflow as football.",sportPerformance:"{sport} Public Performance",winLoss:"Moneyline",handicap:"Spread",back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",verificationUnit:"verified picks",otherLeague:"Other League",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
+  "zh-Hant":{brandTitle:"HABAO 賽事預測 AI",football:"足球",basketball:"籃球",baseball:"棒球",basketballComingSoon:"🏀 籃球戰績即將開放",baseballComingSoon:"⚾ 棒球戰績即將開放",comingSoon:"敬請期待",comingText:"目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。",sportPerformance:"{sport}公開戰績",winLoss:"勝負",handicap:"讓分",back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
+  "zh-Hans":{brandTitle:"HABAO 赛事预测 AI",football:"足球",basketball:"篮球",baseball:"棒球",basketballComingSoon:"🏀 篮球战绩即将开放",baseballComingSoon:"⚾ 棒球战绩即将开放",comingSoon:"敬请期待",comingText:"目前先完成版面骨架；数据源与自动验证接通后，将使用与足球相同的公开验证机制。",sportPerformance:"{sport}公开战绩",winLoss:"胜负",handicap:"让分",back:"返回",heroTitle:"公开战绩",heroText:"系统每日自动对平台可分析赛事建立赛前预测快照，完赛后依正式比分自动验证。所有符合条件的赛事都会纳入公开战绩，不人工筛选。",feature1:"赛前自动分析",feature2:"不依赖会员操作",feature3:"真实赛果验证",feature4:"透明公开数据",verifiedMatches:"已验证赛事",matchUnit:"场",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"统计区间",marketPerformance:"AI 市场表现",moneyline:"独赢",overUnder:"大小分",bttsName:"双方进球",recentForm:"近期战绩",recent10:"（近 10 笔）",overall:"综合",trendTitle:"AI 命中走势",current:"目前",recentTrend:"近期趋势",leaguePerformance:"各联赛表现",sortByRate:"胜率排序",matchCount:"赛事数量",latestRecords:"最新公开验证纪录",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期时间",league:"联赛",homeAway:"主队 vs 客队",score:"比分",aiPrediction:"AI 预测",verification:"验证结果",samples:"场",noData:"暂无数据",insufficient:"样本累积中",stable:"近期稳定",volatile:"近期波动",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 笔：{w} 中｜{l} 未中｜{p} 走盘　命中率 {r}",verificationUnit:"笔验证",otherLeague:"其他联赛",methodNote:"公开战绩仅统计已完成赛前快照且已取得正式完赛比分之赛事；符合条件的赛事由系统自动纳入，不人工挑选。"},
+  "en":{brandTitle:"HABAO Match Prediction AI",football:"Football",basketball:"Basketball",baseball:"Baseball",basketballComingSoon:"🏀 Basketball performance is coming soon",baseballComingSoon:"⚾ Baseball performance is coming soon",comingSoon:"Coming Soon",comingText:"The interface skeleton is ready. Once the data feed and automatic verification are connected, it will use the same public verification workflow as football.",sportPerformance:"{sport} Public Performance",winLoss:"Moneyline",handicap:"Spread",back:"Back",heroTitle:"PUBLIC PERFORMANCE",heroText:"The system automatically creates pre-match prediction snapshots for every eligible match and verifies them against official final scores. No manual selection is used.",feature1:"Pre-match analysis",feature2:"Independent of member actions",feature3:"Verified by final results",feature4:"Transparent public data",verifiedMatches:"Verified Matches",matchUnit:"",dailyUpdate:"Daily update",all:"All",last7:"Last 7 Days",last30:"Last 30 Days",statsRange:"Statistics Range",marketPerformance:"AI Market Performance",moneyline:"1X2",overUnder:"O/U",bttsName:"Both Teams to Score",recentForm:"Recent Form",recent10:"(Last 10)",overall:"Overall",trendTitle:"AI Hit-Rate Trend",current:"Current",recentTrend:"Recent trend",leaguePerformance:"League Performance",sortByRate:"Sort by rate",matchCount:"Match count",latestRecords:"Latest Public Verification Records",viewMore:"View more ›",viewLess:"Collapse ›",dateTime:"Date / Time",league:"League",homeAway:"Home vs Away",score:"Score",aiPrediction:"AI Prediction",verification:"Verification",samples:"matches",noData:"No data yet",insufficient:"Building sample",stable:"Recently stable",volatile:"Recent volatility",rising:"Recently rising",falling:"Recent pullback",trendStable:"Stable",trendUp:"Rising",trendDown:"Falling",recentSummary:"Last 10: {w} hits | {l} misses | {p} pushes　Hit rate {r}",verificationUnit:"verified picks",otherLeague:"Other League",methodNote:"Public performance includes only matches with a pre-match snapshot and an official final score. Eligible matches are included automatically without manual selection."}
 };
 function getLang(){const raw=window.HabaoI18n?.getLanguage?.()||localStorage.getItem("habao_language")||localStorage.getItem("habao-lang")||document.documentElement.lang||"zh-Hant";const s=String(raw).toLowerCase();if(s.includes("en"))return"en";if(s.includes("hans")||s.includes("cn"))return"zh-Hans";return"zh-Hant"}
 function tr(k){return I18N[getLang()]?.[k]??I18N["zh-Hant"][k]??k}
@@ -756,19 +791,39 @@ function renderSportSkeleton(){
   m2.textContent=tr("handicap");
   m3.textContent=tr("overUnder");
 }
+let performanceSportToastTimer=null;
+
 function switchSport(sport){
-  currentSport=sport;
-  document.querySelectorAll(".sport-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.sport===sport));
-  const football=document.getElementById("footballPerformance");
-  const coming=document.getElementById("sportComingSoon");
   if(sport==="football"){
-    football.style.display="";
-    coming.classList.remove("active");
-  }else{
-    football.style.display="none";
-    coming.classList.add("active");
-    renderSportSkeleton();
+    currentSport="football";
+    document.querySelectorAll(".sport-tab").forEach(btn=>{
+      btn.classList.toggle("active",btn.dataset.sport==="football");
+    });
+
+    const football=document.getElementById("footballPerformance");
+    const coming=document.getElementById("sportComingSoon");
+    if(football)football.style.display="";
+    if(coming)coming.classList.remove("active");
+    return;
   }
+
+  const toast=document.getElementById("performanceSportToast");
+  if(!toast)return;
+
+  toast.textContent=
+    sport==="basketball"
+      ? tr("basketballComingSoon")
+      : tr("baseballComingSoon");
+
+  toast.classList.add("show");
+
+  if(performanceSportToastTimer){
+    clearTimeout(performanceSportToastTimer);
+  }
+
+  performanceSportToastTimer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },1800);
 }
 
 function renderAll(){document.getElementById("verifiedMatches").textContent=num(viewData?.summary?.verified_matches);renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords()}
