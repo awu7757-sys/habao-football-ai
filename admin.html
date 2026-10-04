@@ -1803,10 +1803,22 @@ async function loadMembers() {
 }
 
 async function refreshAll() {
+  const button = document.querySelector('.top-actions .ghost-btn');
+  const originalText = button?.textContent || "↻ 重新整理";
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "更新中…";
+  }
+
   try {
+    /*
+      Dashboard 重新整理只抓 Dashboard 真正需要的資料。
+      不再每次都呼叫 admin-members，避免會員 API 的獨立驗證錯誤
+      影響 Dashboard 重新整理體驗。
+    */
     await Promise.all([
       loadAnnouncementSettings(),
-      loadMembers(),
       loadAdminOverview()
     ]);
 
@@ -1818,17 +1830,32 @@ async function refreshAll() {
         ".page.active"
       )?.id;
 
-    if (activePage) {
-      refreshPageData(
-        activePage
-      );
+    if (
+      activePage &&
+      activePage !== "dashboardPage"
+    ) {
+      await refreshPageData(activePage);
     }
 
+    if (button) {
+      button.textContent = "已更新 ✓";
+    }
   } catch (error) {
     console.error(
       "REFRESH ALL ERROR:",
       error
     );
+
+    if (button) {
+      button.textContent = "更新失敗";
+    }
+  } finally {
+    setTimeout(() => {
+      if (button) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }, 900);
   }
 }
 
