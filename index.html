@@ -3186,7 +3186,16 @@ body.login-ready .app {
   }
 }
     
-  </style>
+  
+/* HABAO V3｜系統維護全畫面 */
+#habaoMaintenanceScreen{position:fixed;inset:0;z-index:1000000;display:none;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 10%,rgba(214,181,111,.12),transparent 32%),linear-gradient(180deg,#080b10,#030405);color:#f7f4ed;text-align:center}
+#habaoMaintenanceScreen.show{display:flex}
+.habao-maintenance-card{width:min(92vw,420px);padding:34px 24px;border:1px solid rgba(214,181,111,.24);border-radius:26px;background:rgba(12,15,18,.96);box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.habao-maintenance-logo{width:84px;height:84px;margin:0 auto 18px;background:url("./habao-hb-logo.png") center/contain no-repeat;filter:drop-shadow(0 12px 24px rgba(0,0,0,.45))}
+.habao-maintenance-title{font-size:24px;font-weight:950;color:#fff}
+.habao-maintenance-message{margin-top:14px;color:#d9c690;font-size:14px;line-height:1.8;white-space:pre-wrap}
+.habao-maintenance-note{margin-top:18px;color:#8f9aa8;font-size:12px}
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./habao-i18n.js"></script>
@@ -3553,6 +3562,21 @@ const PUBLIC_SETTINGS_URL =
 let habaoPublicSettings = null;
 let maintenanceModeActive = false;
 
+function showHabaoMaintenanceScreen(messageText = "") {
+  const screen = document.getElementById("habaoMaintenanceScreen");
+  const message = document.getElementById("habaoMaintenanceMessage");
+  if (message) {
+    message.textContent = messageText || "系統正在進行維護，請稍後再試。";
+  }
+  if (screen) screen.classList.add("show");
+  document.body.classList.remove("splash-active");
+  window.habaoCloseSplash?.();
+}
+
+function hideHabaoMaintenanceScreen() {
+  document.getElementById("habaoMaintenanceScreen")?.classList.remove("show");
+}
+
 async function loadHabaoPublicSettings() {
 
   const message =
@@ -3616,17 +3640,16 @@ try {
         .maintenance_enabled === true;
 
     if (maintenanceModeActive) {
+      const maintenanceText =
+        habaoPublicSettings.maintenance_announcement ||
+        "系統正在進行維護，請稍後再試。";
 
-      if (message) {
-        message.textContent =
-          habaoPublicSettings
-            .maintenance_announcement ||
-          "系統維護中，請稍後再試。";
-      }
-
+      if (message) message.textContent = maintenanceText;
+      showHabaoMaintenanceScreen(maintenanceText);
       return false;
     }
 
+    hideHabaoMaintenanceScreen();
     return true;
 
   } catch (error) {
@@ -5110,6 +5133,14 @@ supabaseAuth.auth.onAuthStateChange(
      * 這裡不能先跳 home-v2，
      * 否則 PWA 會拿不到 session。
      */
+    const canContinueAuth =
+      await loadHabaoPublicSettings();
+
+    if (!canContinueAuth) {
+      window.habaoCloseSplash?.();
+      return;
+    }
+
     const handoffCallback =
       getPWAHandoffCallback();
 
@@ -5158,6 +5189,14 @@ supabaseAuth.auth.onAuthStateChange(
 window.addEventListener(
   "DOMContentLoaded",
   async () => {
+
+    const initialCanLogin =
+      await loadHabaoPublicSettings();
+
+    if (!initialCanLogin) {
+      window.habaoCloseSplash?.();
+      return;
+    }
 
     const handoffCallback =
       getPWAHandoffCallback();
@@ -6320,5 +6359,14 @@ setText(
 })();
 </script>
   
+
+<div id="habaoMaintenanceScreen" aria-live="polite">
+  <div class="habao-maintenance-card">
+    <div class="habao-maintenance-logo"></div>
+    <div class="habao-maintenance-title">系統維護中</div>
+    <div id="habaoMaintenanceMessage" class="habao-maintenance-message">系統正在進行維護，請稍後再試。</div>
+    <div class="habao-maintenance-note">請稍後重新整理頁面</div>
+  </div>
+</div>
 </body>
 </html>
