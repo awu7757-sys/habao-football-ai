@@ -1862,29 +1862,31 @@ function isTodayTaipei(value) {
 
 function renderDashboard() {
   const total =
-    members.length;
+    Number.isFinite(Number(adminOverview?.total_members))
+      ? Number(adminOverview.total_members)
+      : members.length;
 
   const active =
-    members.filter(
-      item =>
-        item?.is_active === true
-    ).length;
+    Number.isFinite(Number(adminOverview?.active_members))
+      ? Number(adminOverview.active_members)
+      : members.filter(
+          item => item?.is_active === true
+        ).length;
 
   const vip =
-    members.filter(
-      item =>
-        String(
-          item?.member_level || ""
-        ).toLowerCase() === "vip"
-    ).length;
+    Number.isFinite(Number(adminOverview?.vip_members))
+      ? Number(adminOverview.vip_members)
+      : members.filter(
+          item =>
+            String(item?.member_level || "").toLowerCase() === "vip"
+        ).length;
 
   const todayLogin =
-    members.filter(
-      item =>
-        isTodayTaipei(
-          item?.last_login_at
-        )
-    ).length;
+    Number.isFinite(Number(adminOverview?.today_logins))
+      ? Number(adminOverview.today_logins)
+      : members.filter(
+          item => isTodayTaipei(item?.last_login_at)
+        ).length;
 
   const apiLimit =
     Number(
@@ -1893,12 +1895,15 @@ function renderDashboard() {
     );
 
   const apiUsed =
-    dashboardData.todayApiCount;
+    Number.isFinite(Number(adminOverview?.today_api_count))
+      ? Number(adminOverview.today_api_count)
+      : dashboardData.todayApiCount;
 
   const avgApi =
     Math.ceil(
-      dashboardData
-        .last7DaysApiCount /
+      (Number.isFinite(Number(adminOverview?.last_7_days_api_count))
+        ? Number(adminOverview.last_7_days_api_count)
+        : dashboardData.last7DaysApiCount) /
       7
     );
 
@@ -1924,8 +1929,9 @@ function renderDashboard() {
 
   setText(
     "dashTodayAnalysis",
-    dashboardData
-      .todayAnalysisCount
+    Number.isFinite(Number(adminOverview?.today_analysis_count))
+      ? Number(adminOverview.today_analysis_count)
+      : dashboardData.todayAnalysisCount
   );
 
   setText(
@@ -2940,6 +2946,8 @@ async function loadAdminOverview() {
     setText("dashPendingSnapshots", `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`);
 
     setText("dashProcessingLocks", `${Number(adminOverview.normal_processing_locks||0)} / 過期 ${Number(adminOverview.expired_processing_locks||0)}`);
+
+    renderDashboard();
 
   } catch (error) {
     console.error(
