@@ -1682,14 +1682,20 @@ async function adminLogin() {
   message.textContent = "";
 
   try {
+    /*
+      登入後先用 admin-center 驗證密碼並取得 Dashboard 真實資料。
+      在資料完成前不顯示後台，避免畫面先出現整排 0，
+      之後還要再按「重新整理」才恢復。
+    */
     await loadAnnouncementSettings();
 
-    const data =
-      await apiRequest({
-        action: "list"
+    const overviewData =
+      await adminCenterRequest({
+        action: "overview"
       });
 
-    applyMemberPayload(data);
+    adminOverview =
+      overviewData?.overview || {};
 
     document
       .getElementById("loginPage")
@@ -1699,14 +1705,14 @@ async function adminLogin() {
       .getElementById("adminApp")
       .classList.remove("hidden");
 
-    renderMembers();
-    setText("announcementUpdatedAt", `最後更新：${settings?.updated_at ? formatDate(settings.updated_at) : "—"}`);
     renderDashboard();
     renderApiPage();
 
-    await loadAdminOverview();
+    /*
+      會員名單改成進入「會員管理」時才讀取，
+      Dashboard 不再依賴 admin-members 的載入時機。
+    */
     loadApiStats(false);
-
 
   } catch (error) {
     adminPassword = "";
@@ -2994,7 +3000,9 @@ function ensurePageData(pageId) {
 
   pageLoaded.add(pageId);
 
-  if (pageId === "analysisLogPage") {
+  if (pageId === "membersPage") {
+    loadMembers();
+  } else if (pageId === "analysisLogPage") {
     loadAnalysisHistory(false);
   } else if (pageId === "jobsPage") {
     loadJobs(false);
