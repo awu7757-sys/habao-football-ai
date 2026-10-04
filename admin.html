@@ -489,6 +489,16 @@ tr:last-child td{border-bottom:0}
   .metric-row{grid-template-columns:1fr 1fr}
 }
 
+
+/* HABAO V3 FINAL */
+.toggle-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;color:#b8c0ca;font-size:10px;font-weight:800;margin-top:12px}
+.toggle-switch input{position:absolute;opacity:0;pointer-events:none}
+.toggle-track{width:42px;height:23px;border-radius:999px;background:#29313b;border:1px solid rgba(255,255,255,.10);position:relative;transition:.2s}
+.toggle-track::after{content:"";position:absolute;width:17px;height:17px;left:2px;top:2px;border-radius:50%;background:#87919d;transition:.2s}
+.toggle-switch input:checked + .toggle-track{background:rgba(60,221,130,.18);border-color:rgba(60,221,130,.35)}
+.toggle-switch input:checked + .toggle-track::after{transform:translateX(19px);background:var(--green)}
+.refresh-state{min-width:74px}
+.stale{color:#ff9696}.fresh{color:var(--green)}
 </style>
 </head>
 
@@ -563,7 +573,7 @@ tr:last-child td{border-bottom:0}
       </button>
 
       <button class="nav-btn" data-page="jobsPage" onclick="switchPage('jobsPage',this)">
-        <span class="nav-icon">J</span> Job 管理
+        <span class="nav-icon">J</span> 分析任務
       </button>
 
       <button class="nav-btn" data-page="fixturesPage" onclick="switchPage('fixturesPage',this)">
@@ -674,25 +684,25 @@ tr:last-child td{border-bottom:0}
           <div class="stat-card">
             <div class="stat-label">今日 / 明日可分析賽事</div>
             <div id="dashFixtureCount" class="stat-value">0 / 0</div>
-            <div class="stat-note">fixture_cache</div>
+            <div class="stat-note">賽事快取資料</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">執行中 Job</div>
+            <div class="stat-label">分析任務進行中</div>
             <div id="dashRunningJobs" class="stat-value">0</div>
-            <div class="stat-note">queued + processing</div>
+            <div class="stat-note">排隊中＋執行中</div>
           </div>
 
           <div class="stat-card gold">
             <div class="stat-label">公開戰績待驗證</div>
             <div id="dashPendingSnapshots" class="stat-value gold-text">0</div>
-            <div class="stat-note">pending snapshots</div>
+            <div class="stat-note">等待完賽驗證</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">分析 Processing Lock</div>
+            <div class="stat-label">防重複分析鎖</div>
             <div id="dashProcessingLocks" class="stat-value">0</div>
-            <div class="stat-note">match_analysis_cache</div>
+            <div class="stat-note">正常 / 過期</div>
           </div>
         </div>
 
@@ -766,7 +776,7 @@ tr:last-child td{border-bottom:0}
         <div class="panel">
           <div class="toolbar">
             <div class="filters">
-              <input id="searchInput" class="input search" placeholder="搜尋會員帳號或平台帳號..." oninput="renderMembers()">
+              <input id="searchInput" class="input search" placeholder="搜尋會員帳號、綁定平台或平台帳號..." oninput="renderMembers()">
 
               <select id="levelFilter" class="input" onchange="renderMembers()">
                 <option value="all">全部等級</option>
@@ -791,12 +801,12 @@ tr:last-child td{border-bottom:0}
                 <thead>
                   <tr>
                     <th>會員帳號</th>
+                    <th>綁定平台</th>
+                    <th>平台帳號</th>
+                    <th>通知</th>
                     <th>等級</th>
                     <th>狀態</th>
-                    <th>VIP 每日積分</th>
-                    <th>原有積分</th>
-                    <th>總可用積分</th>
-                    <th>建立時間</th>
+                    <th>積分</th>
                     <th>最後登入</th>
                     <th>操作</th>
                   </tr>
@@ -829,9 +839,9 @@ tr:last-child td{border-bottom:0}
               <textarea id="normalAnnouncement" class="input" placeholder="輸入一般公告內容..."></textarea>
             </div>
 
-            <label class="switch-row">
+            <label class="toggle-switch">
               <input type="checkbox" id="normalAnnouncementEnabled">
-              啟用一般公告
+              <span class="toggle-track"></span><span>啟用一般公告</span>
             </label>
           </div>
 
@@ -844,9 +854,9 @@ tr:last-child td{border-bottom:0}
               <textarea id="maintenanceAnnouncement" class="input" placeholder="輸入維護公告內容..."></textarea>
             </div>
 
-            <label class="switch-row">
+            <label class="toggle-switch">
               <input type="checkbox" id="maintenanceAnnouncementEnabled">
-              開啟系統維護模式
+              <span class="toggle-track"></span><span>開啟系統維護模式</span>
             </label>
 
             <div class="danger-note">開啟後會員將受到目前網站既有的維護模式限制，儲存前請再次確認。</div>
@@ -857,12 +867,12 @@ tr:last-child td{border-bottom:0}
           <div class="panel-head">
             <div>
               <div class="panel-title">儲存設定</div>
-              <div class="panel-desc">此功能仍沿用目前 admin-benefits → site_settings 的設定方式。</div>
+              <div class="panel-desc">儲存後將同步更新網站公告與維護設定。</div>
             </div>
-            <button id="saveAnnouncementBtn" class="save-btn" onclick="saveAnnouncementSettings()">儲存公告與系統設定</button>
+            <button id="saveAnnouncementBtn" class="save-btn" onclick="saveAnnouncementSettings()">儲存設定</button>
           </div>
 
-          <div id="announcementResult" class="result-box">尚未變更</div>
+          <div id="announcementResult" class="result-box">尚未變更</div><div id="announcementUpdatedAt" class="panel-desc" style="margin-top:8px">最後更新：—</div>
         </div>
       </section>
 
@@ -889,7 +899,7 @@ tr:last-child td{border-bottom:0}
 
           <div id="pushMemberField" class="field hidden">
             <label class="label">指定會員帳號</label>
-            <input id="pushMemberUsername" class="input" placeholder="輸入 HABAO 會員帳號">
+            <input id="pushMemberUsername" class="input" placeholder="輸入 HABAO 會員帳號" oninput="debouncedLoadPushDeviceCount()"><div id="pushDeviceCount" class="panel-desc" style="margin-top:7px">訂閱裝置：—</div>
           </div>
 
           <div class="field">
@@ -911,11 +921,13 @@ tr:last-child td{border-bottom:0}
             </select>
           </div>
 
-          <div style="margin-top:18px">
+          <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
             <button type="button" id="sendPushBtn" class="save-btn">發送推播</button>
+            <button type="button" class="ghost-btn" onclick="sendTestPush()">發送測試通知</button>
+            <button type="button" class="ghost-btn" onclick="loadPushLogs()">↻ 最近推播紀錄</button>
           </div>
 
-          <div id="pushSendResult" class="result-box">尚未發送</div>
+          <div id="pushSendResult" class="result-box">尚未發送</div><div id="pushLogs" class="mini-list" style="margin-top:12px"></div>
         </div>
       </section>
 
@@ -927,6 +939,7 @@ tr:last-child td{border-bottom:0}
             <div class="page-title">API 配額</div>
             <div class="page-desc">API-Football PRO｜月費 US$19｜每日上限 7,500 requests，每日重置。</div>
           </div>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
         </div>
 
         <div class="api-grid">
@@ -966,6 +979,7 @@ tr:last-child td{border-bottom:0}
               <span class="mini-key">剩餘天數</span>
               <span id="apiRenewalDaysText" class="mini-val">—</span>
             </div>
+            <button class="save-btn" style="width:100%" onclick="confirmApiRenewal(this)">確認已續費</button>
           </div>
         </div>
 
@@ -1004,9 +1018,9 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">AI ANALYSIS HISTORY</div>
             <div class="page-title">AI 分析紀錄</div>
-            <div class="page-desc">查看會員已完成的分析紀錄與當時保存的分析結果。</div>
+            <div class="page-desc">最近 7 天會員分析。後台僅顯示主要分析摘要，不顯示原始 JSON。</div>
           </div>
-          <button class="ghost-btn" onclick="loadAnalysisHistory(true)">↻ 更新</button>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'analysis')">↻ 更新</button>
         </div>
 
         <div class="stats-grid" style="margin-bottom:15px">
@@ -1015,7 +1029,7 @@ tr:last-child td{border-bottom:0}
             <div id="analysisRecordCount" class="stat-value">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">今日完成</div>
+            <div class="stat-label">今日新增 / 更新紀錄</div>
             <div id="analysisTodayCount" class="stat-value">0</div>
           </div>
           <div class="stat-card gold">
@@ -1023,7 +1037,7 @@ tr:last-child td{border-bottom:0}
             <div id="analysisMemberCount" class="stat-value gold-text">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">有保存結果</div>
+            <div class="stat-label">有分析摘要</div>
             <div id="analysisPayloadCount" class="stat-value">0</div>
           </div>
         </div>
@@ -1062,10 +1076,10 @@ tr:last-child td{border-bottom:0}
         <div class="page-head">
           <div>
             <div class="page-kicker">ANALYSIS QUEUE</div>
-            <div class="page-title">Job 管理</div>
+            <div class="page-title">分析任務</div>
             <div class="page-desc">查看背景分析工作、失敗原因與重新執行失敗任務。</div>
           </div>
-          <button class="ghost-btn" onclick="loadJobs(true)">↻ 更新</button>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'jobs')">↻ 更新</button>
         </div>
 
         <div class="stats-grid" style="margin-bottom:15px">
@@ -1090,14 +1104,14 @@ tr:last-child td{border-bottom:0}
         <div class="panel">
           <div class="toolbar">
             <div class="filters">
-              <input id="jobSearch" class="input search" placeholder="搜尋會員或 Job ID..." oninput="renderJobs()">
+              <input id="jobSearch" class="input search" placeholder="搜尋會員或任務 ID..." oninput="renderJobs()">
               <select id="jobStatusFilter" class="input" onchange="renderJobs()">
                 <option value="all">全部狀態</option>
-                <option value="queued">queued</option>
-                <option value="processing">processing</option>
-                <option value="completed">completed</option>
-                <option value="partial">partial</option>
-                <option value="failed">failed</option>
+                <option value="queued">排隊中</option>
+                <option value="processing">執行中</option>
+                <option value="completed">已完成</option>
+                <option value="partial">部分失敗</option>
+                <option value="failed">失敗</option>
               </select>
             </div>
           </div>
@@ -1108,13 +1122,11 @@ tr:last-child td{border-bottom:0}
                 <thead>
                   <tr>
                     <th>建立時間</th>
-                    <th>Job ID</th>
                     <th>會員</th>
-                    <th>類型</th>
                     <th>賽事數</th>
                     <th>進度</th>
                     <th>狀態</th>
-                    <th>目前 Fixture</th>
+                    <th>失敗原因</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -1134,9 +1146,9 @@ tr:last-child td{border-bottom:0}
             <div class="page-desc">查看今天與明天的可分析賽事及快取更新時間。</div>
           </div>
           <div class="table-tools">
-            <button class="ghost-btn" onclick="refreshFixtureSource(0)">同步今日</button>
-            <button class="ghost-btn" onclick="refreshFixtureSource(1)">同步明日</button>
-            <button class="ghost-btn" onclick="loadFixtures(true)">↻ 更新</button>
+            <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
+            <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'fixtures')">↻ 更新</button>
           </div>
         </div>
 
@@ -1202,14 +1214,15 @@ tr:last-child td{border-bottom:0}
             <div class="page-desc">管理公開預測快照、驗證狀態與市場結果。</div>
           </div>
           <div class="table-tools">
-            <button class="save-btn" onclick="runPublicRunner()">立即執行 Runner</button>
-            <button class="ghost-btn" onclick="loadPerformanceAdmin(true)">↻ 更新</button>
+            <button class="save-btn" onclick="runPublicRunner()">執行賽前預測排程</button>
+            <button class="ghost-btn" onclick="validateOverduePerformance(this)">補驗證逾期戰績</button>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'performance')">↻ 更新</button>
           </div>
         </div>
 
         <div class="stats-grid" style="margin-bottom:15px">
           <div class="stat-card gold">
-            <div class="stat-label">待驗證</div>
+            <div class="stat-label">正常待驗證</div>
             <div id="performancePendingCount" class="stat-value gold-text">0</div>
           </div>
           <div class="stat-card green">
@@ -1217,8 +1230,8 @@ tr:last-child td{border-bottom:0}
             <div id="performanceVerifiedCount" class="stat-value green-text">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">獨贏命中</div>
-            <div id="performanceMoneylineRate" class="stat-value">—</div>
+            <div class="stat-label">逾期待驗證</div>
+            <div id="performanceOverdueCount" class="stat-value" style="color:#ff9696">0</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">大小球命中</div>
@@ -1231,10 +1244,12 @@ tr:last-child td{border-bottom:0}
             <div class="filters">
               <input id="performanceSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderPerformanceAdmin()">
               <select id="performanceStatusFilter" class="input" onchange="renderPerformanceAdmin()">
-                <option value="all">全部狀態</option>
-                <option value="pending">pending</option>
-                <option value="verified">verified</option>
-                <option value="finished">finished</option>
+                <option value="all">全部</option>
+                <option value="included">正常計入</option>
+                <option value="excluded">已排除</option>
+                <option value="pending">待驗證</option>
+                <option value="overdue">逾期待驗證</option>
+                <option value="verified">已驗證</option>
               </select>
             </div>
           </div>
@@ -1253,7 +1268,7 @@ tr:last-child td{border-bottom:0}
                     <th>獨贏</th>
                     <th>大小球</th>
                     <th>BTTS</th>
-                    <th>詳細</th>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody id="performanceBody"></tbody>
@@ -1299,7 +1314,7 @@ tr:last-child td{border-bottom:0}
               <div class="panel-title">平台列表</div>
               <div class="panel-desc">Logo 可填 GitHub 同站檔名（例如 hd-logo.png）或完整圖片網址。</div>
             </div>
-            <button class="ghost-btn" onclick="loadPartners(true)">↻ 更新</button>
+            <button class="ghost-btn" onclick="refreshPartnerButton(this)">↻ 更新</button>
           </div>
 
           <div class="table-shell">
@@ -1314,6 +1329,7 @@ tr:last-child td{border-bottom:0}
                     <th>投注網址</th>
                     <th>註冊網址</th>
                     <th>狀態</th>
+                    <th>已綁定會員</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -1329,10 +1345,10 @@ tr:last-child td{border-bottom:0}
         <div class="page-head">
           <div>
             <div class="page-kicker">SYSTEM HEALTH</div>
-            <div class="page-title">系統健康 / Debug</div>
-            <div class="page-desc">集中查看賽事快取、Job、公開驗證、Processing Lock 與近期失敗紀錄。</div>
+            <div class="page-title">系統健康</div>
+            <div class="page-desc">集中查看賽事快取、分析任務、公開戰績驗證、防重複分析鎖與近期錯誤紀錄。</div>
           </div>
-          <button class="ghost-btn" onclick="loadHealth(true)">↻ 更新</button>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'health')">↻ 更新</button>
         </div>
 
         <div class="stats-grid" style="margin-bottom:15px">
@@ -1341,15 +1357,15 @@ tr:last-child td{border-bottom:0}
             <div id="healthFixtureTime" class="stat-value" style="font-size:16px">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">最後 Job</div>
+            <div class="stat-label">最後分析任務</div>
             <div id="healthJobStatus" class="stat-value" style="font-size:18px">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Processing Lock</div>
+            <div class="stat-label">分析鎖</div>
             <div id="healthLockCount" class="stat-value">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">近期失敗 Job</div>
+            <div class="stat-label">近期失敗任務</div>
             <div id="healthFailedCount" class="stat-value">0</div>
           </div>
         </div>
@@ -1361,20 +1377,25 @@ tr:last-child td{border-bottom:0}
           </div>
 
           <div class="panel">
-            <div class="panel-title">Debug Logs</div>
+            <div class="panel-title">錯誤紀錄</div>
             <div id="healthDebugInfo" class="panel-desc" style="margin-top:10px;line-height:1.75"></div>
           </div>
         </div>
 
+
         <div class="panel">
-          <div class="panel-title">近期失敗 / Partial Job</div>
+          <div class="panel-head"><div><div class="panel-title">分析鎖列表</div><div class="panel-desc">只允許清除已過期或疑似殘留的分析鎖。</div></div><button class="ghost-btn" onclick="clearExpiredLocks(this)">清除過期分析鎖</button></div>
+          <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>Fixture ID</th><th>建立時間</th><th>最後更新</th><th>expires_at</th><th>狀態</th></tr></thead><tbody id="healthLocksBody"></tbody></table></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">近期失敗 / 部分失敗任務</div>
           <div class="table-shell" style="margin-top:12px">
             <div class="table-scroll">
               <table>
                 <thead>
                   <tr>
                     <th>時間</th>
-                    <th>Job ID</th>
+                    <th>任務 ID</th>
                     <th>會員</th>
                     <th>狀態</th>
                     <th>錯誤</th>
@@ -1530,11 +1551,11 @@ const PAGE_NAMES = {
   pushPage: "推播通知",
   apiPage: "API 配額",
   analysisLogPage: "AI 分析紀錄",
-  jobsPage: "Job 管理",
+  jobsPage: "分析任務",
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
   partnersPage: "合作平台",
-  healthPage: "系統健康 / Debug"
+  healthPage: "系統健康"
 };
 
 function switchPage(pageId, button) {
@@ -1679,6 +1700,7 @@ async function adminLogin() {
       .classList.remove("hidden");
 
     renderMembers();
+    setText("announcementUpdatedAt", `最後更新：${settings?.updated_at ? formatDate(settings.updated_at) : "—"}`);
     renderDashboard();
     renderApiPage();
 
@@ -1981,323 +2003,40 @@ function renderDashboard() {
 ========================= */
 
 function renderMembers() {
-  const tbody =
-    document.getElementById(
-      "memberBody"
-    );
-
-  const empty =
-    document.getElementById(
-      "memberEmpty"
-    );
-
+  const tbody = document.getElementById("memberBody");
+  const empty = document.getElementById("memberEmpty");
   if (!tbody) return;
-
-  const search =
-    String(
-      document
-        .getElementById(
-          "searchInput"
-        )?.value || ""
-    )
-      .trim()
-      .toLowerCase();
-
-  const levelFilter =
-    document
-      .getElementById(
-        "levelFilter"
-      )?.value ||
-    "all";
-
-  const statusFilter =
-    document
-      .getElementById(
-        "statusFilter"
-      )?.value ||
-    "all";
-
-  const filtered =
-    members.filter(member => {
-      const account =
-        String(
-          member?.account || ""
-        ).toLowerCase();
-
-      const platform =
-        String(
-          member?.platform_account ||
-          ""
-        ).toLowerCase();
-
-      const level =
-        String(
-          member?.member_level ||
-          "normal"
-        ).toLowerCase();
-
-      const active =
-        member?.is_active === true;
-
-      const searchOk =
-        !search ||
-        account.includes(search) ||
-        platform.includes(search);
-
-      const levelOk =
-        levelFilter === "all" ||
-        level === levelFilter;
-
-      const statusOk =
-        statusFilter === "all" ||
-        (
-          statusFilter ===
-            "active" &&
-          active
-        ) ||
-        (
-          statusFilter ===
-            "inactive" &&
-          !active
-        );
-
-      return (
-        searchOk &&
-        levelOk &&
-        statusOk
-      );
-    });
-
-  tbody.innerHTML = "";
-
-  empty?.classList.toggle(
-    "hidden",
-    filtered.length > 0
-  );
-
-  filtered.forEach(member => {
-    const tr =
-      document.createElement(
-        "tr"
-      );
-
-    const active =
-      member?.is_active === true;
-
-    const isVip =
-      String(
-        member?.member_level ||
-        ""
-      ).toLowerCase() === "vip";
-
-    const paidCredits =
-      Number(
-        member?.analysis_credits ||
-        0
-      );
-
-    const dailyCredits =
-      isVip
-        ? Number(
-            member
-              ?.daily_free_credits ||
-            0
-          )
-        : 0;
-
-    const totalCredits =
-      paidCredits +
-      dailyCredits;
-
-    tr.innerHTML = `
-      <td>
-        <div class="account-name">
-          ${escapeHtml(
-            member?.account ||
-            ""
-          )}
-        </div>
-        <div class="subline">
-          ID ${escapeHtml(
-            member?.id ?? "—"
-          )}
-        </div>
-        ${
-          member?.platform_account
-            ? `
-              <div class="subline" style="color:#b99c56">
-                綁定平台：${escapeHtml(
-                  member?.platform_name ||
-                  "皇鼎"
-                )}
-              </div>
-              <div class="subline" style="color:#8f9aaa">
-                平台帳號：${escapeHtml(
-                  member.platform_account
-                )}
-              </div>
-            `
-            : ""
-        }
-      </td>
-
-      <td>
-        ${
-          isVip
-            ? `<span class="status vip">VIP</span>`
-            : `<span class="status">一般會員</span>`
-        }
-      </td>
-
-      <td>
-        <span class="status ${
-          active
-            ? "active"
-            : "off"
-        }">
-          <span class="dot"></span>
-          ${
-            active
-              ? "正常使用"
-              : "已停權"
-          }
-        </span>
-      </td>
-
-      <td>
-        ${
-          isVip
-            ? `<strong style="color:#ffe39d">${dailyCredits} 點</strong>`
-            : "—"
-        }
-        ${
-          isVip &&
-          member
-            ?.daily_free_credits_date
-            ? `
-              <div class="subline">
-                ${escapeHtml(
-                  member
-                    .daily_free_credits_date
-                )}
-              </div>
-            `
-            : ""
-        }
-      </td>
-
-      <td>
-        <strong>
-          ${paidCredits} 點
-        </strong>
-      </td>
-
-      <td>
-        <strong>
-          ${totalCredits} 點
-        </strong>
-      </td>
-
-      <td>
-        ${formatDate(
-          member?.created_at
-        )}
-      </td>
-
-      <td>
-        ${
-          member?.last_login_at
-            ? formatDate(
-                member
-                  .last_login_at
-              )
-            : "—"
-        }
-      </td>
-
-      <td>
-        <div class="row-actions">
-          <button
-            class="action-btn gold"
-            onclick="openCreditsModal(${Number(member.id)})"
-          >
-            積分
-          </button>
-
-          <button
-            class="action-btn"
-            onclick="changeMemberLevel(${Number(member.id)})"
-          >
-            ${
-              isVip
-                ? "降為一般"
-                : "升級 VIP"
-            }
-          </button>
-
-          <button
-            class="action-btn ${
-              active
-                ? "red"
-                : "green"
-            }"
-            onclick="changeActive(${Number(member.id)},${!active})"
-          >
-            ${
-              active
-                ? "停權"
-                : "恢復"
-            }
-          </button>
-        </div>
-      </td>
-    `;
-
+  const search = String(document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+  const levelFilter = document.getElementById("levelFilter")?.value || "all";
+  const statusFilter = document.getElementById("statusFilter")?.value || "all";
+  const filtered = members.filter(member => {
+    const haystack = [member?.account,member?.platform_name,member?.platform_account].join(" ").toLowerCase();
+    const level = String(member?.member_level || "normal").toLowerCase();
+    const active = member?.is_active === true;
+    return (!search || haystack.includes(search)) && (levelFilter === "all" || level === levelFilter) && (statusFilter === "all" || (statusFilter === "active" && active) || (statusFilter === "inactive" && !active));
+  });
+  tbody.innerHTML="";
+  empty?.classList.toggle("hidden",filtered.length>0);
+  filtered.forEach(member=>{
+    const tr=document.createElement("tr");
+    const active=member?.is_active===true;
+    const isVip=String(member?.member_level||"").toLowerCase()==="vip";
+    const paid=Number(member?.analysis_credits||0), daily=isVip?Number(member?.daily_free_credits||0):0;
+    const devices=Number(member?.push_device_count||0);
+    tr.innerHTML=`
+      <td><div class="account-name">${escapeHtml(member?.account||"")}</div><div class="subline">ID ${escapeHtml(member?.id??"—")}</div></td>
+      <td>${escapeHtml(member?.platform_name||"—")}</td>
+      <td>${escapeHtml(member?.platform_account||"—")}</td>
+      <td>${devices>0?`<span class="status active"><span class="dot"></span>已訂閱 ${devices} 台</span>`:`<span class="status off">未訂閱</span>`}</td>
+      <td>${isVip?`<span class="status vip">VIP</span>`:`<span class="status">一般會員</span>`}</td>
+      <td><span class="status ${active?"active":"off"}"><span class="dot"></span>${active?"正常使用":"已停權"}</span></td>
+      <td><strong>${paid+daily} 點</strong><div class="subline">原有 ${paid}${isVip?`＋每日 ${daily}`:""}</div></td>
+      <td>${member?.last_login_at?formatDate(member.last_login_at):"—"}</td>
+      <td><div class="row-actions"><button class="action-btn gold" onclick="openCreditsModal(${Number(member.id)})">積分</button><button class="action-btn" onclick="changeMemberLevel(${Number(member.id)})">${isVip?"降為一般":"升級 VIP"}</button><button class="action-btn ${active?"red":"green"}" onclick="changeActive(${Number(member.id)},${!active})">${active?"停權":"恢復"}</button></div></td>`;
     tbody.appendChild(tr);
   });
-
-  const total =
-    members.length;
-
-  const activeCount =
-    members.filter(
-      item =>
-        item?.is_active === true
-    ).length;
-
-  const inactiveCount =
-    total -
-    activeCount;
-
-  const vipCount =
-    members.filter(
-      item =>
-        String(
-          item?.member_level ||
-          ""
-        ).toLowerCase() ===
-        "vip"
-    ).length;
-
-  setText(
-    "memberTotalCount",
-    total
-  );
-
-  setText(
-    "memberActiveCount",
-    activeCount
-  );
-
-  setText(
-    "memberInactiveCount",
-    inactiveCount
-  );
-
-  setText(
-    "memberVipCount",
-    vipCount
-  );
+  const total=members.length, activeCount=members.filter(x=>x?.is_active===true).length, vipCount=members.filter(x=>String(x?.member_level||"").toLowerCase()==="vip").length;
+  setText("memberTotalCount",total); setText("memberActiveCount",activeCount); setText("memberInactiveCount",total-activeCount); setText("memberVipCount",vipCount);
 }
 
 /* =========================
@@ -2703,6 +2442,8 @@ async function saveAnnouncementSettings() {
         "maintenanceAnnouncementEnabled"
       )?.checked === true;
 
+  if (maintenanceEnabled && !confirm("確定開啟系統維護模式？開啟後會員將直接看到維護畫面，無法登入網站。")) return;
+
   try {
     button.disabled = true;
     button.textContent =
@@ -2781,7 +2522,7 @@ async function saveAnnouncementSettings() {
   } finally {
     button.disabled = false;
     button.textContent =
-      "儲存公告與系統設定";
+      "儲存設定";
   }
 }
 
@@ -2878,6 +2619,11 @@ sendPushBtn?.addEventListener(
         );
       }
 
+      if (audience === "member") {
+        const deviceCount = await loadPushDeviceCount();
+        if (deviceCount <= 0) throw new Error("此會員目前沒有有效訂閱裝置，無法發送推播");
+      }
+
       const response =
         await fetch(
           PUSH_SEND_URL,
@@ -2920,7 +2666,7 @@ sendPushBtn?.addEventListener(
 
       if (resultEl) {
         resultEl.textContent =
-          `✅ 發送完成｜總訂閱 ${data.total ?? 0}｜成功 ${data.sent ?? 0}｜失敗 ${data.failed ?? 0}`;
+          `✅ 發送完成｜找到 ${data.found ?? data.total ?? 0}｜服務接受 ${data.accepted ?? data.sent ?? 0}｜失效 ${data.removed_expired ?? 0}｜失敗 ${data.failed ?? 0}`;
       }
 
       alert(
@@ -3015,7 +2761,7 @@ function calculateRenewalDays(
     return {
       days,
       text:
-        "已到期，請續費"
+        "需要續費"
     };
   }
 
@@ -3167,6 +2913,8 @@ function togglePushMemberField() {
       "hidden",
       audience !== "member"
     );
+  if (audience === "member") loadPushDeviceCount();
+  else setText("pushDeviceCount", "訂閱裝置：—");
 }
 
 async function loadAdminOverview() {
@@ -3189,15 +2937,9 @@ async function loadAdminOverview() {
       adminOverview.running_jobs || 0
     );
 
-    setText(
-      "dashPendingSnapshots",
-      adminOverview.pending_snapshots || 0
-    );
+    setText("dashPendingSnapshots", `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`);
 
-    setText(
-      "dashProcessingLocks",
-      adminOverview.processing_locks || 0
-    );
+    setText("dashProcessingLocks", `${Number(adminOverview.normal_processing_locks||0)} / 過期 ${Number(adminOverview.expired_processing_locks||0)}`);
 
   } catch (error) {
     console.error(
@@ -3328,23 +3070,18 @@ function renderAnalysisHistory() {
           <td>${formatDate(item?.updated_at)}</td>
           <td class="account-name">${escapeHtml(item?.account || "—")}</td>
           <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
-          <td>${escapeHtml(item?.league_name || "—")}</td>
+          <td>${escapeHtml(normalizeLeagueDisplay(item?.league_name))}</td>
           <td>
             <strong>${escapeHtml(item?.home_team || "—")}</strong>
             <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
           </td>
           <td>${formatDate(item?.fixture_time)}</td>
-          <td>
-            <span class="status active">
-              <span class="dot"></span>
-              ${escapeHtml(item?.match_status || "已分析")}
-            </span>
-          </td>
+          <td>${statusBadge(item?.match_status || "completed")}</td>
           <td>
             <button
               class="action-btn gold"
-              onclick='showJsonModal("分析結果", analysisHistoryRecords.find(x => String(x.id) === "${String(item?.id)}")?.result_data || {})'
-            >查看</button>
+              onclick='showAnalysisSummaryById("${String(item?.id)}")'
+            >查看摘要</button>
           </td>
         </tr>
       `)
@@ -3431,7 +3168,7 @@ async function loadJobs(force = false) {
 
     if (force) {
       alert(
-        "Job 資料讀取失敗：" +
+        "分析任務資料讀取失敗：" +
         (error?.message || "")
       );
     }
@@ -3439,140 +3176,28 @@ async function loadJobs(force = false) {
 }
 
 function renderJobs() {
-  const body =
-    document.getElementById(
-      "jobsBody"
-    );
-
-  if (!body) return;
-
-  const search =
-    String(
-      document
-        .getElementById(
-          "jobSearch"
-        )?.value || ""
-    )
-      .trim()
-      .toLowerCase();
-
-  const status =
-    document
-      .getElementById(
-        "jobStatusFilter"
-      )?.value || "all";
-
-  const filtered =
-    analysisJobs.filter(job => {
-      const haystack =
-        `${job?.id || ""} ${job?.account || ""}`
-          .toLowerCase();
-
-      const searchOk =
-        !search ||
-        haystack.includes(search);
-
-      const statusOk =
-        status === "all" ||
-        String(job?.status) ===
-          status;
-
-      return searchOk && statusOk;
-    });
-
-  body.innerHTML =
-    filtered
-      .map(job => {
-        const completed =
-          Number(
-            job?.completed_count || 0
-          );
-        const failed =
-          Number(
-            job?.failed_count || 0
-          );
-        const total =
-          Number(
-            job?.total_count ||
-            job?.fixture_ids?.length ||
-            0
-          );
-
-        const retryable =
-          ["failed","partial"]
-            .includes(
-              String(job?.status)
-            );
-
-        return `
-          <tr>
-            <td>${formatDate(job?.created_at)}</td>
-            <td class="mono">${escapeHtml(job?.id || "—")}</td>
-            <td class="account-name">${escapeHtml(job?.account || "—")}</td>
-            <td>${escapeHtml(job?.job_type || "—")}</td>
-            <td>${total}</td>
-            <td>${completed} 完成 / ${failed} 失敗</td>
-            <td>${statusBadge(job?.status)}</td>
-            <td class="mono">${escapeHtml(job?.current_fixture_id ?? "—")}</td>
-            <td>
-              <div class="row-actions">
-                <button
-                  class="action-btn"
-                  onclick='showJsonModal("Job 詳細", analysisJobs.find(x => String(x.id) === "${String(job?.id)}") || {})'
-                >詳細</button>
-
-                ${
-                  retryable
-                    ? `
-                      <button
-                        class="action-btn gold"
-                        onclick='retryAnalysisJob("${String(job?.id)}")'
-                      >重試</button>
-                    `
-                    : ""
-                }
-              </div>
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
-
-  setText(
-    "jobQueuedCount",
-    analysisJobs.filter(
-      j => j?.status === "queued"
-    ).length
-  );
-
-  setText(
-    "jobProcessingCount",
-    analysisJobs.filter(
-      j => j?.status === "processing"
-    ).length
-  );
-
-  setText(
-    "jobCompletedCount",
-    analysisJobs.filter(
-      j => j?.status === "completed"
-    ).length
-  );
-
-  setText(
-    "jobFailedCount",
-    analysisJobs.filter(
-      j =>
-        ["failed","partial"]
-          .includes(j?.status)
-    ).length
-  );
+  const body=document.getElementById("jobsBody"); if(!body)return;
+  const search=String(document.getElementById("jobSearch")?.value||"").trim().toLowerCase();
+  const status=document.getElementById("jobStatusFilter")?.value||"all";
+  const filtered=analysisJobs.filter(job=>{const h=`${job?.id||""} ${job?.account||""}`.toLowerCase();return(!search||h.includes(search))&&(status==="all"||String(job?.status)===status);});
+  body.innerHTML=filtered.map(job=>{
+    const completed=Number(job?.completed_count||0), failed=Number(job?.failed_count||0), total=Number(job?.total_count||job?.fixture_ids?.length||0);
+    const retryable=["failed","partial"].includes(String(job?.status));
+    const reason=job?.error_message||job?.failures?.[0]?.message||"—";
+    const progress=total?`${completed+failed}/${total}`:"—";
+    const stuck=job?.suspected_stuck===true;
+    return `<tr><td>${formatDate(job?.created_at)}</td><td class="account-name">${escapeHtml(job?.account||"—")}</td><td>${total}</td><td>${progress}</td><td>${statusBadge(job?.status)}${stuck?'<div class="subline stale">疑似卡住</div>':''}</td><td>${escapeHtml(reason)}</td><td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("分析任務詳細", analysisJobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>詳細</button>${retryable?`<button class="action-btn gold" onclick='retryAnalysisJob("${String(job?.id)}")'>重新執行</button>`:""}</div></td></tr>`;
+  }).join("");
+  setText("jobQueuedCount",analysisJobs.filter(j=>j?.status==="queued").length);
+  setText("jobProcessingCount",analysisJobs.filter(j=>j?.status==="processing").length);
+  setText("jobCompletedCount",analysisJobs.filter(j=>j?.status==="completed").length);
+  setText("jobFailedCount",analysisJobs.filter(j=>["failed","partial"].includes(j?.status)).length);
 }
 
 async function retryAnalysisJob(jobId) {
   if (
     !confirm(
-      "確定重新執行此失敗 Job？"
+      "確定重新執行此失敗分析任務？"
     )
   ) {
     return;
@@ -3585,7 +3210,7 @@ async function retryAnalysisJob(jobId) {
     });
 
     alert(
-      "已建立重新分析任務"
+      "已建立重新執行任務"
     );
 
     setTimeout(
@@ -3659,6 +3284,13 @@ function flattenFixtures() {
     });
 
   return list;
+}
+
+function cacheFreshness(row){
+  if(!row?.fetched_at)return {fresh:false,text:"資料待更新"};
+  const age=Date.now()-new Date(row.fetched_at).getTime();
+  const fresh=Number.isFinite(age)&&age<=6*60*60*1000;
+  return {fresh,text:fresh?"資料已更新":"待更新"};
 }
 
 function renderFixtures() {
@@ -3804,23 +3436,11 @@ function renderFixtures() {
     )
   );
 
-  setText(
-    "fixtureTodayFetched",
-    todayCache?.fetched_at
-      ? formatDate(
-          todayCache.fetched_at
-        )
-      : "—"
-  );
-
-  setText(
-    "fixtureTomorrowFetched",
-    tomorrowCache?.fetched_at
-      ? formatDate(
-          tomorrowCache.fetched_at
-        )
-      : "—"
-  );
+  const todayFresh=cacheFreshness(todayCache), tomorrowFresh=cacheFreshness(tomorrowCache);
+  setText("fixtureTodayFetched", todayCache?.fetched_at ? `${formatDate(todayCache.fetched_at)}｜${todayFresh.text}` : "資料待更新");
+  const tomorrowCount=Number(tomorrowCache?.total || tomorrowCache?.fixtures?.length || 0);
+  const tomorrowState=!tomorrowCache?.fetched_at || !tomorrowFresh.fresh ? "資料待更新" : (tomorrowCount===0 ? "已更新，無可分析賽事" : "資料已更新");
+  setText("fixtureTomorrowFetched", tomorrowCache?.fetched_at ? `${formatDate(tomorrowCache.fetched_at)}｜${tomorrowState}` : tomorrowState);
 }
 
 async function refreshFixtureSource(offset) {
@@ -3832,7 +3452,7 @@ async function refreshFixtureSource(offset) {
 
     if (
       !confirm(
-        `確定同步${label}賽事資料？若快取仍有效，系統會沿用快取。`
+        `確定更新${label}賽事資料？若快取仍有效，系統會沿用快取。`
       )
     ) {
       return;
@@ -3848,12 +3468,12 @@ async function refreshFixtureSource(offset) {
     await loadAdminOverview();
 
     alert(
-      `${label}賽事同步完成`
+      `${label}賽事更新完成`
     );
 
   } catch (error) {
     alert(
-      "同步失敗：" +
+      "更新失敗：" +
       (error?.message || "")
     );
   }
@@ -3917,22 +3537,16 @@ function resultBadge(value) {
     String(value || "")
       .toLowerCase();
 
-  if (
-    v === "win" ||
-    v === "half_win"
-  ) {
-    return `<span class="status active">${escapeHtml(v)}</span>`;
+  if (v === "win" || v === "half_win") {
+    return `<span class="status active">${v === "win" ? "命中" : "半贏"}</span>`;
   }
 
-  if (
-    v === "loss" ||
-    v === "half_loss"
-  ) {
-    return `<span class="status off">${escapeHtml(v)}</span>`;
+  if (v === "loss" || v === "half_loss") {
+    return `<span class="status off">${v === "loss" ? "未命中" : "半輸"}</span>`;
   }
 
   if (v === "push") {
-    return `<span class="table-chip">push</span>`;
+    return `<span class="table-chip">走盤</span>`;
   }
 
   return "—";
@@ -3941,11 +3555,7 @@ function resultBadge(value) {
 function marketWinRate(market) {
   const results =
     performanceSnapshots
-      .filter(
-        row =>
-          row?.status ===
-          "verified"
-      )
+      .filter(row => row?.status === "verified" && row?.excluded_from_public !== true)
       .map(
         row =>
           settlementResult(
@@ -3990,115 +3600,38 @@ function marketWinRate(market) {
 }
 
 function renderPerformanceAdmin() {
-  const body =
-    document.getElementById(
-      "performanceBody"
-    );
-
-  if (!body) return;
-
-  const search =
-    String(
-      document
-        .getElementById(
-          "performanceSearch"
-        )?.value || ""
-    )
-      .trim()
-      .toLowerCase();
-
-  const status =
-    document
-      .getElementById(
-        "performanceStatusFilter"
-      )?.value || "all";
-
-  const filtered =
-    performanceSnapshots
-      .filter(row => {
-        const haystack = [
-          row?.fixture_id,
-          row?.league_name,
-          row?.home_team,
-          row?.away_team
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        return (
-          (
-            status === "all" ||
-            row?.status === status
-          ) &&
-          (
-            !search ||
-            haystack.includes(search)
-          )
-        );
-      });
-
-  body.innerHTML =
-    filtered
-      .map(row => `
-        <tr>
-          <td>${formatDate(row?.kickoff_at)}</td>
-          <td class="mono">${escapeHtml(row?.fixture_id ?? "—")}</td>
-          <td>${escapeHtml(row?.league_name || "—")}</td>
-          <td>
-            <strong>${escapeHtml(row?.home_team || "—")}</strong>
-            <div class="subline">vs ${escapeHtml(row?.away_team || "—")}</div>
-          </td>
-          <td>${
-            row?.home_score != null &&
-            row?.away_score != null
-              ? `${row.home_score} - ${row.away_score}`
-              : "—"
-          }</td>
-          <td>${statusBadge(row?.status)}</td>
-          <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
-          <td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-          <td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-          <td>
-            <button
-              class="action-btn"
-              onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x => String(x.fixture_id) === "${String(row?.fixture_id)}") || {})'
-            >查看</button>
-          </td>
-        </tr>
-      `)
-      .join("");
-
-  setText(
-    "performancePendingCount",
-    performanceSnapshots
-      .filter(
-        x => x?.status === "pending"
-      ).length
-  );
-
-  setText(
-    "performanceVerifiedCount",
-    performanceSnapshots
-      .filter(
-        x => x?.status === "verified"
-      ).length
-  );
-
-  setText(
-    "performanceMoneylineRate",
-    marketWinRate("moneyline")
-  );
-
-  setText(
-    "performanceOuRate",
-    marketWinRate("over_under")
-  );
+  const body=document.getElementById("performanceBody"); if(!body)return;
+  const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
+  const filter=document.getElementById("performanceStatusFilter")?.value||"all";
+  const filtered=performanceSnapshots.filter(row=>{
+    const h=[row?.fixture_id,normalizeLeagueDisplay(row?.league_name),row?.home_team,row?.away_team].join(" ").toLowerCase();
+    const excluded=row?.excluded_from_public===true, overdue=row?.is_overdue===true;
+    let ok=true;
+    if(filter==="included")ok=!excluded;
+    else if(filter==="excluded")ok=excluded;
+    else if(filter==="pending")ok=row?.status==="pending"&&!overdue;
+    else if(filter==="overdue")ok=overdue;
+    else if(filter==="verified")ok=row?.status==="verified";
+    return ok&&(!search||h.includes(search));
+  });
+  body.innerHTML=filtered.map(row=>`<tr>
+    <td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
+    <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
+    <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
+    <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
+    <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td><td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td><td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+    <td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button><button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded(${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button></div></td></tr>`).join("");
+  const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
+  const overdue=performanceSnapshots.filter(x=>x?.is_overdue===true).length;
+  const verified=performanceSnapshots.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
+  setText("performancePendingCount",normalPending); setText("performanceOverdueCount",overdue); setText("performanceVerifiedCount",verified);
+  setText("performanceOuRate",marketWinRate("over_under"));
 }
 
 async function runPublicRunner() {
   if (
     !confirm(
-      "確定立即執行公開戰績 Runner？"
+      "確定執行賽前預測排程？"
     )
   ) {
     return;
@@ -4112,7 +3645,7 @@ async function runPublicRunner() {
       });
 
     showJsonModal(
-      "Runner 執行結果",
+      "賽前預測排程結果",
       data.report || data
     );
 
@@ -4121,7 +3654,7 @@ async function runPublicRunner() {
 
   } catch (error) {
     alert(
-      "Runner 執行失敗：" +
+      "賽前預測排程失敗：" +
       (error?.message || "")
     );
   }
@@ -4190,6 +3723,7 @@ function renderPartners() {
                 : `<span class="status off"><span class="dot"></span>停用</span>`
             }
           </td>
+          <td><strong>${Number(platform?.bound_member_count || 0)}</strong></td>
           <td>
             <div class="row-actions">
               <button
@@ -4387,7 +3921,7 @@ async function deletePartner(id) {
 
   if (
     !confirm(
-      `確定刪除「${platform?.display_name || platform?.name || id}」？`
+      `確定刪除「${platform?.display_name || platform?.name || id}」？有會員綁定的平台不可刪除，請先停用。`
     )
   ) {
     return;
@@ -4504,7 +4038,7 @@ function renderApiStats() {
       (apiStatsPayload.sources || [])
         .map(item => `
           <div class="mini-item">
-            <span class="mini-key">${escapeHtml(item?.source || "unknown")}</span>
+            <span class="mini-key">${escapeHtml(apiSourceName(item?.source))}</span>
             <span class="mini-val">${Number(item?.count || 0)}</span>
           </div>
         `)
@@ -4542,134 +4076,76 @@ async function loadHealth(force = false) {
 }
 
 function renderHealth() {
-  if (!healthPayload) {
-    return;
-  }
-
-  const latestFixture =
-    healthPayload
-      .latest_fixture;
-
-  const latestJob =
-    healthPayload
-      .latest_job;
-
-  const latestSnapshot =
-    healthPayload
-      .latest_snapshot;
-
-  const locks =
-    healthPayload
-      .processing_locks || [];
-
-  const failed =
-    healthPayload
-      .failed_jobs || [];
-
-  setText(
-    "healthFixtureTime",
-    latestFixture?.fetched_at
-      ? formatDate(
-          latestFixture.fetched_at
-        )
-      : "—"
-  );
-
-  setText(
-    "healthJobStatus",
-    latestJob?.status || "—"
-  );
-
-  setText(
-    "healthLockCount",
-    locks.length
-  );
-
-  setText(
-    "healthFailedCount",
-    failed.length
-  );
-
-  const services =
-    document.getElementById(
-      "healthServiceList"
-    );
-
-  if (services) {
-    services.innerHTML = `
-      <div class="mini-item">
-        <span class="mini-key">fixture_cache</span>
-        <span class="mini-val ${latestFixture ? "health-ok" : "health-warn"}">
-          ${latestFixture ? "有資料" : "無資料"}
-        </span>
-      </div>
-
-      <div class="mini-item">
-        <span class="mini-key">analysis_jobs</span>
-        <span class="mini-val">
-          ${escapeHtml(latestJob?.status || "無紀錄")}
-        </span>
-      </div>
-
-      <div class="mini-item">
-        <span class="mini-key">ai_prediction_snapshots</span>
-        <span class="mini-val">
-          ${escapeHtml(latestSnapshot?.status || "無紀錄")}
-        </span>
-      </div>
-
-      <div class="mini-item">
-        <span class="mini-key">processing locks</span>
-        <span class="mini-val ${locks.length ? "health-warn" : "health-ok"}">
-          ${locks.length}
-        </span>
-      </div>
-    `;
-  }
-
-  const debug =
-    document.getElementById(
-      "healthDebugInfo"
-    );
-
-  if (debug) {
-    if (
-      healthPayload
-        .debug_logs_available
-    ) {
-      debug.innerHTML =
-        `已連接 debug_logs，讀到 <strong>${healthPayload.debug_logs?.length || 0}</strong> 筆資料。<br>` +
-        `<button class="action-btn gold" style="margin-top:10px" onclick='showJsonModal("Debug Logs", healthPayload.debug_logs || [])'>查看 Logs</button>`;
-    } else {
-      debug.textContent =
-        "目前沒有可讀取的 debug_logs 資料表；Edge Function 即時 Log 仍請至 Supabase Logs 查看。";
-    }
-  }
-
-  const body =
-    document.getElementById(
-      "healthFailedJobsBody"
-    );
-
-  if (body) {
-    body.innerHTML =
-      failed.map(job => `
-        <tr>
-          <td>${formatDate(job?.created_at)}</td>
-          <td class="mono">${escapeHtml(job?.id || "—")}</td>
-          <td>${escapeHtml(job?.account || "—")}</td>
-          <td>${statusBadge(job?.status)}</td>
-          <td>${escapeHtml(job?.error_message || job?.failures?.[0]?.message || "—")}</td>
-          <td>
-            <button
-              class="action-btn"
-              onclick='showJsonModal("失敗 Job", healthPayload.failed_jobs.find(x => String(x.id) === "${String(job?.id)}") || {})'
-            >查看</button>
-          </td>
-        </tr>
-      `).join("");
-  }
+  if(!healthPayload)return;
+  const latestFixture=healthPayload.latest_fixture, latestJob=healthPayload.latest_job, locks=healthPayload.processing_locks||[], failed=healthPayload.failed_jobs||[];
+  setText("healthFixtureTime",latestFixture?.fetched_at?formatDate(latestFixture.fetched_at):"—");
+  setText("healthJobStatus",statusLabel(latestJob?.status||"—"));
+  setText("healthLockCount",locks.length);
+  setText("healthFailedCount",failed.length);
+  const services=document.getElementById("healthServiceList");
+  if(services) services.innerHTML=`
+    <div class="mini-item"><span class="mini-key">賽事快取資料</span><span class="mini-val ${latestFixture?"health-ok":"health-warn"}">${latestFixture?"正常":"無資料"}</span></div>
+    <div class="mini-item"><span class="mini-key">分析任務</span><span class="mini-val">${escapeHtml(statusLabel(latestJob?.status||"無紀錄"))}</span></div>
+    <div class="mini-item"><span class="mini-key">公開戰績</span><span class="mini-val">已驗證 ${Number(healthPayload.verified_snapshots||0)}｜正常待驗證 ${Math.max(0,Number(healthPayload.pending_snapshots||0)-Number(healthPayload.overdue_pending_snapshots||0))}｜逾期 ${Number(healthPayload.overdue_pending_snapshots||0)}</span></div>
+    <div class="mini-item"><span class="mini-key">防重複分析鎖</span><span class="mini-val ${locks.some(x=>x?.is_expired)?"health-warn":"health-ok"}">正常 ${locks.filter(x=>!x?.is_expired).length}｜過期 ${locks.filter(x=>x?.is_expired).length}</span></div>`;
+  const debug=document.getElementById("healthDebugInfo");
+  if(debug) debug.innerHTML=`近期失敗 / 部分失敗任務：<strong>${failed.length}</strong> 筆。<br>錯誤以中文摘要顯示，不另建立大型 Log 系統。`;
+  const lockBody=document.getElementById("healthLocksBody");
+  if(lockBody) lockBody.innerHTML=locks.map(row=>`<tr><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${formatDate(row?.created_at)}</td><td>${formatDate(row?.updated_at)}</td><td>${formatDate(row?.expires_at)}</td><td>${row?.is_expired?'<span class="status off">疑似殘留 / 過期</span>':'<span class="status active">正常</span>'}</td></tr>`).join("");
+  const body=document.getElementById("healthFailedJobsBody");
+  if(body) body.innerHTML=failed.map(job=>`<tr><td>${formatDate(job?.created_at)}</td><td class="mono">${escapeHtml(job?.id||"—")}</td><td>${escapeHtml(job?.account||"—")}</td><td>${statusBadge(job?.status)}</td><td>${escapeHtml(classifyJobError(job))}</td><td><button class="action-btn" onclick='showJsonModal("失敗任務", healthPayload.failed_jobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>查看</button></td></tr>`).join("");
 }
+function statusLabel(value){const key=String(value||"").toLowerCase();const m={queued:"排隊中",processing:"執行中",completed:"已完成",failed:"失敗",partial:"部分失敗",pending:"待驗證",verified:"已驗證",ft:"已完賽",aet:"延長賽完賽",pen:"點球完賽"};return m[key]||String(value||"—");}
+function classifyJobError(job){const text=String(job?.error_message||job?.failures?.[0]?.message||"").toLowerCase();if(!text)return "其他錯誤";if(text.includes("credit")||text.includes("次數")||text.includes("積分"))return "會員分析次數不足";if(text.includes("network")||text.includes("fetch")||text.includes("api")||text.includes("timeout"))return "API / 網路錯誤";if(text.includes("boot")||text.includes("config")||text.includes("啟動"))return "系統啟動失敗";return "其他錯誤";}
+
+async function refreshPartnerButton(button){
+  const original=button?.textContent||"↻ 更新";
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{await loadPartners(false);if(button)button.textContent="已更新 ✓";}catch(e){if(button)button.textContent="更新失敗";alert("更新失敗："+(e?.message||""));}
+  finally{setTimeout(()=>{if(button){button.disabled=false;button.textContent=original;}},900);}
+}
+
+async function refreshAdminSection(button, section) {
+  const original=button?.textContent||"↻ 更新";
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const map={analysis:loadAnalysisHistory,jobs:loadJobs,fixtures:loadFixtures,performance:loadPerformanceAdmin,api:loadApiStats,health:loadHealth};
+    await map[section]?.(false); await loadAdminOverview();
+    if(button) button.textContent="已更新 ✓";
+    setTimeout(()=>{if(button){button.disabled=false;button.textContent=original;}},900);
+  }catch(error){if(button){button.disabled=false;button.textContent="更新失敗";} alert("更新失敗："+(error?.message||"未知錯誤"));}
+}
+
+function normalizeLeagueDisplay(value){
+  if(value&&typeof value==="object") return value.name||value.api_name||value.league_name||"其他聯賽";
+  const t=String(value??"").trim(); if(!t)return "其他聯賽";
+  if(t.startsWith("{")||t.startsWith("[")){try{return normalizeLeagueDisplay(JSON.parse(t));}catch{}}
+  return t;
+}
+
+function analysisSummaryHtml(item){
+  const d=item?.result_data||{};
+  const pick=(keys)=>{for(const k of keys){if(d?.[k]!=null)return d[k];if(d?.analysis?.[k]!=null)return d.analysis[k];}return null;};
+  const fmt=(v)=>v==null?"—":(typeof v==="object"?escapeHtml(v.pick||v.selection||v.value||v.prediction||JSON.stringify(v)):escapeHtml(v));
+  return `<div style="line-height:1.9"><strong>${escapeHtml(item?.home_team||"—")} vs ${escapeHtml(item?.away_team||"—")}</strong><br>聯賽：${escapeHtml(normalizeLeagueDisplay(item?.league_name))}<br>開賽：${formatDate(item?.fixture_time)}<hr style="border-color:rgba(255,255,255,.08)">獨贏：${fmt(pick(["moneyline","oneXtwo","one_x_two","1x2"]))}<br>大小分：${fmt(pick(["over_under","totals","total"]))}<br>讓分：${fmt(pick(["handicap","asian_handicap"]))}<br>BTTS：${fmt(pick(["btts","both_teams_to_score"]))}<br>分析時間：${formatDate(item?.updated_at)}</div>`;
+}
+function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
+
+let pushCountTimer=null;
+function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
+async function pushAdminRequest(payload){const res=await fetch(PUSH_SEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,admin_password:adminPassword})});const data=await res.json().catch(()=>({}));if(!res.ok||data?.success===false)throw new Error(data?.message||data?.error||"推播操作失敗");return data;}
+async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
+async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://awu7757-sys.github.io/habao-football-ai/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
+async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
+
+async function confirmApiRenewal(button){if(!confirm("確定 API 已完成續費？續費日期會自動更新為今天 + 1 個月。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="更新中…";}try{const res=await fetch(BENEFITS_ADMIN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"confirm_api_renewal",admin_password:adminPassword})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.message||"更新失敗");window.apiRenewalDate=d.settings?.api_renewal_date||null;renderDashboard();renderApiPage();alert(d.message||"續費日期已更新");}catch(e){alert("續費更新失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"確認已續費";}}}
+
+async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
+async function togglePerformanceExcluded(fixtureId,excluded){const msg=excluded?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？":"確定恢復此場計入公開戰績？";if(!confirm(msg))return;try{await adminCenterRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});await loadPerformanceAdmin(false);}catch(e){alert("操作失敗："+(e?.message||""));}}
+
+async function clearExpiredLocks(button){if(!confirm("只會清除已過期或疑似殘留的分析鎖，不會清除正常執行中的分析。確定繼續？"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="清除中…";}try{const d=await adminCenterRequest({action:"clear_expired_locks"});alert(`已清除 ${d.cleared||0} 筆過期分析鎖`);await loadHealth(false);await loadAdminOverview();}catch(e){alert("清除失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"清除過期分析鎖";}}}
+
+function apiSourceName(source){return ({"tomorrow-fixtures":"賽事資料 API","match-analysis":"AI 分析 API","panda-odds":"Panda 賠率"})[String(source)]||String(source||"其他來源");}
 
 /* ---------- Generic Detail ---------- */
 
@@ -4705,6 +4181,7 @@ function showJsonModal(
 }
 
 function closeJsonModal() {
+  const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="pre-wrap";pre.textContent="";}
   document
     .getElementById(
       "jsonModal"
@@ -4714,48 +4191,14 @@ function closeJsonModal() {
 }
 
 function statusBadge(value) {
-  const status =
-    String(value || "—");
-
-  const lower =
-    status.toLowerCase();
-
-  if (
-    [
-      "active",
-      "completed",
-      "verified",
-      "ready",
-      "ft"
-    ].includes(lower)
-  ) {
-    return `<span class="status active"><span class="dot"></span>${escapeHtml(status)}</span>`;
-  }
-
-  if (
-    [
-      "failed",
-      "inactive",
-      "cancelled"
-    ].includes(lower)
-  ) {
-    return `<span class="status off"><span class="dot"></span>${escapeHtml(status)}</span>`;
-  }
-
-  if (
-    [
-      "processing",
-      "queued",
-      "pending",
-      "partial"
-    ].includes(lower)
-  ) {
-    return `<span class="status vip">${escapeHtml(status)}</span>`;
-  }
-
-  return `<span class="table-chip">${escapeHtml(status)}</span>`;
+  const raw=String(value||"—"), lower=raw.toLowerCase();
+  const labels={active:"正常",completed:"已完成",verified:"已驗證",ready:"就緒",ft:"已完賽",failed:"失敗",inactive:"停用",cancelled:"已取消",processing:"執行中",queued:"排隊中",pending:"待驗證",partial:"部分失敗",aet:"延長賽完賽",pen:"點球完賽",ns:"未開賽",live:"進行中",ht:"中場",pst:"延期",canc:"取消",abd:"中止",awd:"判定",wo:"棄權"};
+  const label=labels[lower]||raw;
+  if (["active","completed","verified","ready","ft","aet","pen"].includes(lower)) return `<span class="status active"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["failed","inactive","cancelled","canc","abd","wo"].includes(lower)) return `<span class="status off"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["processing","queued","pending","partial","pst"].includes(lower)) return `<span class="status vip">${escapeHtml(label)}</span>`;
+  return `<span class="table-chip">${escapeHtml(label)}</span>`;
 }
-
 
 /* =========================
    UTILITIES
