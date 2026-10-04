@@ -1,7 +1,7 @@
 // HABAO 賽事預測 AI - Service Worker
 
 const CACHE_NAME =
-  "habao-static-v7"
+  "habao-static-v8"
 
 const CORE_ASSETS = [
   "./",
@@ -227,21 +227,13 @@ self.addEventListener(
       "HABAO 賽事預測 AI";
 
     const options = {
-
-      body:
-        data.body ||
-        "您有一則新通知",
-
-icon:
-  "./habao-icon-192.png",
-
-badge:
-  "./habao-icon-192.png",
-
-data: {
-        url:
-          data.url ||
-          "./football.html"
+      body: data.body || "您有一則新通知",
+      icon: data.icon || "./habao-icon-192.png",
+      badge: data.badge || "./habao-icon-192.png",
+      tag: data.tag || "habao-notification",
+      renotify: data.renotify === true,
+      data: {
+        url: data.url || "./football.html"
       }
     };
 
