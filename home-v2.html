@@ -6466,6 +6466,15 @@ padding:
 
 
     <button
+      id="v2EnablePushBtn"
+      type="button"
+      class="v2-account-logout"
+      style="color:#d9c690;border-color:rgba(242,189,75,.18);background:rgba(242,189,75,.05);margin-top:10px"
+    >
+      開啟賽事通知
+    </button>
+
+    <button
       type="button"
       class="v2-account-logout"
       onclick="logoutV2Member()"
@@ -11401,5 +11410,100 @@ const tomorrowUpcoming =
 loadV2PartnerPlatforms();
 </script>
   
+
+<script>
+/* HABAO V3｜Web Push 訂閱與會員綁定 */
+(() => {
+  const PUSH_ENDPOINT = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
+
+  function currentHabaoAccount() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("habao_member") || "null");
+      if (saved?.account) return String(saved.account).trim();
+    } catch {}
+    return String(
+      localStorage.getItem("habao_account") ||
+      localStorage.getItem("account") ||
+      sessionStorage.getItem("habao_account") ||
+      ""
+    ).trim();
+  }
+
+  function base64UrlToUint8Array(base64String) {
+    const padding = "=".repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(ch => ch.charCodeAt(0)));
+  }
+
+  async function pushApi(payload) {
+    const res = await fetch(PUSH_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store"
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.success === false) throw new Error(data?.message || data?.error || "推播設定失敗");
+    return data;
+  }
+
+  async function syncHabaoPush({ requestPermission = false } = {}) {
+    const btn = document.getElementById("v2EnablePushBtn");
+    const account = currentHabaoAccount();
+    if (!account || !("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      if (btn) btn.textContent = "此裝置不支援通知";
+      return false;
+    }
+
+    let permission = Notification.permission;
+    if (requestPermission && permission === "default") {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== "granted") {
+      if (btn) btn.textContent = permission === "denied" ? "通知已被瀏覽器封鎖" : "開啟賽事通知";
+      return false;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = "通知設定中…"; }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        const config = await pushApi({ action: "public_config" });
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: base64UrlToUint8Array(config.vapid_public_key)
+        });
+      }
+      const json = subscription.toJSON();
+      await pushApi({
+        action: "subscribe",
+        member_username: account,
+        subscription: {
+          endpoint: subscription.endpoint,
+          expirationTime: subscription.expirationTime || null,
+          keys: json.keys || {}
+        }
+      });
+      if (btn) btn.textContent = "通知已開啟 ✓";
+      return true;
+    } catch (error) {
+      console.error("HABAO PUSH SYNC ERROR:", error);
+      if (btn) btn.textContent = "開啟賽事通知";
+      return false;
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  window.syncHabaoPush = syncHabaoPush;
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("v2EnablePushBtn");
+    btn?.addEventListener("click", () => syncHabaoPush({ requestPermission: true }));
+    if (("Notification" in window) && Notification.permission === "granted") syncHabaoPush({ requestPermission: false });
+  });
+})();
+</script>
 </body>
 </html>
