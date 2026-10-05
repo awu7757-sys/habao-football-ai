@@ -879,7 +879,7 @@ transition:
   background: linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
 }
 
-/* VIP 平台選擇 */
+/* VIP 平台註冊／第二步平台選擇 */
 .v2-vip-platform-actions {
   flex: 0 0 auto;
   display: flex;
@@ -887,8 +887,24 @@ transition:
   gap: 7px;
 }
 
+.v2-vip-platform-choice-label {
+  display: block;
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.v2-vip-account-platforms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .v2-vip-select-button {
-  min-width: 70px;
+  width: 100%;
+  min-height: 40px;
   padding: 9px 11px;
   border: 1px solid rgba(242,189,75,.28);
   border-radius: 10px;
@@ -905,6 +921,7 @@ transition:
   background: linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
 }
 
+.v2-vip-select-button:disabled,
 .v2-vip-input:disabled,
 .v2-vip-submit:disabled {
   opacity: .52;
@@ -5069,7 +5086,7 @@ padding:
 }
 
 .v2-vip-platform-card{
-  cursor:pointer;
+  cursor:default;
   transition:
     border-color .18s ease,
     transform .18s ease,
@@ -6734,15 +6751,15 @@ padding:
       每日登入免費補充 2 點分析積分
     </div>
 
-    <!-- 合作平台｜由後台動態載入 -->
+    <!-- 合作平台｜上方只提供註冊入口 -->
     <div class="v2-vip-platform-section">
       <div
         class="v2-vip-platform-card"
         style="cursor:default"
       >
         <div class="v2-vip-platform-info">
-          <strong>請先選擇合作平台</strong>
-          <span>平台載入後，點「選擇平台」再填寫帳號</span>
+          <strong>合作平台載入中</strong>
+          <span>可先查看各平台的免費註冊入口</span>
         </div>
       </div>
     </div>
@@ -6761,6 +6778,23 @@ padding:
 
     <div class="v2-vip-have-account">
       已經有平台帳號？
+    </div>
+
+    <div class="v2-vip-platform-choice-label">
+      選擇平台
+    </div>
+
+    <div
+      class="v2-vip-account-platforms"
+      id="v2VipAccountPlatforms"
+    >
+      <button
+        type="button"
+        class="v2-vip-select-button"
+        disabled
+      >
+        合作平台載入中
+      </button>
     </div>
 
     <label
@@ -7700,54 +7734,89 @@ function updateV2VipPlatformInputState() {
   }
 }
 
-function selectV2PartnerPlatform(slug) {
-  selectedV2PartnerSlug =
-    String(slug || "").trim();
+function renderV2PartnerAccountPlatforms() {
+  const choices =
+    document.getElementById(
+      "v2VipAccountPlatforms"
+    );
 
-  document
-    .querySelectorAll(
-      ".v2-vip-platform-card[data-platform-slug]"
-    )
-    .forEach(card => {
-      card.classList.toggle(
-        "is-selected",
-        card.dataset.platformSlug ===
-          selectedV2PartnerSlug
-      );
-    });
+  if (!choices) {
+    return;
+  }
 
-  document
+  if (
+    !v2PartnerPlatforms.length
+  ) {
+    choices.innerHTML = `
+      <button
+        type="button"
+        class="v2-vip-select-button"
+        disabled
+      >
+        ${
+          window.HabaoI18n?.t(
+            "partnerLoading",
+            "合作平台載入中"
+          ) ||
+          "合作平台載入中"
+        }
+      </button>
+    `;
+
+    return;
+  }
+
+  choices.innerHTML =
+    v2PartnerPlatforms
+      .map(platform => {
+        const displayName =
+          platform.display_name ||
+          platform.name ||
+          "合作平台";
+
+        const slug =
+          String(
+            platform.slug || ""
+          );
+
+        const selected =
+          slug ===
+          selectedV2PartnerSlug;
+
+        return `
+          <button
+            type="button"
+            class="v2-vip-select-button ${selected ? "is-selected" : ""}"
+            data-platform-slug="${escapeV2PartnerHtml(slug)}"
+          >
+            ${escapeV2PartnerHtml(displayName)}${selected ? " ✓" : ""}
+          </button>
+        `;
+      })
+      .join("");
+
+  choices
     .querySelectorAll(
       ".v2-vip-select-button[data-platform-slug]"
     )
     .forEach(button => {
-      const isSelected =
-        button.dataset.platformSlug ===
-        selectedV2PartnerSlug;
-
-      button.classList.toggle(
-        "is-selected",
-        isSelected
+      button.addEventListener(
+        "click",
+        () => {
+          selectV2PartnerPlatform(
+            button.dataset.platformSlug ||
+            ""
+          );
+        }
       );
-
-      button.textContent =
-        isSelected
-          ? (
-              window.HabaoI18n?.t(
-                "platformSelected",
-                "已選擇 ✓"
-              ) ||
-              "已選擇 ✓"
-            )
-          : (
-              window.HabaoI18n?.t(
-                "selectPlatform",
-                "選擇平台"
-              ) ||
-              "選擇平台"
-            );
     });
+}
 
+function selectV2PartnerPlatform(slug) {
+  selectedV2PartnerSlug =
+    String(slug || "").trim();
+
+  renderV2PartnerAccountPlatforms();
   updateV2VipPlatformInputState();
 
   const input =
@@ -7798,15 +7867,16 @@ function renderV2PartnerPlatforms() {
             ${
               window.HabaoI18n?.t(
                 "partnerLoadingHint",
-                "請稍候再選擇平台"
+                "請稍候載入合作平台"
               ) ||
-              "請稍候再選擇平台"
+              "請稍候載入合作平台"
             }
           </span>
         </div>
       </div>
     `;
 
+    renderV2PartnerAccountPlatforms();
     updateV2VipPlatformInputState();
     return;
   }
@@ -7828,19 +7898,9 @@ function renderV2PartnerPlatforms() {
           platform.bet_url ||
           "#";
 
-        const slug =
-          String(
-            platform.slug || ""
-          );
-
-        const selected =
-          slug ===
-          selectedV2PartnerSlug;
-
         return `
           <div
-            class="v2-vip-platform-card ${selected ? "is-selected" : ""}"
-            data-platform-slug="${escapeV2PartnerHtml(slug)}"
+            class="v2-vip-platform-card"
           >
             <img
               src="${escapeV2PartnerHtml(logo)}"
@@ -7872,37 +7932,13 @@ function renderV2PartnerPlatforms() {
                   "免費註冊 ↗"
                 ) || "免費註冊 ↗"}
               </a>
-
-              <button
-                type="button"
-                class="v2-vip-select-button ${selected ? "is-selected" : ""}"
-                data-platform-slug="${escapeV2PartnerHtml(slug)}"
-                onclick="selectV2PartnerPlatform('${escapeV2PartnerHtml(slug)}')"
-              >
-                ${
-                  selected
-                    ? (
-                        window.HabaoI18n?.t(
-                          "platformSelected",
-                          "已選擇 ✓"
-                        ) ||
-                        "已選擇 ✓"
-                      )
-                    : (
-                        window.HabaoI18n?.t(
-                          "selectPlatform",
-                          "選擇平台"
-                        ) ||
-                        "選擇平台"
-                      )
-                }
-              </button>
             </div>
           </div>
         `;
       })
       .join("");
 
+  renderV2PartnerAccountPlatforms();
   updateV2VipPlatformInputState();
 }
 
@@ -11653,6 +11689,11 @@ setText(
 );
 
 setText(
+  ".v2-vip-platform-choice-label",
+  "selectPlatform"
+);
+
+setText(
   ".v2-vip-input-label",
   "platformAccountLabel"
 );
@@ -11673,6 +11714,8 @@ setText(
   "#v2VipSubmit",
   "confirmVip"
 );
+
+renderV2PartnerPlatforms();
 
 setText(
   ".v2-bonus-title",
