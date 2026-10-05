@@ -1,7 +1,7 @@
 // HABAO 賽事預測 AI - Service Worker
 
 const CACHE_NAME =
-  "habao-static-v8"
+  "habao-static-v11-member-sync"
 
 const CORE_ASSETS = [
   "./",
@@ -124,7 +124,7 @@ if (
 ) {
 
       event.respondWith(
-        fetch(request)
+        fetch(request, { cache: "no-store" })
           .then((response) => {
 
             const copy =
