@@ -8327,40 +8327,24 @@ async function openV2AccountPanel() {
       "v2AccountOverlay"
     );
 
-  const nameEl =
-    document.getElementById(
-      "v2AccountName"
-    );
-
   /*
-   * 不先顯示 sessionStorage 舊資料。
-   * 每次打開「我的帳號」都先向後端重新抓 members 最新狀態，
-   * 確保後台剛調整積分 / VIP / 停權後，前台立即反映。
+   * 先立即用目前快取資料顯示帳號視窗，
+   * 不等待網路請求，讓「我的」點擊後立即打開。
    */
-  if (nameEl) {
-    nameEl.textContent =
-      "同步會員資料中…";
-  }
-
-  const member =
-    await refreshV2MemberFromServer(
-      cachedMember,
-      {
-        redirectOnInactive: true,
-        silent: false
-      }
+  if (cachedMember) {
+    updateV2AccountPanel(
+      cachedMember
     );
-
-  if (!member) {
-    return;
   }
 
-  updateV2AccountPanel(
-    member
-  );
+  if (overlay) {
+    overlay.classList.add(
+      "show"
+    );
+  }
 
   /*
-   * 通知按鈕只負責通知，不再可能被誤顯示成「登出帳號」。
+   * 通知按鈕只負責通知。
    */
   const pushBtn =
     document.getElementById(
@@ -8387,11 +8371,30 @@ async function openV2AccountPanel() {
     }
   }
 
-  if (overlay) {
-    overlay.classList.add(
-      "show"
+  /*
+   * 視窗已經打開後，
+   * 再於背景同步資料庫最新會員狀態。
+   */
+  const member =
+    await refreshV2MemberFromServer(
+      cachedMember,
+      {
+        redirectOnInactive: true,
+        silent: true
+      }
     );
+
+  if (!member) {
+    return;
   }
+
+  /*
+   * 後端資料回來後，
+   * 直接刷新目前已經開啟的帳號視窗。
+   */
+  updateV2AccountPanel(
+    member
+  );
 }
 
 function closeV2AccountPanel(event) {
