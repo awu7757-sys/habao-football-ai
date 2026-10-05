@@ -730,7 +730,8 @@
 }
 
 
-.v2-account-logout {
+.v2-account-logout,
+.v2-account-push {
   width: 100%;
 
   margin-top: 15px;
@@ -761,12 +762,177 @@
 }
 
 
-.v2-account-logout:active {
+.v2-account-logout:active,
+.v2-account-push:active {
   transform:
     scale(.98);
 } 
 
-    /* =========================
+    
+.v2-account-push {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid rgba(242,189,75,.18);
+  border-radius: 15px;
+  color: #f0d48b;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(242,189,75,.085),
+      rgba(242,189,75,.035)
+    );
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.v2-account-push.is-enabled {
+  color: #79e9a5;
+  border-color: rgba(60,221,130,.18);
+  background: rgba(60,221,130,.055);
+}
+
+.v2-account-push:disabled {
+  opacity: .72;
+  cursor: default;
+}
+
+/* HABAO V3｜首次登入通知引導 */
+.v2-push-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(0,0,0,.76);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .22s ease, visibility .22s ease;
+}
+
+.v2-push-intro-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.v2-push-intro-card {
+  width: min(100%, 380px);
+  padding: 26px 22px 22px;
+  border: 1px solid rgba(242,189,75,.28);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(242,189,75,.12), transparent 46%),
+    linear-gradient(180deg,#171d25,#090d12);
+  box-shadow: 0 26px 80px rgba(0,0,0,.58);
+  text-align: center;
+}
+
+.v2-push-intro-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: #171006;
+  background: linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+  font-size: 25px;
+  box-shadow: 0 12px 30px rgba(242,189,75,.18);
+}
+
+.v2-push-intro-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.v2-push-intro-text {
+  margin-top: 9px;
+  color: #9ca8b6;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.v2-push-intro-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.45fr;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.v2-push-intro-actions button {
+  min-height: 44px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.v2-push-intro-later {
+  border: 1px solid rgba(255,255,255,.08);
+  color: #aeb8c5;
+  background: rgba(255,255,255,.035);
+}
+
+.v2-push-intro-enable {
+  border: 0;
+  color: #171006;
+  background: linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+}
+
+/* VIP 平台選擇 */
+.v2-vip-platform-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.v2-vip-select-button {
+  min-width: 70px;
+  padding: 9px 11px;
+  border: 1px solid rgba(242,189,75,.28);
+  border-radius: 10px;
+  color: #f0d48b;
+  background: rgba(242,189,75,.07);
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.v2-vip-select-button.is-selected {
+  color: #171006;
+  border-color: transparent;
+  background: linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+}
+
+.v2-vip-input:disabled,
+.v2-vip-submit:disabled {
+  opacity: .52;
+  cursor: not-allowed;
+}
+
+@media(max-width:560px){
+  .v2-vip-platform-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .v2-vip-platform-info {
+    min-width: 150px;
+  }
+
+  .v2-vip-platform-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* =========================
        HERO
     ========================= */
 
@@ -6468,8 +6634,7 @@ padding:
     <button
       id="v2EnablePushBtn"
       type="button"
-      class="v2-account-logout"
-      style="color:#d9c690;border-color:rgba(242,189,75,.18);background:rgba(242,189,75,.05);margin-top:10px"
+      class="v2-account-push"
     >
       開啟賽事通知
     </button>
@@ -6485,6 +6650,55 @@ padding:
   </div>
 </div>
   
+<!-- ===============================
+     首次登入｜賽事通知引導
+================================ -->
+<div
+  class="v2-push-intro-overlay"
+  id="v2PushIntroOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="v2PushIntroTitle"
+>
+  <div class="v2-push-intro-card">
+    <div class="v2-push-intro-icon">🔔</div>
+
+    <div
+      class="v2-push-intro-title"
+      id="v2PushIntroTitle"
+    >
+      開啟賽事通知
+    </div>
+
+    <div
+      class="v2-push-intro-text"
+      id="v2PushIntroText"
+    >
+      開啟後可收到賽事提醒、系統公告與重要通知。瀏覽器會再詢問一次通知權限。
+    </div>
+
+    <div class="v2-push-intro-actions">
+      <button
+        type="button"
+        class="v2-push-intro-later"
+        id="v2PushIntroLater"
+        onclick="skipV2PushIntro()"
+      >
+        稍後再說
+      </button>
+
+      <button
+        type="button"
+        class="v2-push-intro-enable"
+        id="v2PushIntroEnable"
+        onclick="acceptV2PushIntro()"
+      >
+        開啟通知
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ===============================
      VIP 升級視窗
 ================================ -->
@@ -6519,33 +6733,17 @@ padding:
       每日登入免費補充 2 點分析積分
     </div>
 
-    <!-- 合作平台 -->
+    <!-- 合作平台｜由後台動態載入 -->
     <div class="v2-vip-platform-section">
-
-      <div class="v2-vip-platform-card">
-
-        <img
-          src="hd-logo.png"
-          alt="HD 皇鼎"
-          class="v2-vip-platform-logo"
-        >
-
+      <div
+        class="v2-vip-platform-card"
+        style="cursor:default"
+      >
         <div class="v2-vip-platform-info">
-          <strong>HD 皇鼎</strong>
-          <span>尚未有平台帳號？</span>
+          <strong>請先選擇合作平台</strong>
+          <span>平台載入後，點「選擇平台」再填寫帳號</span>
         </div>
-
-        <a
-          href="https://hd5957.com/?aff=uy09zj"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="v2-vip-register-button"
-        >
-          前往免費註冊 ↗
-        </a>
-
       </div>
-
     </div>
 
     <div class="v2-vip-benefits">
@@ -6575,9 +6773,10 @@ padding:
       type="text"
       id="v2PlatformAccount"
       class="v2-vip-input"
-      placeholder="請輸入您的平台帳號"
+      placeholder="請先選擇合作平台"
       autocomplete="off"
       maxlength="80"
+      disabled
     >
 
     <div
@@ -6590,6 +6789,7 @@ padding:
       class="v2-vip-submit"
       id="v2VipSubmit"
       onclick="submitV2VipUpgrade()"
+      disabled
     >
       確認升級 VIP
     </button>
@@ -6605,6 +6805,9 @@ padding:
 const MEMBER_LOGIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
 
+const OAUTH_MEMBER_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/oauth-member-login";
+
 const UPGRADE_VIP_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/upgrade-vip";  
 
@@ -6613,7 +6816,7 @@ const PARTNER_PLATFORMS_URL =
 
 let v2PartnerPlatforms = [];
 let selectedV2PartnerSlug =
-  "huangding";
+  "";
 
 
 
@@ -6788,178 +6991,313 @@ const v2SupabaseAuth =
    會員驗證
 ================================ */
 
-async function verifyV2Member() {
-
-  const saved =
-    sessionStorage.getItem("habao_member");
-
-  if (!saved) {
-    window.location.replace("index.html");
-    return null;
-  }
-
-  let member;
-
+function readCachedV2Member() {
   try {
-    member = JSON.parse(saved);
+    return JSON.parse(
+      sessionStorage.getItem(
+        "habao_member"
+      ) || "null"
+    );
   } catch (error) {
-
     console.error(
       "V2 MEMBER PARSE ERROR:",
       error
     );
-
-    sessionStorage.removeItem(
-      "habao_member"
-    );
-
-    window.location.replace(
-      "index.html"
-    );
-
     return null;
   }
-
-  if (!member || !member.account) {
-
-    sessionStorage.removeItem(
-      "habao_member"
-    );
-
-    window.location.replace(
-      "index.html"
-    );
-
-    return null;
-  }
-
-
-  /* ===============================
-     OAuth 會員
-     LINE / Google 已經由
-     oauth-member-login 驗證完成
-  ================================ */
-
-  const isOAuthMember =
-    Boolean(member.auth_user_id) ||
-    Boolean(member.auth_provider) ||
-    member.account.startsWith("google_") ||
-    member.account.startsWith("line_");
-
-
-if (isOAuthMember) {
-
-  updateV2Account(
-    member.account
-  );
-
-  updateV2AccountPanel(
-    member
-  );
-
-  return member;
 }
 
+function isV2OAuthMember(member) {
+  if (!member) return false;
 
-  /* ===============================
-     舊會員
-     保留 member-login 驗證
-  ================================ */
+  return (
+    Boolean(member.auth_user_id) ||
+    Boolean(member.auth_provider) ||
+    String(member.account || "")
+      .startsWith("google_") ||
+    String(member.account || "")
+      .startsWith("line_")
+  );
+}
 
+async function redirectV2MemberToLogin(
+  message = ""
+) {
   try {
-
-    const response =
-      await fetch(
-        MEMBER_LOGIN_URL,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "apikey":
-              PUBLISHABLE_KEY,
-
-            "Authorization":
-              "Bearer " +
-              PUBLISHABLE_KEY
-          },
-
-          body:
-            JSON.stringify({
-              account:
-                member.account
-            })
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (
-      !response.ok ||
-      !data.success ||
-      !data.member
-    ) {
-
-      sessionStorage.removeItem(
-        "habao_member"
-      );
-
-      window.location.replace(
-        "index.html"
-      );
-
-      return null;
-    }
-
-
-    member =
-      data.member;
-
-
-    sessionStorage.setItem(
-      "habao_member",
-      JSON.stringify(member)
-    );
-
-
-updateV2Account(
-  member.account
-);
-
-updateV2AccountPanel(
-  member
-);
-
-return member;
-
-
+    await v2SupabaseAuth.auth.signOut();
   } catch (error) {
-
     console.error(
-      "V2 MEMBER VERIFY ERROR:",
+      "V2 MEMBER FORCE SIGNOUT ERROR:",
       error
     );
-
-    /*
-      API 暫時失敗時不清除登入資料，
-      避免短暫網路問題把會員踢出去。
-    */
-
-updateV2Account(
-  member.account
-);
-
-updateV2AccountPanel(
-  member
-);
-
-return member;
   }
+
+  sessionStorage.removeItem(
+    "habao_member"
+  );
+
+  sessionStorage.removeItem(
+    "habao_signup_bonus"
+  );
+
+  if (message) {
+    alert(message);
+  }
+
+  window.location.replace(
+    "index.html"
+  );
+}
+
+let v2MemberRefreshPromise = null;
+let v2LastMemberSyncAt = 0;
+
+async function refreshV2MemberFromServer(
+  cachedMember = null,
+  {
+    redirectOnInactive = true,
+    silent = false
+  } = {}
+) {
+  const member =
+    cachedMember ||
+    readCachedV2Member();
+
+  if (
+    !member ||
+    !member.account
+  ) {
+    if (redirectOnInactive) {
+      await redirectV2MemberToLogin();
+    }
+    return null;
+  }
+
+  if (v2MemberRefreshPromise) {
+    return v2MemberRefreshPromise;
+  }
+
+  v2MemberRefreshPromise =
+    (async () => {
+      try {
+        let response;
+
+        if (
+          isV2OAuthMember(member)
+        ) {
+          const {
+            data: sessionData,
+            error: sessionError
+          } =
+            await v2SupabaseAuth.auth
+              .getSession();
+
+          const token =
+            sessionData?.session
+              ?.access_token || "";
+
+          if (
+            sessionError ||
+            !token
+          ) {
+            throw new Error(
+              "LOGIN_REQUIRED"
+            );
+          }
+
+          response =
+            await fetch(
+              OAUTH_MEMBER_URL,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                  "apikey":
+                    PUBLISHABLE_KEY,
+                  "Authorization":
+                    "Bearer " + token
+                },
+                body:
+                  JSON.stringify({}),
+                cache: "no-store"
+              }
+            );
+
+        } else {
+
+          response =
+            await fetch(
+              MEMBER_LOGIN_URL,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                  "apikey":
+                    PUBLISHABLE_KEY,
+                  "Authorization":
+                    "Bearer " +
+                    PUBLISHABLE_KEY
+                },
+                body:
+                  JSON.stringify({
+                    account:
+                      member.account
+                  }),
+                cache: "no-store"
+              }
+            );
+        }
+
+        const data =
+          await response
+            .json()
+            .catch(() => ({}));
+
+        const hardInactive =
+          response.status === 401 ||
+          response.status === 403 ||
+          data?.code ===
+            "ACCOUNT_DISABLED" ||
+          data?.error ===
+            "member_inactive" ||
+          data?.error ===
+            "member_not_found";
+
+        if (
+          !response.ok ||
+          data?.success !== true ||
+          !data?.member
+        ) {
+          if (
+            hardInactive &&
+            redirectOnInactive
+          ) {
+            await redirectV2MemberToLogin(
+              data?.message ||
+              "此帳號目前無法使用，請聯絡哈寶"
+            );
+            return null;
+          }
+
+          throw new Error(
+            data?.message ||
+            data?.error ||
+            "MEMBER_REFRESH_FAILED"
+          );
+        }
+
+        const freshMember = {
+          ...member,
+          ...data.member
+        };
+
+        if (
+          freshMember.is_active === false
+        ) {
+          if (redirectOnInactive) {
+            await redirectV2MemberToLogin(
+              "此帳號目前已停權，請聯絡哈寶"
+            );
+          }
+          return null;
+        }
+
+        sessionStorage.setItem(
+          "habao_member",
+          JSON.stringify(
+            freshMember
+          )
+        );
+
+        updateV2Account(
+          freshMember.account
+        );
+
+        updateV2AccountPanel(
+          freshMember
+        );
+
+        v2LastMemberSyncAt =
+          Date.now();
+
+        return freshMember;
+
+      } catch (error) {
+        console.error(
+          "V2 MEMBER REFRESH ERROR:",
+          error
+        );
+
+        if (
+          error?.message ===
+            "LOGIN_REQUIRED" &&
+          redirectOnInactive
+        ) {
+          await redirectV2MemberToLogin(
+            "登入狀態已失效，請重新登入"
+          );
+          return null;
+        }
+
+        /*
+         * 短暫網路異常時沿用本機會員資料，
+         * 但不覆寫後台的最新狀態。
+         */
+        if (!silent) {
+          updateV2Account(
+            member.account
+          );
+
+          updateV2AccountPanel(
+            member
+          );
+        }
+
+        return member;
+
+      } finally {
+        v2MemberRefreshPromise =
+          null;
+      }
+    })();
+
+  return v2MemberRefreshPromise;
+}
+
+async function verifyV2Member() {
+
+  const member =
+    readCachedV2Member();
+
+  if (
+    !member ||
+    !member.account
+  ) {
+    sessionStorage.removeItem(
+      "habao_member"
+    );
+
+    window.location.replace(
+      "index.html"
+    );
+
+    return null;
+  }
+
+  /*
+   * 每次進首頁都重新向後端取得會員最新狀態。
+   * 因此後台調整積分 / VIP / 停權後，
+   * 前台重新進入或切回分頁就會同步。
+   */
+  return await refreshV2MemberFromServer(
+    member,
+    {
+      redirectOnInactive: true,
+      silent: false
+    }
+  );
 }
 
 
@@ -7298,9 +7636,48 @@ function escapeV2PartnerHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function updateV2VipPlatformInputState() {
+  const input =
+    document.getElementById(
+      "v2PlatformAccount"
+    );
+
+  const submit =
+    document.getElementById(
+      "v2VipSubmit"
+    );
+
+  const selected =
+    v2PartnerPlatforms.find(
+      platform =>
+        String(platform?.slug || "") ===
+        selectedV2PartnerSlug
+    );
+
+  const displayName =
+    selected?.display_name ||
+    selected?.name ||
+    "";
+
+  if (input) {
+    input.disabled =
+      !selectedV2PartnerSlug;
+
+    input.placeholder =
+      selectedV2PartnerSlug
+        ? `請輸入${displayName ? "「" + displayName + "」" : ""}平台帳號`
+        : "請先選擇合作平台";
+  }
+
+  if (submit) {
+    submit.disabled =
+      !selectedV2PartnerSlug;
+  }
+}
+
 function selectV2PartnerPlatform(slug) {
   selectedV2PartnerSlug =
-    String(slug || "huangding");
+    String(slug || "").trim();
 
   document
     .querySelectorAll(
@@ -7313,6 +7690,55 @@ function selectV2PartnerPlatform(slug) {
           selectedV2PartnerSlug
       );
     });
+
+  document
+    .querySelectorAll(
+      ".v2-vip-select-button[data-platform-slug]"
+    )
+    .forEach(button => {
+      const isSelected =
+        button.dataset.platformSlug ===
+        selectedV2PartnerSlug;
+
+      button.classList.toggle(
+        "is-selected",
+        isSelected
+      );
+
+      button.textContent =
+        isSelected
+          ? (
+              window.HabaoI18n?.t(
+                "platformSelected",
+                "已選擇 ✓"
+              ) ||
+              "已選擇 ✓"
+            )
+          : (
+              window.HabaoI18n?.t(
+                "selectPlatform",
+                "選擇平台"
+              ) ||
+              "選擇平台"
+            );
+    });
+
+  updateV2VipPlatformInputState();
+
+  const input =
+    document.getElementById(
+      "v2PlatformAccount"
+    );
+
+  if (
+    input &&
+    selectedV2PartnerSlug
+  ) {
+    setTimeout(
+      () => input.focus(),
+      80
+    );
+  }
 }
 
 function renderV2PartnerPlatforms() {
@@ -7321,22 +7747,43 @@ function renderV2PartnerPlatforms() {
       ".v2-vip-platform-section"
     );
 
-  if (
-    !section ||
-    !v2PartnerPlatforms.length
-  ) {
+  if (!section) {
     return;
   }
 
   if (
-    !v2PartnerPlatforms.some(
-      platform =>
-        platform.slug ===
-        selectedV2PartnerSlug
-    )
+    !v2PartnerPlatforms.length
   ) {
-    selectedV2PartnerSlug =
-      v2PartnerPlatforms[0].slug;
+    section.innerHTML = `
+      <div
+        class="v2-vip-platform-card"
+        style="cursor:default"
+      >
+        <div class="v2-vip-platform-info">
+          <strong>
+            ${
+              window.HabaoI18n?.t(
+                "partnerLoading",
+                "合作平台載入中"
+              ) ||
+              "合作平台載入中"
+            }
+          </strong>
+          <span>
+            ${
+              window.HabaoI18n?.t(
+                "partnerLoadingHint",
+                "請稍候再選擇平台"
+              ) ||
+              "請稍候再選擇平台"
+            }
+          </span>
+        </div>
+      </div>
+    `;
+
+    updateV2VipPlatformInputState();
+    return;
   }
 
   section.innerHTML =
@@ -7356,15 +7803,19 @@ function renderV2PartnerPlatforms() {
           platform.bet_url ||
           "#";
 
+        const slug =
+          String(
+            platform.slug || ""
+          );
+
         const selected =
-          platform.slug ===
+          slug ===
           selectedV2PartnerSlug;
 
         return `
           <div
             class="v2-vip-platform-card ${selected ? "is-selected" : ""}"
-            data-platform-slug="${escapeV2PartnerHtml(platform.slug)}"
-            onclick="selectV2PartnerPlatform('${escapeV2PartnerHtml(platform.slug)}')"
+            data-platform-slug="${escapeV2PartnerHtml(slug)}"
           >
             <img
               src="${escapeV2PartnerHtml(logo)}"
@@ -7384,22 +7835,50 @@ function renderV2PartnerPlatforms() {
               </span>
             </div>
 
-            <a
-              href="${escapeV2PartnerHtml(registerUrl)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="v2-vip-register-button"
-              onclick="event.stopPropagation()"
-            >
-              ${window.HabaoI18n?.t(
-                "freeRegister",
-                "前往免費註冊 ↗"
-              ) || "前往免費註冊 ↗"}
-            </a>
+            <div class="v2-vip-platform-actions">
+              <a
+                href="${escapeV2PartnerHtml(registerUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="v2-vip-register-button"
+              >
+                ${window.HabaoI18n?.t(
+                  "freeRegister",
+                  "免費註冊 ↗"
+                ) || "免費註冊 ↗"}
+              </a>
+
+              <button
+                type="button"
+                class="v2-vip-select-button ${selected ? "is-selected" : ""}"
+                data-platform-slug="${escapeV2PartnerHtml(slug)}"
+                onclick="selectV2PartnerPlatform('${escapeV2PartnerHtml(slug)}')"
+              >
+                ${
+                  selected
+                    ? (
+                        window.HabaoI18n?.t(
+                          "platformSelected",
+                          "已選擇 ✓"
+                        ) ||
+                        "已選擇 ✓"
+                      )
+                    : (
+                        window.HabaoI18n?.t(
+                          "selectPlatform",
+                          "選擇平台"
+                        ) ||
+                        "選擇平台"
+                      )
+                }
+              </button>
+            </div>
           </div>
         `;
       })
       .join("");
+
+  updateV2VipPlatformInputState();
 }
 
 async function loadV2PartnerPlatforms() {
@@ -7421,9 +7900,10 @@ async function loadV2PartnerPlatforms() {
       !data?.success ||
       !Array.isArray(
         data?.platforms
-      ) ||
-      !data.platforms.length
+      )
     ) {
+      v2PartnerPlatforms = [];
+      renderV2PartnerPlatforms();
       return;
     }
 
@@ -7442,8 +7922,11 @@ async function loadV2PartnerPlatforms() {
 
 function openV2VipUpgrade() {
 
-  renderV2PartnerPlatforms();
-  loadV2PartnerPlatforms();
+  /*
+   * 每次打開都要求會員重新選平台，
+   * 避免未來平台增加後誤綁到預設平台。
+   */
+  selectedV2PartnerSlug = "";
 
   const overlay =
     document.getElementById(
@@ -7469,20 +7952,25 @@ function openV2VipUpgrade() {
 
   if (input) {
     input.value = "";
+    input.disabled = true;
+    input.placeholder =
+      window.HabaoI18n?.t(
+        "selectPlatformFirst",
+        "請先選擇合作平台"
+      ) ||
+      "請先選擇合作平台";
   }
+
+  renderV2PartnerPlatforms();
+  loadV2PartnerPlatforms();
+  updateV2VipPlatformInputState();
 
   if (overlay) {
     overlay.classList.add(
       "show"
     );
   }
-
-  setTimeout(() => {
-    input?.focus();
-  }, 100);
-
 }
-
 
 function closeV2VipUpgrade(event) {
 
@@ -7529,6 +8017,21 @@ const platformAccount =
     input?.value || ""
   ).trim();
   
+
+
+  if (!selectedV2PartnerSlug) {
+
+    if (message) {
+      message.textContent =
+        window.HabaoI18n?.t(
+          "selectPlatformFirst",
+          "請先選擇合作平台"
+        ) ||
+        "請先選擇合作平台";
+    }
+
+    return;
+  }
 
 
   if (!platformAccount) {
@@ -7784,48 +8287,45 @@ button.textContent =
 
 }
   
-function openV2AccountPanel() {
+async function openV2AccountPanel() {
 
-  let member = null;
-
-  try {
-
-    member =
-      JSON.parse(
-        sessionStorage.getItem(
-          "habao_member"
-        ) || "null"
-      );
-
-  } catch (error) {
-
-    console.error(
-      "V2 ACCOUNT READ ERROR:",
-      error
-    );
-
-  }
-
+  let member =
+    readCachedV2Member();
 
   updateV2AccountPanel(
     member
   );
-
 
   const overlay =
     document.getElementById(
       "v2AccountOverlay"
     );
 
-
   if (overlay) {
-
     overlay.classList.add(
       "show"
     );
-
   }
 
+  /*
+   * 開啟「我的帳號」時再抓一次最新會員資料，
+   * 避免後台剛調整積分 / VIP / 停權，
+   * 前台仍顯示舊的 sessionStorage。
+   */
+  member =
+    await refreshV2MemberFromServer(
+      member,
+      {
+        redirectOnInactive: true,
+        silent: true
+      }
+    );
+
+  if (member) {
+    updateV2AccountPanel(
+      member
+    );
+  }
 }
 
 function closeV2AccountPanel(event) {
@@ -7856,6 +8356,46 @@ function closeV2AccountPanel(event) {
   }
 
 }
+
+
+async function syncV2MemberWhenReturning() {
+  const member =
+    readCachedV2Member();
+
+  if (
+    !member?.account ||
+    Date.now() -
+      v2LastMemberSyncAt <
+      2500
+  ) {
+    return;
+  }
+
+  await refreshV2MemberFromServer(
+    member,
+    {
+      redirectOnInactive: true,
+      silent: true
+    }
+  );
+}
+
+window.addEventListener(
+  "focus",
+  syncV2MemberWhenReturning
+);
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      syncV2MemberWhenReturning();
+    }
+  }
+);
 
 async function logoutV2Member() {
 
@@ -9930,6 +10470,33 @@ showPhoneGuide("iphone");
       logout:
         "登出帳號",
 
+      enableNotifications:
+        "開啟賽事通知",
+
+      notificationsEnabled:
+        "通知已開啟 ✓",
+
+      notificationsBlocked:
+        "通知已被瀏覽器封鎖",
+
+      notificationsUnsupported:
+        "此裝置不支援通知",
+
+      notificationSetting:
+        "通知設定中…",
+
+      notificationIntroTitle:
+        "開啟賽事通知",
+
+      notificationIntroText:
+        "開啟後可收到賽事提醒、系統公告與重要通知。瀏覽器會再詢問一次通知權限。",
+
+      notificationLater:
+        "稍後再說",
+
+      notificationEnableAction:
+        "開啟通知",
+
 close:
   "關閉",
 
@@ -9962,6 +10529,21 @@ noPlatformAccount:
 
 freeRegister:
   "前往免費註冊 ↗",
+
+selectPlatform:
+  "選擇平台",
+
+platformSelected:
+  "已選擇 ✓",
+
+selectPlatformFirst:
+  "請先選擇合作平台",
+
+partnerLoading:
+  "合作平台載入中",
+
+partnerLoadingHint:
+  "請稍候再選擇平台",
 
 dailyTwoCredits:
   "每日 2 點",
@@ -10147,6 +10729,33 @@ toolsAvailable: "2 款工具可使用"
       logout:
         "退出登录",
 
+      enableNotifications:
+        "开启赛事通知",
+
+      notificationsEnabled:
+        "通知已开启 ✓",
+
+      notificationsBlocked:
+        "通知已被浏览器阻止",
+
+      notificationsUnsupported:
+        "此设备不支持通知",
+
+      notificationSetting:
+        "通知设置中…",
+
+      notificationIntroTitle:
+        "开启赛事通知",
+
+      notificationIntroText:
+        "开启后可接收赛事提醒、系统公告与重要通知。浏览器会再次询问通知权限。",
+
+      notificationLater:
+        "稍后再说",
+
+      notificationEnableAction:
+        "开启通知",
+
 close:
   "关闭",
 
@@ -10179,6 +10788,21 @@ noPlatformAccount:
 
 freeRegister:
   "前往免费注册 ↗",
+
+selectPlatform:
+  "选择平台",
+
+platformSelected:
+  "已选择 ✓",
+
+selectPlatformFirst:
+  "请先选择合作平台",
+
+partnerLoading:
+  "合作平台加载中",
+
+partnerLoadingHint:
+  "请稍候再选择平台",
 
 dailyTwoCredits:
   "每日 2 点",
@@ -10362,6 +10986,33 @@ toolsAvailable: "2 款工具可使用"
       logout:
         "Sign Out",
 
+      enableNotifications:
+        "Enable Match Notifications",
+
+      notificationsEnabled:
+        "Notifications Enabled ✓",
+
+      notificationsBlocked:
+        "Notifications Blocked by Browser",
+
+      notificationsUnsupported:
+        "Notifications Not Supported",
+
+      notificationSetting:
+        "Setting Up Notifications…",
+
+      notificationIntroTitle:
+        "Enable Match Notifications",
+
+      notificationIntroText:
+        "Receive match reminders, system announcements, and important updates. Your browser will ask for notification permission.",
+
+      notificationLater:
+        "Maybe Later",
+
+      notificationEnableAction:
+        "Enable Notifications",
+
 close:
   "Close",
 
@@ -10394,6 +11045,21 @@ noPlatformAccount:
 
 freeRegister:
   "Register for Free ↗",
+
+selectPlatform:
+  "Select Platform",
+
+platformSelected:
+  "Selected ✓",
+
+selectPlatformFirst:
+  "Please select a partner platform first",
+
+partnerLoading:
+  "Loading Partner Platforms",
+
+partnerLoadingHint:
+  "Please wait before selecting a platform",
 
 dailyTwoCredits:
   "2 Credits Daily",
@@ -10730,6 +11396,47 @@ toolsAvailable: "2 tools available"
     setText(
       ".v2-account-logout",
       "logout"
+    );
+
+    const pushButton =
+      document.getElementById(
+        "v2EnablePushBtn"
+      );
+
+    if (
+      pushButton &&
+      pushButton.dataset.pushState !==
+        "enabled" &&
+      pushButton.dataset.pushState !==
+        "blocked" &&
+      pushButton.dataset.pushState !==
+        "unsupported"
+    ) {
+      pushButton.textContent =
+        I18N.t(
+          "enableNotifications",
+          "開啟賽事通知"
+        );
+    }
+
+    setText(
+      "#v2PushIntroTitle",
+      "notificationIntroTitle"
+    );
+
+    setText(
+      "#v2PushIntroText",
+      "notificationIntroText"
+    );
+
+    setText(
+      "#v2PushIntroLater",
+      "notificationLater"
+    );
+
+    setText(
+      "#v2PushIntroEnable",
+      "notificationEnableAction"
     );
 
 
@@ -11412,97 +12119,552 @@ loadV2PartnerPlatforms();
   
 
 <script>
-/* HABAO V3｜Web Push 訂閱與會員綁定 */
+/* HABAO V3｜Web Push 訂閱、首次登入引導與會員綁定 */
 (() => {
-  const PUSH_ENDPOINT = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
+  const PUSH_ENDPOINT =
+    "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
+
+  function pushT(
+    key,
+    fallback
+  ) {
+    return (
+      window.HabaoI18n?.t(
+        key,
+        fallback
+      ) ||
+      fallback
+    );
+  }
 
   function currentHabaoAccount() {
     try {
-      const saved = JSON.parse(sessionStorage.getItem("habao_member") || "null");
-      if (saved?.account) return String(saved.account).trim();
+      const saved =
+        JSON.parse(
+          sessionStorage.getItem(
+            "habao_member"
+          ) || "null"
+        );
+
+      if (saved?.account) {
+        return String(
+          saved.account
+        ).trim();
+      }
     } catch {}
+
     return String(
-      localStorage.getItem("habao_account") ||
-      localStorage.getItem("account") ||
-      sessionStorage.getItem("habao_account") ||
+      localStorage.getItem(
+        "habao_account"
+      ) ||
+      localStorage.getItem(
+        "account"
+      ) ||
+      sessionStorage.getItem(
+        "habao_account"
+      ) ||
       ""
     ).trim();
   }
 
-  function base64UrlToUint8Array(base64String) {
-    const padding = "=".repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = atob(base64);
-    return Uint8Array.from([...rawData].map(ch => ch.charCodeAt(0)));
+  function pushIntroStorageKey() {
+    const account =
+      currentHabaoAccount();
+
+    return account
+      ? `habao_push_intro_seen:${account}`
+      : "";
   }
 
-  async function pushApi(payload) {
-    const res = await fetch(PUSH_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      cache: "no-store"
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || data?.success === false) throw new Error(data?.message || data?.error || "推播設定失敗");
+  function base64UrlToUint8Array(
+    base64String
+  ) {
+    const padding =
+      "=".repeat(
+        (
+          4 -
+          base64String.length % 4
+        ) % 4
+      );
+
+    const base64 =
+      (
+        base64String +
+        padding
+      )
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    const rawData =
+      atob(base64);
+
+    return Uint8Array.from(
+      [...rawData].map(
+        ch =>
+          ch.charCodeAt(0)
+      )
+    );
+  }
+
+  function setPushButtonState(
+    state
+  ) {
+    const btn =
+      document.getElementById(
+        "v2EnablePushBtn"
+      );
+
+    if (!btn) return;
+
+    btn.dataset.pushState =
+      state;
+
+    btn.classList.toggle(
+      "is-enabled",
+      state === "enabled"
+    );
+
+    if (
+      state === "enabled"
+    ) {
+      btn.textContent =
+        pushT(
+          "notificationsEnabled",
+          "通知已開啟 ✓"
+        );
+      return;
+    }
+
+    if (
+      state === "blocked"
+    ) {
+      btn.textContent =
+        pushT(
+          "notificationsBlocked",
+          "通知已被瀏覽器封鎖"
+        );
+      return;
+    }
+
+    if (
+      state === "unsupported"
+    ) {
+      btn.textContent =
+        pushT(
+          "notificationsUnsupported",
+          "此裝置不支援通知"
+        );
+      return;
+    }
+
+    if (
+      state === "loading"
+    ) {
+      btn.textContent =
+        pushT(
+          "notificationSetting",
+          "通知設定中…"
+        );
+      return;
+    }
+
+    btn.textContent =
+      pushT(
+        "enableNotifications",
+        "開啟賽事通知"
+      );
+  }
+
+  async function pushApi(
+    payload
+  ) {
+    const res =
+      await fetch(
+        PUSH_ENDPOINT,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            "apikey":
+              PUBLISHABLE_KEY,
+            "Authorization":
+              "Bearer " +
+              PUBLISHABLE_KEY
+          },
+          body:
+            JSON.stringify(
+              payload
+            ),
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await res
+        .json()
+        .catch(() => ({}));
+
+    if (
+      !res.ok ||
+      data?.success === false
+    ) {
+      throw new Error(
+        data?.message ||
+        data?.error ||
+        "推播設定失敗"
+      );
+    }
+
     return data;
   }
 
-  async function syncHabaoPush({ requestPermission = false } = {}) {
-    const btn = document.getElementById("v2EnablePushBtn");
-    const account = currentHabaoAccount();
-    if (!account || !("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
-      if (btn) btn.textContent = "此裝置不支援通知";
+  async function syncHabaoPush({
+    requestPermission = false
+  } = {}) {
+    const btn =
+      document.getElementById(
+        "v2EnablePushBtn"
+      );
+
+    const account =
+      currentHabaoAccount();
+
+    if (
+      !account ||
+      !(
+        "serviceWorker" in
+        navigator
+      ) ||
+      !(
+        "PushManager" in
+        window
+      ) ||
+      !(
+        "Notification" in
+        window
+      )
+    ) {
+      setPushButtonState(
+        "unsupported"
+      );
       return false;
     }
 
-    let permission = Notification.permission;
-    if (requestPermission && permission === "default") {
-      permission = await Notification.requestPermission();
+    let permission =
+      Notification.permission;
+
+    if (
+      requestPermission &&
+      permission === "default"
+    ) {
+      permission =
+        await Notification
+          .requestPermission();
     }
-    if (permission !== "granted") {
-      if (btn) btn.textContent = permission === "denied" ? "通知已被瀏覽器封鎖" : "開啟賽事通知";
+
+    if (
+      permission !== "granted"
+    ) {
+      setPushButtonState(
+        permission === "denied"
+          ? "blocked"
+          : "idle"
+      );
+
       return false;
     }
 
-    if (btn) { btn.disabled = true; btn.textContent = "通知設定中…"; }
+    if (btn) {
+      btn.disabled = true;
+    }
+
+    setPushButtonState(
+      "loading"
+    );
+
     try {
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
+      const registration =
+        await navigator
+          .serviceWorker
+          .ready;
+
+      let subscription =
+        await registration
+          .pushManager
+          .getSubscription();
+
       if (!subscription) {
-        const config = await pushApi({ action: "public_config" });
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: base64UrlToUint8Array(config.vapid_public_key)
-        });
+        const config =
+          await pushApi({
+            action:
+              "public_config"
+          });
+
+        subscription =
+          await registration
+            .pushManager
+            .subscribe({
+              userVisibleOnly:
+                true,
+              applicationServerKey:
+                base64UrlToUint8Array(
+                  config
+                    .vapid_public_key
+                )
+            });
       }
-      const json = subscription.toJSON();
+
+      const json =
+        subscription
+          .toJSON();
+
       await pushApi({
         action: "subscribe",
-        member_username: account,
+        member_username:
+          account,
         subscription: {
-          endpoint: subscription.endpoint,
-          expirationTime: subscription.expirationTime || null,
-          keys: json.keys || {}
+          endpoint:
+            subscription.endpoint,
+          expirationTime:
+            subscription
+              .expirationTime ||
+            null,
+          keys:
+            json.keys || {}
         }
       });
-      if (btn) btn.textContent = "通知已開啟 ✓";
+
+      setPushButtonState(
+        "enabled"
+      );
+
       return true;
+
     } catch (error) {
-      console.error("HABAO PUSH SYNC ERROR:", error);
-      if (btn) btn.textContent = "開啟賽事通知";
+      console.error(
+        "HABAO PUSH SYNC ERROR:",
+        error
+      );
+
+      setPushButtonState(
+        "idle"
+      );
+
       return false;
+
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) {
+        btn.disabled =
+          false;
+      }
     }
   }
 
-  window.syncHabaoPush = syncHabaoPush;
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("v2EnablePushBtn");
-    btn?.addEventListener("click", () => syncHabaoPush({ requestPermission: true }));
-    if (("Notification" in window) && Notification.permission === "granted") syncHabaoPush({ requestPermission: false });
-  });
+  function closeV2PushIntro() {
+    document
+      .getElementById(
+        "v2PushIntroOverlay"
+      )
+      ?.classList
+      .remove("show");
+  }
+
+  function maybeShowV2PushIntro() {
+    const account =
+      currentHabaoAccount();
+
+    if (
+      !account ||
+      !(
+        "Notification" in
+        window
+      ) ||
+      !(
+        "serviceWorker" in
+        navigator
+      ) ||
+      !(
+        "PushManager" in
+        window
+      )
+    ) {
+      return;
+    }
+
+    /*
+     * 已允許的裝置直接同步，不再跳引導。
+     */
+    if (
+      Notification.permission ===
+      "granted"
+    ) {
+      syncHabaoPush({
+        requestPermission:
+          false
+      });
+      return;
+    }
+
+    /*
+     * 使用者已在瀏覽器封鎖，就不重複騷擾。
+     * 我的帳號內仍會顯示目前通知狀態。
+     */
+    if (
+      Notification.permission ===
+      "denied"
+    ) {
+      setPushButtonState(
+        "blocked"
+      );
+      return;
+    }
+
+    const key =
+      pushIntroStorageKey();
+
+    if (
+      !key ||
+      localStorage.getItem(
+        key
+      ) === "1"
+    ) {
+      return;
+    }
+
+    document
+      .getElementById(
+        "v2PushIntroOverlay"
+      )
+      ?.classList
+      .add("show");
+  }
+
+  async function acceptV2PushIntro() {
+    const key =
+      pushIntroStorageKey();
+
+    if (key) {
+      localStorage.setItem(
+        key,
+        "1"
+      );
+    }
+
+    const actionBtn =
+      document.getElementById(
+        "v2PushIntroEnable"
+      );
+
+    if (actionBtn) {
+      actionBtn.disabled =
+        true;
+
+      actionBtn.textContent =
+        pushT(
+          "notificationSetting",
+          "通知設定中…"
+        );
+    }
+
+    await syncHabaoPush({
+      requestPermission:
+        true
+    });
+
+    closeV2PushIntro();
+
+    if (actionBtn) {
+      actionBtn.disabled =
+        false;
+
+      actionBtn.textContent =
+        pushT(
+          "notificationEnableAction",
+          "開啟通知"
+        );
+    }
+  }
+
+  function skipV2PushIntro() {
+    const key =
+      pushIntroStorageKey();
+
+    if (key) {
+      localStorage.setItem(
+        key,
+        "1"
+      );
+    }
+
+    closeV2PushIntro();
+  }
+
+  window.syncHabaoPush =
+    syncHabaoPush;
+
+  window.maybeShowV2PushIntro =
+    maybeShowV2PushIntro;
+
+  window.acceptV2PushIntro =
+    acceptV2PushIntro;
+
+  window.skipV2PushIntro =
+    skipV2PushIntro;
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      const btn =
+        document.getElementById(
+          "v2EnablePushBtn"
+        );
+
+      btn?.addEventListener(
+        "click",
+        () =>
+          syncHabaoPush({
+            requestPermission:
+              true
+          })
+      );
+
+      if (
+        "Notification" in
+        window
+      ) {
+        if (
+          Notification.permission ===
+          "granted"
+        ) {
+          syncHabaoPush({
+            requestPermission:
+              false
+          });
+        } else if (
+          Notification.permission ===
+          "denied"
+        ) {
+          setPushButtonState(
+            "blocked"
+          );
+        } else {
+          setPushButtonState(
+            "idle"
+          );
+        }
+      }
+
+      /*
+       * 首次進首頁時顯示我們自己的引導，
+       * 使用者按「開啟通知」後才呼叫瀏覽器權限。
+       */
+      setTimeout(
+        maybeShowV2PushIntro,
+        900
+      );
+    }
+  );
 })();
 </script>
 </body>
