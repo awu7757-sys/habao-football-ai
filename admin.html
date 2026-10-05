@@ -4283,10 +4283,227 @@ function normalizeLeagueDisplay(value){
 }
 
 function analysisSummaryHtml(item){
-  const d=item?.result_data||{};
-  const pick=(keys)=>{for(const k of keys){if(d?.[k]!=null)return d[k];if(d?.analysis?.[k]!=null)return d.analysis[k];}return null;};
-  const fmt=(v)=>v==null?"—":(typeof v==="object"?escapeHtml(v.pick||v.selection||v.value||v.prediction||JSON.stringify(v)):escapeHtml(v));
-  return `<div style="line-height:1.9"><strong>${escapeHtml(item?.home_team||"—")} vs ${escapeHtml(item?.away_team||"—")}</strong><br>聯賽：${escapeHtml(normalizeLeagueDisplay(item?.league_name))}<br>開賽：${formatDate(item?.fixture_time)}<hr style="border-color:rgba(255,255,255,.08)">獨贏：${fmt(pick(["moneyline","oneXtwo","one_x_two","1x2"]))}<br>大小分：${fmt(pick(["over_under","totals","total"]))}<br>讓分：${fmt(pick(["handicap","asian_handicap"]))}<br>BTTS：${fmt(pick(["btts","both_teams_to_score"]))}<br>分析時間：${formatDate(item?.updated_at)}</div>`;
+  const d =
+    item?.result_data || {};
+
+  /*
+   * 正式分析資料通常在：
+   * result_data.analysis
+   */
+  const analysis =
+    d?.analysis &&
+    typeof d.analysis === "object"
+      ? d.analysis
+      : d;
+
+  /*
+   * AI 推薦主要位於：
+   * analysis.recommendations
+   */
+  const recommendations =
+    analysis?.recommendations &&
+    typeof analysis.recommendations === "object"
+      ? analysis.recommendations
+      : (
+          d?.recommendations &&
+          typeof d.recommendations === "object"
+            ? d.recommendations
+            : {}
+        );
+
+  /*
+   * 相容舊資料與新版資料。
+   */
+  const pick = (keys) => {
+    for (const k of keys) {
+
+      if (
+        recommendations?.[k] != null
+      ) {
+        return recommendations[k];
+      }
+
+      if (
+        analysis?.[k] != null
+      ) {
+        return analysis[k];
+      }
+
+      if (
+        d?.[k] != null
+      ) {
+        return d[k];
+      }
+    }
+
+    return null;
+  };
+
+  const fmt = (v) => {
+
+    if (v == null) {
+      return "—";
+    }
+
+    if (
+      typeof v === "object"
+    ) {
+      return escapeHtml(
+        v.pick ||
+        v.selection ||
+        v.value ||
+        v.prediction ||
+        "—"
+      );
+    }
+
+    return escapeHtml(v);
+  };
+
+  /*
+   * 讓分除了推薦方向，
+   * 一併顯示實際盤口。
+   */
+  const fmtHandicap = (v) => {
+
+    if (v == null) {
+      return "—";
+    }
+
+    if (
+      typeof v !== "object"
+    ) {
+      return escapeHtml(v);
+    }
+
+    const value =
+      v.pick ||
+      v.selection ||
+      v.value ||
+      v.prediction ||
+      "—";
+
+    const line =
+      v.line != null &&
+      String(v.line).trim() !== ""
+        ? ` ${v.line}`
+        : "";
+
+    return escapeHtml(
+      `${value}${line}`
+    );
+  };
+
+  /*
+   * 預測比分
+   */
+  const scores =
+    Array.isArray(
+      analysis?.predicted_scores
+    )
+      ? analysis.predicted_scores
+          .map(row =>
+            row?.score || ""
+          )
+          .filter(Boolean)
+          .map(score =>
+            escapeHtml(score)
+          )
+          .join("、")
+      : "—";
+
+  return `
+    <div style="line-height:1.9">
+
+      <strong>
+        ${escapeHtml(item?.home_team || "—")}
+        vs
+        ${escapeHtml(item?.away_team || "—")}
+      </strong>
+
+      <br>
+
+      聯賽：
+      ${escapeHtml(
+        normalizeLeagueDisplay(
+          item?.league_name
+        )
+      )}
+
+      <br>
+
+      開賽：
+      ${formatDate(
+        item?.fixture_time
+      )}
+
+      <hr style="border-color:rgba(255,255,255,.08)">
+
+      獨贏：
+      ${fmt(
+        pick([
+          "moneyline",
+          "oneXtwo",
+          "one_x_two",
+          "1x2"
+        ])
+      )}
+
+      <br>
+
+      大小分：
+      ${fmt(
+        pick([
+          "over_under",
+          "totals",
+          "total"
+        ])
+      )}
+
+      <br>
+
+      讓分：
+      ${fmtHandicap(
+        pick([
+          "handicap",
+          "asian_handicap"
+        ])
+      )}
+
+      <br>
+
+      BTTS：
+      ${fmt(
+        pick([
+          "btts",
+          "both_teams_to_score"
+        ])
+      )}
+
+      <br>
+
+      雙重機會：
+      ${fmt(
+        pick([
+          "double_chance",
+          "doubleChance"
+        ])
+      )}
+
+      <br>
+
+      預測比分：
+      ${scores || "—"}
+
+      <br>
+
+      分析時間：
+      ${formatDate(
+        item?.updated_at
+      )}
+
+    </div>
+  `;
 }
 function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
 
