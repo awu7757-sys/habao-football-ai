@@ -8312,10 +8312,7 @@ button.textContent =
 
 }
   
-async function openV2AccountPanel() {
-
-  const cachedMember =
-    readCachedV2Member();
+function openV2AccountPanel() {
 
   const overlay =
     document.getElementById(
@@ -8323,15 +8320,10 @@ async function openV2AccountPanel() {
     );
 
   /*
-   * 先立即用目前快取資料顯示帳號視窗，
-   * 不等待網路請求，讓「我的」點擊後立即打開。
+   * 第一優先：
+   * 先立即顯示視窗。
+   * 不做任何會員資料運算、不等待 API。
    */
-  if (cachedMember) {
-    updateV2AccountPanel(
-      cachedMember
-    );
-  }
-
   if (overlay) {
     overlay.classList.add(
       "show"
@@ -8339,57 +8331,77 @@ async function openV2AccountPanel() {
   }
 
   /*
-   * 通知按鈕只負責通知。
+   * 先讓瀏覽器把視窗真正畫出來，
+   * 再處理會員資料。
    */
-  const pushBtn =
-    document.getElementById(
-      "v2EnablePushBtn"
-    );
+  setTimeout(() => {
 
-  if (pushBtn) {
-    const state =
-      pushBtn.dataset.pushState ||
-      "idle";
+    const cachedMember =
+      readCachedV2Member();
 
-    if (
-      state !== "enabled" &&
-      state !== "blocked" &&
-      state !== "unsupported" &&
-      state !== "loading"
-    ) {
-      pushBtn.textContent =
-        window.HabaoI18n?.t(
-          "enableNotifications",
-          "開啟賽事通知"
-        ) ||
-        "開啟賽事通知";
+    if (cachedMember) {
+      updateV2AccountPanel(
+        cachedMember
+      );
     }
-  }
 
-  /*
-   * 視窗已經打開後，
-   * 再於背景同步資料庫最新會員狀態。
-   */
-  const member =
-    await refreshV2MemberFromServer(
+    const pushBtn =
+      document.getElementById(
+        "v2EnablePushBtn"
+      );
+
+    if (pushBtn) {
+      const state =
+        pushBtn.dataset.pushState ||
+        "idle";
+
+      if (
+        state !== "enabled" &&
+        state !== "blocked" &&
+        state !== "unsupported" &&
+        state !== "loading"
+      ) {
+        pushBtn.textContent =
+          window.HabaoI18n?.t(
+            "enableNotifications",
+            "開啟賽事通知"
+          ) ||
+          "開啟賽事通知";
+      }
+    }
+
+    /*
+     * 再於背景抓最新會員資料。
+     * 不阻塞「我的」視窗開啟。
+     */
+    refreshV2MemberFromServer(
       cachedMember,
       {
         redirectOnInactive: true,
         silent: true
       }
-    );
+    )
+      .then(member => {
 
-  if (!member) {
-    return;
-  }
+        if (!member) {
+          return;
+        }
 
-  /*
-   * 後端資料回來後，
-   * 直接刷新目前已經開啟的帳號視窗。
-   */
-  updateV2AccountPanel(
-    member
-  );
+        updateV2AccountPanel(
+          member
+        );
+
+      })
+      .catch(error => {
+
+        console.error(
+          "V2 ACCOUNT BACKGROUND SYNC ERROR:",
+          error
+        );
+
+      });
+
+  }, 80);
 }
 
 function closeV2AccountPanel(event) {
