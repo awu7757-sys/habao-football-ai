@@ -5228,7 +5228,7 @@ padding:
   outline: none;
   background: rgba(0, 0, 0, 0.28);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .v2-vip-input:focus {
@@ -7818,22 +7818,6 @@ function selectV2PartnerPlatform(slug) {
 
   renderV2PartnerAccountPlatforms();
   updateV2VipPlatformInputState();
-
-  const input =
-    document.getElementById(
-      "v2PlatformAccount"
-    );
-
-  if (
-    input &&
-    selectedV2PartnerSlug
-  ) {
-    setTimeout(
-      () => input.focus(),
-      80
-    );
-  }
-}
 
 function renderV2PartnerPlatforms() {
   const section =
