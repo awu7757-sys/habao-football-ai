@@ -6635,6 +6635,7 @@ padding:
       id="v2EnablePushBtn"
       type="button"
       class="v2-account-push"
+      data-push-state="idle"
     >
       開啟賽事通知
     </button>
@@ -6801,6 +6802,8 @@ padding:
 /* =========================================
    HABAO V2｜真實資料
 ========================================= */
+
+const HABAO_HOME_BUILD = "20261006-member-sync-v3";
 
 const MEMBER_LOGIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-login";
@@ -7107,7 +7110,9 @@ async function refreshV2MemberFromServer(
 
           response =
             await fetch(
-              OAUTH_MEMBER_URL,
+              OAUTH_MEMBER_URL +
+                "?mode=refresh&t=" +
+                Date.now(),
               {
                 method: "POST",
                 headers: {
@@ -7119,7 +7124,9 @@ async function refreshV2MemberFromServer(
                     "Bearer " + token
                 },
                 body:
-                  JSON.stringify({}),
+                  JSON.stringify({
+                    action: "refresh"
+                  }),
                 cache: "no-store"
               }
             );
@@ -7128,7 +7135,9 @@ async function refreshV2MemberFromServer(
 
           response =
             await fetch(
-              MEMBER_LOGIN_URL,
+              MEMBER_LOGIN_URL +
+                "?mode=refresh&t=" +
+                Date.now(),
               {
                 method: "POST",
                 headers: {
@@ -8289,41 +8298,77 @@ button.textContent =
   
 async function openV2AccountPanel() {
 
-  let member =
+  const cachedMember =
     readCachedV2Member();
-
-  updateV2AccountPanel(
-    member
-  );
 
   const overlay =
     document.getElementById(
       "v2AccountOverlay"
     );
 
-  if (overlay) {
-    overlay.classList.add(
-      "show"
+  const nameEl =
+    document.getElementById(
+      "v2AccountName"
     );
-  }
 
   /*
-   * 開啟「我的帳號」時再抓一次最新會員資料，
-   * 避免後台剛調整積分 / VIP / 停權，
-   * 前台仍顯示舊的 sessionStorage。
+   * 不先顯示 sessionStorage 舊資料。
+   * 每次打開「我的帳號」都先向後端重新抓 members 最新狀態，
+   * 確保後台剛調整積分 / VIP / 停權後，前台立即反映。
    */
-  member =
+  if (nameEl) {
+    nameEl.textContent =
+      "同步會員資料中…";
+  }
+
+  const member =
     await refreshV2MemberFromServer(
-      member,
+      cachedMember,
       {
         redirectOnInactive: true,
-        silent: true
+        silent: false
       }
     );
 
-  if (member) {
-    updateV2AccountPanel(
-      member
+  if (!member) {
+    return;
+  }
+
+  updateV2AccountPanel(
+    member
+  );
+
+  /*
+   * 通知按鈕只負責通知，不再可能被誤顯示成「登出帳號」。
+   */
+  const pushBtn =
+    document.getElementById(
+      "v2EnablePushBtn"
+    );
+
+  if (pushBtn) {
+    const state =
+      pushBtn.dataset.pushState ||
+      "idle";
+
+    if (
+      state !== "enabled" &&
+      state !== "blocked" &&
+      state !== "unsupported" &&
+      state !== "loading"
+    ) {
+      pushBtn.textContent =
+        window.HabaoI18n?.t(
+          "enableNotifications",
+          "開啟賽事通知"
+        ) ||
+        "開啟賽事通知";
+    }
+  }
+
+  if (overlay) {
+    overlay.classList.add(
+      "show"
     );
   }
 }
@@ -8395,6 +8440,22 @@ document.addEventListener(
       syncV2MemberWhenReturning();
     }
   }
+);
+
+/*
+ * 後台變更會員狀態後，不要求會員手動重新登入。
+ * 前台停留期間每 15 秒同步一次；停權會直接被導回登入頁。
+ */
+setInterval(
+  () => {
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      syncV2MemberWhenReturning();
+    }
+  },
+  15000
 );
 
 async function logoutV2Member() {
@@ -12172,7 +12233,7 @@ loadV2PartnerPlatforms();
       currentHabaoAccount();
 
     return account
-      ? `habao_push_intro_seen:${account}`
+      ? `habao_push_intro_v2_seen:${account}`
       : "";
   }
 
