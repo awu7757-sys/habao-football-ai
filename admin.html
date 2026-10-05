@@ -1,4 +1,3 @@
-```
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1431,6 +1430,43 @@ tr:last-child td{border-bottom:0}
   </div>
 </div>
 
+<!-- MEMBER BINDING MODAL -->
+<div id="bindingModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-title">綁定資料</div>
+    <div class="modal-account">會員：<strong id="bindingModalAccount">—</strong></div>
+
+    <div class="field">
+      <label class="label" for="editBindingPlatform">合作平台</label>
+      <select id="editBindingPlatform" class="input">
+        <option value="">請選擇合作平台</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label" for="editBindingAccount">平台帳號</label>
+      <input
+        id="editBindingAccount"
+        class="input"
+        type="text"
+        maxlength="120"
+        placeholder="請輸入平台帳號"
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="danger-note">
+      此處只修改會員綁定的平台與平台帳號，不會自動變更 VIP 等級。
+      如需恢復或取消 VIP，請回會員列表使用「升級 VIP／降為一般」。
+    </div>
+
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveMemberBinding()">儲存綁定資料</button>
+      <button class="modal-close" onclick="closeBindingModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- JSON DETAIL MODAL -->
 <div id="jsonModal" class="modal hidden">
@@ -1519,6 +1555,7 @@ const ADMIN_CENTER_URL =
 let adminPassword = "";
 let members = [];
 let editingMemberId = null;
+let editingBindingMemberId = null;
 
 let dashboardData = {
   todayAnalysisCount: 0,
@@ -1738,6 +1775,7 @@ function logoutAdmin() {
   adminPassword = "";
   members = [];
   editingMemberId = null;
+  editingBindingMemberId = null;
   adminOverview = {};
   analysisHistoryRecords = [];
   analysisJobs = [];
@@ -2072,7 +2110,7 @@ function renderMembers() {
       <td><span class="status ${active?"active":"off"}"><span class="dot"></span>${active?"正常使用":"已停權"}</span></td>
       <td><strong>${paid+daily} 點</strong><div class="subline">原有 ${paid}${isVip?`＋每日 ${daily}`:""}</div></td>
       <td>${member?.last_login_at?formatDate(member.last_login_at):"—"}</td>
-      <td><div class="row-actions"><button class="action-btn gold" onclick="openCreditsModal(${Number(member.id)})">積分</button><button class="action-btn" onclick="changeMemberLevel(${Number(member.id)})">${isVip?"降為一般":"升級 VIP"}</button><button class="action-btn ${active?"red":"green"}" onclick="changeActive(${Number(member.id)},${!active})">${active?"停權":"恢復"}</button></div></td>`;
+      <td><div class="row-actions"><button class="action-btn gold" onclick="openCreditsModal(${Number(member.id)})">積分</button><button class="action-btn" onclick="openBindingModal(${Number(member.id)})">綁定資料</button><button class="action-btn" onclick="changeMemberLevel(${Number(member.id)})">${isVip?"降為一般":"升級 VIP"}</button><button class="action-btn ${active?"red":"green"}" onclick="changeActive(${Number(member.id)},${!active})">${active?"停權":"恢復"}</button></div></td>`;
     tbody.appendChild(tr);
   });
   const total=members.length, activeCount=members.filter(x=>x?.is_active===true).length, vipCount=members.filter(x=>String(x?.member_level||"").toLowerCase()==="vip").length;
@@ -2231,6 +2269,321 @@ async function adjustCredits(type) {
     );
   }
 }
+
+/* =========================
+   MEMBER PLATFORM BINDING
+========================= */
+
+function platformBindingKeys(platform) {
+  return [
+    platform?.slug,
+    platform?.name,
+    platform?.display_name
+  ]
+    .map(value =>
+      String(value || "")
+        .trim()
+        .toLowerCase()
+    )
+    .filter(Boolean);
+}
+
+async function ensurePartnerPlatformsForBinding() {
+  if (
+    Array.isArray(partnerPlatforms) &&
+    partnerPlatforms.length > 0
+  ) {
+    return partnerPlatforms;
+  }
+
+  const data =
+    await adminCenterRequest({
+      action: "partners"
+    });
+
+  partnerPlatforms =
+    Array.isArray(data?.platforms)
+      ? data.platforms
+      : [];
+
+  return partnerPlatforms;
+}
+
+async function openBindingModal(id) {
+  const member =
+    members.find(
+      item =>
+        Number(item?.id) ===
+        Number(id)
+    );
+
+  if (!member) {
+    return;
+  }
+
+  editingBindingMemberId =
+    Number(id);
+
+  setText(
+    "bindingModalAccount",
+    member?.account || "—"
+  );
+
+  const select =
+    document.getElementById(
+      "editBindingPlatform"
+    );
+
+  const accountInput =
+    document.getElementById(
+      "editBindingAccount"
+    );
+
+  if (select) {
+    select.disabled = true;
+    select.innerHTML =
+      '<option value="">正在讀取合作平台...</option>';
+  }
+
+  if (accountInput) {
+    accountInput.value =
+      member?.platform_account || "";
+  }
+
+  document
+    .getElementById(
+      "bindingModal"
+    )
+    ?.classList
+    .remove("hidden");
+
+  try {
+    const platforms =
+      await ensurePartnerPlatformsForBinding();
+
+    const currentPlatformName =
+      String(
+        member?.platform_name || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const visiblePlatforms =
+      platforms.filter(platform => {
+        if (platform?.enabled === true) {
+          return true;
+        }
+
+        return platformBindingKeys(
+          platform
+        ).includes(
+          currentPlatformName
+        );
+      });
+
+    if (select) {
+      select.innerHTML =
+        '<option value="">請選擇合作平台</option>' +
+        visiblePlatforms
+          .map(platform => {
+            const disabledText =
+              platform?.enabled === true
+                ? ""
+                : "（已停用）";
+
+            return `
+              <option value="${Number(platform?.id || 0)}">
+                ${escapeHtml(
+                  platform?.display_name ||
+                  platform?.name ||
+                  platform?.slug ||
+                  "未命名平台"
+                )}${disabledText}
+              </option>
+            `;
+          })
+          .join("");
+
+      const currentPlatform =
+        visiblePlatforms.find(
+          platform =>
+            platformBindingKeys(
+              platform
+            ).includes(
+              currentPlatformName
+            )
+        );
+
+      select.value =
+        currentPlatform?.id
+          ? String(currentPlatform.id)
+          : "";
+
+      select.disabled = false;
+    }
+
+  } catch (error) {
+    if (select) {
+      select.innerHTML =
+        '<option value="">合作平台讀取失敗</option>';
+      select.disabled = true;
+    }
+
+    alert(
+      "合作平台讀取失敗：" +
+      (
+        error?.message ||
+        "未知錯誤"
+      )
+    );
+  }
+}
+
+function closeBindingModal() {
+  editingBindingMemberId = null;
+
+  const select =
+    document.getElementById(
+      "editBindingPlatform"
+    );
+
+  const accountInput =
+    document.getElementById(
+      "editBindingAccount"
+    );
+
+  if (select) {
+    select.innerHTML =
+      '<option value="">請選擇合作平台</option>';
+    select.disabled = false;
+  }
+
+  if (accountInput) {
+    accountInput.value = "";
+  }
+
+  document
+    .getElementById(
+      "bindingModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+async function saveMemberBinding() {
+  if (!editingBindingMemberId) {
+    return;
+  }
+
+  const member =
+    members.find(
+      item =>
+        Number(item?.id) ===
+        Number(
+          editingBindingMemberId
+        )
+    );
+
+  if (!member) {
+    return;
+  }
+
+  const platformId =
+    Number(
+      document
+        .getElementById(
+          "editBindingPlatform"
+        )?.value ||
+      0
+    );
+
+  const platformAccount =
+    String(
+      document
+        .getElementById(
+          "editBindingAccount"
+        )?.value ||
+      ""
+    ).trim();
+
+  if (!platformId) {
+    alert(
+      "請先選擇合作平台。"
+    );
+    return;
+  }
+
+  if (!platformAccount) {
+    alert(
+      "請輸入平台帳號。"
+    );
+    return;
+  }
+
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item?.id) ===
+        platformId
+    );
+
+  if (!platform) {
+    alert(
+      "找不到合作平台資料，請重新開啟視窗再試。"
+    );
+    return;
+  }
+
+  if (
+    platform?.enabled !== true
+  ) {
+    alert(
+      "此合作平台目前已停用，請先啟用平台或選擇其他平台。"
+    );
+    return;
+  }
+
+  const platformLabel =
+    platform?.display_name ||
+    platform?.name ||
+    platform?.slug ||
+    "合作平台";
+
+  if (
+    !confirm(
+      `確定修改「${member.account}」的綁定資料？\n\n平台：${platformLabel}\n平台帳號：${platformAccount}\n\n此操作不會自動變更 VIP 等級。`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await apiRequest({
+      action:
+        "update_platform_binding",
+      id:
+        editingBindingMemberId,
+      platform_id:
+        platformId,
+      platform_account:
+        platformAccount
+    });
+
+    closeBindingModal();
+
+    await loadMembers();
+
+  } catch (error) {
+    alert(
+      "綁定資料修改失敗：" +
+      (
+        error?.message ||
+        "未知錯誤"
+      )
+    );
+  }
+}
+
 
 /* =========================
    MEMBER LEVEL
@@ -4680,3 +5033,4 @@ function escapeHtml(value) {
 </body>
 </html>
 ```
+`
