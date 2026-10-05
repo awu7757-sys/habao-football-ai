@@ -7220,6 +7220,22 @@ async function refreshV2MemberFromServer(
           )
         );
 
+        /*
+         * 會員帳號可能在同一台裝置切換（例如 LINE → Google）。
+         * 會員資料同步完成後，再把「目前裝置」的 Push Subscription
+         * 綁到最新登入會員。這不會再次要求通知權限。
+         */
+        if (
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          setTimeout(() => {
+            window.syncHabaoPush?.({
+              requestPermission: false
+            });
+          }, 300);
+        }
+
         updateV2Account(
           freshMember.account
         );
