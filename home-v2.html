@@ -872,10 +872,10 @@
   font-weight: 900;
 }
 
-.v2-push-intro-later {
-  border: 1px solid rgba(255,255,255,.08);
-  color: #aeb8c5;
-  background: rgba(255,255,255,.035);
+/* 舊版「稍後再說」保險隱藏：新版通知引導只保留開啟通知 */
+.v2-push-intro-later,
+#v2PushIntroLater {
+  display: none !important;
 }
 
 .v2-push-intro-enable {
@@ -6691,6 +6691,20 @@ padding:
   </div>
 </div>
 
+<script>
+/* HABAO final: 通知引導不允許「稍後再說」 */
+(function removeLegacyPushLaterButton(){
+  const remove = () => {
+    document.getElementById("v2PushIntroLater")?.remove();
+    document.querySelectorAll(".v2-push-intro-later").forEach(el => el.remove());
+  };
+  remove();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", remove, { once: true });
+  }
+})();
+</script>
+
 <!-- ===============================
      VIP 升級視窗
 ================================ -->
@@ -10559,9 +10573,6 @@ showPhoneGuide("iphone");
       notificationIntroText:
         "開啟後可收到賽事提醒、系統公告與重要通知。瀏覽器會再詢問一次通知權限。",
 
-      notificationLater:
-        "稍後再說",
-
       notificationEnableAction:
         "開啟通知",
 
@@ -11497,10 +11508,6 @@ toolsAvailable: "2 tools available"
       "notificationIntroText"
     );
 
-    setText(
-      "#v2PushIntroLater",
-      "notificationLater"
-    );
 
     setText(
       "#v2PushIntroEnable",
