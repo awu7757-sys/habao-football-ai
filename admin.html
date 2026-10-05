@@ -1,3 +1,4 @@
+```
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -3779,7 +3780,7 @@ function renderPerformanceAdmin() {
     <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
     <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
     <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td><td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td><td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-    <td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button><button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded(${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button></div></td></tr>`).join("");
+    <td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button><button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded(${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button><button class="action-btn red" onclick="deletePerformanceSnapshot(${Number(row?.fixture_id)})">刪除</button></div></td></tr>`).join("");
   const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
   const overdue=performanceSnapshots.filter(x=>x?.is_overdue===true).length;
   const verified=performanceSnapshots.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
@@ -4518,6 +4519,19 @@ async function confirmApiRenewal(button){if(!confirm("確定 API 已完成續費
 
 async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
 async function togglePerformanceExcluded(fixtureId,excluded){const msg=excluded?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？":"確定恢復此場計入公開戰績？";if(!confirm(msg))return;try{await adminCenterRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});await loadPerformanceAdmin(false);}catch(e){alert("操作失敗："+(e?.message||""));}}
+async function deletePerformanceSnapshot(fixtureId){
+  const id=Number(fixtureId||0);
+  if(!id){alert("Fixture ID 無效");return;}
+  if(!confirm(`確定永久刪除 Fixture ${id} 的公開戰績？\n\n刪除後無法直接恢復，預測、比分與結算資料都會一起移除。`))return;
+  try{
+    await adminCenterRequest({action:"performance_delete",fixture_id:id});
+    await loadPerformanceAdmin(false);
+    await loadAdminOverview();
+    alert("公開戰績已刪除");
+  }catch(e){
+    alert("刪除失敗："+(e?.message||"未知錯誤"));
+  }
+}
 
 async function clearExpiredLocks(button){if(!confirm("只會清除已過期或疑似殘留的分析鎖，不會清除正常執行中的分析。確定繼續？"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="清除中…";}try{const d=await adminCenterRequest({action:"clear_expired_locks"});alert(`已清除 ${d.cleared||0} 筆過期分析鎖`);await loadHealth(false);await loadAdminOverview();}catch(e){alert("清除失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"清除過期分析鎖";}}}
 
@@ -4665,3 +4679,4 @@ function escapeHtml(value) {
 
 </body>
 </html>
+```
