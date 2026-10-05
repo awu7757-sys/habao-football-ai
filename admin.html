@@ -3068,6 +3068,122 @@ async function loadAnalysisHistory(force = false) {
   }
 }
 
+function getAnalysisMatchStatusLabel(item) {
+
+  const rawStatus =
+    String(
+      item?.match_status || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const kickoffTime =
+    item?.fixture_time
+      ? new Date(
+          item.fixture_time
+        ).getTime()
+      : NaN;
+
+  const now =
+    Date.now();
+
+  /*
+   * 已完賽
+   */
+  if (
+    [
+      "FT",
+      "AET",
+      "PEN",
+      "AWD",
+      "WO",
+      "已完賽",
+      "完賽"
+    ].includes(rawStatus)
+  ) {
+    return "已完賽";
+  }
+
+  /*
+   * 進行中
+   */
+  if (
+    [
+      "1H",
+      "HT",
+      "2H",
+      "ET",
+      "BT",
+      "P",
+      "INT",
+      "LIVE"
+    ].includes(rawStatus)
+  ) {
+    return "進行中";
+  }
+
+  /*
+   * 特殊狀態
+   */
+  if (
+    [
+      "PST",
+      "POSTPONED"
+    ].includes(rawStatus)
+  ) {
+    return "延期";
+  }
+
+  if (
+    [
+      "CANC",
+      "CANCELLED"
+    ].includes(rawStatus)
+  ) {
+    return "取消";
+  }
+
+  if (
+    [
+      "ABD",
+      "ABANDONED"
+    ].includes(rawStatus)
+  ) {
+    return "中止";
+  }
+
+  /*
+   * 開賽時間尚未到
+   */
+  if (
+    Number.isFinite(
+      kickoffTime
+    ) &&
+    kickoffTime > now
+  ) {
+    return "未開賽";
+  }
+
+  /*
+   * 原始資料仍寫未開賽，
+   * 但實際開賽時間已經過了。
+   * 不亂判斷成已完賽，只標示已開賽。
+   */
+  if (
+    Number.isFinite(
+      kickoffTime
+    ) &&
+    kickoffTime <= now
+  ) {
+    return "已開賽";
+  }
+
+  return (
+    item?.match_status ||
+    "已分析"
+  );
+}
+  
 function renderAnalysisHistory() {
   const body =
     document.getElementById(
@@ -3119,7 +3235,7 @@ function renderAnalysisHistory() {
             <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
           </td>
           <td>${formatDate(item?.fixture_time)}</td>
-          <td>${statusBadge(item?.match_status || "completed")}</td>
+          <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
           <td>
             <button
               class="action-btn gold"
