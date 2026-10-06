@@ -1296,6 +1296,22 @@ tr:last-child td{border-bottom:0}
           </div>
         </div>
 
+        <div class="panel" style="margin-top:0;margin-bottom:15px">
+          <div class="panel-head" style="margin-bottom:10px">
+            <div>
+              <div class="panel-title">Panda 授權狀態</div>
+              <div id="pandaAuthMessage" class="panel-desc">等待第一次影子排程檢查。</div>
+            </div>
+            <span id="pandaAuthBadge" class="status">尚未檢查</span>
+          </div>
+          <div class="three-grid">
+            <div class="mini-item"><span class="mini-key">最後成功抓賠率</span><span id="pandaLastSuccess" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">最後自動換 Token</span><span id="pandaLastRefresh" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">Token 來源</span><span id="pandaAuthSource" class="mini-val">—</span></div>
+          </div>
+          <div id="pandaAuthAction" class="danger-note hidden"></div>
+        </div>
+
         <div class="stats-grid" style="margin-bottom:15px">
           <div class="stat-card gold">
             <div class="stat-label">測試進度</div>
@@ -4285,6 +4301,53 @@ function shadowRate(value) {
   return value == null ? "—" : `${Number(value).toFixed(1)}%`;
 }
 
+function renderPandaAuthStatus() {
+  const auth = shadowTestPayload?.panda_auth || {};
+  const status = String(auth?.status || "unknown");
+  const badge = document.getElementById("pandaAuthBadge");
+  const action = document.getElementById("pandaAuthAction");
+
+  const map = {
+    healthy: ["正常", "active"],
+    requestid_refreshed: ["自動更新成功", "active"],
+    platform_session_expired: ["A 平台 Session 已過期", "off"],
+    platform_session_not_configured: ["尚未設定 A 平台 Session", "vip"],
+    platform_refresh_failed: ["自動更新失敗", "off"],
+    panda_auth_expired: ["Panda 授權異常", "off"],
+    panda_config_missing: ["Panda 設定缺失", "off"],
+    state_unavailable: ["狀態表未建立", "off"],
+    unknown: ["尚未檢查", ""],
+  };
+  const info = map[status] || [status, ""];
+  if (badge) {
+    badge.textContent = info[0];
+    badge.className = `status ${info[1]}`.trim();
+  }
+
+  const message = auth?.last_error_message || (status === "healthy"
+    ? "Panda 賠率連線正常；requestid 過期時會嘗試透過 A 平台 Session 自動取得新 token。"
+    : status === "requestid_refreshed"
+    ? "Panda requestid 已由 A 平台轉址自動更新。"
+    : "等待影子排程檢查 Panda 授權狀態。");
+  setText("pandaAuthMessage", message);
+  setText("pandaLastSuccess", auth?.last_success_at ? formatDate(auth.last_success_at) : "—");
+  setText("pandaLastRefresh", auth?.last_refresh_at ? formatDate(auth.last_refresh_at) : "—");
+  setText("pandaAuthSource", auth?.source === "a_platform_redirect" ? "A 平台自動轉址" : auth?.source || "—");
+
+  if (action) {
+    const needsManual = [
+      "platform_session_expired",
+      "platform_session_not_configured",
+      "platform_refresh_failed",
+      "panda_auth_expired",
+    ].includes(status);
+    action.classList.toggle("hidden", !needsManual);
+    action.textContent = needsManual
+      ? "需要人工處理：重新登入 A 平台（含數字驗證碼）後，只更新 A_PLATFORM_PHPSESSID；Panda requestid 不需要再手動抄。"
+      : "";
+  }
+}
+
 function shadowSnapshotText(row) {
   const s = row?.snapshots || {};
   const parts = [];
@@ -4295,6 +4358,7 @@ function shadowSnapshotText(row) {
 }
 
 function renderShadowTests() {
+  renderPandaAuthStatus();
   const summary = shadowTestPayload?.summary || {};
   setText("shadowProgress", `${Number(summary.verified_matches||0)} / ${Number(summary.target||100)}`);
   setText("shadowBaselineRate", shadowRate(summary.baseline_rate));
