@@ -481,8 +481,8 @@
 
 <script>
 const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
-let currentDays="", currentRecent="overall", currentTrend="overall", trendPeriod=7, leagueSort="rate", showAll=false, currentSport="football";
-let viewData=null, allData=null;
+let topDays="", lowerDays=7, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
+let topData=null, lowerData=null, allData=null;
 
 const I18N={
   "zh-Hant":{brandTitle:"HABAO 賽事預測 AI",football:"足球",basketball:"籃球",baseball:"棒球",basketballComingSoon:"🏀 籃球戰績即將開放",baseballComingSoon:"⚾ 棒球戰績即將開放",comingSoon:"敬請期待",comingText:"目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。",sportPerformance:"{sport}公開戰績",winLoss:"勝負",handicap:"讓分",back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"公開戰績僅統計已完成賽前快照且已取得正式完賽比分之賽事；符合條件的賽事由系統自動納入，不人工挑選。"},
@@ -633,14 +633,14 @@ function localizedPick(value){
 }
 
 
-function classifyStatus(key){const trend=(allData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
-function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=viewData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
+function classifyStatus(key){const trend=(topData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
+function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
 
-function renderRange(){const rows=viewData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
+function renderRange(){const start=topData?.summary?.range_start,end=topData?.summary?.range_end;if(start&&end){document.getElementById("rangeText").textContent=`${ymd(start)} - ${ymd(end)}`;return}const rows=topData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
 function marketLabel(key){return key==="overall"?tr("overall"):key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):"BTTS"}
 function renderRecent(){
-  const group=allData?.recent_form?.[currentRecent]||{};
+  const group=lowerData?.recent_form?.[currentRecent]||{};
   const items=Array.isArray(group.items)?group.items:[];
   document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
     x.placeholder?`<div class="result-chip push">−</div>`:
@@ -651,17 +651,13 @@ function renderRecent(){
 }
 
 function trendRows(){
-  const rows=(allData?.trend||[])
+  return (lowerData?.trend||[])
     .map(x=>({date:x.date,m:x[currentTrend]}))
     .filter(x=>{
       const decided=num(x.m?.decided);
       const effective=num(x.m?.effective_wins)+num(x.m?.effective_losses);
       return decided>0 && effective>0;
     });
-  if(!rows.length)return[];
-  const lastDate=new Date(rows.at(-1).date+"T00:00:00+08:00");
-  const start=new Date(lastDate);start.setDate(start.getDate()-(trendPeriod-1));
-  return rows.filter(x=>new Date(x.date+"T00:00:00+08:00")>=start);
 }
 function shortDate(s){
   const d=new Date(s+"T00:00:00+08:00");
@@ -717,15 +713,15 @@ function renderTrend(){
   ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
   ch.style.color=diff>0?"#21d9a0":diff<0?"#ff696f":"#9eb3bf";
   document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
-  document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${trendPeriod}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
+  document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${lowerDays}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
-function renderLeagues(){let list=[...(viewData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+function renderLeagues(){let list=[...(lowerData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
 function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
-  const rows=Array.isArray(viewData?.matches)?viewData.matches:[],
+  const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
         shown=showAll?rows:rows.slice(0,5),
         body=document.getElementById("recordsBody"),
         mobile=document.getElementById("mobileRecords");
@@ -826,13 +822,17 @@ function switchSport(sport){
   },1800);
 }
 
-function renderAll(){document.getElementById("verifiedMatches").textContent=num(viewData?.summary?.verified_matches);renderRange();renderMarkets();renderRecent();renderTrend();renderLeagues();renderRecords()}
+function emptyPerformanceData(){return{summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]}}
+function renderTop(){document.getElementById("verifiedMatches").textContent=num(topData?.summary?.verified_matches);renderRange();renderMarkets()}
+function renderLower(){renderRecent();renderTrend();renderLeagues();renderRecords()}
+function renderAll(){renderTop();renderLower()}
 async function fetchData(days=""){const url=days?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(days)}`:AI_PERFORMANCE_API;const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const j=await res.json();if(!j?.success)throw new Error(j?.error||"API failed");return j}
-async function loadView(){try{viewData=currentDays?await fetchData(currentDays):allData;if(!viewData)viewData=await fetchData("");renderAll()}catch(e){console.error("AI PERFORMANCE ERROR",e);viewData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
-async function init(){applyLang();try{allData=await fetchData("");viewData=allData;renderAll()}catch(e){console.error(e);viewData=allData={summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]};renderAll()}}
+async function loadTopView(){try{topData=topDays?await fetchData(topDays):allData;if(!topData)topData=await fetchData("");renderTop()}catch(e){console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop()}}
+async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
+async function init(){applyLang();try{allData=await fetchData("");topData=allData;lowerData=await fetchData(String(lowerDays));renderAll()}catch(e){console.error(e);allData=topData=lowerData=emptyPerformanceData();renderAll()}}
 
 document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>switchSport(btn.dataset.sport||"football")));
-document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{currentDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadView()}));
+document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadTopView()}));
 function syncMarketTabs(key){
   currentRecent=key;currentTrend=key;
   document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b.dataset.recent===key));
@@ -841,7 +841,7 @@ function syncMarketTabs(key){
 }
 document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.recent)));
 document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.trend)));
-document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",()=>{trendPeriod=Number(btn.dataset.period)||7;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));renderTrend()}));
+document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||7;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadLowerView()}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
 window.addEventListener("habao:languagechange",()=>{applyLang();if(currentSport==="football")renderAll()});
