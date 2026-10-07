@@ -3997,7 +3997,6 @@ if (isOAuthMember) {
 
 const MATCH_ANALYSIS_URL =
 "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis";
-
 const ANALYSIS_JOB_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/analysis-job";
 
@@ -5652,6 +5651,58 @@ function getHabaoDisplayTeamName(
   );
 }
 
+// ======================================
+// HABAO｜前端輸出安全處理
+// 防止 API 回傳內容被當成 HTML 執行
+// ======================================
+
+function escapeHabaoHTML(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+function safeHabaoImageURL(value) {
+
+  if (!value) {
+    return "";
+  }
+
+  try {
+
+    const url =
+      new URL(
+        String(value),
+        window.location.href
+      );
+
+    if (
+      url.protocol !== "https:" &&
+      url.protocol !== "http:"
+    ) {
+      return "";
+    }
+
+    return escapeHabaoHTML(
+      url.href
+    );
+
+  } catch {
+
+    return "";
+
+  }
+
+}
+
 const allFixtures =
   Array.isArray(data.fixtures)
     ? data.fixtures
@@ -5733,10 +5784,65 @@ container.innerHTML =
     const leagueKey =
       getHabaoLeagueKey(match);
 
-const leagueText =
-  getHabaoDisplayLeagueName(
-    match
-  );
+
+    const safeFixtureId =
+      escapeHabaoHTML(
+        match?.fixtureId
+      );
+
+
+    const safeLeagueKey =
+      escapeHabaoHTML(
+        leagueKey
+      );
+
+
+    const leagueText =
+      escapeHabaoHTML(
+        getHabaoDisplayLeagueName(
+          match
+        )
+      );
+
+
+    const homeLogo =
+      safeHabaoImageURL(
+        match?.home?.logo
+      );
+
+
+    const awayLogo =
+      safeHabaoImageURL(
+        match?.away?.logo
+      );
+
+
+    const homeAlt =
+      escapeHabaoHTML(
+        match?.home?.name || ""
+      );
+
+
+    const awayAlt =
+      escapeHabaoHTML(
+        match?.away?.name || ""
+      );
+
+
+    const homeName =
+      escapeHabaoHTML(
+        getHabaoDisplayTeamName(
+          match?.home
+        )
+      );
+
+
+    const awayName =
+      escapeHabaoHTML(
+        getHabaoDisplayTeamName(
+          match?.away
+        )
+      );
 
 
     const isFinished =
@@ -5756,8 +5862,8 @@ const leagueText =
     return `
       <article
         class="match-card v2-match-card"
-        data-fixture-id="${match.fixtureId}"
-        data-league-key="${leagueKey}"
+        data-fixture-id="${safeFixtureId}"
+        data-league-key="${safeLeagueKey}"
       >
 
         <div class="v2-match-card-top">
@@ -5781,13 +5887,13 @@ const leagueText =
             <div class="v2-team-logo-box">
               <img
                 class="team-logo"
-                src="${match.home.logo || ""}"
-                alt="${match.home.name}"
+                src="${homeLogo}"
+                alt="${homeAlt}"
               >
             </div>
 
             <div class="team-name">
-              ${getHabaoDisplayTeamName(match.home)}
+              ${homeName}
             </div>
 
 <div class="v2-team-side">
@@ -5813,13 +5919,13 @@ const leagueText =
             <div class="v2-team-logo-box">
               <img
                 class="team-logo"
-                src="${match.away.logo || ""}"
-                alt="${match.away.name}"
+                src="${awayLogo}"
+                alt="${awayAlt}"
               >
             </div>
 
             <div class="team-name">
-              ${getHabaoDisplayTeamName(match.away)}
+              ${awayName}
             </div>
 
 <div class="v2-team-side">
