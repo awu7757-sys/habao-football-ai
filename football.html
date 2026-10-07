@@ -7092,7 +7092,16 @@ window.addEventListener(
 );
   
 // 頁面開啟後自動取得賽事
-loadTomorrowFixtures();
+// 若由首頁「我的分析」進入，先不要載入一般賽事，避免覆蓋分析紀錄畫面
+const habaoInitialView =
+  new URLSearchParams(
+    window.location.search
+  ).get("view");
+
+if (habaoInitialView !== "history") {
+  loadTomorrowFixtures();
+}
+  
 </script>
 <script>
 const ANALYSIS_HISTORY_URL =
@@ -7582,6 +7591,25 @@ if (
   window.location.href = "analysis.html";
 }  
 
+// =========================================
+// HABAO｜首頁「我的分析」直達分析紀錄
+// football.html?view=history
+// =========================================
+
+const habaoViewParams =
+  new URLSearchParams(
+    window.location.search
+  );
+
+if (
+  habaoViewParams.get("view") ===
+  "history"
+) {
+  setTimeout(() => {
+    openAnalysisHistory();
+  }, 0);
+}
+  
 window.addEventListener(
   "habao:languagechange",
   () => {
