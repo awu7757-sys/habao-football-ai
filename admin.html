@@ -499,6 +499,15 @@ tr:last-child td{border-bottom:0}
 .toggle-switch input:checked + .toggle-track::after{transform:translateX(19px);background:var(--green)}
 .refresh-state{min-width:74px}
 .stale{color:#ff9696}.fresh{color:var(--green)}
+
+/* HABAO ADMIN SESSION / PERMISSION V2 */
+.permission-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.permission-item{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#0b1118;color:#c8d0da;font-size:11px;font-weight:800}
+.permission-item input{accent-color:#e4ac36}
+.admin-identity{display:flex;align-items:center;gap:8px;color:#aeb8c4;font-size:10px;font-weight:800}
+.admin-identity .status{white-space:nowrap}
+.permission-hidden{display:none!important}
+@media(max-width:700px){.permission-grid{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -517,7 +526,12 @@ tr:last-child td{border-bottom:0}
 
     <div class="kicker">HABAO ADMIN CENTER</div>
     <h1>管理後台</h1>
-    <div class="desc">使用管理密碼進入後台。第一階段保留目前既有會員、公告、推播與 API 管理功能。</div>
+    <div class="desc">Super Admin 可只輸入總管理密碼；子管理員請輸入管理員帳號與密碼。</div>
+
+    <div class="field">
+      <label class="label" for="adminUsername">管理員帳號（Super Admin 可留空）</label>
+      <input id="adminUsername" class="input" type="text" placeholder="子管理員請輸入帳號" autocomplete="username">
+    </div>
 
     <div class="field">
       <label class="label" for="adminPassword">管理密碼</label>
@@ -596,6 +610,10 @@ tr:last-child td{border-bottom:0}
         <span class="nav-icon">P</span> 合作平台
       </button>
 
+      <button class="nav-btn" data-page="adminUsersPage" data-super-only="true" onclick="switchPage('adminUsersPage',this)">
+        <span class="nav-icon">A</span> 管理員管理
+      </button>
+
       <button class="nav-btn" data-page="healthPage" onclick="switchPage('healthPage',this)">
         <span class="nav-icon">!</span> 系統健康
       </button>
@@ -617,6 +635,7 @@ tr:last-child td{border-bottom:0}
       </div>
 
       <div class="top-actions">
+        <div class="admin-identity"><span id="currentAdminLabel" class="status active">未登入</span></div>
         <button class="ghost-btn" onclick="refreshAll()">↻ 重新整理</button>
         <button class="ghost-btn" onclick="logoutAdmin()">登出</button>
       </div>
@@ -1001,8 +1020,7 @@ tr:last-child td{border-bottom:0}
                     <th>日期</th>
                     <th>使用量</th>
                     <th>每日上限</th>
-                    <th>剩餘</th>
-                    <th>使用率</th>
+                    <th>剩餘</th><th>使用率</th>
                   </tr>
                 </thead>
                 <tbody id="apiDailyBody"></tbody>
@@ -1313,68 +1331,20 @@ tr:last-child td{border-bottom:0}
         </div>
 
         <div class="stats-grid" style="margin-bottom:15px">
-          <div class="stat-card gold">
-            <div class="stat-label">測試進度</div>
-            <div id="shadowProgress" class="stat-value gold-text">0 / 100</div>
-            <div class="stat-note">先看 100 場趨勢，300 場再決定正式啟用</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">正式版命中</div>
-            <div id="shadowBaselineRate" class="stat-value">—</div>
-            <div class="stat-note">純數據正式模型</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">臨場版命中</div>
-            <div id="shadowAdjustedRate" class="stat-value green-text">—</div>
-            <div class="stat-note">影子賠率校正版</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">淨改善</div>
-            <div id="shadowNetImprovement" class="stat-value">0</div>
-            <div class="stat-note">原錯→改對 − 原對→改錯（市場項目）</div>
-          </div>
+          <div class="stat-card gold"><div class="stat-label">測試進度</div><div id="shadowProgress" class="stat-value gold-text">0 / 100</div><div class="stat-note">先看 100 場趨勢，300 場再決定正式啟用</div></div>
+          <div class="stat-card"><div class="stat-label">正式版命中</div><div id="shadowBaselineRate" class="stat-value">—</div><div class="stat-note">純數據正式模型</div></div>
+          <div class="stat-card green"><div class="stat-label">臨場版命中</div><div id="shadowAdjustedRate" class="stat-value green-text">—</div><div class="stat-note">影子賠率校正版</div></div>
+          <div class="stat-card"><div class="stat-label">淨改善</div><div id="shadowNetImprovement" class="stat-value">0</div><div class="stat-note">原錯→改對 − 原對→改錯（市場項目）</div></div>
         </div>
 
         <div class="panel">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">各市場比較</div>
-              <div class="panel-desc">走盤不列入命中率；半贏以 0.5 計分。先看哪些市場真的因臨場校正變好。</div>
-            </div>
-          </div>
-          <div class="table-shell">
-            <div class="table-scroll">
-              <table style="min-width:900px">
-                <thead>
-                  <tr>
-                    <th>市場</th><th>正式版樣本</th><th>正式版命中</th><th>臨場版樣本</th><th>臨場版命中</th><th>錯→對</th><th>對→錯</th><th>改動次數</th>
-                  </tr>
-                </thead>
-                <tbody id="shadowMarketBody"></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="panel-head"><div><div class="panel-title">各市場比較</div><div class="panel-desc">走盤不列入命中率；半贏以 0.5 計分。先看哪些市場真的因臨場校正變好。</div></div></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:900px"><thead><tr><th>市場</th><th>正式版樣本</th><th>正式版命中</th><th>臨場版樣本</th><th>臨場版命中</th><th>錯→對</th><th>對→錯</th><th>改動次數</th></tr></thead><tbody id="shadowMarketBody"></tbody></table></div></div>
         </div>
 
         <div class="panel">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">測試賽事明細</div>
-              <div class="panel-desc">可查看三段賠率快照、正式答案、影子答案、校正原因與完賽結果。</div>
-            </div>
-          </div>
-          <div class="table-shell">
-            <div class="table-scroll">
-              <table style="min-width:1080px">
-                <thead>
-                  <tr>
-                    <th>開賽時間</th><th>Fixture ID</th><th>聯賽</th><th>賽事</th><th>快照</th><th>狀態</th><th>比分</th><th>操作</th>
-                  </tr>
-                </thead>
-                <tbody id="shadowTestBody"></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="panel-head"><div><div class="panel-title">測試賽事明細</div><div class="panel-desc">可查看三段賠率快照、正式答案、影子答案、校正原因與完賽結果。</div></div></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:1080px"><thead><tr><th>開賽時間</th><th>Fixture ID</th><th>聯賽</th><th>賽事</th><th>快照</th><th>狀態</th><th>比分</th><th>操作</th></tr></thead><tbody id="shadowTestBody"></tbody></table></div></div>
         </div>
       </section>
 
@@ -1437,6 +1407,22 @@ tr:last-child td{border-bottom:0}
               </table>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ADMIN USERS -->
+      <section id="adminUsersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">ADMIN ACCESS CONTROL</div>
+            <div class="page-title">管理員管理</div>
+            <div class="page-desc">只有 Super Admin 可以建立子管理員、停用帳號、重設密碼與分配模組權限。</div>
+          </div>
+          <button class="save-btn" onclick="openAdminUserModal()">＋ 新增管理員</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">子管理員列表</div><div class="panel-desc">權限會同時套用到左側選單與 Edge Function 後端驗證。</div></div><button class="ghost-btn" onclick="loadAdminUsers(true)">↻ 更新</button></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:940px"><thead><tr><th>帳號</th><th>顯示名稱</th><th>權限</th><th>狀態</th><th>最後登入</th><th>建立時間</th><th>操作</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div></div>
         </div>
       </section>
 
@@ -1638,6 +1624,40 @@ tr:last-child td{border-bottom:0}
   </div>
 </div>
 
+<!-- ADMIN USER MODAL -->
+<div id="adminUserModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="adminUserModalTitle">新增管理員</div>
+    <input type="hidden" id="adminUserId">
+    <div class="partner-form-grid">
+      <div class="field">
+        <label class="label" for="adminUserUsername">管理員帳號</label>
+        <input id="adminUserUsername" class="input" placeholder="例如 operator01" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="label" for="adminUserDisplayName">顯示名稱</label>
+        <input id="adminUserDisplayName" class="input" placeholder="例如 晚班管理員">
+      </div>
+      <div class="field" id="adminUserPasswordField">
+        <label class="label" for="adminUserPassword">初始密碼（至少 8 碼）</label>
+        <input id="adminUserPassword" class="input" type="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="label">狀態</label>
+        <select id="adminUserActive" class="input"><option value="true">啟用</option><option value="false">停用</option></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">可使用功能</label>
+      <div id="adminPermissionGrid" class="permission-grid"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveAdminUser()">儲存管理員</button>
+      <button class="modal-close" onclick="closeAdminUserModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-members";
@@ -1652,7 +1672,10 @@ const ADMIN_CENTER_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-center";
 
 
-let adminPassword = "";
+let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
+let adminSessionToken = sessionStorage.getItem("habao_admin_session_v2") || "";
+let currentAdmin = null;
+let adminUsers = [];
 let members = [];
 let editingMemberId = null;
 let editingBindingMemberId = null;
@@ -1696,10 +1719,47 @@ const PAGE_NAMES = {
   performanceAdminPage: "公開 AI 戰績",
   shadowTestPage: "臨場模型測試",
   partnersPage: "合作平台",
+  adminUsersPage: "管理員管理",
   healthPage: "系統健康"
 };
 
+const PAGE_PERMISSIONS = {
+  dashboardPage: "dashboard",
+  membersPage: "members",
+  announcementPage: "announcements",
+  pushPage: "push",
+  apiPage: "api",
+  analysisLogPage: "analysis_logs",
+  jobsPage: "analysis_jobs",
+  fixturesPage: "fixtures",
+  performanceAdminPage: "performance",
+  shadowTestPage: "shadow_test",
+  partnersPage: "partners",
+  healthPage: "health",
+  adminUsersPage: "admin_users"
+};
+
+const ADMIN_PERMISSION_LABELS = {
+  dashboard: "Dashboard",
+  members: "會員管理",
+  announcements: "公告管理",
+  push: "推播通知",
+  api: "API 配額",
+  analysis_logs: "AI 分析紀錄",
+  analysis_jobs: "分析任務",
+  fixtures: "賽事管理",
+  performance: "公開 AI 戰績",
+  shadow_test: "臨場模型測試",
+  partners: "合作平台",
+  health: "系統健康"
+};
+
 function switchPage(pageId, button) {
+  if (!canAccessAdminPage(pageId)) {
+    alert("此管理員沒有這項功能權限");
+    return;
+  }
+
   document.querySelectorAll(".page").forEach(page => {
     page.classList.toggle("active", page.id === pageId);
   });
@@ -1730,66 +1790,43 @@ function toggleSidebar() {
 }
 
 /* =========================
-   API HELPERS
+   API HELPERS / SESSION
 ========================= */
 
-async function apiRequest(payload) {
-  const response = await fetch(API_URL, {
+function adminAuthHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  if (adminSessionToken) headers["x-admin-session"] = adminSessionToken;
+  return headers;
+}
+
+async function adminServiceRequest(url, payload) {
+  const body = { ...payload };
+  if (!adminSessionToken && adminPassword) body.admin_password = adminPassword;
+
+  const response = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      ...payload,
-      admin_password: adminPassword
-    })
+    headers: adminAuthHeaders(),
+    body: JSON.stringify(body)
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || !data.success) {
-    throw new Error(
-      data.message ||
-      data.error ||
-      "操作失敗"
-    );
+  if (!response.ok || data?.success === false) {
+    if (response.status === 401 && adminSessionToken) {
+      clearAdminSession();
+    }
+    throw new Error(data?.message || data?.error || "操作失敗");
   }
 
   return data;
 }
 
+async function apiRequest(payload) {
+  return adminServiceRequest(API_URL, payload);
+}
+
 async function adminCenterRequest(payload) {
-  const response = await fetch(
-    ADMIN_CENTER_URL,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
-      body: JSON.stringify({
-        ...payload,
-        admin_password:
-          adminPassword
-      })
-    }
-  );
-
-  const data =
-    await response.json();
-
-  if (
-    !response.ok ||
-    !data?.success
-  ) {
-    throw new Error(
-      data?.message ||
-      data?.error ||
-      "管理中心操作失敗"
-    );
-  }
-
-  return data;
+  return adminServiceRequest(ADMIN_CENTER_URL, payload);
 }
 
 /* =========================
@@ -1797,85 +1834,144 @@ async function adminCenterRequest(payload) {
 ========================= */
 
 async function adminLogin() {
-  const passwordInput =
-    document.getElementById("adminPassword");
+  const usernameInput = document.getElementById("adminUsername");
+  const passwordInput = document.getElementById("adminPassword");
+  const message = document.getElementById("loginMessage");
+  const button = document.getElementById("loginBtn");
 
-  const message =
-    document.getElementById("loginMessage");
-
-  const button =
-    document.getElementById("loginBtn");
-
-  const password =
-    passwordInput.value.trim();
+  const username = String(usernameInput?.value || "").trim();
+  const password = String(passwordInput?.value || "");
 
   if (!password) {
-    message.textContent =
-      "請輸入管理密碼。";
+    message.textContent = "請輸入管理密碼。";
     return;
   }
 
-  adminPassword = password;
-
   button.disabled = true;
   button.textContent = "驗證中...";
-
   message.textContent = "";
 
   try {
-    /*
-      登入後先用 admin-center 驗證密碼並取得 Dashboard 真實資料。
-      在資料完成前不顯示後台，避免畫面先出現整排 0，
-      之後還要再按「重新整理」才恢復。
-    */
-    await loadAnnouncementSettings();
+    const response = await fetch(ADMIN_CENTER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "auth_login", username, password })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success || !data?.session_token) {
+      throw new Error(data?.message || data?.error || "登入失敗");
+    }
 
-    const overviewData =
-      await adminCenterRequest({
-        action: "overview"
-      });
-
-    adminOverview =
-      overviewData?.overview || {};
-
-    document
-      .getElementById("loginPage")
-      .classList.add("hidden");
-
-    document
-      .getElementById("adminApp")
-      .classList.remove("hidden");
-
-    renderDashboard();
-    renderApiPage();
-
-    /*
-      會員名單改成進入「會員管理」時才讀取，
-      Dashboard 不再依賴 admin-members 的載入時機。
-    */
-    loadApiStats(false);
-
-  } catch (error) {
     adminPassword = "";
-    message.textContent =
-      error?.message || "登入失敗";
+    adminSessionToken = String(data.session_token);
+    currentAdmin = data.admin || null;
+    sessionStorage.setItem("habao_admin_session_v2", adminSessionToken);
+    sessionStorage.setItem("habao_admin_profile_v2", JSON.stringify(currentAdmin || {}));
+    sessionStorage.setItem("habao_admin_expires_v2", String(data.expires_at || ""));
+
+    passwordInput.value = "";
+    await enterAdminApp();
+  } catch (error) {
+    clearAdminSession();
+    message.textContent = error?.message || "登入失敗";
   } finally {
     button.disabled = false;
-    button.textContent =
-      "進入管理後台 →";
+    button.textContent = "進入管理後台 →";
   }
 }
 
-document
-  .getElementById("adminPassword")
-  .addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      adminLogin();
-    }
+document.getElementById("adminPassword").addEventListener("keydown", event => {
+  if (event.key === "Enter") adminLogin();
+});
+
+document.getElementById("adminUsername")?.addEventListener("keydown", event => {
+  if (event.key === "Enter") adminLogin();
+});
+
+function clearAdminSession() {
+  adminSessionToken = "";
+  currentAdmin = null;
+  adminPassword = "";
+  sessionStorage.removeItem("habao_admin_session_v2");
+  sessionStorage.removeItem("habao_admin_profile_v2");
+  sessionStorage.removeItem("habao_admin_expires_v2");
+}
+
+function hasAdminPermission(permission) {
+  if (!currentAdmin) return false;
+  if (currentAdmin?.is_super_admin === true) return true;
+  return Array.isArray(currentAdmin?.permissions) && currentAdmin.permissions.includes(permission);
+}
+
+function canAccessAdminPage(pageId) {
+  const permission = PAGE_PERMISSIONS[pageId];
+  if (!permission) return true;
+  if (permission === "admin_users") return currentAdmin?.is_super_admin === true;
+  return hasAdminPermission(permission);
+}
+
+function applyAdminPermissions() {
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+    const pageId = btn.dataset.page;
+    btn.classList.toggle("permission-hidden", !canAccessAdminPage(pageId));
   });
 
-function logoutAdmin() {
-  adminPassword = "";
+  const label = document.getElementById("currentAdminLabel");
+  if (label) {
+    label.textContent = currentAdmin?.is_super_admin
+      ? "Super Admin"
+      : (currentAdmin?.display_name || currentAdmin?.username || "管理員");
+  }
+}
+
+function firstAccessiblePage() {
+  return Object.keys(PAGE_PERMISSIONS).find(pageId => canAccessAdminPage(pageId)) || "dashboardPage";
+}
+
+async function enterAdminApp() {
+  pageLoaded.clear();
+  applyAdminPermissions();
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("adminApp").classList.remove("hidden");
+
+  const targetPage = canAccessAdminPage("dashboardPage") ? "dashboardPage" : firstAccessiblePage();
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => btn.classList.remove("active"));
+  const btn = document.querySelector(`.nav-btn[data-page="${targetPage}"]`);
+  if (btn) btn.classList.add("active");
+  document.getElementById(targetPage)?.classList.add("active");
+  setText("topPageName", PAGE_NAMES[targetPage] || "Admin Center");
+
+  if (targetPage === "dashboardPage") {
+    await loadAdminOverview();
+    if (hasAdminPermission("announcements")) await loadAnnouncementSettings();
+    renderDashboard();
+    renderApiPage();
+    if (hasAdminPermission("api")) loadApiStats(false);
+  } else {
+    ensurePageData(targetPage);
+  }
+}
+
+async function restoreAdminSession() {
+  if (!adminSessionToken) return;
+  try {
+    const data = await adminCenterRequest({ action: "auth_me" });
+    currentAdmin = data?.admin || null;
+    if (!currentAdmin) throw new Error("session_invalid");
+    sessionStorage.setItem("habao_admin_profile_v2", JSON.stringify(currentAdmin));
+    await enterAdminApp();
+  } catch {
+    clearAdminSession();
+  }
+}
+
+async function logoutAdmin() {
+  try {
+    if (adminSessionToken) await adminCenterRequest({ action: "auth_logout" });
+  } catch {}
+
+  clearAdminSession();
   members = [];
   editingMemberId = null;
   editingBindingMemberId = null;
@@ -1884,22 +1980,20 @@ function logoutAdmin() {
   analysisJobs = [];
   fixtureCacheRows = [];
   performanceSnapshots = [];
+  shadowTestPayload = null;
+  shadowTestRows = [];
   partnerPlatforms = [];
+  adminUsers = [];
   healthPayload = null;
   apiStatsPayload = null;
   pageLoaded.clear();
 
-  document
-    .getElementById("adminPassword")
-    .value = "";
-
-  document
-    .getElementById("adminApp")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginPage")
-    .classList.remove("hidden");
+  const u = document.getElementById("adminUsername");
+  const p = document.getElementById("adminPassword");
+  if (u) u.value = "";
+  if (p) p.value = "";
+  document.getElementById("adminApp").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
 }
 
 /* =========================
@@ -1953,56 +2047,34 @@ async function loadMembers() {
 async function refreshAll() {
   const button = document.querySelector('.top-actions .ghost-btn');
   const originalText = button?.textContent || "↻ 重新整理";
-
-  if (button) {
-    button.disabled = true;
-    button.textContent = "更新中…";
-  }
+  if (button) { button.disabled = true; button.textContent = "更新中…"; }
 
   try {
-    /*
-      Dashboard 重新整理只抓 Dashboard 真正需要的資料。
-      不再每次都呼叫 admin-members，避免會員 API 的獨立驗證錯誤
-      影響 Dashboard 重新整理體驗。
-    */
-    await Promise.all([
-      loadAnnouncementSettings(),
-      loadAdminOverview()
-    ]);
+    const activePage = document.querySelector(".page.active")?.id || firstAccessiblePage();
 
-    renderDashboard();
-    renderApiPage();
-
-    const activePage =
-      document.querySelector(
-        ".page.active"
-      )?.id;
-
-    if (
-      activePage &&
-      activePage !== "dashboardPage"
-    ) {
+    if (activePage === "dashboardPage") {
+      await loadAdminOverview();
+      if (hasAdminPermission("announcements")) await loadAnnouncementSettings();
+      if (hasAdminPermission("api")) await loadApiStats(false);
+      renderDashboard();
+      renderApiPage();
+    } else if (activePage === "membersPage") {
+      await loadMembers();
+    } else if (activePage === "announcementPage") {
+      await loadAnnouncementSettings();
+    } else if (activePage === "adminUsersPage") {
+      await loadAdminUsers(true);
+    } else {
       await refreshPageData(activePage);
     }
 
-    if (button) {
-      button.textContent = "已更新 ✓";
-    }
+    if (button) button.textContent = "已更新 ✓";
   } catch (error) {
-    console.error(
-      "REFRESH ALL ERROR:",
-      error
-    );
-
-    if (button) {
-      button.textContent = "更新失敗";
-    }
+    console.error("REFRESH ALL ERROR:", error);
+    if (button) button.textContent = "更新失敗";
   } finally {
     setTimeout(() => {
-      if (button) {
-        button.disabled = false;
-        button.textContent = originalText;
-      }
+      if (button) { button.disabled = false; button.textContent = originalText; }
     }, 900);
   }
 }
@@ -2100,9 +2172,7 @@ function renderDashboard() {
   setText(
     "dashTodayLogin",
     todayLogin
-  );
-
-  setText(
+  );setText(
     "dashTodayAnalysis",
     Number.isFinite(Number(adminOverview?.today_analysis_count))
       ? Number(adminOverview.today_analysis_count)
@@ -2793,37 +2863,10 @@ async function changeActive(
 
 async function loadAnnouncementSettings() {
   try {
-    const response =
-      await fetch(
-        BENEFITS_ADMIN_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-          body:
-            JSON.stringify({
-              action:
-                "get_settings",
-              admin_password:
-                adminPassword
-            })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (
-      !response.ok ||
-      !data.success
-    ) {
-      throw new Error(
-        data.message ||
-        "讀取公告設定失敗"
-      );
-    }
+    const data = await adminServiceRequest(
+      BENEFITS_ADMIN_URL,
+      { action: "get_settings" }
+    );
 
     const settings =
       data.settings || {};
@@ -2950,45 +2993,16 @@ async function saveAnnouncementSettings() {
         "正在儲存設定...";
     }
 
-    const response =
-      await fetch(
-        BENEFITS_ADMIN_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-          body:
-            JSON.stringify({
-              action:
-                "save_settings",
-              admin_password:
-                adminPassword,
-              normal_announcement:
-                normal,
-              maintenance_announcement:
-                maintenance,
-              normal_enabled:
-                normalEnabled,
-              maintenance_enabled:
-                maintenanceEnabled
-            })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (
-      !response.ok ||
-      !data.success
-    ) {
-      throw new Error(
-        data.message ||
-        "儲存公告失敗"
-      );
-    }
+    const data = await adminServiceRequest(
+      BENEFITS_ADMIN_URL,
+      {
+        action: "save_settings",
+        normal_announcement: normal,
+        maintenance_announcement: maintenance,
+        normal_enabled: normalEnabled,
+        maintenance_enabled: maintenanceEnabled
+      }
+    );
 
     if (result) {
       result.textContent =
@@ -3100,8 +3114,7 @@ sendPushBtn?.addEventListener(
           )?.value || "all";
 
       const memberUsername =
-        document
-          .getElementById(
+        document.getElementById(
             "pushMemberUsername"
           )?.value
           .trim() || "";
@@ -3120,45 +3133,14 @@ sendPushBtn?.addEventListener(
         if (deviceCount <= 0) throw new Error("此會員目前沒有有效訂閱裝置，無法發送推播");
       }
 
-      const response =
-        await fetch(
-          PUSH_SEND_URL,
-          {
-            method:
-              "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body:
-              JSON.stringify({
-                title,
-                body,
-                url,
-                audience,
-                member_username:
-                  audience === "member"
-                    ? memberUsername
-                    : null,
-                admin_password:
-                  adminPassword
-              })
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
-        throw new Error(
-          data.error ||
-          data.message ||
-          "推播發送失敗"
-        );
-      }
+      const data = await adminServiceRequest(
+        PUSH_SEND_URL,
+        {
+          action: "send",
+          title, body, url, audience,
+          member_username: audience === "member" ? memberUsername : null
+        }
+      );
 
       if (resultEl) {
         resultEl.textContent =
@@ -3448,54 +3430,34 @@ async function loadAdminOverview() {
 }
 
 function ensurePageData(pageId) {
-  if (
-    !adminPassword ||
-    pageLoaded.has(pageId)
-  ) {
-    return;
-  }
+  if ((!adminSessionToken && !adminPassword) || pageLoaded.has(pageId) || !canAccessAdminPage(pageId)) return;
 
   pageLoaded.add(pageId);
 
-  if (pageId === "membersPage") {
-    loadMembers();
-  } else if (pageId === "analysisLogPage") {
-    loadAnalysisHistory(false);
-  } else if (pageId === "jobsPage") {
-    loadJobs(false);
-  } else if (pageId === "fixturesPage") {
-    loadFixtures(false);
-  } else if (pageId === "performanceAdminPage") {
-    loadPerformanceAdmin(false);
-  } else if (pageId === "shadowTestPage") {
-    loadShadowTests(false);
-  } else if (pageId === "partnersPage") {
-    loadPartners(false);
-  } else if (pageId === "healthPage") {
-    loadHealth(false);
-  } else if (pageId === "apiPage") {
-    loadApiStats(false);
-  }
+  if (pageId === "membersPage") loadMembers();
+  else if (pageId === "announcementPage") loadAnnouncementSettings();
+  else if (pageId === "analysisLogPage") loadAnalysisHistory(false);
+  else if (pageId === "jobsPage") loadJobs(false);
+  else if (pageId === "fixturesPage") loadFixtures(false);
+  else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
+  else if (pageId === "shadowTestPage") loadShadowTests(false);
+  else if (pageId === "partnersPage") loadPartners(false);
+  else if (pageId === "adminUsersPage") loadAdminUsers(false);
+  else if (pageId === "healthPage") loadHealth(false);
+  else if (pageId === "apiPage") loadApiStats(false);
 }
 
 function refreshPageData(pageId) {
-  if (pageId === "analysisLogPage") {
-    loadAnalysisHistory(true);
-  } else if (pageId === "jobsPage") {
-    loadJobs(true);
-  } else if (pageId === "fixturesPage") {
-    loadFixtures(true);
-  } else if (pageId === "performanceAdminPage") {
-    loadPerformanceAdmin(true);
-  } else if (pageId === "shadowTestPage") {
-    loadShadowTests(true);
-  } else if (pageId === "partnersPage") {
-    loadPartners(true);
-  } else if (pageId === "healthPage") {
-    loadHealth(true);
-  } else if (pageId === "apiPage") {
-    loadApiStats(true);
-  }
+  if (!canAccessAdminPage(pageId)) return;
+  if (pageId === "analysisLogPage") return loadAnalysisHistory(true);
+  if (pageId === "jobsPage") return loadJobs(true);
+  if (pageId === "fixturesPage") return loadFixtures(true);
+  if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
+  if (pageId === "shadowTestPage") return loadShadowTests(true);
+  if (pageId === "partnersPage") return loadPartners(true);
+  if (pageId === "adminUsersPage") return loadAdminUsers(true);
+  if (pageId === "healthPage") return loadHealth(true);
+  if (pageId === "apiPage") return loadApiStats(true);
 }
 
 /* ---------- Analysis History ---------- */
@@ -4104,8 +4066,7 @@ async function refreshFixtureSource(offset) {
 async function loadPerformanceAdmin(force = false) {
   try {
     const data =
-      await adminCenterRequest({
-        action: "performance",
+      await adminCenterRequest({action: "performance",
         limit: 400
       });
 
@@ -4284,10 +4245,7 @@ async function runPublicRunner() {
 
 async function loadShadowTests(force = false) {
   try {
-    const data = await adminCenterRequest({
-      action: "shadow_test_stats",
-      limit: 400
-    });
+    const data = await adminCenterRequest({ action: "shadow_test_stats", limit: 400 });
     shadowTestPayload = data;
     shadowTestRows = data.tests || [];
     renderShadowTests();
@@ -4297,128 +4255,145 @@ async function loadShadowTests(force = false) {
   }
 }
 
-function shadowRate(value) {
-  return value == null ? "—" : `${Number(value).toFixed(1)}%`;
-}
+function shadowRate(value) { return value == null ? "—" : `${Number(value).toFixed(1)}%`; }
 
 function renderPandaAuthStatus() {
   const auth = shadowTestPayload?.panda_auth || {};
   const status = String(auth?.status || "unknown");
   const badge = document.getElementById("pandaAuthBadge");
   const action = document.getElementById("pandaAuthAction");
-
-  const map = {
-    healthy: ["正常", "active"],
-    requestid_refreshed: ["自動更新成功", "active"],
-    platform_session_expired: ["A 平台 Session 已過期", "off"],
-    platform_session_not_configured: ["尚未設定 A 平台 Session", "vip"],
-    platform_refresh_failed: ["自動更新失敗", "off"],
-    panda_auth_expired: ["Panda 授權異常", "off"],
-    panda_config_missing: ["Panda 設定缺失", "off"],
-    state_unavailable: ["狀態表未建立", "off"],
-    unknown: ["尚未檢查", ""],
-  };
+  const map = { healthy:["正常","active"], requestid_refreshed:["自動更新成功","active"], platform_session_expired:["A 平台 Session 已過期","off"], platform_session_not_configured:["尚未設定 A 平台 Session","vip"], platform_refresh_failed:["自動更新失敗","off"], panda_auth_expired:["Panda 授權異常","off"], panda_config_missing:["Panda 設定缺失","off"], state_unavailable:["狀態表未建立","off"], unknown:["尚未檢查",""] };
   const info = map[status] || [status, ""];
-  if (badge) {
-    badge.textContent = info[0];
-    badge.className = `status ${info[1]}`.trim();
-  }
+  if (badge) { badge.textContent=info[0]; badge.className=`status ${info[1]}`.trim(); }
+  const message = auth?.last_error_message || (status === "healthy" ? "Panda 賠率連線正常；requestid 過期時會嘗試透過 A 平台 Session 自動取得新 token。" : status === "requestid_refreshed" ? "Panda requestid 已由 A 平台轉址自動更新。" : "等待影子排程檢查 Panda 授權狀態。");
+  setText("pandaAuthMessage",message);
+  setText("pandaLastSuccess",auth?.last_success_at?formatDate(auth.last_success_at):"—");
+  setText("pandaLastRefresh",auth?.last_refresh_at?formatDate(auth.last_refresh_at):"—");
+  setText("pandaAuthSource",auth?.source === "a_platform_redirect" ? "A 平台自動轉址" : auth?.source || "—");
+  if(action){ const needs=["platform_session_expired","platform_session_not_configured","platform_refresh_failed","panda_auth_expired"].includes(status); action.classList.toggle("hidden",!needs); action.textContent=needs?"需要人工處理：重新登入 A 平台（含數字驗證碼）後，只更新 A_PLATFORM_PHPSESSID；Panda requestid 不需要再手動抄。":""; }
+}
 
-  const message = auth?.last_error_message || (status === "healthy"
-    ? "Panda 賠率連線正常；requestid 過期時會嘗試透過 A 平台 Session 自動取得新 token。"
-    : status === "requestid_refreshed"
-    ? "Panda requestid 已由 A 平台轉址自動更新。"
-    : "等待影子排程檢查 Panda 授權狀態。");
-  setText("pandaAuthMessage", message);
-  setText("pandaLastSuccess", auth?.last_success_at ? formatDate(auth.last_success_at) : "—");
-  setText("pandaLastRefresh", auth?.last_refresh_at ? formatDate(auth.last_refresh_at) : "—");
-  setText("pandaAuthSource", auth?.source === "a_platform_redirect" ? "A 平台自動轉址" : auth?.source || "—");
+function shadowSnapshotText(row){const s=row?.snapshots||{};const parts=[];if(s.initial)parts.push(`初盤 T-${Math.abs(Number(s.initial.minutes_to_kickoff||0))}m`);if(s.t6h)parts.push(`6H T-${Math.abs(Number(s.t6h.minutes_to_kickoff||0))}m`);if(s.t30m)parts.push(`30M T-${Math.abs(Number(s.t30m.minutes_to_kickoff||0))}m`);return parts.length?parts.join(" / "):"—";}
 
-  if (action) {
-    const needsManual = [
-      "platform_session_expired",
-      "platform_session_not_configured",
-      "platform_refresh_failed",
-      "panda_auth_expired",
-    ].includes(status);
-    action.classList.toggle("hidden", !needsManual);
-    action.textContent = needsManual
-      ? "需要人工處理：重新登入 A 平台（含數字驗證碼）後，只更新 A_PLATFORM_PHPSESSID；Panda requestid 不需要再手動抄。"
-      : "";
+function renderShadowTests(){
+  renderPandaAuthStatus(); const summary=shadowTestPayload?.summary||{};
+  setText("shadowProgress",`${Number(summary.verified_matches||0)} / ${Number(summary.target||100)}`);
+  setText("shadowBaselineRate",shadowRate(summary.baseline_rate)); setText("shadowAdjustedRate",shadowRate(summary.shadow_rate)); setText("shadowNetImprovement",`${Number(summary.net_improvement||0)>=0?"+":""}${Number(summary.net_improvement||0)}`);
+  const marketBody=document.getElementById("shadowMarketBody"); const labels={moneyline:"獨贏",over_under:"大小分",handicap:"讓分",btts:"BTTS"};
+  if(marketBody){marketBody.innerHTML=Object.entries(labels).map(([key,label])=>{const item=shadowTestPayload?.markets?.[key]||{};return `<tr><td class="account-name">${label}</td><td>${Number(item.baseline_sample||0)}</td><td>${shadowRate(item.baseline_rate)}</td><td>${Number(item.shadow_sample||0)}</td><td>${shadowRate(item.shadow_rate)}</td><td><span class="status active">${Number(item.wrong_to_right||0)}</span></td><td><span class="status off">${Number(item.right_to_wrong||0)}</span></td><td>${Number(item.changed||0)}</td></tr>`;}).join("");}
+  const body=document.getElementById("shadowTestBody"); if(!body)return; if(!shadowTestRows.length){body.innerHTML='<tr><td colspan="8" class="empty">尚未累積影子測試資料。排程開始後會自動出現。</td></tr>';return;}
+  body.innerHTML=shadowTestRows.map(row=>`<tr><td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td><td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td><td>${escapeHtml(shadowSnapshotText(row))}</td><td>${statusBadge(row?.status)}</td><td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td><td><button class="action-btn" onclick='showJsonModal("臨場模型測試詳細", shadowTestRows.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button></td></tr>`).join("");
+}
+
+async function runShadowRunner(button){const old=button?.textContent;if(button){button.disabled=true;button.textContent="執行中…";}try{const data=await adminCenterRequest({action:"run_shadow_runner"});showJsonModal("影子排程結果",data.report||data);await loadShadowTests(false);}catch(error){alert("影子排程執行失敗："+(error?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"立即執行影子排程";}}}
+
+/* ---------- Admin Users ---------- */
+
+function renderAdminPermissionGrid(selected = []) {
+  const grid = document.getElementById("adminPermissionGrid");
+  if (!grid) return;
+  const set = new Set(Array.isArray(selected) ? selected : []);
+  grid.innerHTML = Object.entries(ADMIN_PERMISSION_LABELS).map(([key,label]) => `
+    <label class="permission-item"><input type="checkbox" value="${key}" ${set.has(key)?"checked":""}> <span>${label}</span></label>`).join("");
+}
+
+async function loadAdminUsers(force = false) {
+  if (currentAdmin?.is_super_admin !== true) return;
+  try {
+    const data = await adminCenterRequest({ action: "admin_users_list" });
+    adminUsers = Array.isArray(data?.admins) ? data.admins : [];
+    renderAdminUsers();
+  } catch (error) {
+    console.error("ADMIN USERS ERROR:", error);
+    if (force) alert("管理員資料讀取失敗：" + (error?.message || ""));
   }
 }
 
-function shadowSnapshotText(row) {
-  const s = row?.snapshots || {};
-  const parts = [];
-  if (s.initial) parts.push(`初盤 T-${Math.abs(Number(s.initial.minutes_to_kickoff||0))}m`);
-  if (s.t6h) parts.push(`6H T-${Math.abs(Number(s.t6h.minutes_to_kickoff||0))}m`);
-  if (s.t30m) parts.push(`30M T-${Math.abs(Number(s.t30m.minutes_to_kickoff||0))}m`);
-  return parts.length ? parts.join(" / ") : "—";
-}
-
-function renderShadowTests() {
-  renderPandaAuthStatus();
-  const summary = shadowTestPayload?.summary || {};
-  setText("shadowProgress", `${Number(summary.verified_matches||0)} / ${Number(summary.target||100)}`);
-  setText("shadowBaselineRate", shadowRate(summary.baseline_rate));
-  setText("shadowAdjustedRate", shadowRate(summary.shadow_rate));
-  setText("shadowNetImprovement", `${Number(summary.net_improvement||0) >= 0 ? "+" : ""}${Number(summary.net_improvement||0)}`);
-
-  const marketBody = document.getElementById("shadowMarketBody");
-  const labels = {
-    moneyline: "獨贏",
-    over_under: "大小分",
-    handicap: "讓分",
-    btts: "BTTS"
-  };
-  if (marketBody) {
-    marketBody.innerHTML = Object.entries(labels).map(([key,label]) => {
-      const item = shadowTestPayload?.markets?.[key] || {};
-      return `<tr>
-        <td class="account-name">${label}</td>
-        <td>${Number(item.baseline_sample||0)}</td>
-        <td>${shadowRate(item.baseline_rate)}</td>
-        <td>${Number(item.shadow_sample||0)}</td>
-        <td>${shadowRate(item.shadow_rate)}</td>
-        <td><span class="status active">${Number(item.wrong_to_right||0)}</span></td>
-        <td><span class="status off">${Number(item.right_to_wrong||0)}</span></td>
-        <td>${Number(item.changed||0)}</td>
-      </tr>`;
-    }).join("");
-  }
-
-  const body = document.getElementById("shadowTestBody");
+function renderAdminUsers() {
+  const body = document.getElementById("adminUsersBody");
   if (!body) return;
-  if (!shadowTestRows.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty">尚未累積影子測試資料。排程開始後會自動出現。</td></tr>';
+  if (!adminUsers.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">尚未建立子管理員。</td></tr>';
     return;
   }
-
-  body.innerHTML = shadowTestRows.map(row => `<tr>
-    <td>${formatDate(row?.kickoff_at)}</td>
-    <td class="mono">${escapeHtml(row?.fixture_id??"—")}</td>
-    <td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
-    <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
-    <td>${escapeHtml(shadowSnapshotText(row))}</td>
-    <td>${statusBadge(row?.status)}</td>
-    <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
-    <td><button class="action-btn" onclick='showJsonModal("臨場模型測試詳細", shadowTestRows.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button></td>
-  </tr>`).join("");
+  body.innerHTML = adminUsers.map(item => {
+    const perms = Array.isArray(item?.permissions) ? item.permissions.map(p => ADMIN_PERMISSION_LABELS[p] || p).join("、") : "—";
+    return `<tr>
+      <td class="account-name">${escapeHtml(item?.username||"—")}</td>
+      <td>${escapeHtml(item?.display_name||"—")}</td>
+      <td><div class="subline">${escapeHtml(perms||"無")}</div></td>
+      <td>${item?.is_active?'<span class="status active">啟用</span>':'<span class="status off">停用</span>'}</td>
+      <td>${item?.last_login_at?formatDate(item.last_login_at):"—"}</td>
+      <td>${item?.created_at?formatDate(item.created_at):"—"}</td>
+      <td><div class="row-actions">
+        <button class="action-btn gold" onclick="editAdminUser(${Number(item.id)})">編輯</button>
+        <button class="action-btn" onclick="resetAdminUserPassword(${Number(item.id)})">重設密碼</button>
+        <button class="action-btn ${item?.is_active?'red':'green'}" onclick="toggleAdminUser(${Number(item.id)},${!item?.is_active})">${item?.is_active?'停用':'啟用'}</button>
+      </div></td>
+    </tr>`;
+  }).join("");
 }
 
-async function runShadowRunner(button) {
-  const old = button?.textContent;
-  if (button) { button.disabled = true; button.textContent = "執行中…"; }
+function openAdminUserModal(item = null) {
+  if (currentAdmin?.is_super_admin !== true) return;
+  document.getElementById("adminUserId").value = item?.id || "";
+  document.getElementById("adminUserUsername").value = item?.username || "";
+  document.getElementById("adminUserUsername").disabled = Boolean(item?.id);
+  document.getElementById("adminUserDisplayName").value = item?.display_name || "";
+  document.getElementById("adminUserPassword").value = "";
+  document.getElementById("adminUserPasswordField")?.classList.toggle("hidden", Boolean(item?.id));
+  document.getElementById("adminUserActive").value = item?.is_active === false ? "false" : "true";
+  document.getElementById("adminUserModalTitle").textContent = item?.id ? "編輯管理員" : "新增管理員";
+  renderAdminPermissionGrid(item?.permissions || []);
+  document.getElementById("adminUserModal")?.classList.remove("hidden");
+}
+
+function editAdminUser(id) {
+  const item = adminUsers.find(x => Number(x?.id) === Number(id));
+  if (item) openAdminUserModal(item);
+}
+
+function closeAdminUserModal() { document.getElementById("adminUserModal")?.classList.add("hidden"); }
+
+function selectedAdminPermissions() {
+  return [...document.querySelectorAll('#adminPermissionGrid input[type="checkbox"]:checked')].map(x => x.value);
+}
+
+async function saveAdminUser() {
+  const id = Number(document.getElementById("adminUserId")?.value || 0);
+  const username = String(document.getElementById("adminUserUsername")?.value || "").trim().toLowerCase();
+  const displayName = String(document.getElementById("adminUserDisplayName")?.value || "").trim();
+  const password = String(document.getElementById("adminUserPassword")?.value || "");
+  const isActive = document.getElementById("adminUserActive")?.value !== "false";
+  const permissions = selectedAdminPermissions();
   try {
-    const data = await adminCenterRequest({ action: "run_shadow_runner" });
-    showJsonModal("影子排程結果", data.report || data);
-    await loadShadowTests(false);
-  } catch (error) {
-    alert("影子排程執行失敗：" + (error?.message || ""));
-  } finally {
-    if (button) { button.disabled = false; button.textContent = old || "立即執行影子排程"; }
-  }
+    if (id) {
+      await adminCenterRequest({ action:"admin_users_update", id, display_name:displayName, permissions });
+      const current = adminUsers.find(x => Number(x?.id) === id);
+      if (current && current.is_active !== isActive) await adminCenterRequest({ action:"admin_users_toggle", id, is_active:isActive });
+    } else {
+      if (!username || !password) throw new Error("請輸入管理員帳號與初始密碼");
+      await adminCenterRequest({ action:"admin_users_create", username, display_name:displayName, password, permissions, is_active:isActive });
+    }
+    closeAdminUserModal();
+    await loadAdminUsers(true);
+  } catch (error) { alert("管理員儲存失敗：" + (error?.message || "")); }
+}
+
+async function toggleAdminUser(id, isActive) {
+  if (!confirm(isActive ? "確定啟用此管理員？" : "確定停用此管理員？停用後既有 Session 會立即失效。")) return;
+  try { await adminCenterRequest({ action:"admin_users_toggle", id:Number(id), is_active:isActive }); await loadAdminUsers(true); }
+  catch(error){ alert("管理員狀態修改失敗：" + (error?.message || "")); }
+}
+
+async function resetAdminUserPassword(id) {
+  const password = prompt("請輸入新的管理員密碼（至少 8 碼）：");
+  if (password == null) return;
+  if (password.length < 8) { alert("密碼至少需要 8 碼"); return; }
+  try {
+    const data = await adminCenterRequest({ action:"admin_users_reset_password", id:Number(id), password });
+    alert(data?.message || "管理員密碼已重設");
+  } catch(error){ alert("密碼重設失敗：" + (error?.message || "")); }
 }
 
 /* ---------- Partners ---------- */
@@ -4707,6 +4682,20 @@ async function deletePartner(id) {
 
 /* ---------- API stats ---------- */
 
+async function loadApiSettings() {
+  if (!hasAdminPermission("api")) return;
+  try {
+    const data = await adminServiceRequest(BENEFITS_ADMIN_URL, { action: "get_api_settings" });
+    const settings = data?.settings || {};
+    window.apiDailyLimit = Number(settings.api_daily_limit || 7500);
+    window.apiRenewalDate = settings.api_renewal_date || null;
+    renderDashboard();
+    renderApiPage();
+  } catch (error) {
+    console.error("API SETTINGS ERROR:", error);
+  }
+}
+
 async function loadApiStats(force = false) {
   try {
     const data =
@@ -4871,7 +4860,8 @@ async function refreshAdminSection(button, section) {
   if(button){button.disabled=true;button.textContent="更新中…";}
   try{
     const map={analysis:loadAnalysisHistory,jobs:loadJobs,fixtures:loadFixtures,performance:loadPerformanceAdmin,shadow:loadShadowTests,api:loadApiStats,health:loadHealth};
-    await map[section]?.(false); await loadAdminOverview();
+    await map[section]?.(false);
+    if (hasAdminPermission("dashboard")) await loadAdminOverview();
     if(button) button.textContent="已更新 ✓";
     setTimeout(()=>{if(button){button.disabled=false;button.textContent=original;}},900);
   }catch(error){if(button){button.disabled=false;button.textContent="更新失敗";} alert("更新失敗："+(error?.message||"未知錯誤"));}
@@ -5111,12 +5101,23 @@ function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>S
 
 let pushCountTimer=null;
 function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
-async function pushAdminRequest(payload){const res=await fetch(PUSH_SEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,admin_password:adminPassword})});const data=await res.json().catch(()=>({}));if(!res.ok||data?.success===false)throw new Error(data?.message||data?.error||"推播操作失敗");return data;}
+async function pushAdminRequest(payload){return adminServiceRequest(PUSH_SEND_URL,payload);}
 async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
 async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://awu7757-sys.github.io/habao-football-ai/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
 async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
 
-async function confirmApiRenewal(button){if(!confirm("確定 API 已完成續費？續費日期會自動更新為今天 + 1 個月。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="更新中…";}try{const res=await fetch(BENEFITS_ADMIN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"confirm_api_renewal",admin_password:adminPassword})});const d=await res.json();if(!res.ok||!d.success)throw new Error(d.message||"更新失敗");window.apiRenewalDate=d.settings?.api_renewal_date||null;renderDashboard();renderApiPage();alert(d.message||"續費日期已更新");}catch(e){alert("續費更新失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"確認已續費";}}}
+async function confirmApiRenewal(button){
+  if(!confirm("確定 API 已完成續費？續費日期會自動更新為今天 + 1 個月。")) return;
+  const old=button?.textContent;
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const d=await adminServiceRequest(BENEFITS_ADMIN_URL,{action:"confirm_api_renewal"});
+    window.apiRenewalDate=d.settings?.api_renewal_date||null;
+    renderDashboard(); renderApiPage();
+    alert(d.message||"續費日期已更新");
+  }catch(e){alert("續費更新失敗："+(e?.message||""));}
+  finally{if(button){button.disabled=false;button.textContent=old||"確認已續費";}}
+}
 
 async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
 async function togglePerformanceExcluded(fixtureId,excluded){const msg=excluded?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？":"確定恢復此場計入公開戰績？";if(!confirm(msg))return;try{await adminCenterRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});await loadPerformanceAdmin(false);}catch(e){alert("操作失敗："+(e?.message||""));}}
@@ -5245,8 +5246,7 @@ function formatDate(value) {
           "2-digit",
         minute:
           "2-digit",
-        hour12:
-          false
+        hour12:false
       }
     );
 }
@@ -5276,9 +5276,9 @@ function escapeHtml(value) {
       "&#039;"
     );
 }
+
+restoreAdminSession();
 </script>
 
 </body>
 </html>
-```
-`
