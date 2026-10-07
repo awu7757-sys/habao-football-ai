@@ -4351,13 +4351,32 @@ function getAnalysisJobProgress(
       job.failed_count || 0
     );
 
-  if (
-    job.status === "completed" ||
-    job.status === "partial" ||
-    job.status === "failed"
-  ) {
-    return 100;
-  }
+if (
+  job.status === "completed"
+) {
+  return 100;
+}
+
+if (
+  job.status === "partial" ||
+  job.status === "failed"
+) {
+  const finished =
+    completed + failed;
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(
+        (
+          finished /
+          total
+        ) * 100
+      )
+    )
+  );
+}
 
   const finished =
     completed + failed;
@@ -4657,6 +4676,12 @@ async function finishAnalysisJob(
     不會一直被舊任務卡住。
   */
   clearActiveAnalysisJob();
+
+  if (
+  job.job_type === "batch"
+) {
+  resetBatchAnalysisUI();
+}
 
   /*
     完全沒有成功結果
@@ -6604,6 +6629,18 @@ if (count) {
 
 
 function resetBatchAnalysisUI() {
+
+    const bar =
+    document.getElementById(
+      "batchAnalysisBar"
+    );
+
+  if (bar) {
+    bar.classList.remove(
+      "show"
+    );
+  }
+  
   const checkboxes =
     document.querySelectorAll(
       ".batch-analysis-checkbox"
