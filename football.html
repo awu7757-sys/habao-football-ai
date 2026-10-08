@@ -3476,6 +3476,67 @@ margin-left: 16px !important;
     padding:0 12px;
   }
 }
+
+/* ===== 快速回到頂部 ===== */
+#habaoBackToTop{
+  position:fixed;
+  right:16px;
+  bottom:86px;
+
+  width:42px;
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(245,196,81,.35);
+  border-radius:50%;
+
+  background:rgba(8,20,29,.94);
+  color:#f5c451;
+
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.35),
+    0 0 14px rgba(245,196,81,.10);
+
+  cursor:pointer;
+  z-index:9998;
+
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(10px);
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease,
+    visibility .18s ease;
+}
+
+#habaoBackToTop.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+
+#habaoBackToTop:active{
+  transform:scale(.92);
+}
+
+@media(max-width:600px){
+  #habaoBackToTop{
+    right:14px;
+    bottom:82px;
+    width:40px;
+    height:40px;
+    font-size:20px;
+  }
+}
+  
 </style>
 
 </head>
@@ -9242,6 +9303,49 @@ analysisResultNotFound: "Analysis result not found"
 
 <script>
 
+</script>
+
+<button
+  id="habaoBackToTop"
+  type="button"
+  aria-label="回到頂部"
+>
+  ↑
+</button>
+
+<script>
+(() => {
+  const button =
+    document.getElementById(
+      "habaoBackToTop"
+    );
+
+  if (!button) return;
+
+  function updateBackToTop() {
+    button.classList.toggle(
+      "show",
+      window.scrollY > 280
+    );
+  }
+
+  button.addEventListener(
+    "click",
+    () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  );
+
+  window.addEventListener(
+    "scroll",
+    updateBackToTop,
+    { passive: true }
+  );
+
+  updateBackToTop();
+})();
 </script>
   
 </body>
