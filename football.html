@@ -4288,10 +4288,18 @@ async function fetchAnalysisJob(
       encodeURIComponent(
         jobId
       ) +
+      
       "&account=" +
       encodeURIComponent(
         member.account
+      ) +
+      "&language=" +
+      encodeURIComponent(
+        window.HabaoI18n
+          ?.getLanguage?.() ||
+        "zh-Hant"
       ),
+
       {
         method: "GET"
       }
@@ -5983,7 +5991,7 @@ container.innerHTML =
                     type="checkbox"
                     class="batch-analysis-checkbox"
                     value="${match.fixtureId}"
-                    onchange="updateBatchSelection()"
+                    onchange="updateBatchSelection(this)"
                   >
                   <span>${window.HabaoI18n?.t("addBatch", "加入批次分析") || "加入批次分析"}</span>
                 </label>
@@ -6684,9 +6692,37 @@ function getSelectedBatchFixtureIds() {
 }
 
 
-function updateBatchSelection() {
-  const ids =
+function updateBatchSelection(
+  changedInput = null
+) {
+  let ids =
     getSelectedBatchFixtureIds();
+
+  if (
+    ids.length > 5
+  ) {
+    if (changedInput) {
+      changedInput.checked =
+        false;
+    }
+
+    const lang =
+      window.HabaoI18n
+        ?.getLanguage?.() ||
+      "zh-Hant";
+
+    const message =
+      lang === "en"
+        ? "You can analyze up to 5 matches at a time."
+        : lang === "zh-Hans"
+        ? "一次最多可批量分析 5 场赛事。"
+        : "一次最多可批次分析 5 場賽事。";
+
+    alert(message);
+
+    ids =
+      getSelectedBatchFixtureIds();
+  }
 
   const bar =
     document.getElementById(
@@ -6703,22 +6739,22 @@ function updateBatchSelection() {
       "batchAnalysisStart"
     );
 
-if (count) {
-  const selectedPrefix =
-    window.HabaoI18n?.t(
-      "selectedPrefix",
-      "已選"
-    ) || "已選";
+  if (count) {
+    const selectedPrefix =
+      window.HabaoI18n?.t(
+        "selectedPrefix",
+        "已選"
+      ) || "已選";
 
-  const selectedSuffix =
-    window.HabaoI18n?.t(
-      "selectedSuffix",
-      "場"
-    ) || "場";
+    const selectedSuffix =
+      window.HabaoI18n?.t(
+        "selectedSuffix",
+        "場"
+      ) || "場";
 
-  count.textContent =
-    `${selectedPrefix} ${ids.length} ${selectedSuffix}`;
-}
+    count.textContent =
+      `${selectedPrefix} ${ids.length} ${selectedSuffix}`;
+  }
 
   if (bar) {
     bar.classList.toggle(
@@ -6732,6 +6768,7 @@ if (count) {
       ids.length === 0;
   }
 }
+
 
 
 function resetBatchAnalysisUI() {
@@ -7006,6 +7043,26 @@ async function startBatchAnalysis() {
   if (!fixtureIds.length) {
     return;
   }
+
+    if (
+    fixtureIds.length > 5
+  ) {
+    const lang =
+      window.HabaoI18n
+        ?.getLanguage?.() ||
+      "zh-Hant";
+
+    alert(
+      lang === "en"
+        ? "You can analyze up to 5 matches at a time."
+        : lang === "zh-Hans"
+        ? "一次最多可批量分析 5 场赛事。"
+        : "一次最多可批次分析 5 場賽事。"
+    );
+
+    return;
+  }
+
 
   const startButton =
     document.getElementById(
