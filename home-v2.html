@@ -1824,14 +1824,18 @@ transition:
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 9px;
+      gap: 8px;
 
-      min-height: 36px;
-      margin: 10px 0 4px;
-      padding: 8px 12px;
+      min-height: 32px;
+      max-height: 40px;
+
+      margin: 7px 0 2px;
+      padding: 6px 10px;
+
+      overflow: hidden;
 
       border: 1px solid rgba(242,189,75,.14);
-      border-radius: 12px;
+      border-radius: 11px;
 
       color: rgba(255,226,159,.82);
       background:
@@ -1846,13 +1850,33 @@ transition:
 
       transition:
         opacity .22s ease,
-        transform .22s ease;
+        transform .22s ease,
+        max-height .22s ease,
+        min-height .22s ease,
+        margin .22s ease,
+        padding .22s ease,
+        border-width .22s ease;
     }
 
     .v2-data-loading-status.is-hidden {
       opacity: 0;
-      transform: translateY(-4px);
+      transform: translateY(-3px);
+
+      min-height: 0;
+      max-height: 0;
+
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+
+      border-width: 0;
+
       pointer-events: none;
+    }
+
+    /* 首頁統計區與焦點賽事距離再收緊 */
+    #v2DataLoadingStatus + .section {
+      margin-top: 16px;
     }
 
     .v2-data-loading-status.is-error {
