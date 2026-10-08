@@ -3985,8 +3985,55 @@ ${getAnalysisLeagueName(
         </div>
 
       </div>
-      
+      </div>
+
+      <div class="v2-score-section">
+
+        <div class="v2-score-head">
+          <div>
+            <div class="v2-insight-label">SCORE PROJECTION</div>
+            <div class="v2-insight-title">
+              ${analysisT("predictedScore", "AI 預測比分")}
+            </div>
+          </div>
+
+          <div class="v2-score-tag">
+            TOP 3
+          </div>
+        </div>
+
+        <div class="v2-score-grid">
+
+          ${scores.slice(0,3).map((item, index) => `
+            <div class="v2-score-card">
+
+              <div class="v2-score-rank">
+                0${index + 1}
+              </div>
+
+              <div class="v2-score-number">
+                ${item.score || "-"}
+              </div>
+
+              <div class="v2-score-confidence">
+                ${analysisT("aiConfidence", "AI 信心")} ${item.confidence || 0}%
+              </div>
+
+              <div class="v2-score-bar">
+                <div
+                  style="width:${confidenceBar(item.confidence)}%"
+                ></div>
+              </div>
+
+            </div>
+          `).join("")}
+
+        </div>
+
+      </div>
+
       <div class="bet-action">
+      
   <button
     type="button"
     class="bet-btn"
@@ -4041,52 +4088,6 @@ ${getAnalysisLeagueName(
             </p>
           </div>
         </div>
-
-
-        <div class="v2-score-section">
-
-          <div class="v2-score-head">
-            <div>
-              <div class="v2-insight-label">SCORE PROJECTION</div>
-              <div class="v2-insight-title">${analysisT("predictedScore", "AI 預測比分")}</div>
-            </div>
-
-            <div class="v2-score-tag">
-              TOP 3
-            </div>
-          </div>
-
-          <div class="v2-score-grid">
-
-            ${scores.slice(0,3).map((item, index) => `
-              <div class="v2-score-card">
-
-                <div class="v2-score-rank">
-                  0${index + 1}
-                </div>
-
-                <div class="v2-score-number">
-                  ${item.score || "-"}
-                </div>
-
-                <div class="v2-score-confidence">
-                  ${analysisT("aiConfidence", "AI 信心")} ${item.confidence || 0}%
-                </div>
-
-                <div class="v2-score-bar">
-                  <div
-                    style="width:${confidenceBar(item.confidence)}%"
-                  ></div>
-                </div>
-
-              </div>
-            `).join("")}
-
-          </div>
-
-        </div>
-
-
 
       </div>
     `;
