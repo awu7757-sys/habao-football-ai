@@ -1037,6 +1037,84 @@ tr:last-child td{border-bottom:0}
         <div class="panel">
           <div class="panel-head">
             <div>
+
+                              <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">AI 工具箱｜全新上線特效</div>
+              <div class="panel-desc">開啟後首頁 AI 工具箱會顯示「全新上線」標籤、淡金流光與底部 NEW 提示；關閉後立即恢復一般卡片。</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-box">
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="toolboxLaunchEnabled"
+                >
+                <span class="toggle-track"></span>
+                <span>啟用「全新上線」特效</span>
+              </label>
+
+              <div class="field">
+                <label class="label">卡片標籤</label>
+                <input
+                  id="toolboxLaunchBadge"
+                  class="input"
+                  type="text"
+                  maxlength="40"
+                  value="NEW｜全新上線"
+                >
+              </div>
+
+              <div class="field">
+                <label class="label">上線副標</label>
+                <input
+                  id="toolboxLaunchSubtitle"
+                  class="input"
+                  type="text"
+                  maxlength="80"
+                  value="全新 AI 工具現已開放"
+                >
+              </div>
+            </div>
+
+            <div class="form-box">
+              <div class="panel-title">活動版本</div>
+              <div class="panel-desc">未來再次推出新工具時可以改成 launch-2、launch-3；目前先維持 launch-1。</div>
+
+              <div class="field">
+                <label class="label">Campaign Version</label>
+                <input
+                  id="toolboxLaunchVersion"
+                  class="input"
+                  type="text"
+                  maxlength="40"
+                  value="launch-1"
+                >
+              </div>
+
+              <button
+                id="saveToolboxLaunchBtn"
+                class="save-btn"
+                type="button"
+                onclick="saveToolboxLaunchSettings()"
+              >
+                儲存工具箱上線設定
+              </button>
+
+              <div
+                id="toolboxLaunchResult"
+                class="result-box"
+              >
+                尚未變更
+              </div>
+            </div>
+          </div>
+        </div>
+
+              
               <div class="panel-title">儲存設定</div>
               <div class="panel-desc">儲存後將同步更新網站公告與維護設定。</div>
             </div>
@@ -1813,6 +1891,9 @@ const API_URL =
 const BENEFITS_ADMIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
 
+const TOOLBOX_LAUNCH_ADMIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/toolbox-launch-settings";
+  
 const PUSH_SEND_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
 
@@ -3009,8 +3090,167 @@ async function changeActive(
    ANNOUNCEMENTS / SETTINGS
 ========================= */
 
+async function loadToolboxLaunchSettings() {
+  try {
+    const data =
+      await adminServiceRequest(
+        TOOLBOX_LAUNCH_ADMIN_URL,
+        {
+          action: "get_admin"
+        }
+      );
+
+    const settings =
+      data?.settings || {};
+
+    const enabled =
+      document.getElementById(
+        "toolboxLaunchEnabled"
+      );
+
+    const badge =
+      document.getElementById(
+        "toolboxLaunchBadge"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "toolboxLaunchSubtitle"
+      );
+
+    const version =
+      document.getElementById(
+        "toolboxLaunchVersion"
+      );
+
+    if (enabled) {
+      enabled.checked =
+        settings.enabled === true;
+    }
+
+    if (badge) {
+      badge.value =
+        settings.badge_text ||
+        "NEW｜全新上線";
+    }
+
+    if (subtitle) {
+      subtitle.value =
+        settings.subtitle_text ||
+        "全新 AI 工具現已開放";
+    }
+
+    if (version) {
+      version.value =
+        settings.campaign_version ||
+        "launch-1";
+    }
+
+  } catch (error) {
+    console.error(
+      "LOAD TOOLBOX LAUNCH SETTINGS ERROR:",
+      error
+    );
+  }
+}
+
+
+async function saveToolboxLaunchSettings() {
+  const button =
+    document.getElementById(
+      "saveToolboxLaunchBtn"
+    );
+
+  const result =
+    document.getElementById(
+      "toolboxLaunchResult"
+    );
+
+  try {
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        "儲存中...";
+    }
+
+    if (result) {
+      result.textContent =
+        "正在儲存設定...";
+    }
+
+    const data =
+      await adminServiceRequest(
+        TOOLBOX_LAUNCH_ADMIN_URL,
+        {
+          action: "save",
+
+          enabled:
+            document.getElementById(
+              "toolboxLaunchEnabled"
+            )?.checked === true,
+
+          badge_text:
+            document.getElementById(
+              "toolboxLaunchBadge"
+            )?.value?.trim() ||
+            "NEW｜全新上線",
+
+          subtitle_text:
+            document.getElementById(
+              "toolboxLaunchSubtitle"
+            )?.value?.trim() ||
+            "全新 AI 工具現已開放",
+
+          campaign_version:
+            document.getElementById(
+              "toolboxLaunchVersion"
+            )?.value?.trim() ||
+            "launch-1"
+        }
+      );
+
+    if (result) {
+      result.textContent =
+        data?.settings?.enabled === true
+          ? "✅ 全新上線特效已啟用"
+          : "✅ 全新上線特效已關閉";
+    }
+
+  } catch (error) {
+    console.error(
+      "SAVE TOOLBOX LAUNCH SETTINGS ERROR:",
+      error
+    );
+
+    if (result) {
+      result.textContent =
+        "❌ " +
+        (
+          error?.message ||
+          "儲存失敗"
+        );
+    }
+
+    alert(
+      error?.message ||
+      "儲存工具箱上線設定失敗"
+    );
+
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "儲存工具箱上線設定";
+    }
+  }
+}
+  
+
 async function loadAnnouncementSettings() {
   try {
+
+    await loadToolboxLaunchSettings();
+    
     const data = await adminServiceRequest(
       BENEFITS_ADMIN_URL,
       { action: "get_settings" }
