@@ -5827,31 +5827,44 @@ padding:
 
 <style>
 /* =========================================================
-   HABAO｜AI 工具箱「全新上線」活動特效
-   只有後台開啟時才會套用，不改變體育 APP 主視覺。
+   HABAO｜AI 工具箱「全新上線」活動特效 V2
+   強度約比 V1 提升 50%，但仍維持體育 APP 黑金質感。
 ========================================================= */
 
 .v2-tool-card.v2-tool-toolbox {
   position: relative;
 }
 
-.v2-toolbox-launch-badge {
+.v2-toolbox-launch-badge,
+.v2-toolbox-launch-subtitle {
   display: none;
 }
 
+/* 開啟活動時，整張卡片有比較明顯的金色呼吸光 */
 .v2-tool-card.v2-tool-toolbox.is-launching {
   overflow: hidden;
-  border-color: rgba(242,189,75,.48);
+
+  border-color:
+    rgba(255,211,105,.78);
+
   box-shadow:
-    0 18px 38px rgba(0,0,0,.40),
-    0 0 0 1px rgba(242,189,75,.08),
-    inset 0 1px 0 rgba(255,255,255,.10);
+    0 18px 42px rgba(0,0,0,.44),
+    0 0 18px rgba(242,189,75,.28),
+    0 0 38px rgba(242,189,75,.12),
+    inset 0 1px 0 rgba(255,255,255,.14);
+
+  animation:
+    habaoToolboxCardBreath
+    2.8s ease-in-out infinite;
 }
 
+/* 外框流光 */
 .v2-tool-card.v2-tool-toolbox.is-launching::before {
   content: "";
+
   position: absolute;
-  inset: -45%;
+  inset: -48%;
+
   z-index: 0;
   pointer-events: none;
 
@@ -5859,38 +5872,51 @@ padding:
     conic-gradient(
       from 0deg,
       transparent 0deg,
-      transparent 250deg,
-      rgba(255,225,145,.12) 285deg,
-      rgba(242,189,75,.48) 315deg,
-      transparent 350deg
+      transparent 228deg,
+      rgba(255,229,151,.14) 260deg,
+      rgba(255,211,105,.82) 305deg,
+      rgba(255,239,190,.38) 330deg,
+      transparent 355deg
     );
 
   animation:
-    habaoToolboxLaunchRing 5.5s linear infinite;
+    habaoToolboxLaunchRing
+    4.4s linear infinite;
 }
 
+/* 背景掃光 */
 .v2-tool-card.v2-tool-toolbox.is-launching::after {
   content: "";
+
   position: absolute;
-  z-index: 0;
-  top: -55%;
-  left: -42%;
-  width: 28%;
-  height: 210%;
+  z-index: 1;
+
+  top: -62%;
+  left: -48%;
+
+  width: 34%;
+  height: 225%;
+
   pointer-events: none;
 
-  transform: rotate(22deg);
+  transform:
+    rotate(22deg);
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(255,238,188,.13),
+      rgba(255,240,194,.23),
+      rgba(255,213,117,.15),
       transparent
     );
 
+  filter:
+    blur(.4px);
+
   animation:
-    habaoToolboxLaunchSweep 4.8s ease-in-out infinite;
+    habaoToolboxLaunchSweep
+    3.8s ease-in-out infinite;
 }
 
 .v2-tool-card.v2-tool-toolbox.is-launching
@@ -5903,60 +5929,134 @@ padding:
   z-index: 2;
 }
 
+/* 「全新上線」改成真正看得清楚的金色實心標籤 */
 .v2-tool-card.v2-tool-toolbox.is-launching
 .v2-toolbox-launch-badge {
   position: absolute;
-  z-index: 4;
-  top: 12px;
-  right: 12px;
+
+  z-index: 5;
+
+  top: 10px;
+  right: 10px;
 
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 
-  min-height: 23px;
-  padding: 4px 8px;
+  min-height: 27px;
 
-  border: 1px solid rgba(255,222,136,.35);
-  border-radius: 999px;
+  padding:
+    6px 10px;
 
-  color: #ffe49b;
+  border:
+    1px solid rgba(255,244,207,.62);
+
+  border-radius:
+    999px;
+
+  color:
+    #171006;
 
   background:
     linear-gradient(
       135deg,
-      rgba(242,189,75,.22),
-      rgba(88,58,10,.22)
+      #fff0b5 0%,
+      #f7c94e 50%,
+      #e7a92d 100%
     );
 
   box-shadow:
-    0 6px 16px rgba(0,0,0,.24),
-    inset 0 1px 0 rgba(255,255,255,.12);
+    0 7px 20px rgba(0,0,0,.34),
+    0 0 16px rgba(242,189,75,.32),
+    inset 0 1px 0 rgba(255,255,255,.65);
 
-  font-size: 7px;
-  line-height: 1;
-  font-weight: 950;
-  letter-spacing: .65px;
+  font-size:
+    9px;
+
+  line-height:
+    1;
+
+  font-weight:
+    1000;
+
+  letter-spacing:
+    .45px;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.20);
 
   animation:
-    habaoToolboxBadgeBreath 2.4s ease-in-out infinite;
-}
-
-.v2-toolbox-launch-subtitle {
-  display: none;
+    habaoToolboxBadgeBreath
+    1.8s ease-in-out infinite;
 }
 
 .v2-tool-card.v2-tool-toolbox.is-launching
-.v2-toolbox-launch-subtitle {
-  display: block;
-  margin-top: 8px;
+.v2-toolbox-launch-badge::before {
+  content: "";
 
-  color: rgba(255,221,139,.78);
-  font-size: 8px;
-  line-height: 1.45;
-  font-weight: 850;
+  width: 6px;
+  height: 6px;
+
+  flex: 0 0 6px;
+
+  border-radius:
+    50%;
+
+  background:
+    #6b4700;
+
+  box-shadow:
+    0 0 0 3px rgba(107,71,0,.10);
+
+  animation:
+    habaoToolboxBadgeDot
+    1.25s ease-in-out infinite;
 }
 
+/* 副標提高對比度 */
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-toolbox-launch-subtitle {
+  display: inline-flex;
+
+  margin-top: 10px;
+
+  padding:
+    5px 8px;
+
+  border:
+    1px solid rgba(255,216,118,.18);
+
+  border-radius:
+    8px;
+
+  color:
+    #ffe29a;
+
+  background:
+    rgba(242,189,75,.085);
+
+  font-size:
+    8px;
+
+  line-height:
+    1.35;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    .15px;
+}
+
+/* 圖示本身也稍微亮一點 */
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-tool-icon {
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.32),
+    0 0 18px rgba(242,189,75,.22);
+}
+
+/* 底部導覽 NEW 也加大 */
 .bottom-nav
 .nav-item.v2-toolbox-nav-launch {
   position: relative;
@@ -5970,55 +6070,106 @@ padding:
 .nav-item.v2-toolbox-nav-launch
 .v2-toolbox-nav-new {
   position: absolute;
-  top: 5px;
-  right: 8px;
+
+  top: 3px;
+  right: 6px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  min-width: 22px;
-  height: 12px;
-  padding: 0 4px;
+  min-width:
+    27px;
 
-  border: 1px solid rgba(255,214,111,.26);
-  border-radius: 999px;
+  height:
+    14px;
 
-  color: #ffdf88;
-  background: rgba(242,189,75,.14);
+  padding:
+    0 5px;
 
-  font-size: 6px;
-  font-weight: 950;
-  letter-spacing: .35px;
+  border:
+    1px solid rgba(255,235,176,.38);
+
+  border-radius:
+    999px;
+
+  color:
+    #1a1204;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe89d,
+      #efb837
+    );
 
   box-shadow:
-    0 0 10px rgba(242,189,75,.12);
+    0 0 12px rgba(242,189,75,.25);
+
+  font-size:
+    6.5px;
+
+  font-weight:
+    1000;
+
+  letter-spacing:
+    .4px;
+
+  animation:
+    habaoToolboxNavNew
+    2s ease-in-out infinite;
+}
+
+@keyframes habaoToolboxCardBreath {
+  0%,
+  100% {
+    border-color:
+      rgba(255,211,105,.62);
+
+    box-shadow:
+      0 18px 42px rgba(0,0,0,.44),
+      0 0 14px rgba(242,189,75,.18),
+      0 0 30px rgba(242,189,75,.08),
+      inset 0 1px 0 rgba(255,255,255,.12);
+  }
+
+  50% {
+    border-color:
+      rgba(255,222,130,.96);
+
+    box-shadow:
+      0 18px 42px rgba(0,0,0,.44),
+      0 0 24px rgba(242,189,75,.40),
+      0 0 48px rgba(242,189,75,.16),
+      inset 0 1px 0 rgba(255,255,255,.16);
+  }
 }
 
 @keyframes habaoToolboxLaunchRing {
   to {
-    transform: rotate(360deg);
+    transform:
+      rotate(360deg);
   }
 }
 
 @keyframes habaoToolboxLaunchSweep {
   0%,
-  58% {
-    left: -42%;
+  50% {
+    left: -48%;
     opacity: 0;
   }
 
-  66% {
+  60% {
     opacity: 1;
   }
 
-  88% {
-    left: 120%;
-    opacity: .8;
+  86% {
+    left: 122%;
+    opacity: .95;
   }
 
   100% {
-    left: 120%;
+    left: 122%;
     opacity: 0;
   }
 }
@@ -6026,22 +6177,51 @@ padding:
 @keyframes habaoToolboxBadgeBreath {
   0%,
   100% {
-    opacity: .78;
-    transform: translateY(0);
+    transform:
+      scale(1);
+
+    box-shadow:
+      0 7px 20px rgba(0,0,0,.34),
+      0 0 12px rgba(242,189,75,.24),
+      inset 0 1px 0 rgba(255,255,255,.65);
   }
 
   50% {
-    opacity: 1;
-    transform: translateY(-1px);
+    transform:
+      scale(1.055);
+
+    box-shadow:
+      0 8px 22px rgba(0,0,0,.38),
+      0 0 24px rgba(242,189,75,.46),
+      inset 0 1px 0 rgba(255,255,255,.75);
+  }
+}
+
+@keyframes habaoToolboxBadgeDot {
+  50% {
+    opacity: .45;
+    transform: scale(.72);
+  }
+}
+
+@keyframes habaoToolboxNavNew {
+  50% {
+    box-shadow:
+      0 0 18px rgba(242,189,75,.42);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .v2-tool-card.v2-tool-toolbox.is-launching,
   .v2-tool-card.v2-tool-toolbox.is-launching::before,
   .v2-tool-card.v2-tool-toolbox.is-launching::after,
   .v2-tool-card.v2-tool-toolbox.is-launching
-  .v2-toolbox-launch-badge {
-    animation: none !important;
+  .v2-toolbox-launch-badge,
+  .bottom-nav
+  .nav-item.v2-toolbox-nav-launch
+  .v2-toolbox-nav-new {
+    animation:
+      none !important;
   }
 }
 </style>
