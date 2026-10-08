@@ -576,6 +576,26 @@ tr:last-child td{border-bottom:0}
   .shadow-detail-head{flex-direction:column}
 }
 
+
+#jsonModal .shadow-compare-table tr.shadow-changed td{
+  background:rgba(242,189,75,.045);
+}
+#jsonModal .shadow-change-badge,
+#jsonModal .shadow-same-badge{
+  display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;
+  font-size:9px;font-weight:900;
+}
+#jsonModal .shadow-change-badge{
+  border:1px solid rgba(242,189,75,.24);
+  background:rgba(242,189,75,.08);
+  color:var(--gold-light);
+}
+#jsonModal .shadow-same-badge{
+  border:1px solid var(--border);
+  color:#8f9aaa;
+}
+#jsonModal .shadow-odds-cell{line-height:1.75}
+
 /* 影子模型詳情：避免橫向超出 */
 #jsonModal{
   overflow-y:auto;
@@ -4598,6 +4618,167 @@ function shadowCorrectionSummary(meta) {
   `;
 }
 
+
+function shadowPickChanged(baseline, shadow, market) {
+  const a = String(baseline?.recommendations?.[market]?.pick || "").trim();
+  const b = String(shadow?.recommendations?.[market]?.pick || "").trim();
+  const la = String(baseline?.recommendations?.[market]?.line ?? "").trim();
+  const lb = String(shadow?.recommendations?.[market]?.line ?? "").trim();
+  return a !== b || la !== lb;
+}
+
+function shadowParseLine(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const raw = String(value ?? "").replace(/−/g,"-").replace(/＋/g,"+");
+  const parts = raw.split("/").map(x => Number(x.trim())).filter(Number.isFinite);
+  if (parts.length >= 2) return Number(((parts[0] + parts[1]) / 2).toFixed(2));
+  const m = raw.match(/[+-]?\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+
+function shadowOddsNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n.toFixed(2) : "—";
+}
+
+function shadowSideMatch(row, side) {
+  const raw = `${row?.selection ?? ""} ${row?.side ?? ""} ${row?.name ?? ""}`.toLowerCase();
+  const map = {
+    home:["1","home","主"],
+    draw:["x","draw","平","和"],
+    away:["2","away","客"],
+    over:["over","大"],
+    under:["under","小"],
+    yes:["yes","是"],
+    no:["no","否"]
+  };
+  return (map[side] || []).some(x => raw === x || raw.includes(x));
+}
+
+function shadowFindSide(rows, side) {
+  return (Array.isArray(rows) ? rows : []).find(row => shadowSideMatch(row, side)) || null;
+}
+
+function shadowFindByLine(rows, line, side) {
+  const wanted = shadowParseLine(line);
+  if (wanted === null) return null;
+  return (Array.isArray(rows) ? rows : []).find(row => {
+    const rowLine = shadowParseLine(row?.line);
+    return rowLine !== null &&
+      Math.abs(rowLine - wanted) <= 0.001 &&
+      (!side || shadowSideMatch(row, side));
+  }) || null;
+}
+
+function shadowMarketOddsText(snapshot, market, baseline, shadow) {
+  const odds = snapshot?.odds || {};
+  const rec = baseline?.recommendations?.[market] || shadow?.recommendations?.[market] || {};
+
+  if (market === "moneyline") {
+    const h = shadowFindSide(odds?.oneXtwo, "home");
+    const d = shadowFindSide(odds?.oneXtwo, "draw");
+    const a = shadowFindSide(odds?.oneXtwo, "away");
+    if (!h && !d && !a) return "—";
+    return `主 ${shadowOddsNumber(h?.odds)}｜和 ${shadowOddsNumber(d?.odds)}｜客 ${shadowOddsNumber(a?.odds)}`;
+  }
+
+  if (market === "over_under") {
+    const line = shadowParseLine(rec?.line ?? rec?.pick);
+    if (line === null) return "—";
+    const over = shadowFindByLine(odds?.totals, line, "over");
+    const under = shadowFindByLine(odds?.totals, line, "under");
+    if (!over && !under) return `盤 ${line}｜無配對`;
+    return `盤 ${line}｜大 ${shadowOddsNumber(over?.odds)}｜小 ${shadowOddsNumber(under?.odds)}`;
+  }
+
+  if (market === "handicap") {
+    const line = shadowParseLine(rec?.line);
+    if (line === null) return "—";
+    const rows = Array.isArray(odds?.handicap) ? odds.handicap : [];
+    const abs = Math.abs(line);
+    const matched = rows.filter(row => {
+      const rowLine = shadowParseLine(row?.line);
+      return rowLine !== null && Math.abs(Math.abs(rowLine) - abs) <= 0.001;
+    });
+    if (!matched.length) return `盤 ${line}｜無配對`;
+    const home = shadowFindSide(matched, "home");
+    const away = shadowFindSide(matched, "away");
+    return `盤 ${line}｜主 ${shadowOddsNumber(home?.odds)}｜客 ${shadowOddsNumber(away?.odds)}`;
+  }
+
+  if (market === "btts") {
+    const yes = shadowFindSide(odds?.btts, "yes");
+    const no = shadowFindSide(odds?.btts, "no");
+    if (!yes && !no) return "—";
+    return `是 ${shadowOddsNumber(yes?.odds)}｜否 ${shadowOddsNumber(no?.odds)}`;
+  }
+
+  return "—";
+}
+
+function shadowSelectedOdds(snapshot, market, prediction) {
+  const odds = snapshot?.odds || {};
+  const rec = prediction?.recommendations?.[market] || {};
+  const pick = String(rec?.pick || "").toLowerCase();
+
+  if (market === "moneyline") {
+    const side = pick.includes("主") || pick.includes("home") ? "home"
+      : pick.includes("客") || pick.includes("away") ? "away"
+      : pick.includes("和") || pick.includes("平") || pick.includes("draw") ? "draw" : "";
+    const row = side ? shadowFindSide(odds?.oneXtwo, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "over_under") {
+    const line = shadowParseLine(rec?.line ?? rec?.pick);
+    const side = pick.includes("大") || pick.includes("over") ? "over"
+      : pick.includes("小") || pick.includes("under") ? "under" : "";
+    const row = line !== null && side ? shadowFindByLine(odds?.totals, line, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "btts") {
+    const side = pick === "是" || pick.includes("yes") ? "yes"
+      : pick === "否" || pick.includes("no") ? "no" : "";
+    const row = side ? shadowFindSide(odds?.btts, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "handicap") {
+    const line = shadowParseLine(rec?.line);
+    const side = pick.includes("主") || pick.includes("home") ? "home"
+      : pick.includes("客") || pick.includes("away") ? "away" : "";
+    if (line === null || !side) return null;
+    const rows = Array.isArray(odds?.handicap) ? odds.handicap : [];
+    const abs = Math.abs(line);
+    const matched = rows.filter(row => {
+      const rowLine = shadowParseLine(row?.line);
+      return rowLine !== null && Math.abs(Math.abs(rowLine) - abs) <= 0.001;
+    });
+    const row = shadowFindSide(matched, side);
+    return row ? Number(row?.odds) : null;
+  }
+
+  return null;
+}
+
+function shadowMovementText(market, baseline, snapshots) {
+  const initial = shadowSelectedOdds(snapshots?.initial, market, baseline);
+  const t6h = shadowSelectedOdds(snapshots?.t6h, market, baseline);
+  const t30m = shadowSelectedOdds(snapshots?.t30m, market, baseline);
+  const values = [initial,t6h,t30m].filter(Number.isFinite);
+
+  if (values.length < 2) return "資料不足";
+
+  const first = Number.isFinite(initial) ? initial : values[0];
+  const last = Number.isFinite(t30m) ? t30m : values[values.length - 1];
+  const diff = last - first;
+
+  if (Math.abs(diff) < 0.03) return "變化很小";
+  return diff < 0 ? "原預測方向升溫" : "原預測方向降溫";
+}
+
+
 async function showShadowTestDetail(fixtureId) {
   const row = shadowTestRows.find(
     x => Number(x?.fixture_id) === Number(fixtureId)
@@ -4608,21 +4789,17 @@ async function showShadowTestDetail(fixtureId) {
     `臨場模型逐場對照｜${row?.home_team || "—"} vs ${row?.away_team || "—"}`
   );
 
-  const content =
-    document.getElementById("jsonModalContent");
-
+  const content = document.getElementById("jsonModalContent");
   if (!content) return;
 
   content.style.whiteSpace = "normal";
   content.innerHTML = `
     <div style="padding:4px 0;color:#8f9aaa;font-size:10px">
-      正在讀取此場已保存的正式版、影子版、三階段快照與 settlement…
+      正在讀取已保存的正式版、影子版與三階段賠率…
     </div>
   `;
 
-  document
-    .getElementById("jsonModal")
-    ?.classList.remove("hidden");
+  document.getElementById("jsonModal")?.classList.remove("hidden");
 
   try {
     const data = await adminCenterRequest({
@@ -4636,6 +4813,7 @@ async function showShadowTestDetail(fixtureId) {
     const baselineSettlement = item?.baseline_settlement || {};
     const shadowSettlement = item?.shadow_settlement || {};
     const snapshots = item?.snapshots || {};
+
     const markets = [
       ["moneyline","獨贏"],
       ["over_under","大小分"],
@@ -4643,13 +4821,35 @@ async function showShadowTestDetail(fixtureId) {
       ["btts","BTTS"]
     ];
 
-    const comparisonRows = markets.map(([key,label]) => `
+    const changedCount = markets.filter(([key]) =>
+      shadowPickChanged(baseline, shadow, key)
+    ).length;
+
+    const comparisonRows = markets.map(([key,label]) => {
+      const changed = shadowPickChanged(baseline, shadow, key);
+      return `
+        <tr class="${changed ? "shadow-changed" : ""}">
+          <td><strong>${escapeHtml(label)}</strong></td>
+          <td>${escapeHtml(shadowRecText(baseline,key))}</td>
+          <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
+          <td>${escapeHtml(shadowRecText(shadow,key))}</td>
+          <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
+          <td>
+            ${changed
+              ? '<span class="shadow-change-badge">有修改</span>'
+              : '<span class="shadow-same-badge">未修改</span>'}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    const movementRows = markets.map(([key,label]) => `
       <tr>
         <td><strong>${escapeHtml(label)}</strong></td>
-        <td>${escapeHtml(shadowRecText(baseline,key))}</td>
-        <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
-        <td>${escapeHtml(shadowRecText(shadow,key))}</td>
-        <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.initial,key,baseline,shadow))}</td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.t6h,key,baseline,shadow))}</td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.t30m,key,baseline,shadow))}</td>
+        <td>${escapeHtml(shadowMovementText(key,baseline,snapshots))}</td>
       </tr>
     `).join("");
 
@@ -4675,60 +4875,26 @@ async function showShadowTestDetail(fixtureId) {
       </div>
 
       <div class="shadow-note">
-        這裡顯示的是賽前已保存資料，不會重新預測，也不會改寫賽後結果。<br>
-        流程：初盤 → 開賽前 6 小時 → 開賽前 30 分鐘 → 產生影子版最終預測 → 完賽後比對命中結果。
+        這場共有 <strong>${changedCount}</strong> 個市場被影子模型修改。
+        這張表直接看「改了什麼」以及「修改後有沒有命中」。
       </div>
 
-      <div class="shadow-detail-grid">
-        <div class="shadow-detail-card gold">
-          <h4>正式版原始預測</h4>
-          <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
-            預測比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(baseline))}</span>
-          </div>
-          <table class="shadow-compare-table">
-            <thead><tr><th>市場</th><th>預測</th><th>賽後結果</th></tr></thead>
-            <tbody>
-              ${markets.map(([key,label]) => `
-                <tr>
-                  <td>${escapeHtml(label)}</td>
-                  <td>${escapeHtml(shadowRecText(baseline,key))}</td>
-                  <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+      <div class="shadow-detail-card">
+        <h4>正式版 vs 影子版｜修改後是否有中</h4>
+        <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
+          正式版比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(baseline))}</span>
+          ｜影子版比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(shadow))}</span>
         </div>
 
-        <div class="shadow-detail-card green">
-          <h4>影子版最終預測</h4>
-          <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
-            預測比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(shadow))}</span>
-          </div>
-          <table class="shadow-compare-table">
-            <thead><tr><th>市場</th><th>預測</th><th>賽後結果</th></tr></thead>
-            <tbody>
-              ${markets.map(([key,label]) => `
-                <tr>
-                  <td>${escapeHtml(label)}</td>
-                  <td>${escapeHtml(shadowRecText(shadow,key))}</td>
-                  <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="shadow-detail-card" style="margin-top:12px">
-        <h4>正式版 vs 影子版快速對照</h4>
         <table class="shadow-compare-table">
           <thead>
             <tr>
               <th>市場</th>
               <th>正式版</th>
-              <th>正式結算</th>
+              <th>正式結果</th>
               <th>影子版</th>
-              <th>影子結算</th>
+              <th>影子結果</th>
+              <th>是否修改</th>
             </tr>
           </thead>
           <tbody>${comparisonRows}</tbody>
@@ -4736,23 +4902,30 @@ async function showShadowTestDetail(fixtureId) {
       </div>
 
       <div class="shadow-detail-card" style="margin-top:12px">
-        <h4>三階段賠率快照</h4>
-        <div class="shadow-snapshot-grid">
+        <h4>初盤 → 6 小時 → 30 分鐘｜賠率變化</h4>
+        <div class="shadow-note" style="margin-top:0">
+          影子模型會比較不同時間點的市場賠率變化。
+          賠率越低通常代表該方向的市場支持度越強。
+        </div>
+
+        <table class="shadow-compare-table">
+          <thead>
+            <tr>
+              <th>市場</th>
+              <th>初盤</th>
+              <th>開賽前 6 小時</th>
+              <th>開賽前 30 分鐘</th>
+              <th>變化判讀</th>
+            </tr>
+          </thead>
+          <tbody>${movementRows}</tbody>
+        </table>
+
+        <div class="shadow-snapshot-grid" style="margin-top:12px">
           ${shadowSnapshotHtml("初盤", snapshots?.initial)}
           ${shadowSnapshotHtml("開賽前 6 小時（T-6H）", snapshots?.t6h)}
           ${shadowSnapshotHtml("開賽前 30 分鐘（T-30M）", snapshots?.t30m)}
         </div>
-      </div>
-
-      <div class="shadow-detail-card" style="margin-top:12px">
-        <h4>影子版為什麼有調整</h4>
-        ${shadowCorrectionSummary(item?.correction_meta)}
-        <details style="margin-top:10px">
-          <summary style="cursor:pointer;color:var(--gold-light);font-size:9px;font-weight:900">
-            進階：查看影子校正原始資料
-          </summary>
-          <pre style="max-height:300px;overflow:auto;margin-top:8px;padding:10px;border-radius:10px;background:#05090e;color:#aeb9c5;font-size:8px;white-space:pre-wrap">${escapeHtml(JSON.stringify(item?.correction_meta ?? {}, null, 2))}</pre>
-        </details>
       </div>
     `;
 
@@ -4764,7 +4937,6 @@ async function showShadowTestDetail(fixtureId) {
     `;
   }
 }
-
 
 async function runShadowRunner(button){const old=button?.textContent;if(button){button.disabled=true;button.textContent="執行中…";}try{const data=await adminCenterRequest({action:"run_shadow_runner"});showJsonModal("影子排程結果",data.report||data);await loadShadowTests(false);}catch(error){alert("影子排程執行失敗："+(error?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"立即執行影子排程";}}}
 
