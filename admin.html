@@ -1037,12 +1037,8 @@ tr:last-child td{border-bottom:0}
         <div class="panel">
           <div class="panel-head">
             <div>
-
-                              <div class="panel">
-          <div class="panel-head">
-            <div>
               <div class="panel-title">AI 工具箱｜全新上線特效</div>
-              <div class="panel-desc">開啟後首頁 AI 工具箱會顯示「全新上線」標籤、淡金流光與底部 NEW 提示；關閉後立即恢復一般卡片。</div>
+              <div class="panel-desc">新功能宣傳期間可開啟；關閉後首頁會立即恢復一般 AI 工具箱卡片。</div>
             </div>
           </div>
 
@@ -1081,25 +1077,15 @@ tr:last-child td{border-bottom:0}
             </div>
 
             <div class="form-box">
-              <div class="panel-title">活動版本</div>
-              <div class="panel-desc">未來再次推出新工具時可以改成 launch-2、launch-3；目前先維持 launch-1。</div>
-
-              <div class="field">
-                <label class="label">Campaign Version</label>
-                <input
-                  id="toolboxLaunchVersion"
-                  class="input"
-                  type="text"
-                  maxlength="40"
-                  value="launch-1"
-                >
-              </div>
+              <div class="panel-title">顯示控制</div>
+              <div class="panel-desc">儲存後不需要重新部署前台。關閉開關即可移除所有「全新上線」效果。</div>
 
               <button
                 id="saveToolboxLaunchBtn"
                 class="save-btn"
                 type="button"
                 onclick="saveToolboxLaunchSettings()"
+                style="margin-top:18px"
               >
                 儲存工具箱上線設定
               </button>
@@ -1114,7 +1100,9 @@ tr:last-child td{border-bottom:0}
           </div>
         </div>
 
-              
+        <div class="panel">
+          <div class="panel-head">
+            <div>
               <div class="panel-title">儲存設定</div>
               <div class="panel-desc">儲存後將同步更新網站公告與維護設定。</div>
             </div>
@@ -1893,7 +1881,7 @@ const BENEFITS_ADMIN_URL =
 
 const TOOLBOX_LAUNCH_ADMIN_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/toolbox-launch-settings";
-  
+
 const PUSH_SEND_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
 
@@ -3118,11 +3106,6 @@ async function loadToolboxLaunchSettings() {
         "toolboxLaunchSubtitle"
       );
 
-    const version =
-      document.getElementById(
-        "toolboxLaunchVersion"
-      );
-
     if (enabled) {
       enabled.checked =
         settings.enabled === true;
@@ -3138,12 +3121,6 @@ async function loadToolboxLaunchSettings() {
       subtitle.value =
         settings.subtitle_text ||
         "全新 AI 工具現已開放";
-    }
-
-    if (version) {
-      version.value =
-        settings.campaign_version ||
-        "launch-1";
     }
 
   } catch (error) {
@@ -3199,13 +3176,7 @@ async function saveToolboxLaunchSettings() {
             document.getElementById(
               "toolboxLaunchSubtitle"
             )?.value?.trim() ||
-            "全新 AI 工具現已開放",
-
-          campaign_version:
-            document.getElementById(
-              "toolboxLaunchVersion"
-            )?.value?.trim() ||
-            "launch-1"
+            "全新 AI 工具現已開放"
         }
       );
 
@@ -3244,13 +3215,12 @@ async function saveToolboxLaunchSettings() {
     }
   }
 }
-  
+
 
 async function loadAnnouncementSettings() {
   try {
 
     await loadToolboxLaunchSettings();
-    
     const data = await adminServiceRequest(
       BENEFITS_ADMIN_URL,
       { action: "get_settings" }
