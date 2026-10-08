@@ -4288,7 +4288,6 @@ async function fetchAnalysisJob(
       encodeURIComponent(
         jobId
       ) +
-      
       "&account=" +
       encodeURIComponent(
         member.account
@@ -4299,7 +4298,6 @@ async function fetchAnalysisJob(
           ?.getLanguage?.() ||
         "zh-Hant"
       ),
-
       {
         method: "GET"
       }
@@ -5213,6 +5211,91 @@ function getTeamNameZH(name) {
   const HABAO_FIXTURE_CACHE_TTL =
   3 * 60 * 1000;
 
+
+// ======================================
+// HABAO｜正式分析開放時間
+// 今日 / 明日都不看日期標籤，
+// 只看距離實際開賽是否已進入 10 小時。
+// ======================================
+const HABAO_ANALYSIS_OPEN_HOURS =
+  10;
+
+const HABAO_ANALYSIS_OPEN_MS =
+  HABAO_ANALYSIS_OPEN_HOURS *
+  60 *
+  60 *
+  1000;
+
+
+function getHabaoAnalysisWindowState(
+  match
+) {
+  const kickoffMs =
+    new Date(
+      match?.time || 0
+    ).getTime();
+
+  const nowMs =
+    Date.now();
+
+  if (
+    !Number.isFinite(
+      kickoffMs
+    )
+  ) {
+    return {
+      isOpen: false,
+      isStarted: false,
+      msUntilKickoff: null
+    };
+  }
+
+  const msUntilKickoff =
+    kickoffMs - nowMs;
+
+  return {
+    isOpen:
+      msUntilKickoff > 0 &&
+      msUntilKickoff <=
+        HABAO_ANALYSIS_OPEN_MS,
+
+    isStarted:
+      msUntilKickoff <= 0,
+
+    msUntilKickoff
+  };
+}
+
+
+function getHabaoAnalysisLockedText(
+  match
+) {
+  const state =
+    getHabaoAnalysisWindowState(
+      match
+    );
+
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (state.isStarted) {
+    return lang === "en"
+      ? "Analysis closed"
+      : lang === "zh-Hans"
+      ? "分析已截止"
+      : "分析已截止";
+  }
+
+  return lang === "en"
+    ? "Available 10 hours before kickoff"
+    : lang === "zh-Hans"
+    ? "赛前 10 小时开放分析"
+    : "賽前 10 小時開放分析";
+}
+
+
 const habaoFixtureCache =
   new Map();
 
@@ -5864,8 +5947,19 @@ container.innerHTML =
       ].includes(match.status);
 
 
+    const analysisWindow =
+      getHabaoAnalysisWindowState(
+        match
+      );
+
     const isLocked =
-      currentFixtureOffset === 2;
+      !isFinished &&
+      !analysisWindow.isOpen;
+
+    const lockedText =
+      getHabaoAnalysisLockedText(
+        match
+      );
 
     return `
       <article
@@ -5976,7 +6070,7 @@ container.innerHTML =
                   class="analysis-btn v2-analysis-btn locked"
                   disabled
                 >
-                  ${window.HabaoI18n?.t("analysisTomorrow", "明日開放分析") || "明日開放分析"}
+                  ${lockedText}
                 </button>
               `
 
@@ -6770,7 +6864,6 @@ function updateBatchSelection(
 }
 
 
-
 function resetBatchAnalysisUI() {
 
     const bar =
@@ -7044,7 +7137,7 @@ async function startBatchAnalysis() {
     return;
   }
 
-    if (
+  if (
     fixtureIds.length > 5
   ) {
     const lang =
@@ -7062,7 +7155,6 @@ async function startBatchAnalysis() {
 
     return;
   }
-
 
   const startButton =
     document.getElementById(
@@ -7215,18 +7307,41 @@ function resetAnalysisButtons() {
         button._progressTimer
       );
 
-      // 後天保持鎖定
       if (
-        currentFixtureOffset === 2
+        button.classList.contains(
+          "finished"
+        )
+      ) {
+        button.disabled = true;
+        return;
+      }
+
+      const card =
+        button.closest(
+          ".v2-match-card"
+        );
+
+      const fixtureId =
+        card?.dataset
+          ?.fixtureId || "";
+
+      const match =
+        window.habaoFixtureMap?.[
+          String(fixtureId)
+        ];
+
+      if (
+        match &&
+        !getHabaoAnalysisWindowState(
+          match
+        ).isOpen
       ) {
         button.disabled = true;
 
         button.textContent =
-          window.HabaoI18n?.t(
-            "analysisTomorrow",
-            "明日開放分析"
-          ) ||
-          "明日開放分析";
+          getHabaoAnalysisLockedText(
+            match
+          );
 
         button.classList.remove(
           "loading"
@@ -7248,11 +7363,10 @@ function resetAnalysisButtons() {
         return;
       }
 
-      // 今天、明天正常恢復
       button.disabled = false;
 
       const startText =
-window.HabaoI18n?.t(
+        window.HabaoI18n?.t(
           "startAnalysis",
           "開始分析"
         ) ||
