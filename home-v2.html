@@ -1816,6 +1816,109 @@ transition:
     }
 
 
+    /* =========================================
+       HABAO｜首頁資料同步提示
+    ========================================= */
+
+    .v2-data-loading-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+
+      min-height: 36px;
+      margin: 10px 0 4px;
+      padding: 8px 12px;
+
+      border: 1px solid rgba(242,189,75,.14);
+      border-radius: 12px;
+
+      color: rgba(255,226,159,.82);
+      background:
+        linear-gradient(
+          135deg,
+          rgba(242,189,75,.075),
+          rgba(255,255,255,.018)
+        );
+
+      font-size: 10px;
+      font-weight: 800;
+
+      transition:
+        opacity .22s ease,
+        transform .22s ease;
+    }
+
+    .v2-data-loading-status.is-hidden {
+      opacity: 0;
+      transform: translateY(-4px);
+      pointer-events: none;
+    }
+
+    .v2-data-loading-status.is-error {
+      color: #ff9b9b;
+      border-color: rgba(255,101,101,.20);
+      background: rgba(255,101,101,.055);
+    }
+
+    .v2-data-loading-spinner {
+      width: 13px;
+      height: 13px;
+
+      flex: 0 0 13px;
+
+      border: 2px solid rgba(242,189,75,.20);
+      border-top-color: #f2bd4b;
+      border-radius: 50%;
+
+      animation:
+        habaoDataSpin .75s linear infinite;
+    }
+
+    @keyframes habaoDataSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .v2-focus-loading {
+      min-height: 128px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      gap: 10px;
+
+      color: #aeb8c5;
+
+      text-align: center;
+    }
+
+    .v2-focus-loading .v2-data-loading-spinner {
+      width: 22px;
+      height: 22px;
+      flex-basis: 22px;
+
+      border-width: 2px;
+    }
+
+    .v2-focus-loading strong {
+      color: #f2d68f;
+
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .v2-focus-loading span {
+      color: rgba(255,255,255,.43);
+
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+
     /* =========================
        BOTTOM NAV
     ========================= */
@@ -1864,7 +1967,7 @@ padding:
       display: grid;
 
       grid-template-columns:
-        repeat(4,1fr);
+        repeat(5,1fr);
 
       gap: 4px;
     }
@@ -6022,6 +6125,22 @@ padding:
 
 </section>
 
+<div
+  class="v2-data-loading-status"
+  id="v2DataLoadingStatus"
+  role="status"
+  aria-live="polite"
+>
+  <span
+    class="v2-data-loading-spinner"
+    aria-hidden="true"
+  ></span>
+
+  <span id="v2DataLoadingText">
+    AI 正在同步最新賽事資料
+  </span>
+</div>
+
     <!-- TODAY MATCH -->
 
     <section
@@ -6056,28 +6175,19 @@ padding:
   id="v2FocusMatches"
 >
   <article class="match-card">
-    <div class="match-top">
-      <div class="league">
-        今日焦點
-      </div>
+    <div class="v2-focus-loading">
+      <span
+        class="v2-data-loading-spinner"
+        aria-hidden="true"
+      ></span>
 
-      <div class="match-time">
-        賽事載入中...
-      </div>
-    </div>
+      <strong id="v2FocusLoadingTitle">
+        AI 正在同步最新賽事資料
+      </strong>
 
-    <div class="teams">
-      <div class="team">
-        --
-      </div>
-
-      <div class="vs">
-        VS
-      </div>
-
-      <div class="team away">
-        --
-      </div>
+      <span id="v2FocusLoadingHint">
+        請稍候，資料載入完成後會自動更新
+      </span>
     </div>
   </article>
 </div>
@@ -6419,6 +6529,55 @@ padding:
         </div>
 
         AI 戰績
+
+      </a>
+
+
+      <a
+        href="ai-tools.html"
+        class="nav-item"
+      >
+
+        <div class="nav-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <rect
+              x="4"
+              y="4"
+              width="6"
+              height="6"
+              rx="1.5"
+            />
+            <rect
+              x="14"
+              y="4"
+              width="6"
+              height="6"
+              rx="1.5"
+            />
+            <rect
+              x="4"
+              y="14"
+              width="6"
+              height="6"
+              rx="1.5"
+            />
+            <rect
+              x="14"
+              y="14"
+              width="6"
+              height="6"
+              rx="1.5"
+            />
+          </svg>
+
+        </div>
+
+        AI 工具箱
 
       </a>
 
@@ -8825,10 +8984,96 @@ async function loadV2HomeStats() {
 
 
 /* ===============================
+   首頁資料同步狀態
+================================ */
+
+function setV2HomeDataLoadingState(
+  state = "loading"
+) {
+  const box =
+    document.getElementById(
+      "v2DataLoadingStatus"
+    );
+
+  const textEl =
+    document.getElementById(
+      "v2DataLoadingText"
+    );
+
+  if (!box || !textEl) {
+    return;
+  }
+
+  box.classList.remove(
+    "is-hidden",
+    "is-error"
+  );
+
+  const spinner =
+    box.querySelector(
+      ".v2-data-loading-spinner"
+    );
+
+  if (spinner) {
+    spinner.style.display =
+      state === "error"
+        ? "none"
+        : "";
+  }
+
+  if (state === "success") {
+    textEl.textContent =
+      window.HabaoI18n?.t(
+        "dataSyncDone",
+        "最新賽事資料已同步"
+      ) ||
+      "最新賽事資料已同步";
+
+    window.setTimeout(
+      () => {
+        box.classList.add(
+          "is-hidden"
+        );
+      },
+      900
+    );
+
+    return;
+  }
+
+  if (state === "error") {
+    box.classList.add(
+      "is-error"
+    );
+
+    textEl.textContent =
+      window.HabaoI18n?.t(
+        "dataSyncFailed",
+        "資料載入失敗，請稍後再試"
+      ) ||
+      "資料載入失敗，請稍後再試";
+
+    return;
+  }
+
+  textEl.textContent =
+    window.HabaoI18n?.t(
+      "dataSyncing",
+      "AI 正在同步最新賽事資料"
+    ) ||
+    "AI 正在同步最新賽事資料";
+}
+
+
+/* ===============================
    今日賽事數量
 ================================ */
 
 async function loadV2TodayFixturesCount() {
+
+  setV2HomeDataLoadingState(
+    "loading"
+  );
 
   console.time("⏱️ 可分析賽事 API");
 
@@ -9013,6 +9258,11 @@ async function loadV2TodayFixturesCount() {
     );
 
 
+    setV2HomeDataLoadingState(
+      "success"
+    );
+
+
     console.timeEnd(
       "⏱️ 可分析賽事 API"
     );
@@ -9027,6 +9277,33 @@ async function loadV2TodayFixturesCount() {
 
     countEl.textContent =
       "--";
+
+    setV2HomeDataLoadingState(
+      "error"
+    );
+
+    const focusContainer =
+      document.getElementById(
+        "v2FocusMatches"
+      );
+
+    if (focusContainer) {
+      focusContainer.innerHTML = `
+        <article class="match-card">
+          <div class="v2-focus-loading">
+            <strong style="color:#ff9b9b">
+              ${
+                window.HabaoI18n?.t(
+                  "dataSyncFailed",
+                  "資料載入失敗，請稍後再試"
+                ) ||
+                "資料載入失敗，請稍後再試"
+              }
+            </strong>
+          </div>
+        </article>
+      `;
+    }
 
   }
 
@@ -10711,6 +10988,7 @@ bonusStart: "立即體驗",
 navHome: "首頁",
 navMatches: "賽事",
 navPerformance: "AI 戰績",
+navToolbox: "AI 工具箱",
 navAccount: "我的",
 todayFocus: "焦點賽事",
 
@@ -10752,6 +11030,10 @@ tomorrowFocus: "明日焦點",
 noMatches: "暫無賽事",
 noFocusMatches: "尚無焦點賽事",
 loadingMatches: "賽事載入中...",
+dataSyncing: "AI 正在同步最新賽事資料",
+dataSyncHint: "請稍候，資料載入完成後會自動更新",
+dataSyncDone: "最新賽事資料已同步",
+dataSyncFailed: "資料載入失敗，請稍後再試",
 footballMatch: "足球賽事",
 homeTeam: "主隊",
 awayTeam: "客隊",
@@ -10969,6 +11251,7 @@ bonusStart: "立即体验",
 navHome: "首页",
 navMatches: "赛事",
 navPerformance: "AI 战绩",
+navToolbox: "AI 工具箱",
 navAccount: "我的",
 todayFocus: "焦点赛事",
 statTodayMatches: "可分析赛事",
@@ -11009,6 +11292,10 @@ tomorrowFocus: "明日焦点",
 noMatches: "暂无赛事",
 noFocusMatches: "暂无焦点赛事",
 loadingMatches: "赛事加载中...",
+dataSyncing: "AI 正在同步最新赛事数据",
+dataSyncHint: "请稍候，数据加载完成后会自动更新",
+dataSyncDone: "最新赛事数据已同步",
+dataSyncFailed: "数据加载失败，请稍后再试",
 footballMatch: "足球赛事",
 homeTeam: "主队",
 awayTeam: "客队",
@@ -11226,6 +11513,7 @@ bonusStart: "Start Now",
 navHome: "Home",
 navMatches: "Matches",
 navPerformance: "AI Results",
+navToolbox: "AI Toolbox",
 navAccount: "Account",
 todayFocus: "Featured Matches",
 
@@ -11267,6 +11555,10 @@ tomorrowFocus: "Tomorrow's Matches",
 noMatches: "No Matches",
 noFocusMatches: "No Featured Matches",
 loadingMatches: "Loading Matches...",
+dataSyncing: "AI is syncing the latest match data",
+dataSyncHint: "Please wait. The page will update automatically.",
+dataSyncDone: "Latest match data synced",
+dataSyncFailed: "Unable to load match data. Please try again later.",
 footballMatch: "Football Match",
 homeTeam: "Home",
 awayTeam: "Away",
@@ -11761,6 +12053,7 @@ const bottomNavKeys = [
   "navHome",
   "navMatches",
   "navPerformance",
+  "navToolbox",
   "navAccount"
 ];
 
@@ -11793,6 +12086,56 @@ bottomNavItems.forEach(
 
   }
 );
+
+const dataLoadingText =
+  document.getElementById(
+    "v2DataLoadingText"
+  );
+
+if (
+  dataLoadingText &&
+  !document
+    .getElementById(
+      "v2DataLoadingStatus"
+    )
+    ?.classList
+    .contains(
+      "is-error"
+    )
+) {
+  dataLoadingText.textContent =
+    I18N.t(
+      "dataSyncing",
+      "AI 正在同步最新賽事資料"
+    );
+}
+
+const focusLoadingTitle =
+  document.getElementById(
+    "v2FocusLoadingTitle"
+  );
+
+if (focusLoadingTitle) {
+  focusLoadingTitle.textContent =
+    I18N.t(
+      "dataSyncing",
+      "AI 正在同步最新賽事資料"
+    );
+}
+
+const focusLoadingHint =
+  document.getElementById(
+    "v2FocusLoadingHint"
+  );
+
+if (focusLoadingHint) {
+  focusLoadingHint.textContent =
+    I18N.t(
+      "dataSyncHint",
+      "請稍候，資料載入完成後會自動更新"
+    );
+}
+
 
 const quickLabels =
   document.querySelectorAll(
