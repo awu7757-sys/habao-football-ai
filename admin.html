@@ -576,6 +576,66 @@ tr:last-child td{border-bottom:0}
   .shadow-detail-head{flex-direction:column}
 }
 
+/* 影子模型詳情：避免橫向超出 */
+#jsonModal{
+  overflow-y:auto;
+}
+#jsonModal .modal-card.wide{
+  width:min(96vw,1180px);
+  max-width:1180px;
+  max-height:92vh;
+  overflow:hidden;
+}
+#jsonModalContent{
+  width:100%;
+  min-width:0;
+  max-height:76vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  white-space:normal;
+  font-family:inherit;
+}
+#jsonModal .shadow-detail-card,
+#jsonModal .shadow-snapshot,
+#jsonModal .shadow-detail-grid,
+#jsonModal .shadow-snapshot-grid{
+  min-width:0;
+  max-width:100%;
+}
+#jsonModal .shadow-compare-table{
+  width:100%;
+  max-width:100%;
+  table-layout:fixed;
+}
+#jsonModal .shadow-compare-table th,
+#jsonModal .shadow-compare-table td{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  white-space:normal;
+}
+#jsonModal .shadow-snapshot pre,
+#jsonModal details pre{
+  width:100%;
+  max-width:100%;
+  overflow:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+@media(max-width:820px){
+  #jsonModal{padding:8px}
+  #jsonModal .modal-card.wide{
+    width:98vw;
+    max-height:96vh;
+    padding:14px;
+    border-radius:14px;
+  }
+  #jsonModalContent{max-height:82vh}
+  #jsonModal .shadow-compare-table{font-size:9px}
+  #jsonModal .shadow-compare-table th,
+  #jsonModal .shadow-compare-table td{padding:7px 5px}
+}
+
 </style>
 </head>
 
@@ -1626,7 +1686,7 @@ tr:last-child td{border-bottom:0}
 <div id="jsonModal" class="modal hidden">
   <div class="modal-card wide">
     <div class="modal-title" id="jsonModalTitle">詳細資料</div>
-    <pre id="jsonModalContent" class="json-pre"></pre>
+    <div id="jsonModalContent" class="json-pre"></div>
     <div class="modal-actions">
       <button class="modal-close" onclick="closeJsonModal()">關閉</button>
     </div>
@@ -4472,7 +4532,7 @@ function shadowSnapshotHtml(label, snapshot) {
         來源：${escapeHtml(source)}
       </div>
       <details>
-        <summary>查看此階段原始賠率 JSON</summary>
+        <summary>進階：查看此階段原始賠率資料</summary>
         <pre>${escapeHtml(JSON.stringify(rawOdds ?? {}, null, 2))}</pre>
       </details>
     </div>
@@ -4495,10 +4555,19 @@ function shadowCorrectionSummary(meta) {
 
       const action = String(item?.action || "keep");
       const actionLabel = {
-        keep: "維持",
-        flip: "翻向",
-        no_recommendation: "改為暫不推薦"
-      }[action] || action;
+        keep: "維持原預測",
+        unchanged: "維持原預測",
+        flip: "改變預測方向",
+        strengthen: "強化原預測",
+        strength: "強化原預測",
+        weaken: "降低原預測信心",
+        weakening: "降低原預測信心",
+        no_recommendation: "改為暫不推薦",
+        market_unmatched: "市場盤口無法配對",
+        market_missing: "缺少可用市場盤口",
+        insufficient_move: "市場變化不足，不調整",
+        no_change: "維持原預測"
+      }[action] || `系統狀態：${action}`;
 
       const reason =
         item?.reason ||
@@ -4596,19 +4665,18 @@ async function showShadowTestDetail(fixtureId) {
             ${escapeHtml(item?.home_team || "—")} vs ${escapeHtml(item?.away_team || "—")}
           </div>
           <div class="shadow-detail-sub">
-            Fixture ID：${escapeHtml(item?.fixture_id ?? "—")}<br>
+            賽事編號：${escapeHtml(item?.fixture_id ?? "—")}<br>
             聯賽：${escapeHtml(normalizeLeagueDisplay(item?.league_name))}<br>
             開賽：${item?.kickoff_at ? escapeHtml(formatDate(item.kickoff_at)) : "—"}<br>
-            狀態：${escapeHtml(item?.status || "—")}｜Model：${escapeHtml(item?.model_version || "—")}
+            結算狀態：${escapeHtml(item?.status === "verified" ? "已結算" : (item?.status || "—"))}
           </div>
         </div>
         <div class="shadow-detail-score">${escapeHtml(realScore)}</div>
       </div>
 
       <div class="shadow-note">
-        三階段目前保存的是「賠率快照」；正式版預測與影子版最終預測則保存在 odds_shadow_tests。
-        影子版最終結果由初盤 → T-30M（若有 T-6H 也參與資訊）校正產生。
-        這個畫面只讀取已保存資料，不會重跑模型，也不會重算歷史 settlement。
+        這裡顯示的是賽前已保存資料，不會重新預測，也不會改寫賽後結果。<br>
+        流程：初盤 → 開賽前 6 小時 → 開賽前 30 分鐘 → 產生影子版最終預測 → 完賽後比對命中結果。
       </div>
 
       <div class="shadow-detail-grid">
@@ -4671,17 +4739,17 @@ async function showShadowTestDetail(fixtureId) {
         <h4>三階段賠率快照</h4>
         <div class="shadow-snapshot-grid">
           ${shadowSnapshotHtml("初盤", snapshots?.initial)}
-          ${shadowSnapshotHtml("T-6H", snapshots?.t6h)}
-          ${shadowSnapshotHtml("T-30M", snapshots?.t30m)}
+          ${shadowSnapshotHtml("開賽前 6 小時（T-6H）", snapshots?.t6h)}
+          ${shadowSnapshotHtml("開賽前 30 分鐘（T-30M）", snapshots?.t30m)}
         </div>
       </div>
 
       <div class="shadow-detail-card" style="margin-top:12px">
-        <h4>影子校正原因</h4>
+        <h4>影子版為什麼有調整</h4>
         ${shadowCorrectionSummary(item?.correction_meta)}
         <details style="margin-top:10px">
           <summary style="cursor:pointer;color:var(--gold-light);font-size:9px;font-weight:900">
-            查看 correction_meta 原始 JSON
+            進階：查看影子校正原始資料
           </summary>
           <pre style="max-height:300px;overflow:auto;margin-top:8px;padding:10px;border-radius:10px;background:#05090e;color:#aeb9c5;font-size:8px;white-space:pre-wrap">${escapeHtml(JSON.stringify(item?.correction_meta ?? {}, null, 2))}</pre>
         </details>
