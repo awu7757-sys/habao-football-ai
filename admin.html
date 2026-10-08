@@ -508,6 +508,74 @@ tr:last-child td{border-bottom:0}
 .admin-identity .status{white-space:nowrap}
 .permission-hidden{display:none!important}
 @media(max-width:700px){.permission-grid{grid-template-columns:1fr}}
+
+/* ===== SHADOW TEST DETAIL ===== */
+.shadow-detail-head{
+  display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
+  margin:4px 0 14px;padding:14px;border:1px solid var(--border);
+  border-radius:14px;background:rgba(255,255,255,.018)
+}
+.shadow-detail-title{font-size:14px;font-weight:950;color:#fff}
+.shadow-detail-sub{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.7}
+.shadow-detail-score{
+  flex:0 0 auto;padding:9px 12px;border-radius:11px;
+  border:1px solid var(--border-gold);background:rgba(242,189,75,.08);
+  color:var(--gold-light);font-size:18px;font-weight:1000
+}
+.shadow-detail-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0
+}
+.shadow-detail-card{
+  min-width:0;padding:14px;border:1px solid var(--border);
+  border-radius:14px;background:rgba(255,255,255,.018)
+}
+.shadow-detail-card.gold{border-color:var(--border-gold);background:rgba(242,189,75,.035)}
+.shadow-detail-card.green{border-color:rgba(60,221,130,.18);background:rgba(60,221,130,.025)}
+.shadow-detail-card h4{
+  margin:0 0 10px;color:#fff;font-size:12px;font-weight:950
+}
+.shadow-compare-table{width:100%;border-collapse:collapse;font-size:10px}
+.shadow-compare-table th,.shadow-compare-table td{
+  padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;vertical-align:top
+}
+.shadow-compare-table th{color:#82909f;font-size:9px;letter-spacing:.3px}
+.shadow-compare-table td{color:#e7edf3}
+.shadow-muted{color:#7f8a98}
+.shadow-scores{color:var(--gold-light);font-weight:900}
+.shadow-result{
+  display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;
+  font-size:9px;font-weight:900;border:1px solid var(--border)
+}
+.shadow-result.win,.shadow-result.half_win{color:#75edaa;border-color:rgba(60,221,130,.25);background:rgba(60,221,130,.08)}
+.shadow-result.loss,.shadow-result.half_loss{color:#ff8888;border-color:rgba(255,101,101,.24);background:rgba(255,101,101,.08)}
+.shadow-result.push{color:#ffd477;border-color:rgba(242,189,75,.24);background:rgba(242,189,75,.08)}
+.shadow-result.na{color:#8f9aaa}
+.shadow-snapshot-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px
+}
+.shadow-snapshot{
+  min-width:0;padding:12px;border:1px solid var(--border);border-radius:13px;background:#080d13
+}
+.shadow-snapshot-title{font-size:11px;font-weight:950;color:#fff}
+.shadow-snapshot-meta{margin-top:6px;color:#7f8a98;font-size:9px;line-height:1.65}
+.shadow-snapshot-source{margin-top:7px;color:#d7dee7;font-size:9px;overflow-wrap:anywhere}
+.shadow-snapshot details{margin-top:9px}
+.shadow-snapshot summary{cursor:pointer;color:var(--gold-light);font-size:9px;font-weight:900}
+.shadow-snapshot pre{
+  max-height:260px;overflow:auto;margin-top:8px;padding:9px;border-radius:9px;
+  background:#05090e;color:#aeb9c5;font-size:8px;line-height:1.6;white-space:pre-wrap
+}
+.shadow-note{
+  margin:10px 0;padding:10px 12px;border-radius:11px;
+  border:1px solid rgba(242,189,75,.15);background:rgba(242,189,75,.035);
+  color:#aeb8c4;font-size:9px;line-height:1.7
+}
+@media(max-width:820px){
+  .shadow-detail-grid{grid-template-columns:1fr}
+  .shadow-snapshot-grid{grid-template-columns:1fr}
+  .shadow-detail-head{flex-direction:column}
+}
+
 </style>
 </head>
 
@@ -4282,8 +4350,353 @@ function renderShadowTests(){
   const marketBody=document.getElementById("shadowMarketBody"); const labels={moneyline:"獨贏",over_under:"大小分",handicap:"讓分",btts:"BTTS"};
   if(marketBody){marketBody.innerHTML=Object.entries(labels).map(([key,label])=>{const item=shadowTestPayload?.markets?.[key]||{};return `<tr><td class="account-name">${label}</td><td>${Number(item.baseline_sample||0)}</td><td>${shadowRate(item.baseline_rate)}</td><td>${Number(item.shadow_sample||0)}</td><td>${shadowRate(item.shadow_rate)}</td><td><span class="status active">${Number(item.wrong_to_right||0)}</span></td><td><span class="status off">${Number(item.right_to_wrong||0)}</span></td><td>${Number(item.changed||0)}</td></tr>`;}).join("");}
   const body=document.getElementById("shadowTestBody"); if(!body)return; if(!shadowTestRows.length){body.innerHTML='<tr><td colspan="8" class="empty">尚未累積影子測試資料。排程開始後會自動出現。</td></tr>';return;}
-  body.innerHTML=shadowTestRows.map(row=>`<tr><td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td><td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td><td>${escapeHtml(shadowSnapshotText(row))}</td><td>${statusBadge(row?.status)}</td><td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td><td><button class="action-btn" onclick='showJsonModal("臨場模型測試詳細", shadowTestRows.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button></td></tr>`).join("");
+  body.innerHTML=shadowTestRows.map(row=>`<tr><td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td><td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td><td>${escapeHtml(shadowSnapshotText(row))}</td><td>${statusBadge(row?.status)}</td><td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td><td><button class="action-btn" onclick="showShadowTestDetail(${Number(row?.fixture_id)})">查看分析</button></td></tr>`).join("");
 }
+
+
+function shadowResultLabel(value) {
+  const raw = String(value?.result || value || "").toLowerCase();
+  const labels = {
+    win: "命中",
+    half_win: "半贏",
+    push: "走盤",
+    half_loss: "半輸",
+    loss: "未命中"
+  };
+  return labels[raw] || "無有效結算";
+}
+
+function shadowResultClass(value) {
+  const raw = String(value?.result || value || "").toLowerCase();
+  return ["win","half_win","push","half_loss","loss"].includes(raw) ? raw : "na";
+}
+
+function shadowRecText(prediction, market) {
+  const rec = prediction?.recommendations?.[market] || null;
+  if (!rec) return "—";
+
+  const pick = String(rec?.pick || "—");
+  let line = rec?.line;
+
+  if (
+    (line === undefined || line === null || line === "") &&
+    market === "over_under"
+  ) {
+    const m = pick.match(/-?\d+(?:\.\d+)?/);
+    if (m) line = m[0];
+  }
+
+  const confidence =
+    Number.isFinite(Number(rec?.confidence))
+      ? `${Number(rec.confidence)}%`
+      : "—";
+
+  const lineText =
+    line === undefined || line === null || line === ""
+      ? ""
+      : `｜盤口 ${line}`;
+
+  return `${pick}${lineText}｜信心 ${confidence}`;
+}
+
+function shadowScoreText(prediction) {
+  const scores = Array.isArray(prediction?.predicted_scores)
+    ? prediction.predicted_scores
+    : [];
+
+  if (!scores.length) return "—";
+
+  return scores
+    .map(item => {
+      if (typeof item === "string") return item;
+      const score = String(item?.score || "—");
+      const confidence =
+        Number.isFinite(Number(item?.confidence))
+          ? ` ${Number(item.confidence)}%`
+          : "";
+      return `${score}${confidence}`;
+    })
+    .join("、");
+}
+
+function shadowSettlementHtml(settlement, market) {
+  const item = settlement?.[market] || null;
+  const label = shadowResultLabel(item);
+  const cls = shadowResultClass(item);
+  return `<span class="shadow-result ${cls}">${escapeHtml(label)}</span>`;
+}
+
+function shadowSnapshotSource(snapshot) {
+  const odds = snapshot?.odds || {};
+  return String(
+    odds?.matchSource ||
+    odds?.source ||
+    odds?.provider ||
+    odds?.oddsSource ||
+    (snapshot?.panda_match_id ? "Panda（僅由 match id 判斷）" : "") ||
+    "未記錄（不可驗證）"
+  );
+}
+
+function shadowSnapshotHtml(label, snapshot) {
+  if (!snapshot) {
+    return `
+      <div class="shadow-snapshot">
+        <div class="shadow-snapshot-title">${escapeHtml(label)}</div>
+        <div class="shadow-snapshot-meta">沒有保存快照</div>
+      </div>
+    `;
+  }
+
+  const captured = snapshot?.captured_at
+    ? formatDate(snapshot.captured_at)
+    : "—";
+
+  const minutes =
+    Number.isFinite(Number(snapshot?.minutes_to_kickoff))
+      ? `${Math.abs(Number(snapshot.minutes_to_kickoff))} 分鐘`
+      : "—";
+
+  const source = shadowSnapshotSource(snapshot);
+  const rawOdds = snapshot?.odds ?? null;
+
+  return `
+    <div class="shadow-snapshot">
+      <div class="shadow-snapshot-title">${escapeHtml(label)}</div>
+      <div class="shadow-snapshot-meta">
+        實際抓取：${escapeHtml(captured)}<br>
+        距開賽：約 ${escapeHtml(minutes)}<br>
+        Panda Match ID：${escapeHtml(snapshot?.panda_match_id || "—")}
+      </div>
+      <div class="shadow-snapshot-source">
+        來源：${escapeHtml(source)}
+      </div>
+      <details>
+        <summary>查看此階段原始賠率 JSON</summary>
+        <pre>${escapeHtml(JSON.stringify(rawOdds ?? {}, null, 2))}</pre>
+      </details>
+    </div>
+  `;
+}
+
+function shadowCorrectionSummary(meta) {
+  const markets = meta?.markets || {};
+  const labels = {
+    moneyline: "獨贏",
+    over_under: "大小分",
+    handicap: "讓分",
+    btts: "BTTS"
+  };
+
+  const rows = Object.entries(labels)
+    .map(([key,label]) => {
+      const item = markets?.[key] || null;
+      if (!item) return "";
+
+      const action = String(item?.action || "keep");
+      const actionLabel = {
+        keep: "維持",
+        flip: "翻向",
+        no_recommendation: "改為暫不推薦"
+      }[action] || action;
+
+      const reason =
+        item?.reason ||
+        item?.message ||
+        item?.note ||
+        "";
+
+      return `
+        <tr>
+          <td>${escapeHtml(label)}</td>
+          <td>${escapeHtml(actionLabel)}</td>
+          <td>${escapeHtml(reason || "—")}</td>
+        </tr>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  if (!rows) {
+    return `<div class="shadow-muted">沒有保存可讀的校正明細。</div>`;
+  }
+
+  return `
+    <table class="shadow-compare-table">
+      <thead><tr><th>市場</th><th>校正動作</th><th>原因</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+async function showShadowTestDetail(fixtureId) {
+  const row = shadowTestRows.find(
+    x => Number(x?.fixture_id) === Number(fixtureId)
+  ) || {};
+
+  setText(
+    "jsonModalTitle",
+    `臨場模型逐場對照｜${row?.home_team || "—"} vs ${row?.away_team || "—"}`
+  );
+
+  const content =
+    document.getElementById("jsonModalContent");
+
+  if (!content) return;
+
+  content.style.whiteSpace = "normal";
+  content.innerHTML = `
+    <div style="padding:4px 0;color:#8f9aaa;font-size:10px">
+      正在讀取此場已保存的正式版、影子版、三階段快照與 settlement…
+    </div>
+  `;
+
+  document
+    .getElementById("jsonModal")
+    ?.classList.remove("hidden");
+
+  try {
+    const data = await adminCenterRequest({
+      action: "shadow_test_detail",
+      fixture_id: Number(fixtureId)
+    });
+
+    const item = data?.test || {};
+    const baseline = item?.baseline_prediction || {};
+    const shadow = item?.shadow_prediction || {};
+    const baselineSettlement = item?.baseline_settlement || {};
+    const shadowSettlement = item?.shadow_settlement || {};
+    const snapshots = item?.snapshots || {};
+    const markets = [
+      ["moneyline","獨贏"],
+      ["over_under","大小分"],
+      ["handicap","讓分"],
+      ["btts","BTTS"]
+    ];
+
+    const comparisonRows = markets.map(([key,label]) => `
+      <tr>
+        <td><strong>${escapeHtml(label)}</strong></td>
+        <td>${escapeHtml(shadowRecText(baseline,key))}</td>
+        <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
+        <td>${escapeHtml(shadowRecText(shadow,key))}</td>
+        <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
+      </tr>
+    `).join("");
+
+    const realScore =
+      item?.home_score != null && item?.away_score != null
+        ? `${item.home_score} - ${item.away_score}`
+        : "—";
+
+    content.innerHTML = `
+      <div class="shadow-detail-head">
+        <div>
+          <div class="shadow-detail-title">
+            ${escapeHtml(item?.home_team || "—")} vs ${escapeHtml(item?.away_team || "—")}
+          </div>
+          <div class="shadow-detail-sub">
+            Fixture ID：${escapeHtml(item?.fixture_id ?? "—")}<br>
+            聯賽：${escapeHtml(normalizeLeagueDisplay(item?.league_name))}<br>
+            開賽：${item?.kickoff_at ? escapeHtml(formatDate(item.kickoff_at)) : "—"}<br>
+            狀態：${escapeHtml(item?.status || "—")}｜Model：${escapeHtml(item?.model_version || "—")}
+          </div>
+        </div>
+        <div class="shadow-detail-score">${escapeHtml(realScore)}</div>
+      </div>
+
+      <div class="shadow-note">
+        三階段目前保存的是「賠率快照」；正式版預測與影子版最終預測則保存在 odds_shadow_tests。
+        影子版最終結果由初盤 → T-30M（若有 T-6H 也參與資訊）校正產生。
+        這個畫面只讀取已保存資料，不會重跑模型，也不會重算歷史 settlement。
+      </div>
+
+      <div class="shadow-detail-grid">
+        <div class="shadow-detail-card gold">
+          <h4>正式版原始預測</h4>
+          <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
+            預測比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(baseline))}</span>
+          </div>
+          <table class="shadow-compare-table">
+            <thead><tr><th>市場</th><th>預測</th><th>賽後結果</th></tr></thead>
+            <tbody>
+              ${markets.map(([key,label]) => `
+                <tr>
+                  <td>${escapeHtml(label)}</td>
+                  <td>${escapeHtml(shadowRecText(baseline,key))}</td>
+                  <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="shadow-detail-card green">
+          <h4>影子版最終預測</h4>
+          <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
+            預測比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(shadow))}</span>
+          </div>
+          <table class="shadow-compare-table">
+            <thead><tr><th>市場</th><th>預測</th><th>賽後結果</th></tr></thead>
+            <tbody>
+              ${markets.map(([key,label]) => `
+                <tr>
+                  <td>${escapeHtml(label)}</td>
+                  <td>${escapeHtml(shadowRecText(shadow,key))}</td>
+                  <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="shadow-detail-card" style="margin-top:12px">
+        <h4>正式版 vs 影子版快速對照</h4>
+        <table class="shadow-compare-table">
+          <thead>
+            <tr>
+              <th>市場</th>
+              <th>正式版</th>
+              <th>正式結算</th>
+              <th>影子版</th>
+              <th>影子結算</th>
+            </tr>
+          </thead>
+          <tbody>${comparisonRows}</tbody>
+        </table>
+      </div>
+
+      <div class="shadow-detail-card" style="margin-top:12px">
+        <h4>三階段賠率快照</h4>
+        <div class="shadow-snapshot-grid">
+          ${shadowSnapshotHtml("初盤", snapshots?.initial)}
+          ${shadowSnapshotHtml("T-6H", snapshots?.t6h)}
+          ${shadowSnapshotHtml("T-30M", snapshots?.t30m)}
+        </div>
+      </div>
+
+      <div class="shadow-detail-card" style="margin-top:12px">
+        <h4>影子校正原因</h4>
+        ${shadowCorrectionSummary(item?.correction_meta)}
+        <details style="margin-top:10px">
+          <summary style="cursor:pointer;color:var(--gold-light);font-size:9px;font-weight:900">
+            查看 correction_meta 原始 JSON
+          </summary>
+          <pre style="max-height:300px;overflow:auto;margin-top:8px;padding:10px;border-radius:10px;background:#05090e;color:#aeb9c5;font-size:8px;white-space:pre-wrap">${escapeHtml(JSON.stringify(item?.correction_meta ?? {}, null, 2))}</pre>
+        </details>
+      </div>
+    `;
+
+  } catch (error) {
+    content.innerHTML = `
+      <div class="danger-note">
+        逐場詳情讀取失敗：${escapeHtml(error?.message || String(error))}
+      </div>
+    `;
+  }
+}
+
 
 async function runShadowRunner(button){const old=button?.textContent;if(button){button.disabled=true;button.textContent="執行中…";}try{const data=await adminCenterRequest({action:"run_shadow_runner"});showJsonModal("影子排程結果",data.report||data);await loadShadowTests(false);}catch(error){alert("影子排程執行失敗："+(error?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"立即執行影子排程";}}}
 
