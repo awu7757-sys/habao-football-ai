@@ -5824,6 +5824,228 @@ padding:
 <script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
   
+
+<style>
+/* =========================================================
+   HABAO｜AI 工具箱「全新上線」活動特效
+   只有後台開啟時才會套用，不改變體育 APP 主視覺。
+========================================================= */
+
+.v2-tool-card.v2-tool-toolbox {
+  position: relative;
+}
+
+.v2-toolbox-launch-badge {
+  display: none;
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching {
+  overflow: hidden;
+  border-color: rgba(242,189,75,.48);
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.40),
+    0 0 0 1px rgba(242,189,75,.08),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching::before {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  z-index: 0;
+  pointer-events: none;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 250deg,
+      rgba(255,225,145,.12) 285deg,
+      rgba(242,189,75,.48) 315deg,
+      transparent 350deg
+    );
+
+  animation:
+    habaoToolboxLaunchRing 5.5s linear infinite;
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -55%;
+  left: -42%;
+  width: 28%;
+  height: 210%;
+  pointer-events: none;
+
+  transform: rotate(22deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,238,188,.13),
+      transparent
+    );
+
+  animation:
+    habaoToolboxLaunchSweep 4.8s ease-in-out infinite;
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-tool-top,
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-tool-content,
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-tool-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-toolbox-launch-badge {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  min-height: 23px;
+  padding: 4px 8px;
+
+  border: 1px solid rgba(255,222,136,.35);
+  border-radius: 999px;
+
+  color: #ffe49b;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(242,189,75,.22),
+      rgba(88,58,10,.22)
+    );
+
+  box-shadow:
+    0 6px 16px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.12);
+
+  font-size: 7px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .65px;
+
+  animation:
+    habaoToolboxBadgeBreath 2.4s ease-in-out infinite;
+}
+
+.v2-toolbox-launch-subtitle {
+  display: none;
+}
+
+.v2-tool-card.v2-tool-toolbox.is-launching
+.v2-toolbox-launch-subtitle {
+  display: block;
+  margin-top: 8px;
+
+  color: rgba(255,221,139,.78);
+  font-size: 8px;
+  line-height: 1.45;
+  font-weight: 850;
+}
+
+.bottom-nav
+.nav-item.v2-toolbox-nav-launch {
+  position: relative;
+}
+
+.v2-toolbox-nav-new {
+  display: none;
+}
+
+.bottom-nav
+.nav-item.v2-toolbox-nav-launch
+.v2-toolbox-nav-new {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 22px;
+  height: 12px;
+  padding: 0 4px;
+
+  border: 1px solid rgba(255,214,111,.26);
+  border-radius: 999px;
+
+  color: #ffdf88;
+  background: rgba(242,189,75,.14);
+
+  font-size: 6px;
+  font-weight: 950;
+  letter-spacing: .35px;
+
+  box-shadow:
+    0 0 10px rgba(242,189,75,.12);
+}
+
+@keyframes habaoToolboxLaunchRing {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes habaoToolboxLaunchSweep {
+  0%,
+  58% {
+    left: -42%;
+    opacity: 0;
+  }
+
+  66% {
+    opacity: 1;
+  }
+
+  88% {
+    left: 120%;
+    opacity: .8;
+  }
+
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+@keyframes habaoToolboxBadgeBreath {
+  0%,
+  100% {
+    opacity: .78;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-tool-card.v2-tool-toolbox.is-launching::before,
+  .v2-tool-card.v2-tool-toolbox.is-launching::after,
+  .v2-tool-card.v2-tool-toolbox.is-launching
+  .v2-toolbox-launch-badge {
+    animation: none !important;
+  }
+}
+</style>
+
 </head>    
 
 <body>
@@ -13123,5 +13345,245 @@ loadV2PartnerPlatforms();
   );
 })();
 </script>
+
+<script>
+/* =========================================================
+   HABAO｜AI 工具箱上線活動
+   後台可即時開關，不需要重新部署前台。
+========================================================= */
+(() => {
+  const TOOLBOX_LAUNCH_SETTINGS_URL =
+    "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/toolbox-launch-settings";
+
+  const DEFAULTS = {
+    enabled: false,
+    badge_text: "NEW｜全新上線",
+    subtitle_text: "全新 AI 工具現已開放"
+  };
+
+  function ensureToolboxLaunchNodes() {
+    const card =
+      document.querySelector(
+        ".v2-tool-card.v2-tool-toolbox"
+      );
+
+    if (card) {
+      let badge =
+        card.querySelector(
+          ".v2-toolbox-launch-badge"
+        );
+
+      if (!badge) {
+        badge =
+          document.createElement(
+            "div"
+          );
+
+        badge.className =
+          "v2-toolbox-launch-badge";
+
+        badge.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+        card.appendChild(
+          badge
+        );
+      }
+
+      let subtitle =
+        card.querySelector(
+          ".v2-toolbox-launch-subtitle"
+        );
+
+      if (!subtitle) {
+        subtitle =
+          document.createElement(
+            "div"
+          );
+
+        subtitle.className =
+          "v2-toolbox-launch-subtitle";
+
+        const content =
+          card.querySelector(
+            ".v2-tool-content"
+          );
+
+        content?.appendChild(
+          subtitle
+        );
+      }
+    }
+
+    const navItem =
+      document.querySelector(
+        '.bottom-nav .nav-item[href="ai-tools.html"]'
+      );
+
+    if (navItem) {
+      let navBadge =
+        navItem.querySelector(
+          ".v2-toolbox-nav-new"
+        );
+
+      if (!navBadge) {
+        navBadge =
+          document.createElement(
+            "span"
+          );
+
+        navBadge.className =
+          "v2-toolbox-nav-new";
+
+        navBadge.textContent =
+          "NEW";
+
+        navBadge.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+        navItem.appendChild(
+          navBadge
+        );
+      }
+    }
+  }
+
+  function applyToolboxLaunchSettings(
+    settings = {}
+  ) {
+    ensureToolboxLaunchNodes();
+
+    const merged = {
+      ...DEFAULTS,
+      ...settings
+    };
+
+    const enabled =
+      merged.enabled === true;
+
+    const card =
+      document.querySelector(
+        ".v2-tool-card.v2-tool-toolbox"
+      );
+
+    const navItem =
+      document.querySelector(
+        '.bottom-nav .nav-item[href="ai-tools.html"]'
+      );
+
+    card?.classList.toggle(
+      "is-launching",
+      enabled
+    );
+
+    navItem?.classList.toggle(
+      "v2-toolbox-nav-launch",
+      enabled
+    );
+
+    const badge =
+      card?.querySelector(
+        ".v2-toolbox-launch-badge"
+      );
+
+    if (badge) {
+      badge.textContent =
+        String(
+          merged.badge_text ||
+          DEFAULTS.badge_text
+        );
+    }
+
+    const subtitle =
+      card?.querySelector(
+        ".v2-toolbox-launch-subtitle"
+      );
+
+    if (subtitle) {
+      subtitle.textContent =
+        String(
+          merged.subtitle_text ||
+          DEFAULTS.subtitle_text
+        );
+    }
+  }
+
+  async function loadToolboxLaunchSettings() {
+    /*
+     * API 異常時直接維持普通卡片，
+     * 不影響首頁、賽事或會員登入。
+     */
+    applyToolboxLaunchSettings(
+      DEFAULTS
+    );
+
+    try {
+      const response =
+        await fetch(
+          TOOLBOX_LAUNCH_SETTINGS_URL,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body:
+              JSON.stringify({
+                action:
+                  "get_public"
+              }),
+            cache:
+              "no-store"
+          }
+        );
+
+      const data =
+        await response
+          .json()
+          .catch(() => null);
+
+      if (
+        !response.ok ||
+        data?.success !== true
+      ) {
+        return;
+      }
+
+      applyToolboxLaunchSettings(
+        data.settings || {}
+      );
+
+    } catch (error) {
+      console.warn(
+        "TOOLBOX LAUNCH SETTINGS LOAD ERROR:",
+        error
+      );
+    }
+  }
+
+  window.loadToolboxLaunchSettings =
+    loadToolboxLaunchSettings;
+
+  if (
+    document.readyState ===
+      "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      loadToolboxLaunchSettings,
+      {
+        once: true
+      }
+    );
+  } else {
+    loadToolboxLaunchSettings();
+  }
+})();
+</script>
+
 </body>
 </html>
