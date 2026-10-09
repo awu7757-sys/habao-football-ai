@@ -7663,12 +7663,52 @@ if (!matches.length) {
       "荷兰杯"
   };
 
+  // =========================================
+  // 我的分析｜歷史聯賽名稱多語系
+  // 歷史資料可能已儲存成英文、繁體或簡體，
+  // 先還原成英文 canonical name，再依目前語言輸出。
+  // =========================================
+
+  const historyLeagueEnglishByLocalized = {};
+
+  Object.entries(
+    historyLeagueNameZH
+  ).forEach(
+    ([english, traditional]) => {
+      historyLeagueEnglishByLocalized[
+        traditional
+      ] = english;
+    }
+  );
+
+  Object.entries(
+    historyLeagueNameHans
+  ).forEach(
+    ([english, simplified]) => {
+      historyLeagueEnglishByLocalized[
+        simplified
+      ] = english;
+    }
+  );
+
+
   function getHistoryLeagueName(
     originalName
   ) {
+    const original =
+      String(
+        originalName || ""
+      ).trim();
+
+    const englishName =
+      historyLeagueEnglishByLocalized[
+        original
+      ] ||
+      original;
+
     if (lang === "en") {
       return (
-        originalName ||
+        englishName ||
         t(
           "footballMatch",
           "Football Match"
@@ -7676,56 +7716,108 @@ if (!matches.length) {
       );
     }
 
-    if (lang === "zh-Hans") {
-      return (
-        historyLeagueNameHans[
-          originalName
-        ] ||
-        originalName ||
-        t(
-          "footballMatch",
-          "足球赛事"
-        )
-      );
-    }
-
-    return (
+    const traditional =
       historyLeagueNameZH[
-        originalName
+        englishName
       ] ||
-      originalName ||
+      original ||
       t(
         "footballMatch",
         "足球賽事"
-      )
+      );
+
+    if (
+      lang === "zh-Hans" &&
+      window.HabaoI18n
+        ?.toSimplified
+    ) {
+      return (
+        window.HabaoI18n
+          .toSimplified(
+            traditional
+          )
+      );
+    }
+
+    return traditional;
+  }
+
+
+  // =========================================
+  // 我的分析｜歷史球隊名稱多語系
+  // teamNameZH 是既有的
+  // English -> Traditional 中文名稱表。
+  // 這裡反向建立 Traditional -> English，
+  // 讓舊歷史紀錄也能回到英文。
+  // =========================================
+
+  const historyTeamEnglishByLocalized = {};
+
+  if (
+    typeof teamNameZH ===
+      "object" &&
+    teamNameZH
+  ) {
+    Object.entries(
+      teamNameZH
+    ).forEach(
+      ([english, traditional]) => {
+        historyTeamEnglishByLocalized[
+          String(traditional)
+        ] = english;
+      }
     );
   }
+
 
   function getHistoryTeamName(
     originalName
   ) {
+    const original =
+      String(
+        originalName || ""
+      ).trim();
+
+    if (!original) {
+      return "--";
+    }
+
     if (lang === "en") {
       return (
-        originalName ||
+        historyTeamEnglishByLocalized[
+          original
+        ] ||
+        original ||
         "--"
       );
     }
 
-    if (
+    const traditional =
       typeof getTeamNameZH ===
-      "function"
+        "function"
+        ? (
+            getTeamNameZH(
+              original
+            ) ||
+            original
+          )
+        : original;
+
+    if (
+      lang === "zh-Hans" &&
+      window.HabaoI18n
+        ?.toSimplified
     ) {
       return (
-        getTeamNameZH(
-          originalName
-        ) ||
-        originalName ||
-        "--"
+        window.HabaoI18n
+          .toSimplified(
+            traditional
+          )
       );
     }
 
     return (
-      originalName ||
+      traditional ||
       "--"
     );
   }
