@@ -2477,12 +2477,65 @@ function renderMembers() {
   const search = String(document.getElementById("searchInput")?.value || "").trim().toLowerCase();
   const levelFilter = document.getElementById("levelFilter")?.value || "all";
   const statusFilter = document.getElementById("statusFilter")?.value || "all";
-  const filtered = members.filter(member => {
-    const haystack = [member?.account,member?.platform_name,member?.platform_account].join(" ").toLowerCase();
-    const level = String(member?.member_level || "normal").toLowerCase();
-    const active = member?.is_active === true;
-    return (!search || haystack.includes(search)) && (levelFilter === "all" || level === levelFilter) && (statusFilter === "all" || (statusFilter === "active" && active) || (statusFilter === "inactive" && !active));
+  
+const filtered = members
+  .filter(member => {
+    const haystack = [
+      member?.account,
+      member?.platform_name,
+      member?.platform_account
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const level =
+      String(
+        member?.member_level ||
+        "normal"
+      ).toLowerCase();
+
+    const active =
+      member?.is_active === true;
+
+    return (
+      (!search ||
+        haystack.includes(search)) &&
+      (
+        levelFilter === "all" ||
+        level === levelFilter
+      ) &&
+      (
+        statusFilter === "all" ||
+        (
+          statusFilter === "active" &&
+          active
+        ) ||
+        (
+          statusFilter === "inactive" &&
+          !active
+        )
+      )
+    );
+  })
+  .sort((a, b) => {
+
+    const aTime =
+      a?.last_login_at
+        ? new Date(
+            a.last_login_at
+          ).getTime()
+        : 0;
+
+    const bTime =
+      b?.last_login_at
+        ? new Date(
+            b.last_login_at
+          ).getTime()
+        : 0;
+
+    return bTime - aTime;
   });
+  
   tbody.innerHTML="";
   empty?.classList.toggle("hidden",filtered.length>0);
   filtered.forEach(member=>{
