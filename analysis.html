@@ -4168,65 +4168,323 @@ function applyAnalysisStaticLanguage() {
 
 applyAnalysisStaticLanguage();   
 
-async function refreshAnalysisLanguage() {
+async function refreshAnalysisLanguage(
+  options = {}
+) {
+  const {
+    reload = false
+  } = options;
+
   try {
-    const rawCurrent =
-      sessionStorage.getItem("matchAnalysis");
-
-    const current = rawCurrent
-      ? JSON.parse(rawCurrent)
-      : null;
-
-    const fixtureId =
-      Number(current?.fixture?.id || 0);
-
-    const member = JSON.parse(
-      sessionStorage.getItem("habao_member") ||
-      "null"
-    );
 
     const language =
-      window.HabaoI18n?.getLanguage?.() ||
+      window.HabaoI18n
+        ?.getLanguage?.() ||
       "zh-Hant";
 
-    if (!fixtureId || !member?.account) {
-      window.location.reload();
-      return;
+
+    // =====================================
+    // 找目前正在看的分析
+    // 單場：matchAnalysis
+    // 批量：matchAnalysisBatch 目前這一場
+    // =====================================
+
+    let current = null;
+
+    if (
+      isBatchMode &&
+      Array.isArray(
+        batchResults
+      ) &&
+      batchResults.length
+    ) {
+      current =
+        batchResults[
+          batchIndex
+        ] || null;
+    } else {
+
+      const rawCurrent =
+        sessionStorage.getItem(
+          "matchAnalysis"
+        );
+
+      current =
+        rawCurrent
+          ? JSON.parse(
+              rawCurrent
+            )
+          : null;
     }
 
-    const response = await fetch(
-      "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fixture_id: fixtureId,
-          account: member.account,
-          language
-        })
-      }
+
+    const fixtureId =
+      Number(
+        current?.fixture?.id ||
+        current?.fixture_id ||
+        0
+      );
+
+
+    const member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) ||
+        "null"
+      );
+
+
+    if (
+      !fixtureId ||
+      !member?.account
+    ) {
+      return false;
+    }
+
+
+    // 已經是目前語言，不重抓
+    if (
+      String(
+        current?.language || ""
+      ) === language
+    ) {
+      return false;
+    }
+
+
+    const response =
+      await fetch(
+        "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            fixture_id:
+              fixtureId,
+
+            account:
+              member.account,
+
+            language
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data?.success
+    ) {
+      console.error(
+        "ANALYSIS LANGUAGE REFRESH FAILED:",
+        data
+      );
+
+      return false;
+    }
+
+
+    // =====================================
+    // 單場目前資料
+    // =====================================
+
+    sessionStorage.setItem(
+      "matchAnalysis",
+      JSON.stringify(
+        data
+      )
     );
 
-    const data = await response.json();
 
-    if (response.ok && data?.success) {
+    // =====================================
+    // 批量分析也必須同步更新
+    //
+    // 舊版只更新 matchAnalysis，
+    // reload 後 batchResults 又把中文資料覆蓋回來。
+    // =====================================
+
+    if (
+      isBatchMode &&
+      Array.isArray(
+        batchResults
+      ) &&
+      batchResults.length
+    ) {
+
+      batchResults[
+        batchIndex
+      ] = data;
+
+
+      const storedBatchRaw =
+        sessionStorage.getItem(
+          "matchAnalysisBatch"
+        );
+
+
+      let storedBatch = {};
+
+      try {
+        storedBatch =
+          storedBatchRaw
+            ? JSON.parse(
+                storedBatchRaw
+              )
+            : {};
+      } catch {
+        storedBatch = {};
+      }
+
+
+      storedBatch.results =
+        batchResults;
+
+
       sessionStorage.setItem(
-        "matchAnalysis",
-        JSON.stringify(data)
+        "matchAnalysisBatch",
+        JSON.stringify(
+          storedBatch
+        )
       );
     }
+
+
+    if (reload) {
+      window.location.reload();
+    }
+
+
+    return true;
+
   } catch (error) {
+
     console.error(
       "ANALYSIS LANGUAGE REFRESH ERROR:",
       error
     );
-  }
 
-  window.location.reload();
+    return false;
+  }
 }
 
+
+// =========================================
+// 第一次進分析頁時就確認分析內容語言
+//
+// 解決：
+// 1. 我的分析 -> 英文分析仍出現中文
+// 2. 舊分析紀錄換成簡體
+// 3. 批量分析完成頁混入其他語言
+// =========================================
+
+async function ensureAnalysisLanguageOnLoad() {
+
+  const language =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+
+  let current = null;
+
+
+  if (
+    isBatchMode &&
+    Array.isArray(
+      batchResults
+    ) &&
+    batchResults.length
+  ) {
+
+    current =
+      batchResults[
+        batchIndex
+      ] || null;
+
+  } else {
+
+    const rawCurrent =
+      sessionStorage.getItem(
+        "matchAnalysis"
+      );
+
+    try {
+
+      current =
+        rawCurrent
+          ? JSON.parse(
+              rawCurrent
+            )
+          : null;
+
+    } catch {
+
+      current = null;
+
+    }
+  }
+
+
+  if (!current) {
+    return;
+  }
+
+
+  // 已是目前語言
+  if (
+    String(
+      current?.language || ""
+    ) === language
+  ) {
+    return;
+  }
+
+
+  const changed =
+    await refreshAnalysisLanguage();
+
+
+  if (changed) {
+    window.location.reload();
+  }
+}
+
+
+// 頁面第一次開啟就檢查
+ensureAnalysisLanguageOnLoad();
+
+
+// 使用者在分析頁切換語言
+window.addEventListener(
+  "habao:languagechange",
+  async () => {
+
+    renderBetPartnerPlatforms();
+
+    const changed =
+      await refreshAnalysisLanguage();
+
+    if (changed) {
+      window.location.reload();
+      return;
+    }
+
+    // 即使不需要重新抓分析，
+    // 靜態介面仍重新套用語言。
+    window.location.reload();
+  }
+);
+   
 window.addEventListener(
   "habao:languagechange",
   () => {
