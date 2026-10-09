@@ -5847,6 +5847,48 @@ function analysisSummaryHtml(item){
     return null;
   };
 
+    /*
+   * 後台分析摘要固定使用繁體中文顯示
+   */
+  const localizeSummaryPick = value => {
+    let text =
+      value == null
+        ? ""
+        : String(value).trim();
+
+    if (!text) {
+      return "—";
+    }
+
+    const exact = {
+      "Home Team": "主隊",
+      "Away Team": "客隊",
+      "Draw": "和局",
+      "No Recommendation": "暫不推薦",
+      "Yes": "是",
+      "No": "否",
+      "Home or Draw": "主隊或和局",
+      "Home or Away": "主隊或客隊",
+      "Draw or Away": "和局或客隊"
+    };
+
+    if (exact[text]) {
+      return exact[text];
+    }
+
+    text = text
+      .replace(
+        /^Over\s*([0-9.]+)$/i,
+        "大$1"
+      )
+      .replace(
+        /^Under\s*([0-9.]+)$/i,
+        "小$1"
+      );
+
+    return text;
+  };
+  
   const fmt = (v) => {
 
     if (v == null) {
@@ -5856,16 +5898,20 @@ function analysisSummaryHtml(item){
     if (
       typeof v === "object"
     ) {
-      return escapeHtml(
-        v.pick ||
-        v.selection ||
-        v.value ||
-        v.prediction ||
-        "—"
-      );
+return escapeHtml(
+  localizeSummaryPick(
+    v.pick ||
+    v.selection ||
+    v.value ||
+    v.prediction ||
+    "—"
+  )
+);
     }
 
-    return escapeHtml(v);
+    return escapeHtml(
+  localizeSummaryPick(v)
+);
   };
 
   /*
@@ -5884,12 +5930,14 @@ function analysisSummaryHtml(item){
       return escapeHtml(v);
     }
 
-    const value =
-      v.pick ||
-      v.selection ||
-      v.value ||
-      v.prediction ||
-      "—";
+const value =
+  localizeSummaryPick(
+    v.pick ||
+    v.selection ||
+    v.value ||
+    v.prediction ||
+    "—"
+  );
 
     const line =
       v.line != null &&
