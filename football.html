@@ -7866,15 +7866,32 @@ if (!matches.length) {
             match.league_name
           );
 
-        const homeTeam =
-          getHistoryTeamName(
-            match.home_team
-          );
+const historyFixture =
+  match?.result_data?.fixture || {};
 
-        const awayTeam =
-          getHistoryTeamName(
-            match.away_team
-          );
+const homeTeam =
+  lang === "en"
+    ? (
+        historyFixture?.home?.api_name ||
+        getHistoryTeamName(
+          match.home_team
+        )
+      )
+    : getHistoryTeamName(
+        match.home_team
+      );
+
+const awayTeam =
+  lang === "en"
+    ? (
+        historyFixture?.away?.api_name ||
+        getHistoryTeamName(
+          match.away_team
+        )
+      )
+    : getHistoryTeamName(
+        match.away_team
+      );
 
         return `
           <div class="history-match-card">
