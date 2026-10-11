@@ -637,14 +637,29 @@ function renderRange(){const start=topData?.summary?.range_start,end=topData?.su
 
 function marketLabel(key){return key==="overall"?tr("overall"):key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):"BTTS"}
 function renderRecent(){
-  const group=lowerData?.recent_form?.[currentRecent]||{};
+
+  const recentRow =
+    document.getElementById("recentRow");
+
+  const recentSummary =
+    document.getElementById("recentSummary");
+
+  if (
+    !recentRow ||
+    !recentSummary
+  ) {
+    return;
+  }
+
+  const group =
+    lowerData?.recent_form?.[currentRecent] || {};
   const items=Array.isArray(group.items)?group.items:[];
-  document.getElementById("recentRow").innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
+  recentRow.innerHTML=(items.length?items:Array(10).fill({placeholder:true})).slice(0,10).map(x=>
     x.placeholder?`<div class="result-chip push">−</div>`:
     `<div class="result-chip ${normalizeResult(x.result)}" title="${esc(localizedTeamName(x.home,x.home_api_name,null,"home")+" vs "+localizedTeamName(x.away,x.away_api_name,null,"away"))}">${resultMark(x.result)}</div>`
   ).join("");
   const s=group.summary||{},w=num(s.win)+num(s.half_win),l=num(s.loss)+num(s.half_loss),p=num(s.push),dec=w+l,r=dec?`${(w/dec*100).toFixed(1)}%`:"--";
-  document.getElementById("recentSummary").innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`) + `<div class="recent-hint">${esc(marketLabel(currentRecent))}</div>`;
+  recentSummary.innerHTML=tr("recentSummary").replace("{w}",w).replace("{l}",l).replace("{p}",p).replace("{r}",`<b>${r}</b>`) + `<div class="recent-hint">${esc(marketLabel(currentRecent))}</div>`;
 }
 
 function trendRows(){
