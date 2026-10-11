@@ -9636,21 +9636,44 @@ async function loadV2TodayFixturesCount() {
         );
 
 
-      const status =
-        String(
-          match?.status || ""
-        ).toUpperCase();
+const status =
+  String(
+    match?.status || ""
+  ).toUpperCase();
 
 
-      if (
-        fixtureId > 0 &&
-        supportedLeagueIds.has(
-          leagueId
-        ) &&
-        !unavailableStatuses.has(
-          status
-        )
-      ) {
+const kickoffMs =
+  new Date(
+    match?.time ||
+    match?.fixture?.date ||
+    match?.date ||
+    0
+  ).getTime();
+
+
+const msUntilKickoff =
+  kickoffMs - Date.now();
+
+
+const isWithinAnalysisWindow =
+  Number.isFinite(
+    kickoffMs
+  ) &&
+  msUntilKickoff > 0 &&
+  msUntilKickoff <=
+    10 * 60 * 60 * 1000;
+
+
+if (
+  fixtureId > 0 &&
+  supportedLeagueIds.has(
+    leagueId
+  ) &&
+  !unavailableStatuses.has(
+    status
+  ) &&
+  isWithinAnalysisWindow
+) {
 
         uniqueFixtures.set(
           fixtureId,
