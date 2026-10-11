@@ -123,7 +123,12 @@
     .market-status.down{border-color:rgba(255,95,102,.35);background:rgba(255,95,102,.10);color:#ff8186}
 
     /* ===== RECENT + TREND ===== */
-    .mid-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:9px}
+    .mid-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:9px;
+}
+    
     .panel{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#082433,#061d29);box-shadow:inset 0 1px rgba(255,255,255,.025)}
     .panel-head{height:41px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.06)}
     .panel-head h3{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:950}.panel-head h3:before{content:"";width:4px;height:18px;border-radius:4px;background:#f4c03b}
@@ -387,19 +392,6 @@
     </section>
 
     <section class="section mid-grid">
-      <div class="panel recent-panel">
-        <div class="panel-head"><h3><span data-i18n="recentForm">近期戰績</span> <span style="color:#9cafba;font-weight:700" data-i18n="recent10">（近 10 筆）</span></h3></div>
-        <div class="recent-body">
-          <div class="recent-tabs">
-            <button class="mini-tab active" data-recent="overall" data-i18n="overall">綜合</button>
-            <button class="mini-tab" data-recent="moneyline" data-i18n="moneyline">獨贏</button>
-            <button class="mini-tab" data-recent="over_under" data-i18n="overUnder">大小分</button>
-            <button class="mini-tab" data-recent="btts">BTTS</button>
-          </div>
-          <div id="recentRow" class="recent-row"></div>
-          <div id="recentSummary" class="recent-summary">--</div>
-        </div>
-      </div>
 
       <div class="panel">
         <div class="panel-head"><h3><span data-i18n="trendTitle">AI 命中走勢</span><span class="help">?</span></h3></div>
