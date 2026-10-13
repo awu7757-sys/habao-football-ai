@@ -90,6 +90,11 @@
     .quote-mini span{display:block;color:#748190;font-size:8px;font-weight:850}
     .quote-mini strong{display:block;margin-top:3px;color:#f0f4f7;font-size:10px}
     .quote-odds{color:var(--gold2)!important}
+    .manual-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+    .manual-field label{display:block;margin:0 0 5px;color:#7f8b99;font-size:8px;font-weight:900}
+    .manual-field input{height:40px;font-size:11px}
+    .manual-reco{margin-top:7px;color:#9ba6b3;font-size:9px;line-height:1.5}
+    .manual-reco strong{color:var(--gold2)}
     .quote-actions{display:grid;grid-template-columns:.8fr 1.2fr;gap:8px;margin-top:13px}
     .quote-actions button{border:0;border-radius:12px;padding:12px 10px;font-size:11px;font-weight:950}
     .quote-cancel{color:#cbd3dc;background:rgba(255,255,255,.06)}
@@ -161,7 +166,7 @@
       <div class="match-list" id="matchList"><div class="empty">讀取已分析賽事中…</div></div>
       <button class="main-btn" id="generateBtn">產生今日資金配置</button>
       <div class="action-row">
-        <button class="ghost-btn" id="recalcBtn">重新計算今日配置</button>
+        <button class="ghost-btn" id="recalcBtn">重新計算今日注額</button>
         <button class="danger-btn" id="resetMonthBtn">清除本月測試資料</button>
       </div>
     </section>
@@ -171,7 +176,7 @@
         <div>
           <div class="section-kicker">TODAY PLAN</div>
           <div class="section-title">模擬投注紀錄</div>
-          <div class="section-desc">建立配置時鎖定 Panda 當下賠率；完賽後依正式 T-10 快照驗證結果自動結算。</div>
+          <div class="section-desc">會員自行輸入投注平台當下的實際盤口與賠率；建立後鎖定，完賽再依正式 T-10 快照驗證結果自動結算。</div>
         </div>
         <button class="ghost-btn" id="syncBtn">同步結算</button>
       </div>
@@ -182,14 +187,14 @@
   </div>
   <div class="quote-overlay" id="quoteOverlay" aria-hidden="true">
     <div class="quote-card" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
-      <div class="quote-kicker">PANDA LIVE QUOTE</div>
-      <div class="quote-title" id="quoteTitle">即時賠率確認</div>
-      <div class="quote-hint">以下是目前 Panda 報價與模擬注額。報價僅短暫有效；按下確認後，系統會再抓一次最新 Panda 賠率，並以最後一次成功報價正式鎖定。</div>
-      <div class="quote-count" id="quoteCountdown">報價有效 15 秒</div>
+      <div class="quote-kicker">MANUAL ODDS INPUT</div>
+      <div class="quote-title" id="quoteTitle">輸入實際盤口與賠率</div>
+      <div class="quote-hint">請依你實際投注平台當下看到的數字輸入。系統只負責依本金、風險模式與 AI 信心計算建議注額，不會自行改寫你的賠率。</div>
+      <div class="quote-count">十進位賠率範例：1.91｜讓分 / 大小球請確認實際盤口</div>
       <div class="quote-list" id="quoteList"></div>
       <div class="quote-actions">
         <button type="button" class="quote-cancel" id="quoteCancelBtn">取消</button>
-        <button type="button" class="quote-confirm" id="quoteConfirmBtn">確認鎖定</button>
+        <button type="button" class="quote-confirm" id="quoteConfirmBtn">確認加入資金計畫</button>
       </div>
     </div>
   </div>
@@ -242,11 +247,8 @@
     }
   };
 
-  var quoteState = {
-    items:[],
-    quoted:[],
-    expiresAt:0,
-    timer:null
+  var manualEntryState = {
+    items:[]
   };
 
   document.getElementById("app").hidden = false;
@@ -731,8 +733,8 @@
       confidence_below_threshold:"低於風控門檻",
       daily_limit_reached:"已達單日投入上限",
       stake_too_small:"建議注額過低",
-      panda_odds_unavailable:"Panda 有賽事但找不到推薦盤口",
-      panda_match_failed:"Panda 賽事配對失敗"
+      invalid_manual_odds:"實際賠率格式錯誤",
+      manual_line_required:"請輸入實際盤口"
     };
 
     var counts={};
@@ -758,64 +760,61 @@
     return summary;
   }
 
-  function quoteKey(item){
-    return String(item?.history_id ?? "")+"|"+String(item?.fixture_id ?? "");
-  }
-
   function closeQuoteModal(){
     var overlay=document.getElementById("quoteOverlay");
     overlay?.classList.remove("show");
     overlay?.setAttribute("aria-hidden","true");
-
-    if(quoteState.timer){
-      clearInterval(quoteState.timer);
-      quoteState.timer=null;
-    }
+    manualEntryState.items=[];
   }
 
-  function updateQuoteCountdown(){
-    var box=document.getElementById("quoteCountdown");
-    var btn=document.getElementById("quoteConfirmBtn");
-    if(!box||!btn)return;
+  function parseManualLine(value){
+    var raw=String(value??"")
+      .replace(/−/g,"-")
+      .replace(/＋/g,"+")
+      .trim();
 
-    var remaining=Math.max(0,quoteState.expiresAt-Date.now());
-    var seconds=Math.ceil(remaining/1000);
+    if(!raw)return null;
 
-    if(remaining<=0){
-      box.textContent="報價已過期，請重新抓取";
-      box.classList.add("expired");
-      btn.textContent="重新抓取報價";
-      return;
+    var parts=raw.split("/").map(function(x){
+      return Number(x.trim());
+    }).filter(Number.isFinite);
+
+    if(parts.length>=2){
+      return (parts[0]+parts[1])/2;
     }
 
-    box.classList.remove("expired");
-    box.textContent="報價剩餘 "+seconds+" 秒";
-    btn.textContent="確認鎖定｜"+seconds+"s";
+    var m=raw.match(/[+-]?\d+(?:\.\d+)?/);
+    return m ? Number(m[0]) : null;
   }
 
-  function openQuoteModal(data,items){
-    var quoted=Array.isArray(data?.quoted)?data.quoted:[];
-    if(!quoted.length)return;
+  function lineIsDifferent(aiLine,actualLine){
+    if(aiLine===undefined||aiLine===null||String(aiLine).trim()==="")return false;
+    if(actualLine===undefined||actualLine===null||String(actualLine).trim()==="")return true;
 
-    var quotedKeys=new Set(
-      quoted.map(quoteKey)
-    );
+    var a=parseManualLine(aiLine);
+    var b=parseManualLine(actualLine);
 
-    quoteState.items=items.filter(function(item){
-      return quotedKeys.has(quoteKey(item));
-    });
-    quoteState.quoted=quoted;
-    quoteState.expiresAt=new Date(data.expires_at||0).getTime();
+    if(a!==null && b!==null){
+      return Math.abs(a-b)>0.001;
+    }
+
+    return String(aiLine).trim()!==String(actualLine).trim();
+  }
+
+  function openManualEntryModal(items){
+    manualEntryState.items=items.slice();
 
     var list=document.getElementById("quoteList");
-    list.innerHTML=quoted.map(function(q){
-      var odds=Number(q.odds);
-      return '<div class="quote-row">'+
-        '<div class="quote-match">'+esc(q.home_team||"--")+' vs '+esc(q.away_team||"--")+'</div>'+
-        '<div class="quote-meta">'+
-          '<div class="quote-mini"><span>推薦</span><strong>'+esc(q.market_label||q.market_key)+'｜'+esc(q.pick||"--")+(q.line?(" "+esc(q.line)):"")+'</strong></div>'+
-          '<div class="quote-mini"><span>模擬注額</span><strong>'+money(q.stake)+'</strong></div>'+
-          '<div class="quote-mini"><span>Panda 即時賠率</span><strong class="quote-odds">@ '+(Number.isFinite(odds)?odds.toFixed(2):"--")+'</strong></div>'+
+    list.innerHTML=items.map(function(item,index){
+      var needsLine=item.market_key==="handicap"||item.market_key==="over_under";
+      var aiLine=item.line??"";
+
+      return '<div class="quote-row" data-index="'+index+'">'+
+        '<div class="quote-match">'+esc(item.home_team||"--")+' vs '+esc(item.away_team||"--")+'</div>'+
+        '<div class="manual-reco">AI 推薦：<strong>'+esc(item.market_label||item.market_key)+'｜'+esc(item.pick||"--")+(aiLine!==""?(" "+esc(aiLine)):"")+'</strong>｜信心 '+Math.round(Number(item.confidence)||0)+'%</div>'+
+        '<div class="manual-input-grid">'+
+          '<div class="manual-field"><label>實際盤口'+(needsLine?"（必填）":"（可留空）")+'</label><input class="manual-line-input" type="text" inputmode="decimal" placeholder="'+(needsLine?"例如 2.5 / -0.5":"獨贏、BTTS 可留空")+'" value="'+esc(aiLine)+'"></div>'+
+          '<div class="manual-field"><label>實際十進位賠率（必填）</label><input class="manual-odds-input" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="例如 1.91"></div>'+
         '</div>'+
       '</div>';
     }).join("");
@@ -823,13 +822,9 @@
     var overlay=document.getElementById("quoteOverlay");
     overlay.classList.add("show");
     overlay.setAttribute("aria-hidden","false");
-
-    if(quoteState.timer)clearInterval(quoteState.timer);
-    updateQuoteCountdown();
-    quoteState.timer=setInterval(updateQuoteCountdown,250);
   }
 
-  async function previewPlan(){
+  function prepareManualPlan(){
     if(!selectedIds.size){
       toast("請先選擇至少一場賽事");
       return;
@@ -841,63 +836,75 @@
       return;
     }
 
-    try{
-      setBusy("generateBtn",true,"取得 Panda 即時報價中…");
+    openManualEntryModal(items);
+  }
 
-      var data=await fundApi(
-        "preview_bets",
-        {items:items}
+  async function confirmManualPlan(){
+    if(!manualEntryState.items.length){
+      closeQuoteModal();
+      toast("找不到可加入的賽事");
+      return;
+    }
+
+    var rows=Array.from(
+      document.querySelectorAll("#quoteList .quote-row")
+    );
+
+    var manualItems=[];
+    var mismatches=0;
+
+    for(var i=0;i<rows.length;i++){
+      var item=manualEntryState.items[i];
+      var actualLine=String(
+        rows[i].querySelector(".manual-line-input")?.value||""
+      ).trim();
+      var actualOdds=Number(
+        rows[i].querySelector(".manual-odds-input")?.value
       );
 
-      var quoted=Array.isArray(data.quoted)?data.quoted:[];
-      var skip=skippedText(data.skipped);
-
-      if(!quoted.length){
-        toast(
-          skip ||
-          "目前沒有可取得 Panda 即時報價的配置"
-        );
+      if(!Number.isFinite(actualOdds)||actualOdds<=1||actualOdds>1000){
+        toast((item.home_team||"此賽事")+"：請輸入正確十進位賠率");
         return;
       }
 
-      openQuoteModal(data,items);
-
-      if(skip){
-        toast("部分場次略過｜"+skip);
+      if(
+        (item.market_key==="handicap"||item.market_key==="over_under") &&
+        !actualLine
+      ){
+        toast((item.home_team||"此賽事")+"：請輸入實際盤口");
+        return;
       }
-    }catch(e){
-      console.error("FUND BETA PREVIEW ERROR:",e);
-      toast("取得即時報價失敗："+e.message);
-    }finally{
-      setBusy("generateBtn",false);
-    }
-  }
 
-  async function confirmQuotedPlan(){
-    if(Date.now()>=quoteState.expiresAt){
-      closeQuoteModal();
-      toast("報價已過期，正在重新抓取");
-      await previewPlan();
-      return;
+      if(
+        (item.market_key==="handicap"||item.market_key==="over_under") &&
+        lineIsDifferent(item.line,actualLine)
+      ){
+        mismatches++;
+      }
+
+      manualItems.push(
+        Object.assign({},item,{
+          actual_line:actualLine||null,
+          actual_odds:Number(actualOdds.toFixed(3))
+        })
+      );
     }
 
-    if(!quoteState.items.length){
-      closeQuoteModal();
-      toast("找不到可鎖定的報價");
+    if(
+      mismatches>0 &&
+      !confirm(
+        "有 "+mismatches+" 場的實際盤口與 AI 推薦盤口不同。\n\n系統仍可照你輸入的實際盤口記錄，但月度績效會以你輸入的盤口為準。確定繼續？"
+      )
+    ){
       return;
     }
 
     try{
-      setBusy("quoteConfirmBtn",true,"最後抓盤並鎖定中…");
+      setBusy("quoteConfirmBtn",true,"建立資金配置中…");
 
-      /*
-       * create_bets 不使用預覽價直接寫入。
-       * 後端會在這一刻重新呼叫 Panda，
-       * 並把最後成功取得的賠率與時間寫入 Supabase。
-       */
       var data=await fundApi(
         "create_bets",
-        {items:quoteState.items}
+        {items:manualItems}
       );
 
       closeQuoteModal();
@@ -910,18 +917,18 @@
 
       if(created>0){
         toast(
-          "已鎖定 "+created+" 筆最新 Panda 賠率"+
+          "已建立 "+created+" 筆資金配置"+
           (skip ? "｜"+skip : "")
         );
       }else{
         toast(
           skip ||
-          "最後確認時沒有可鎖定的有效報價"
+          "沒有符合目前風控條件的新配置"
         );
       }
     }catch(e){
-      console.error("FUND BETA LOCK ERROR:",e);
-      toast("鎖定報價失敗："+e.message);
+      console.error("FUND BETA MANUAL CREATE ERROR:",e);
+      toast("建立配置失敗："+e.message);
     }finally{
       setBusy("quoteConfirmBtn",false);
     }
@@ -965,8 +972,8 @@
           '<div class="mini"><span>推薦</span><strong>'+esc(b.market_label||b.market_key)+'｜'+esc(b.pick||"--")+(b.line?(" "+esc(b.line)):"")+'</strong></div>'+
           '<div class="mini"><span>AI 信心</span><strong>'+Math.round(Number(b.confidence)||0)+'%</strong></div>'+
           '<div class="mini"><span>模擬注額</span><strong>'+money(b.stake)+'</strong></div>'+
-          '<div class="mini"><span>Panda 賠率</span><strong>@ '+esc(oddsText)+'</strong></div>'+
-          '<div class="mini"><span>鎖定時間</span><strong>'+esc(captured)+'</strong></div>'+
+          '<div class="mini"><span>實際賠率</span><strong>@ '+esc(oddsText)+'</strong></div>'+
+          '<div class="mini"><span>輸入時間</span><strong>'+esc(captured)+'</strong></div><div class="mini"><span>賠率來源</span><strong>會員輸入</strong></div>'+
         '</div>'+
         (settled
           ? '<div class="pnl '+(pnl>0?'good':pnl<0?'bad':'')+'">單場盈虧：'+(pnl>0?'+':'')+money(pnl)+'</div>'
@@ -1036,7 +1043,7 @@
 
   document.getElementById("generateBtn").addEventListener(
     "click",
-    previewPlan
+    prepareManualPlan
   );
 
   document.getElementById("quoteCancelBtn").addEventListener(
@@ -1046,7 +1053,7 @@
 
   document.getElementById("quoteConfirmBtn").addEventListener(
     "click",
-    confirmQuotedPlan
+    confirmManualPlan
   );
 
   document.getElementById("quoteOverlay").addEventListener(
@@ -1060,7 +1067,7 @@
     "click",
     async function(){
       try{
-        setBusy("recalcBtn",true,"重新抓盤並計算中…");
+        setBusy("recalcBtn",true,"重新計算注額中…");
 
         var data=await fundApi(
           "recalculate_today"
@@ -1074,13 +1081,13 @@
 
         if(updated>0){
           toast(
-            "已重新計算 "+updated+" 筆今日配置"+
+            "已重新計算 "+updated+" 筆今日注額"+
             (skip ? "｜"+skip : "")
           );
         }else{
           toast(
             skip ||
-            "目前沒有可重新計算的未開賽配置"
+            "目前沒有可重新計算的未開賽注額"
           );
         }
       }catch(e){
