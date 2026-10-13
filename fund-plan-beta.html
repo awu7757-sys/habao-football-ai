@@ -95,6 +95,23 @@
     .manual-field input{height:40px;font-size:11px}
     .manual-reco{margin-top:7px;color:#9ba6b3;font-size:9px;line-height:1.5}
     .manual-reco strong{color:var(--gold2)}
+    .match-fund-btn{margin-top:10px;width:100%;border:1px solid rgba(242,189,75,.22);border-radius:11px;padding:10px 12px;background:rgba(242,189,75,.07);color:var(--gold2);font-size:10px;font-weight:950}
+    .ai-best-tag{display:inline-flex;align-items:center;gap:4px;margin-bottom:5px;padding:4px 7px;border-radius:999px;background:rgba(242,189,75,.11);color:var(--gold2);font-size:8px;font-weight:950}
+    .market-entry{position:relative}
+    .market-entry.ai-best{border-color:rgba(242,189,75,.34);background:rgba(242,189,75,.045)}
+    .market-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .market-entry-title{font-size:12px;font-weight:950}
+    .market-entry-check{width:21px;height:21px;accent-color:#e0ae3d;flex:0 0 21px}
+    .market-entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+    .market-entry-grid .full{grid-column:1/-1}
+    .settle-box{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+    .settle-label{color:#8793a2;font-size:9px;font-weight:900;margin-bottom:7px}
+    .settle-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .settle-buttons button{border:0;border-radius:9px;padding:9px 6px;font-size:9px;font-weight:950;background:rgba(255,255,255,.06);color:#dbe2e9}
+    .settle-buttons .positive{color:#76e9a6;background:rgba(60,221,130,.08)}
+    .settle-buttons .negative{color:#ff8e8e;background:rgba(255,104,104,.08)}
+    .settle-buttons .neutral{color:#cbd3dc;background:rgba(255,255,255,.055)}
+    .edit-settle{margin-top:8px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:rgba(255,255,255,.04);color:#aeb8c4;font-size:9px;font-weight:900}
     .quote-actions{display:grid;grid-template-columns:.8fr 1.2fr;gap:8px;margin-top:13px}
     .quote-actions button{border:0;border-radius:12px;padding:12px 10px;font-size:11px;font-weight:950}
     .quote-cancel{color:#cbd3dc;background:rgba(255,255,255,.06)}
@@ -159,14 +176,14 @@
         <div>
           <div class="section-kicker">ANALYZED MATCHES</div>
           <div class="section-title">選擇已分析賽事</div>
-          <div class="section-desc">只讀取這個 Beta 帳號已經花積分解鎖的正式分析，不會再次扣積分。</div>
+          <div class="section-desc">只要是這個 Beta 帳號已分析過的賽事都會顯示；AI 首選會置頂標示，也可以把其他玩法當作投注記帳。</div>
         </div>
         <button class="ghost-btn" id="refreshBtn">重新整理</button>
       </div>
       <div class="match-list" id="matchList"><div class="empty">讀取已分析賽事中…</div></div>
-      <button class="main-btn" id="generateBtn">產生今日資金配置</button>
+      <div class="mode-note">點每場的「資金配置」，即可查看獨贏／讓分／大小球／BTTS 全部玩法。</div>
       <div class="action-row">
-        <button class="ghost-btn" id="recalcBtn">重新計算今日注額</button>
+        <button class="ghost-btn" id="recalcBtn">重新計算 AI 建議</button>
         <button class="danger-btn" id="resetMonthBtn">清除本月測試資料</button>
       </div>
     </section>
@@ -176,9 +193,9 @@
         <div>
           <div class="section-kicker">TODAY PLAN</div>
           <div class="section-title">模擬投注紀錄</div>
-          <div class="section-desc">會員自行輸入投注平台當下的實際盤口與賠率；建立後鎖定，完賽再依正式 T-10 快照驗證結果自動結算。</div>
+          <div class="section-desc">AI 提供資金建議，會員記錄實際玩法／盤口／賠率／注額；賽後由會員依投注平台實際派彩結果手動結算。</div>
         </div>
-        <button class="ghost-btn" id="syncBtn">同步結算</button>
+        <button class="ghost-btn" id="syncBtn">重新整理</button>
       </div>
       <div class="plan-list" id="planList"><div class="empty">尚未建立投注配置</div></div>
     </section>
@@ -187,10 +204,10 @@
   </div>
   <div class="quote-overlay" id="quoteOverlay" aria-hidden="true">
     <div class="quote-card" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
-      <div class="quote-kicker">MANUAL ODDS INPUT</div>
-      <div class="quote-title" id="quoteTitle">輸入實際盤口與賠率</div>
-      <div class="quote-hint">請依你實際投注平台當下看到的數字輸入。系統只負責依本金、風險模式與 AI 信心計算建議注額，不會自行改寫你的賠率。</div>
-      <div class="quote-count">十進位賠率範例：1.91｜讓分 / 大小球請確認實際盤口</div>
+      <div class="quote-kicker">AI FUND COACH</div>
+      <div class="quote-title" id="quoteTitle">AI 資金教練｜投注配置</div>
+      <div class="quote-hint">四種玩法都可以記錄。AI 首選會特別標示；你也可以不照 AI，單純把這裡當投注記帳。</div>
+      <div class="quote-count">AI 建議金額僅供資金控管參考｜實際下注金額由會員自行填寫</div>
       <div class="quote-list" id="quoteList"></div>
       <div class="quote-actions">
         <button type="button" class="quote-cancel" id="quoteCancelBtn">取消</button>
@@ -416,8 +433,7 @@
       var data=await fundApi("get_state");
       applyCloud(data);
       if(showToast){
-        var n=Number(data?.settlement_sync?.updated)||0;
-        toast(n>0 ? "已自動結算 "+n+" 筆" : "雲端帳本已同步");
+        toast("雲端帳本已更新");
       }
     }catch(e){
       console.error("FUND BETA CLOUD LOAD ERROR:",e);
@@ -474,6 +490,56 @@
       line:null,
       confidence:0
     };
+  }
+
+  function allRecommendations(match){
+    var r=recommendationRoot(match);
+    return [
+      {key:"moneyline",label:"獨贏",rec:r.moneyline},
+      {key:"handicap",label:"讓分",rec:r.handicap},
+      {key:"over_under",label:"大小球",rec:r.over_under},
+      {key:"btts",label:"BTTS",rec:r.btts}
+    ].map(function(x){
+      return {
+        key:x.key,
+        label:x.label,
+        pick:normalizePick(x.rec),
+        line:x.rec?.line ?? null,
+        confidence:Number(x.rec?.confidence)||0,
+        reason:String(x.rec?.reason||"").trim()
+      };
+    });
+  }
+
+  function clientRiskConfig(){
+    var mode=cloud?.plan?.risk_mode||"balanced";
+    if(mode==="conservative")return {low:.005,mid:.0075,high:.01};
+    if(mode==="aggressive")return {low:.01,mid:.015,high:.02};
+    return {low:.0075,mid:.01,high:.015};
+  }
+
+  function suggestedStakeForConfidence(confidence){
+    var c=clientRiskConfig();
+    var rate=confidence>=80?c.high:confidence>=70?c.mid:confidence>=60?c.low:0;
+    if(!rate)return 0;
+    var bankroll=Number(cloud?.metrics?.current_capital||cloud?.plan?.start_capital||0);
+    return Math.round((bankroll*rate)/10)*10;
+  }
+
+  function pickOptions(marketKey){
+    if(marketKey==="moneyline")return ["主勝","和局","客勝"];
+    if(marketKey==="handicap")return ["主隊","客隊"];
+    if(marketKey==="over_under")return ["大","小"];
+    if(marketKey==="btts")return ["Yes","No"];
+    return [];
+  }
+
+  function optionHtml(marketKey,selected){
+    return '<option value="">請選擇</option>'+
+      pickOptions(marketKey).map(function(v){
+        var isSelected=String(v)===String(selected);
+        return '<option value="'+esc(v)+'" '+(isSelected?'selected':'')+'>'+esc(v)+'</option>';
+      }).join("");
   }
 
   function fixtureIdOf(match){
@@ -656,72 +722,61 @@
       return;
     }
 
-    box.innerHTML=historyMatches.slice(0,20).map(function(m){
+    box.innerHTML=historyMatches.slice(0,30).map(function(m){
       var best=bestRecommendation(m);
-      var id=String(m.id);
       var fixtureId=fixtureIdOf(m);
-      var selected=selectedIds.has(id);
-      var added=alreadyAdded(m.id,fixtureId);
-      var canSelect=best.key && fixtureId>0 && !added;
+      var betCount=(cloud.bets||[]).filter(function(b){
+        return Number(b.fixture_id||0)===Number(fixtureId||0);
+      }).length;
 
-      return '<div class="match '+(selected?'selected':'')+'" data-id="'+esc(id)+'">'+
+      var bestText=best.key
+        ? (best.label+'｜'+displayPick(best))
+        : 'AI 建議觀望';
+
+      return '<div class="match" data-id="'+esc(String(m.id))+'">'+
         '<div class="match-top"><span>'+esc(m.league_name||"足球賽事")+'</span><span>'+esc(fmtTime(m.fixture_time))+'</span></div>'+
         '<div class="teams">'+esc(m.home_team||"--")+' <span style="color:#687483;font-weight:800">vs</span> '+esc(m.away_team||"--")+'</div>'+
-        '<div class="recommend"><div><div class="market">'+esc(added?"已加入資金計畫":best.label)+'</div><div class="pick">'+esc(added?"等待／已完成結算":displayPick(best))+'</div></div><div class="confidence">'+(added?"已加入":"AI "+Math.round(best.confidence)+"%")+'</div></div>'+
-        '<input class="check" type="checkbox" '+(selected?'checked':'')+' '+(!canSelect?'disabled':'')+' aria-label="選擇賽事">'+
+        '<div class="recommend"><div><div class="ai-best-tag">★ AI 首選</div><div class="pick">'+esc(bestText)+'</div></div><div class="confidence">'+(best.key?("AI "+Math.round(best.confidence)+"%"):"觀望")+'</div></div>'+
+        (betCount?'<div class="section-desc" style="margin-top:8px">已記錄 '+betCount+' 筆投注</div>':'')+
+        '<button type="button" class="match-fund-btn" data-fund-id="'+esc(String(m.id))+'">資金配置／投注記帳</button>'+
       '</div>';
     }).join("");
 
-    box.querySelectorAll(".match").forEach(function(card){
-      var cb=card.querySelector(".check");
-      var id=card.getAttribute("data-id");
-
-      cb.addEventListener("change",function(){
-        if(cb.checked) selectedIds.add(id);
-        else selectedIds.delete(id);
-        card.classList.toggle("selected",cb.checked);
-      });
-
-      card.addEventListener("click",function(e){
-        if(e.target===cb || cb.disabled)return;
-        cb.checked=!cb.checked;
-        cb.dispatchEvent(new Event("change"));
+    box.querySelectorAll("[data-fund-id]").forEach(function(btn){
+      btn.addEventListener("click",function(event){
+        event.stopPropagation();
+        prepareManualPlan(this.getAttribute("data-fund-id"));
       });
     });
   }
 
-  function buildSelectedItems(){
-    return historyMatches
-      .filter(function(m){
-        return selectedIds.has(String(m.id));
-      })
-      .map(function(m){
-        var best=bestRecommendation(m);
-        var pandaCtx=pandaContextOf(m);
-        var sourceNames=sourceNamesOf(m);
+  function buildMarketItems(match){
+    if(!match)return [];
 
-        return {
-          history_id:m.id,
-          fixture_id:fixtureIdOf(m),
-          fixture_time:m.fixture_time||null,
-          league_name:m.league_name||"",
-          league_api_name:sourceNames.league_api_name,
-          home_team:m.home_team||"",
-          away_team:m.away_team||"",
-          home_api_name:sourceNames.home_api_name,
-          away_api_name:sourceNames.away_api_name,
-          panda_match_id:pandaCtx.panda_match_id,
-          panda_tid:pandaCtx.panda_tid,
-          market_key:best.key,
-          market_label:best.label,
-          pick:best.pick,
-          line:best.line,
-          confidence:best.confidence
-        };
-      })
-      .filter(function(x){
-        return x.fixture_id>0 && x.market_key;
-      });
+    var best=bestRecommendation(match);
+    var recs=allRecommendations(match);
+    var sourceNames=sourceNamesOf(match);
+
+    return recs.map(function(rec){
+      return {
+        history_id:match.id,
+        fixture_id:fixtureIdOf(match),
+        fixture_time:match.fixture_time||null,
+        league_name:match.league_name||"",
+        league_api_name:sourceNames.league_api_name,
+        home_team:match.home_team||"",
+        away_team:match.away_team||"",
+        home_api_name:sourceNames.home_api_name,
+        away_api_name:sourceNames.away_api_name,
+        market_key:rec.key,
+        market_label:rec.label,
+        ai_pick:rec.pick||"",
+        ai_line:rec.line,
+        confidence:rec.confidence,
+        ai_reason:rec.reason||"",
+        is_ai_recommended:Boolean(best.key && rec.key===best.key)
+      };
+    });
   }
 
   function skippedText(skipped){
@@ -734,7 +789,9 @@
       daily_limit_reached:"已達單日投入上限",
       stake_too_small:"建議注額過低",
       invalid_manual_odds:"實際賠率格式錯誤",
-      manual_line_required:"請輸入實際盤口"
+      manual_line_required:"請輸入實際盤口",
+      actual_pick_required:"請選擇投注方向",
+      actual_stake_required:"請輸入實際注額"
     };
 
     var counts={};
@@ -767,54 +824,32 @@
     manualEntryState.items=[];
   }
 
-  function parseManualLine(value){
-    var raw=String(value??"")
-      .replace(/−/g,"-")
-      .replace(/＋/g,"+")
-      .trim();
-
-    if(!raw)return null;
-
-    var parts=raw.split("/").map(function(x){
-      return Number(x.trim());
-    }).filter(Number.isFinite);
-
-    if(parts.length>=2){
-      return (parts[0]+parts[1])/2;
-    }
-
-    var m=raw.match(/[+-]?\d+(?:\.\d+)?/);
-    return m ? Number(m[0]) : null;
-  }
-
-  function lineIsDifferent(aiLine,actualLine){
-    if(aiLine===undefined||aiLine===null||String(aiLine).trim()==="")return false;
-    if(actualLine===undefined||actualLine===null||String(actualLine).trim()==="")return true;
-
-    var a=parseManualLine(aiLine);
-    var b=parseManualLine(actualLine);
-
-    if(a!==null && b!==null){
-      return Math.abs(a-b)>0.001;
-    }
-
-    return String(aiLine).trim()!==String(actualLine).trim();
-  }
-
-  function openManualEntryModal(items){
+  function openManualEntryModal(match,items){
     manualEntryState.items=items.slice();
+
+    var best=bestRecommendation(match);
+    document.getElementById("quoteTitle").textContent=
+      (match.home_team||"--")+" vs "+(match.away_team||"--");
 
     var list=document.getElementById("quoteList");
     list.innerHTML=items.map(function(item,index){
       var needsLine=item.market_key==="handicap"||item.market_key==="over_under";
-      var aiLine=item.line??"";
+      var suggested=suggestedStakeForConfidence(item.confidence);
+      var aiText=item.ai_pick
+        ? (item.ai_pick+(item.ai_line!==null&&item.ai_line!==undefined&&item.ai_line!==""?(" "+item.ai_line):""))
+        : "暫不推薦";
 
-      return '<div class="quote-row" data-index="'+index+'">'+
-        '<div class="quote-match">'+esc(item.home_team||"--")+' vs '+esc(item.away_team||"--")+'</div>'+
-        '<div class="manual-reco">AI 推薦：<strong>'+esc(item.market_label||item.market_key)+'｜'+esc(item.pick||"--")+(aiLine!==""?(" "+esc(aiLine)):"")+'</strong>｜信心 '+Math.round(Number(item.confidence)||0)+'%</div>'+
-        '<div class="manual-input-grid">'+
-          '<div class="manual-field"><label>實際盤口'+(needsLine?"（必填）":"（可留空）")+'</label><input class="manual-line-input" type="text" inputmode="decimal" placeholder="'+(needsLine?"例如 2.5 / -0.5":"獨贏、BTTS 可留空")+'" value="'+esc(aiLine)+'"></div>'+
-          '<div class="manual-field"><label>實際十進位賠率（必填）</label><input class="manual-odds-input" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="例如 1.91"></div>'+
+      return '<div class="quote-row market-entry '+(item.is_ai_recommended?'ai-best':'')+'" data-index="'+index+'">'+
+        '<div class="market-entry-head"><div>'+
+          (item.is_ai_recommended?'<div class="ai-best-tag">★ AI 首選</div>':'')+
+          '<div class="market-entry-title">'+esc(item.market_label)+'</div>'+
+          '<div class="manual-reco">AI：<strong>'+esc(aiText)+'</strong>｜信心 '+Math.round(item.confidence)+'%｜建議注額 '+(suggested>0?money(suggested):"觀望")+'</div>'+
+        '</div><input class="market-entry-check" type="checkbox" '+(item.is_ai_recommended?'checked':'')+'></div>'+
+        '<div class="market-entry-grid">'+
+          '<div class="manual-field"><label>投注方向</label><select class="actual-pick-input">'+optionHtml(item.market_key,item.ai_pick)+'</select></div>'+
+          '<div class="manual-field"><label>實際盤口'+(needsLine?"（必填）":"（可留空）")+'</label><input class="manual-line-input" type="text" inputmode="decimal" placeholder="'+(needsLine?"例如 2.5 / -0.5":"可留空")+'" value="'+esc(item.ai_line??"")+'"></div>'+
+          '<div class="manual-field"><label>實際十進位賠率</label><input class="manual-odds-input" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="例如 1.91"></div>'+
+          '<div class="manual-field"><label>實際下注金額</label><input class="actual-stake-input" type="number" min="1" step="1" inputmode="decimal" placeholder="例如 300" value="'+(item.is_ai_recommended&&suggested>0?suggested:"")+'"></div>'+
         '</div>'+
       '</div>';
     }).join("");
@@ -824,46 +859,56 @@
     overlay.setAttribute("aria-hidden","false");
   }
 
-  function prepareManualPlan(){
-    if(!selectedIds.size){
-      toast("請先選擇至少一場賽事");
+  function prepareManualPlan(historyId){
+    var match=historyMatches.find(function(m){
+      return String(m.id)===String(historyId);
+    });
+
+    if(!match){
+      toast("找不到這場分析紀錄");
       return;
     }
 
-    var items=buildSelectedItems();
-    if(!items.length){
-      toast("選擇的賽事沒有可用推薦或 Fixture ID");
+    var items=buildMarketItems(match);
+    if(!items.length || !fixtureIdOf(match)){
+      toast("這場沒有可建立資金配置的資料");
       return;
     }
 
-    openManualEntryModal(items);
+    openManualEntryModal(match,items);
   }
 
   async function confirmManualPlan(){
-    if(!manualEntryState.items.length){
-      closeQuoteModal();
-      toast("找不到可加入的賽事");
-      return;
-    }
-
     var rows=Array.from(
-      document.querySelectorAll("#quoteList .quote-row")
+      document.querySelectorAll("#quoteList .market-entry")
     );
 
     var manualItems=[];
-    var mismatches=0;
+    var warnings=[];
 
     for(var i=0;i<rows.length;i++){
+      var row=rows[i];
+      var check=row.querySelector(".market-entry-check");
+      if(!check?.checked)continue;
+
       var item=manualEntryState.items[i];
-      var actualLine=String(
-        rows[i].querySelector(".manual-line-input")?.value||""
-      ).trim();
-      var actualOdds=Number(
-        rows[i].querySelector(".manual-odds-input")?.value
-      );
+      var actualPick=String(row.querySelector(".actual-pick-input")?.value||"").trim();
+      var actualLine=String(row.querySelector(".manual-line-input")?.value||"").trim();
+      var actualOdds=Number(row.querySelector(".manual-odds-input")?.value);
+      var actualStake=Number(row.querySelector(".actual-stake-input")?.value);
+
+      if(!actualPick){
+        toast(item.market_label+"：請選擇投注方向");
+        return;
+      }
 
       if(!Number.isFinite(actualOdds)||actualOdds<=1||actualOdds>1000){
-        toast((item.home_team||"此賽事")+"：請輸入正確十進位賠率");
+        toast(item.market_label+"：請輸入正確十進位賠率");
+        return;
+      }
+
+      if(!Number.isFinite(actualStake)||actualStake<=0){
+        toast(item.market_label+"：請輸入實際下注金額");
         return;
       }
 
@@ -871,29 +916,45 @@
         (item.market_key==="handicap"||item.market_key==="over_under") &&
         !actualLine
       ){
-        toast((item.home_team||"此賽事")+"：請輸入實際盤口");
+        toast(item.market_label+"：請輸入實際盤口");
         return;
       }
 
-      if(
-        (item.market_key==="handicap"||item.market_key==="over_under") &&
-        lineIsDifferent(item.line,actualLine)
-      ){
-        mismatches++;
+      if(item.ai_pick && actualPick!==item.ai_pick){
+        warnings.push(item.market_label+"方向不同");
       }
 
-      manualItems.push(
-        Object.assign({},item,{
-          actual_line:actualLine||null,
-          actual_odds:Number(actualOdds.toFixed(3))
-        })
-      );
+      if(
+        item.ai_line!==null &&
+        item.ai_line!==undefined &&
+        String(item.ai_line).trim()!=="" &&
+        actualLine &&
+        String(item.ai_line).trim()!==actualLine
+      ){
+        warnings.push(item.market_label+"盤口不同");
+      }
+
+      manualItems.push(Object.assign({},item,{
+        actual_pick:actualPick,
+        actual_line:actualLine||null,
+        actual_odds:Number(actualOdds.toFixed(3)),
+        actual_stake:Number(actualStake.toFixed(2)),
+        is_ai_recommended:Boolean(
+          item.is_ai_recommended &&
+          actualPick===item.ai_pick
+        )
+      }));
+    }
+
+    if(!manualItems.length){
+      toast("請至少勾選一個玩法");
+      return;
     }
 
     if(
-      mismatches>0 &&
+      warnings.length &&
       !confirm(
-        "有 "+mismatches+" 場的實際盤口與 AI 推薦盤口不同。\n\n系統仍可照你輸入的實際盤口記錄，但月度績效會以你輸入的盤口為準。確定繼續？"
+        "你有部分投注與 AI 建議不同：\n"+warnings.join("、")+"\n\n仍然可以當作投注記帳，確定建立？"
       )
     ){
       return;
@@ -908,24 +969,17 @@
       );
 
       closeQuoteModal();
-      selectedIds.clear();
       applyCloud(data);
       renderMatches();
 
       var created=Array.isArray(data.created)?data.created.length:0;
       var skip=skippedText(data.skipped);
 
-      if(created>0){
-        toast(
-          "已建立 "+created+" 筆資金配置"+
-          (skip ? "｜"+skip : "")
-        );
-      }else{
-        toast(
-          skip ||
-          "沒有符合目前風控條件的新配置"
-        );
-      }
+      toast(
+        created>0
+          ? ("已建立 "+created+" 筆投注紀錄"+(skip?"｜"+skip:""))
+          : (skip||"沒有建立任何投注紀錄")
+      );
     }catch(e){
       console.error("FUND BETA MANUAL CREATE ERROR:",e);
       toast("建立配置失敗："+e.message);
@@ -941,7 +995,8 @@
       loss:"虧損",
       push:"走盤",
       half_win:"半贏",
-      half_loss:"半輸"
+      half_loss:"半輸",
+      void:"作廢"
     }[s]||s||"待結算";
   }
 
@@ -951,7 +1006,7 @@
 
     if(!bets.length){
       box.innerHTML=
-        '<div class="empty">尚未建立雲端投注配置</div>';
+        '<div class="empty">尚未建立投注紀錄</div>';
       return;
     }
 
@@ -959,28 +1014,77 @@
       var pnl=Number(b.pnl)||0;
       var settled=String(b.status||"pending")!=="pending";
       var odds=Number(b.odds);
-      var oddsText=Number.isFinite(odds)&&odds>1
-        ? odds.toFixed(2)
-        : "--";
-      var captured=b.odds_captured_at
-        ? fmtTime(b.odds_captured_at)
-        : "--";
+      var oddsText=Number.isFinite(odds)&&odds>1?odds.toFixed(2):"--";
+      var suggested=Number(b.suggested_stake)||0;
+      var tag=b.is_ai_recommended
+        ? '<span class="ai-best-tag">AI 建議</span>'
+        : '<span class="ai-best-tag" style="background:rgba(110,168,255,.08);color:#9fc1ff">自行投注</span>';
 
-      return '<div class="plan-row">'+
+      return '<div class="plan-row" data-bet-id="'+esc(b.id)+'">'+
         '<div class="plan-row-head"><div class="plan-team">'+esc(b.home_team||"--")+' vs '+esc(b.away_team||"--")+'</div><div class="plan-status">'+esc(statusText(b.status))+'</div></div>'+
+        '<div style="margin-top:8px">'+tag+'</div>'+
         '<div class="plan-meta">'+
-          '<div class="mini"><span>推薦</span><strong>'+esc(b.market_label||b.market_key)+'｜'+esc(b.pick||"--")+(b.line?(" "+esc(b.line)):"")+'</strong></div>'+
+          '<div class="mini"><span>實際投注</span><strong>'+esc(b.market_label||b.market_key)+'｜'+esc(b.pick||"--")+(b.line?(" "+esc(b.line)):"")+'</strong></div>'+
           '<div class="mini"><span>AI 信心</span><strong>'+Math.round(Number(b.confidence)||0)+'%</strong></div>'+
-          '<div class="mini"><span>模擬注額</span><strong>'+money(b.stake)+'</strong></div>'+
+          '<div class="mini"><span>AI 建議注額</span><strong>'+(suggested>0?money(suggested):"觀望")+'</strong></div>'+
+          '<div class="mini"><span>實際下注</span><strong>'+money(b.stake)+'</strong></div>'+
           '<div class="mini"><span>實際賠率</span><strong>@ '+esc(oddsText)+'</strong></div>'+
-          '<div class="mini"><span>輸入時間</span><strong>'+esc(captured)+'</strong></div><div class="mini"><span>賠率來源</span><strong>會員輸入</strong></div>'+
+          '<div class="mini"><span>賠率來源</span><strong>會員輸入</strong></div>'+
         '</div>'+
         (settled
-          ? '<div class="pnl '+(pnl>0?'good':pnl<0?'bad':'')+'">單場盈虧：'+(pnl>0?'+':'')+money(pnl)+'</div>'
-          : '<div class="pnl">等待正式賽果自動結算</div>'
+          ? '<div class="pnl '+(pnl>0?'good':pnl<0?'bad':'')+'">單場盈虧：'+(pnl>0?'+':'')+money(pnl)+'</div><button type="button" class="edit-settle" data-reopen="'+esc(b.id)+'">更正結算</button>'
+          : '<div class="settle-box"><div class="settle-label">依投注平台實際派彩結果結算</div><div class="settle-buttons">'+
+              '<button type="button" class="positive" data-settle="win">全贏</button>'+
+              '<button type="button" class="positive" data-settle="half_win">半贏</button>'+
+              '<button type="button" class="neutral" data-settle="push">走盤</button>'+
+              '<button type="button" class="negative" data-settle="half_loss">半輸</button>'+
+              '<button type="button" class="negative" data-settle="loss">全輸</button>'+
+              '<button type="button" class="neutral" data-settle="void">作廢</button>'+
+            '</div></div>'
         )+
       '</div>';
     }).join("");
+
+    box.querySelectorAll("[data-settle]").forEach(function(btn){
+      btn.addEventListener("click",async function(){
+        var row=this.closest("[data-bet-id]");
+        var betId=row?.getAttribute("data-bet-id");
+        var result=this.getAttribute("data-settle");
+        if(!betId||!result)return;
+
+        if(!confirm("確定將這筆投注結算為「"+statusText(result)+"」？"))return;
+
+        try{
+          this.disabled=true;
+          var data=await fundApi("settle_bet",{bet_id:betId,result:result});
+          applyCloud(data);
+          renderMatches();
+          toast("已完成手動結算");
+        }catch(e){
+          toast("結算失敗："+e.message);
+          this.disabled=false;
+        }
+      });
+    });
+
+    box.querySelectorAll("[data-reopen]").forEach(function(btn){
+      btn.addEventListener("click",async function(){
+        var betId=this.getAttribute("data-reopen");
+        if(!betId)return;
+        if(!confirm("要把這筆結果改回「待結算」重新選擇嗎？"))return;
+
+        try{
+          this.disabled=true;
+          var data=await fundApi("reopen_bet",{bet_id:betId});
+          applyCloud(data);
+          renderMatches();
+          toast("已改回待結算");
+        }catch(e){
+          toast("更正失敗："+e.message);
+          this.disabled=false;
+        }
+      });
+    });
   }
 
   document.getElementById("riskMode").addEventListener(
@@ -1041,11 +1145,6 @@
     }
   );
 
-  document.getElementById("generateBtn").addEventListener(
-    "click",
-    prepareManualPlan
-  );
-
   document.getElementById("quoteCancelBtn").addEventListener(
     "click",
     closeQuoteModal
@@ -1067,7 +1166,7 @@
     "click",
     async function(){
       try{
-        setBusy("recalcBtn",true,"重新計算注額中…");
+        setBusy("recalcBtn",true,"重新計算 AI 建議中…");
 
         var data=await fundApi(
           "recalculate_today"
@@ -1081,13 +1180,13 @@
 
         if(updated>0){
           toast(
-            "已重新計算 "+updated+" 筆今日注額"+
+            "已重新計算 "+updated+" 筆 AI 建議"+
             (skip ? "｜"+skip : "")
           );
         }else{
           toast(
             skip ||
-            "目前沒有可重新計算的未開賽注額"
+            "目前沒有待更新的 AI 建議"
           );
         }
       }catch(e){
@@ -1142,8 +1241,9 @@
 
   document.getElementById("syncBtn").addEventListener(
     "click",
-    function(){
-      loadCloudState(true).then(renderMatches);
+    async function(){
+      await loadCloudState(true);
+      renderMatches();
     }
   );
 
