@@ -233,6 +233,21 @@ textarea.input{min-height:116px;resize:vertical}
 .stat-card.gold{border-color:rgba(242,189,75,.20);background:linear-gradient(145deg,rgba(242,189,75,.11),rgba(255,255,255,.018))}
 .stat-card.green{border-color:rgba(60,221,130,.17);background:linear-gradient(145deg,rgba(60,221,130,.08),rgba(255,255,255,.016))}
 .stat-card.blue{border-color:rgba(112,168,255,.18);background:linear-gradient(145deg,rgba(112,168,255,.08),rgba(255,255,255,.016))}
+.stat-card.usage-ok{
+  border-color:rgba(60,221,130,.20);
+  background:linear-gradient(145deg,rgba(60,221,130,.07),rgba(255,255,255,.016));
+}
+
+.stat-card.usage-warning{
+  border-color:rgba(242,189,75,.40);
+  background:linear-gradient(145deg,rgba(242,189,75,.13),rgba(255,255,255,.018));
+}
+
+.stat-card.usage-danger{
+  border-color:rgba(255,101,101,.48);
+  background:linear-gradient(145deg,rgba(255,101,101,.14),rgba(255,255,255,.018));
+  box-shadow:0 0 0 1px rgba(255,101,101,.08),0 10px 28px rgba(0,0,0,.18);
+}  
 .stat-label{color:#778291;font-size:9px;font-weight:850;letter-spacing:.3px}
 .stat-value{margin-top:11px;color:#fff;font-size:28px;font-weight:950;letter-spacing:-.7px}
 .stat-value.gold-text{color:var(--gold-light)}
@@ -1250,50 +1265,28 @@ tr:last-child td{border-bottom:0}
           <div class="panel-title">系統資源消耗 / 可用額度</div>
 
           <div class="panel-desc" style="margin-top:8px;line-height:1.75">
-            Supabase FREE 額度與目前比分推播 V2 的固定消耗估算。
-            後續會再接入 Supabase 實際已使用量。
+Supabase FREE 最新用量快照。使用率達 70% 顯示黃色警示，90% 以上顯示紅色警示。
           </div>
 
-          <div class="stats-grid" style="margin-top:14px">
+<div
+  id="supabaseUsageGrid"
+  class="stats-grid"
+  style="margin-top:14px"
+>
+  <div class="stat-card">
+    <div class="stat-label">SUPABASE USAGE</div>
+    <div class="stat-value">讀取中…</div>
+    <div class="stat-note">正在讀取最新用量快照</div>
+  </div>
+</div>
 
-            <div class="stat-card gold">
-              <div class="stat-label">EDGE FUNCTION INVOCATIONS</div>
-              <div class="stat-value gold-text">500,000</div>
-              <div class="stat-note">
-                每月額度<br>
-                比分 Cron：約 720 次 / 日<br>
-                約 21,600 次 / 30 天
-              </div>
-            </div>
-
-            <div class="stat-card blue">
-              <div class="stat-label">DATABASE SIZE</div>
-              <div class="stat-value">500 MB</div>
-              <div class="stat-note">
-                每個 Project 額度<br>
-                實際已使用量：待同步
-              </div>
-            </div>
-
-            <div class="stat-card blue">
-              <div class="stat-label">EGRESS</div>
-              <div class="stat-value" style="font-size:22px">5 GB + 5 GB</div>
-              <div class="stat-note">
-                5 GB Uncached<br>
-                5 GB Cached
-              </div>
-            </div>
-
-            <div class="stat-card green">
-              <div class="stat-label">STORAGE</div>
-              <div class="stat-value green-text">1 GB</div>
-              <div class="stat-note">
-                Supabase Storage 額度<br>
-                實際已使用量：待同步
-              </div>
-            </div>
-
-          </div>
+<div
+  id="supabaseUsageMeta"
+  class="panel-desc"
+  style="margin-top:10px"
+>
+  —
+</div>
 
           <div class="panel-title" style="margin-top:20px">
             即時比分推播 V2 消耗
@@ -1344,9 +1337,8 @@ tr:last-child td{border-bottom:0}
           </div>
 
           <div class="danger-note" style="margin-top:14px">
-            ⚠ 目前 Edge Function、Database、Egress、Storage 的「官方實際已使用量」
-            尚未自動同步，因此這裡先顯示官方額度與已知固定消耗。
-            下一步會把實際已用 / 剩餘量接進來，再加入黃色、紅色警示。
+⚠ 此區顯示 supabase_usage_snapshots 的最新快照。
+數值會隨最新快照更新，但目前不是直接即時讀取 Supabase 官方 Usage API。
           </div>
         </div>
         
@@ -5982,8 +5974,250 @@ function renderApiStats() {
         `)
         .join("");
   }
+
+  renderSupabaseUsage();
+  
 }
 
+function formatUsageNumber(
+  value,
+  kind = "gb"
+) {
+  const number =
+    Number(value || 0);
+
+  if (kind === "count") {
+    return Math.round(number)
+      .toLocaleString("en-US");
+  }
+
+  return number
+    .toFixed(3)
+    .replace(/\.?0+$/, "");
+}
+
+function usageState(percent) {
+  if (percent >= 90) {
+    return {
+      className: "usage-danger",
+      label: "危險",
+      color: "#ff9595"
+    };
+  }
+
+  if (percent >= 70) {
+    return {
+      className: "usage-warning",
+      label: "注意",
+      color: "#f2bd4b"
+    };
+  }
+
+  return {
+    className: "usage-ok",
+    label: "正常",
+    color: "#3cdd82"
+  };
+}
+
+function renderSupabaseUsage() {
+  const grid =
+    document.getElementById(
+      "supabaseUsageGrid"
+    );
+
+  const meta =
+    document.getElementById(
+      "supabaseUsageMeta"
+    );
+
+  if (!grid) return;
+
+  const snapshot =
+    apiStatsPayload
+      ?.usage_snapshot;
+
+  if (!snapshot) {
+    grid.innerHTML = `
+      <div class="stat-card usage-warning">
+        <div class="stat-label">SUPABASE USAGE</div>
+        <div class="stat-value">尚無資料</div>
+        <div class="stat-note">
+          尚未建立 Supabase 用量快照
+        </div>
+      </div>
+    `;
+
+    if (meta) {
+      meta.textContent =
+        "尚未取得 Supabase Usage 快照。";
+    }
+
+    return;
+  }
+
+  const resources = [
+    {
+      label:
+        "EDGE FUNCTION INVOCATIONS",
+      used:
+        snapshot.edge_function_used,
+      quota:
+        snapshot.edge_function_quota,
+      unit: "次",
+      kind: "count"
+    },
+    {
+      label:
+        "DATABASE SIZE",
+      used:
+        snapshot.database_used_gb,
+      quota:
+        snapshot.database_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "EGRESS",
+      used:
+        snapshot.egress_used_gb,
+      quota:
+        snapshot.egress_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "CACHED EGRESS",
+      used:
+        snapshot.cached_egress_used_gb,
+      quota:
+        snapshot.cached_egress_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "STORAGE SIZE",
+      used:
+        snapshot.storage_used_gb,
+      quota:
+        snapshot.storage_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "LOG INGESTION",
+      used:
+        snapshot.log_ingestion_used_gb,
+      quota:
+        snapshot.log_ingestion_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "LOG QUERY",
+      used:
+        snapshot.log_query_used_gb,
+      quota:
+        snapshot.log_query_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    }
+  ];
+
+  grid.innerHTML =
+    resources
+      .map(item => {
+        const used =
+          Number(item.used || 0);
+
+        const quota =
+          Number(item.quota || 0);
+
+        const remaining =
+          Math.max(
+            quota - used,
+            0
+          );
+
+        const percent =
+          quota > 0
+            ? used / quota * 100
+            : 0;
+
+        const state =
+          usageState(percent);
+
+        return `
+          <div class="stat-card ${state.className}">
+            <div class="stat-label">
+              ${item.label}
+            </div>
+
+            <div
+              class="stat-value"
+              style="font-size:21px"
+            >
+              ${formatUsageNumber(
+                used,
+                item.kind
+              )}
+              /
+              ${formatUsageNumber(
+                quota,
+                item.kind
+              )}
+              ${item.unit}
+            </div>
+
+            <div class="stat-note">
+              使用率：
+              <strong style="color:${state.color}">
+                ${percent.toFixed(1)}%
+                · ${state.label}
+              </strong>
+              <br>
+
+              剩餘：
+              ${formatUsageNumber(
+                remaining,
+                item.kind
+              )}
+              ${item.unit}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+  if (meta) {
+    const usageDate =
+      String(
+        snapshot.usage_date ||
+        "—"
+      ).replace(/-/g, "/");
+
+    const cycleStart =
+      String(
+        snapshot.billing_cycle_start ||
+        "—"
+      ).replace(/-/g, "/");
+
+    const cycleEnd =
+      String(
+        snapshot.billing_cycle_end ||
+        "—"
+      ).replace(/-/g, "/");
+
+    meta.textContent =
+      `最新快照：${usageDate}｜Billing Cycle：${cycleStart} ～ ${cycleEnd}`;
+  }
+}
+  
 /* ---------- Health ---------- */
 
 async function loadHealth(force = false) {
