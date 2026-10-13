@@ -731,18 +731,31 @@
       confidence_below_threshold:"低於風控門檻",
       daily_limit_reached:"已達單日投入上限",
       stake_too_small:"建議注額過低",
-      panda_odds_unavailable:"Panda 找不到對應賠率（舊賽事可能尚無映射）"
+      panda_odds_unavailable:"Panda 有賽事但找不到推薦盤口",
+      panda_match_failed:"Panda 賽事配對失敗"
     };
 
     var counts={};
+    var details=[];
     skipped.forEach(function(x){
       var key=labels[x.reason]||x.reason||"略過";
       counts[key]=(counts[key]||0)+1;
+
+      if(x.detail){
+        var detail=String(x.detail);
+        if(!details.includes(detail))details.push(detail);
+      }
     });
 
-    return Object.keys(counts).map(function(k){
+    var summary=Object.keys(counts).map(function(k){
       return k+" "+counts[k]+" 場";
     }).join("、");
+
+    if(details.length){
+      summary += "｜"+details.slice(0,2).join(" / ");
+    }
+
+    return summary;
   }
 
   function quoteKey(item){
