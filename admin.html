@@ -5856,10 +5856,45 @@ async function loadApiStats(force = false) {
         action: "api_stats"
       });
 
-    apiStatsPayload =
-      data;
+apiStatsPayload =
+  data;
 
-    renderApiStats();
+const apiDays =
+  Array.isArray(data?.days)
+    ? data.days
+    : [];
+
+const todayKey =
+  new Date().toLocaleDateString(
+    "en-CA",
+    {
+      timeZone: "Asia/Taipei"
+    }
+  );
+
+const todayRow =
+  apiDays.find(
+    item =>
+      String(item?.date || "") ===
+      todayKey
+  );
+
+dashboardData.todayApiCount =
+  Number(
+    todayRow?.count || 0
+  );
+
+dashboardData.last7DaysApiCount =
+  apiDays.reduce(
+    (sum, item) =>
+      sum +
+      Number(item?.count || 0),
+    0
+  );
+
+renderApiStats();
+renderApiPage();
+renderDashboard();
 
   } catch (error) {
     console.error(
