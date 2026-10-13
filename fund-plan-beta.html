@@ -95,7 +95,10 @@
     .manual-field input{height:40px;font-size:11px}
     .manual-reco{margin-top:7px;color:#9ba6b3;font-size:9px;line-height:1.5}
     .manual-reco strong{color:var(--gold2)}
-    .match-fund-btn{margin-top:10px;width:100%;border:1px solid rgba(242,189,75,.22);border-radius:11px;padding:10px 12px;background:rgba(242,189,75,.07);color:var(--gold2);font-size:10px;font-weight:950}
+    .match-action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .match-fund-btn{width:100%;border-radius:11px;padding:10px 12px;font-size:10px;font-weight:950}
+    .match-fund-ai{border:1px solid rgba(242,189,75,.28);background:rgba(242,189,75,.08);color:var(--gold2)}
+    .match-fund-self{border:1px solid rgba(110,168,255,.2);background:rgba(110,168,255,.07);color:#afd0ff}
     .ai-best-tag{display:inline-flex;align-items:center;gap:4px;margin-bottom:5px;padding:4px 7px;border-radius:999px;background:rgba(242,189,75,.11);color:var(--gold2);font-size:8px;font-weight:950}
     .coach-reason{margin-top:6px;padding:8px 9px;border-radius:10px;background:rgba(110,168,255,.055);color:#9cb7d7;font-size:8px;font-weight:800;line-height:1.55}
     .coach-phase{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(60,221,130,.07);color:#8fe9b2;font-size:8px;font-weight:950}
@@ -179,12 +182,12 @@
         <div>
           <div class="section-kicker">ANALYZED MATCHES</div>
           <div class="section-title">選擇已分析賽事</div>
-          <div class="section-desc">只要是這個 Beta 帳號已分析過的賽事都會顯示；AI 首選會置頂標示，也可以把其他玩法當作投注記帳。</div>
+          <div class="section-desc">只要是這個 Beta 帳號已分析過的賽事都會顯示。新手可直接「跟著 AI」，熟悉賽事的會員可選「自己配置」。</div>
         </div>
         <button class="ghost-btn" id="refreshBtn">重新整理</button>
       </div>
       <div class="match-list" id="matchList"><div class="empty">讀取已分析賽事中…</div></div>
-      <div class="mode-note">點每場的「資金配置」，即可查看獨贏／讓分／大小球／BTTS 全部玩法。</div>
+      <div class="mode-note">跟著 AI：預設帶入 AI 首選、方向與動態建議注額。自己配置：四種玩法自由選，AI 僅作參考。</div>
       <div class="action-row">
         <button class="ghost-btn" id="recalcBtn">重新計算動態建議</button>
         <button class="danger-btn" id="resetMonthBtn">清除本週測試資料</button>
@@ -268,7 +271,8 @@
   };
 
   var manualEntryState = {
-    items:[]
+    items:[],
+    mode:"ai"
   };
 
   document.getElementById("app").hidden = false;
@@ -895,14 +899,20 @@
         '<div class="teams">'+esc(m.home_team||"--")+' <span style="color:#687483;font-weight:800">vs</span> '+esc(m.away_team||"--")+'</div>'+
         '<div class="recommend"><div><div class="ai-best-tag">★ AI 首選</div><div class="pick">'+esc(bestText)+'</div></div><div class="confidence">'+(best.key?("AI "+Math.round(best.confidence)+"%"):"觀望")+'</div></div>'+
         (betCount?'<div class="section-desc" style="margin-top:8px">已記錄 '+betCount+' 筆投注</div>':'')+
-        '<button type="button" class="match-fund-btn" data-fund-id="'+esc(String(m.id))+'">資金配置／投注記帳</button>'+
+        '<div class="match-action-row">'+
+          '<button type="button" class="match-fund-btn match-fund-ai" data-fund-id="'+esc(String(m.id))+'" data-mode="ai">跟著 AI</button>'+
+          '<button type="button" class="match-fund-btn match-fund-self" data-fund-id="'+esc(String(m.id))+'" data-mode="self">自己配置</button>'+
+        '</div>'+
       '</div>';
     }).join("");
 
     box.querySelectorAll("[data-fund-id]").forEach(function(btn){
       btn.addEventListener("click",function(event){
         event.stopPropagation();
-        prepareManualPlan(this.getAttribute("data-fund-id"));
+        prepareManualPlan(
+          this.getAttribute("data-fund-id"),
+          this.getAttribute("data-mode")||"ai"
+        );
       });
     });
   }
@@ -979,14 +989,24 @@
     overlay?.classList.remove("show");
     overlay?.setAttribute("aria-hidden","true");
     manualEntryState.items=[];
+    manualEntryState.mode="ai";
   }
 
-  function openManualEntryModal(match,items){
+  function openManualEntryModal(match,items,mode){
     manualEntryState.items=items.slice();
+    manualEntryState.mode=mode==="self"?"self":"ai";
 
+    var guided=manualEntryState.mode==="ai";
     var best=bestRecommendation(match);
+
     document.getElementById("quoteTitle").textContent=
+      (guided?"跟著 AI｜":"自己配置｜")+
       (match.home_team||"--")+" vs "+(match.away_team||"--");
+
+    document.querySelector(".quote-hint").textContent=
+      guided
+        ? "AI 首選已預先勾選，方向、盤口與動態建議注額會自動帶入；你只需要輸入實際賠率，也可以自行調整。"
+        : "四種玩法都可自由勾選與記帳；AI 推薦、信心與動態注額只當參考，不會替你決定。";
 
     var list=document.getElementById("quoteList");
     list.innerHTML=items.map(function(item,index){
@@ -997,18 +1017,23 @@
         ? (item.ai_pick+(item.ai_line!==null&&item.ai_line!==undefined&&item.ai_line!==""?(" "+item.ai_line):""))
         : "暫不推薦";
 
+      var checked=guided && item.is_ai_recommended;
+      var prefillPick=guided && item.is_ai_recommended ? item.ai_pick : "";
+      var prefillLine=guided && item.is_ai_recommended ? (item.ai_line??"") : "";
+      var prefillStake=guided && item.is_ai_recommended && suggested>0 ? suggested : "";
+
       return '<div class="quote-row market-entry '+(item.is_ai_recommended?'ai-best':'')+'" data-index="'+index+'">'+
         '<div class="market-entry-head"><div>'+
           (item.is_ai_recommended?'<div class="ai-best-tag">★ AI 首選</div>':'')+
           '<div class="market-entry-title">'+esc(item.market_label)+'</div>'+
           '<div class="manual-reco">AI：<strong>'+esc(aiText)+'</strong>｜信心 '+Math.round(item.confidence)+'%｜動態建議 '+(suggested>0?money(suggested):"觀望")+'</div>'+
           '<div class="coach-reason"><span class="coach-phase">'+esc(coach.phase)+'</span>　基礎 '+money(coach.base)+' × '+coach.multiplier.toFixed(2)+' → '+money(coach.final)+'<br>'+esc(coach.reason)+'</div>'+
-        '</div><input class="market-entry-check" type="checkbox" '+(item.is_ai_recommended?'checked':'')+'></div>'+
+        '</div><input class="market-entry-check" type="checkbox" '+(checked?'checked':'')+'></div>'+
         '<div class="market-entry-grid">'+
-          '<div class="manual-field"><label>投注方向</label><select class="actual-pick-input">'+optionHtml(item.market_key,item.ai_pick)+'</select></div>'+
-          '<div class="manual-field"><label>實際盤口'+(needsLine?"（必填）":"（可留空）")+'</label><input class="manual-line-input" type="text" inputmode="decimal" placeholder="'+(needsLine?"例如 2.5 / -0.5":"可留空")+'" value="'+esc(item.ai_line??"")+'"></div>'+
+          '<div class="manual-field"><label>投注方向</label><select class="actual-pick-input">'+optionHtml(item.market_key,prefillPick)+'</select></div>'+
+          '<div class="manual-field"><label>實際盤口'+(needsLine?"（必填）":"（可留空）")+'</label><input class="manual-line-input" type="text" inputmode="decimal" placeholder="'+(needsLine?"例如 2.5 / -0.5":"可留空")+'" value="'+esc(prefillLine)+'"></div>'+
           '<div class="manual-field"><label>實際十進位賠率</label><input class="manual-odds-input" type="number" min="1.01" max="1000" step="0.01" inputmode="decimal" placeholder="例如 1.91"></div>'+
-          '<div class="manual-field"><label>實際下注金額</label><input class="actual-stake-input" type="number" min="1" step="1" inputmode="decimal" placeholder="例如 300" value="'+(item.is_ai_recommended&&suggested>0?suggested:"")+'"></div>'+
+          '<div class="manual-field"><label>實際下注金額</label><input class="actual-stake-input" type="number" min="1" step="1" inputmode="decimal" placeholder="例如 300" value="'+esc(prefillStake)+'"></div>'+
         '</div>'+
       '</div>';
     }).join("");
@@ -1018,7 +1043,7 @@
     overlay.setAttribute("aria-hidden","false");
   }
 
-  function prepareManualPlan(historyId){
+  function prepareManualPlan(historyId,mode){
     var match=historyMatches.find(function(m){
       return String(m.id)===String(historyId);
     });
@@ -1034,7 +1059,7 @@
       return;
     }
 
-    openManualEntryModal(match,items);
+    openManualEntryModal(match,items,mode);
   }
 
   async function confirmManualPlan(){
@@ -1106,6 +1131,7 @@
         actual_odds:Number(actualOdds.toFixed(3)),
         actual_stake:Number(actualStake.toFixed(2)),
         is_ai_recommended:Boolean(
+          manualEntryState.mode==="ai" &&
           item.is_ai_recommended &&
           sameDirection &&
           sameLine
