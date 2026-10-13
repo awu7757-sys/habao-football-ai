@@ -1029,6 +1029,15 @@ tr:last-child td{border-bottom:0}
               <input type="checkbox" id="normalAnnouncementEnabled">
               <span class="toggle-track"></span><span>啟用一般公告</span>
             </label>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="normalAnnouncementMarqueeEnabled">
+              <span class="toggle-track"></span><span>啟用跑馬燈</span>
+            </label>
+
+            <div class="panel-desc" style="margin-top:8px">
+              開啟後公告文字會自動由右往左循環播放；關閉則維持一般靜態文字。
+            </div>
           </div>
 
           <div class="form-box">
@@ -3409,6 +3418,11 @@ async function loadAnnouncementSettings() {
         "normalAnnouncementEnabled"
       );
 
+    const normalMarqueeEnabled =
+      document.getElementById(
+        "normalAnnouncementMarqueeEnabled"
+      );
+
     const maintenanceEnabled =
       document.getElementById(
         "maintenanceAnnouncementEnabled"
@@ -3432,6 +3446,13 @@ async function loadAnnouncementSettings() {
       normalEnabled.checked =
         settings
           .normal_enabled ===
+        true;
+    }
+
+    if (normalMarqueeEnabled) {
+      normalMarqueeEnabled.checked =
+        settings
+          .normal_marquee_enabled ===
         true;
     }
 
@@ -3486,6 +3507,12 @@ async function saveAnnouncementSettings() {
         "normalAnnouncementEnabled"
       )?.checked === true;
 
+  const normalMarqueeEnabled =
+    document
+      .getElementById(
+        "normalAnnouncementMarqueeEnabled"
+      )?.checked === true;
+
   const maintenanceEnabled =
     document
       .getElementById(
@@ -3511,6 +3538,7 @@ async function saveAnnouncementSettings() {
         normal_announcement: normal,
         maintenance_announcement: maintenance,
         normal_enabled: normalEnabled,
+        normal_marquee_enabled: normalMarqueeEnabled,
         maintenance_enabled: maintenanceEnabled
       }
     );
