@@ -6978,6 +6978,60 @@ padding:
     </a>
 
 
+    <!-- 資金計畫 Beta｜只對指定測試帳號顯示 -->
+    <a
+      href="fund-plan-beta.html"
+      class="v2-tool-card v2-tool-blue"
+      id="habaoFundBetaCard"
+      style="display:none"
+    >
+
+      <div class="v2-tool-top">
+
+        <div class="v2-tool-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M4 18V8"/>
+            <path d="M9 18V5"/>
+            <path d="M14 18v-7"/>
+            <path d="M19 18V3"/>
+            <path d="M4 21h16"/>
+          </svg>
+        </div>
+
+        <div class="v2-tool-arrow">
+          →
+        </div>
+
+      </div>
+
+      <div class="v2-tool-content">
+
+        <div class="v2-tool-kicker">
+          PRIVATE BETA
+        </div>
+
+        <div class="v2-tool-title">
+          AI 資金計畫
+        </div>
+
+        <div class="v2-tool-desc">
+          模擬本金・AI 配注・盈虧追蹤
+        </div>
+
+      </div>
+
+      <div class="v2-tool-footer">
+        <span class="v2-tool-dot"></span>
+        私人測試中
+      </div>
+
+    </a>
+
+
     <!-- AI 工具箱 -->
     <a
       href="ai-tools.html"
@@ -7883,6 +7937,34 @@ function readCachedV2Member() {
   }
 }
 
+const HABAO_FUND_BETA_ACCOUNT =
+  "google_2d3cef6b6e2d";
+
+function syncHabaoFundBetaEntry(
+  member = null
+) {
+  const betaCard =
+    document.getElementById(
+      "habaoFundBetaCard"
+    );
+
+  if (!betaCard) return;
+
+  const currentMember =
+    member ||
+    readCachedV2Member();
+
+  betaCard.style.display =
+    String(
+      currentMember?.account || ""
+    ).trim() ===
+      HABAO_FUND_BETA_ACCOUNT
+      ? ""
+      : "none";
+}
+
+syncHabaoFundBetaEntry();
+
 function isV2OAuthMember(member) {
   if (!member) return false;
 
@@ -8114,6 +8196,10 @@ async function refreshV2MemberFromServer(
         );
 
         updateV2AccountPanel(
+          freshMember
+        );
+
+        syncHabaoFundBetaEntry(
           freshMember
         );
 
