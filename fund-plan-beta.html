@@ -534,6 +534,40 @@
     };
   }
 
+  function sourceFixtureOf(match){
+    var rd=match?.result_data||{};
+    return (
+      rd?.fixture ||
+      rd?.source_data?.fixture ||
+      rd?.sourceData?.fixture ||
+      rd?.analysis?.source_data?.fixture ||
+      rd?.analysis?.sourceData?.fixture ||
+      {}
+    );
+  }
+
+  function sourceNamesOf(match){
+    var f=sourceFixtureOf(match);
+    return {
+      home_api_name:String(
+        f?.home?.api_name ||
+        f?.home?.name ||
+        ""
+      ).trim(),
+      away_api_name:String(
+        f?.away?.api_name ||
+        f?.away?.name ||
+        ""
+      ).trim(),
+      league_api_name:String(
+        f?.league?.api_name ||
+        f?.league?.name ||
+        match?.league_api_name ||
+        ""
+      ).trim()
+    };
+  }
+
 
 
   function displayPick(best){
@@ -662,14 +696,18 @@
       .map(function(m){
         var best=bestRecommendation(m);
         var pandaCtx=pandaContextOf(m);
+        var sourceNames=sourceNamesOf(m);
 
         return {
           history_id:m.id,
           fixture_id:fixtureIdOf(m),
           fixture_time:m.fixture_time||null,
           league_name:m.league_name||"",
+          league_api_name:sourceNames.league_api_name,
           home_team:m.home_team||"",
           away_team:m.away_team||"",
+          home_api_name:sourceNames.home_api_name,
+          away_api_name:sourceNames.away_api_name,
           panda_match_id:pandaCtx.panda_match_id,
           panda_tid:pandaCtx.panda_tid,
           market_key:best.key,
