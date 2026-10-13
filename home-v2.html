@@ -5407,38 +5407,82 @@ padding:
 }
 
 /* ===============================
-   HABAO｜一般公告
+   HABAO｜一般公告｜滿版金色 + 跑馬燈
 ================================ */
 
 .v2-announcement {
   display: none;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   margin: 12px 0 18px;
   padding: 12px 15px;
-  border: 1px solid rgba(212, 175, 55, 0.32);
+  border: 1px solid rgba(255, 224, 139, 0.42);
   border-radius: 12px;
-  background: rgba(212, 175, 55, 0.07);
-  color: rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(
+      90deg,
+      #bb7e13 0%,
+      #e4ad31 34%,
+      #f1c75f 52%,
+      #d99c21 72%,
+      #aa6d0f 100%
+    );
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  color: #211606;
   font-size: 12px;
   line-height: 1.65;
+  overflow: hidden;
 }
 
-.v2-announcement.show {
-  display: flex;
-}
+.v2-announcement.show { display: flex; }
 
 .v2-announcement-label {
   flex: 0 0 auto;
-  color: #d9b85f;
-  font-weight: 900;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(25, 17, 5, 0.82);
+  color: #ffd970;
+  font-weight: 950;
   white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.v2-announcement-text-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .v2-announcement-text {
   min-width: 0;
+  color: #211606;
+  font-weight: 850;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.v2-announcement.marquee .v2-announcement-text {
+  display: inline-block;
+  min-width: max-content;
+  padding-left: 100%;
+  white-space: nowrap;
+  word-break: normal;
+  animation: v2AnnouncementMarquee var(--v2-announcement-duration, 18s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes v2AnnouncementMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-announcement.marquee .v2-announcement-text {
+    padding-left: 0;
+    animation: none;
+  }
 }
 
 /* 加入主畫面｜浮動按鈕 */
@@ -6299,10 +6343,12 @@ padding:
         公告
       </div>
 
-      <div
-        class="v2-announcement-text"
-        id="v2AnnouncementText"
-      ></div>
+      <div class="v2-announcement-text-wrap">
+        <div
+          class="v2-announcement-text"
+          id="v2AnnouncementText"
+        ></div>
+      </div>
     </div>
 
     <!-- HERO -->
@@ -7502,12 +7548,43 @@ async function loadV2Announcement() {
       settings.normal_announcement.trim()
     ) {
 
+      const text =
+        settings.normal_announcement.trim();
+
+      const marqueeEnabled =
+        settings.normal_marquee_enabled === true;
+
       if (announcementText) {
         announcementText.textContent =
-          settings.normal_announcement.trim();
+          text;
       }
 
       if (announcement) {
+        announcement.classList.toggle(
+          "marquee",
+          marqueeEnabled
+        );
+
+        if (marqueeEnabled) {
+          const duration =
+            Math.max(
+              14,
+              Math.min(
+                42,
+                text.length * 0.55
+              )
+            );
+
+          announcement.style.setProperty(
+            "--v2-announcement-duration",
+            String(duration) + "s"
+          );
+        } else {
+          announcement.style.removeProperty(
+            "--v2-announcement-duration"
+          );
+        }
+
         announcement.classList.add(
           "show"
         );
@@ -7518,7 +7595,12 @@ async function loadV2Announcement() {
 
     if (announcement) {
       announcement.classList.remove(
-        "show"
+        "show",
+        "marquee"
+      );
+
+      announcement.style.removeProperty(
+        "--v2-announcement-duration"
       );
     }
 
