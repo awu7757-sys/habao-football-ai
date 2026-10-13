@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <title>HABAO 資金計畫 Beta</title>
+  <style>
+    :root{
+      --bg:#070a0f;--panel:#10161f;--panel2:#151d28;--line:rgba(255,255,255,.08);
+      --text:#f7f9fc;--muted:#94a0af;--gold:#f2bd4b;--gold2:#ffe39d;
+      --green:#3cdd82;--red:#ff6868;--blue:#6ea8ff;--max:760px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:
+      radial-gradient(circle at 50% -10%,rgba(242,189,75,.13),transparent 28%),
+      linear-gradient(180deg,#0d131b 0%,#080b10 48%,#06080c 100%)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit;text-decoration:none}
+    .app{width:100%;max-width:var(--max);margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 15px calc(36px + env(safe-area-inset-bottom))}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:11px;min-width:0}
+    .logo{width:44px;height:44px;flex:0 0 44px;background:url("./habao-hb-logo.png") center/contain no-repeat;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+    .brand-title{font-size:17px;font-weight:950}.brand-sub{margin-top:3px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.7px}
+    .beta-pill{padding:7px 10px;border:1px solid rgba(242,189,75,.25);border-radius:999px;color:var(--gold2);background:rgba(242,189,75,.08);font-size:10px;font-weight:950;white-space:nowrap}
+    .back{display:inline-flex;align-items:center;gap:6px;margin:2px 0 18px;color:#aab4c0;font-size:12px;font-weight:800}
+    .hero{padding:22px 20px;border:1px solid rgba(242,189,75,.16);border-radius:24px;background:
+      radial-gradient(circle at 10% 0%,rgba(242,189,75,.11),transparent 35%),
+      linear-gradient(180deg,rgba(24,33,45,.96),rgba(10,15,22,.98));box-shadow:0 18px 45px rgba(0,0,0,.35)}
+    .hero-kicker{color:var(--gold);font-size:10px;font-weight:950;letter-spacing:1.5px}
+    .hero h1{margin:8px 0 8px;font-size:27px;line-height:1.15;letter-spacing:-.6px}
+    .hero p{margin:0;color:#aab4c0;font-size:12px;line-height:1.75;font-weight:650}
+    .summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+    .metric{padding:14px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.025)}
+    .metric-label{color:#7f8a98;font-size:10px;font-weight:800}.metric-value{margin-top:6px;font-size:20px;font-weight:950}
+    .metric-value.good{color:#72e8a2}.metric-value.bad{color:#ff8585}.metric-value.gold{color:var(--gold2)}
+    .section{margin-top:18px;padding:17px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(18,25,35,.96),rgba(10,14,20,.96))}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+    .section-kicker{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:1.3px}
+    .section-title{margin-top:4px;font-size:17px;font-weight:950}.section-desc{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6}
+    .ghost-btn,.main-btn,.danger-btn{border:0;border-radius:13px;padding:11px 13px;font-size:11px;font-weight:950}
+    .ghost-btn{color:#d6dde5;background:rgba(255,255,255,.055);border:1px solid var(--line)}
+    .main-btn{width:100%;margin-top:12px;color:#16120a;background:linear-gradient(135deg,#f7da80,#dca631);box-shadow:0 10px 28px rgba(242,189,75,.16)}
+    .danger-btn{color:#ff9a9a;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.14)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{display:block;color:#85909e;font-size:10px;font-weight:850;margin:0 0 6px 2px}
+    input,select{width:100%;height:44px;border:1px solid var(--line);border-radius:13px;padding:0 12px;color:#edf1f5;background:#0b1118;outline:none;font-size:12px;font-weight:800}
+    input:focus,select:focus{border-color:rgba(242,189,75,.4);box-shadow:0 0 0 3px rgba(242,189,75,.07)}
+    .mode-note{margin-top:10px;padding:10px 12px;border-radius:13px;color:#9da8b5;background:rgba(110,168,255,.055);font-size:10px;line-height:1.6}
+    .match-list{display:grid;gap:10px}
+    .match{position:relative;padding:14px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.025);transition:.15s ease}
+    .match.selected{border-color:rgba(242,189,75,.38);background:rgba(242,189,75,.055)}
+    .match-top{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#8793a2;font-size:9px;font-weight:850}
+    .teams{margin-top:9px;font-size:14px;font-weight:950;line-height:1.45}
+    .recommend{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.055)}
+    .market{font-size:11px;font-weight:900;color:#dfe6ee}.pick{margin-top:3px;color:var(--gold2);font-size:12px;font-weight:950}
+    .confidence{flex:0 0 auto;padding:6px 8px;border-radius:999px;background:rgba(60,221,130,.075);color:#75e7a4;font-size:9px;font-weight:950}
+    .check{position:absolute;right:13px;top:42px;width:23px;height:23px;accent-color:#e0ae3d}
+    .empty{padding:22px 12px;text-align:center;color:#7e8997;font-size:11px;line-height:1.7}
+    .plan-list{display:grid;gap:9px}
+    .plan-row{padding:13px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}
+    .plan-row-head{display:flex;justify-content:space-between;gap:10px}
+    .plan-team{font-size:12px;font-weight:950}.plan-status{font-size:9px;font-weight:950;color:#a8b2bf}
+    .plan-meta{display:grid;grid-template-columns:1.35fr .9fr .9fr;gap:8px;margin-top:10px}
+    .mini{padding:9px;border-radius:11px;background:rgba(255,255,255,.035)}
+    .mini span{display:block;color:#7e8997;font-size:8px;font-weight:850}.mini strong{display:block;margin-top:4px;color:#eef2f6;font-size:10px}
+    .settle{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+    .settle-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .settle-actions button{border:0;border-radius:9px;padding:8px 9px;font-size:9px;font-weight:950}
+    .win{color:#72e8a2;background:rgba(60,221,130,.08)}.loss{color:#ff8a8a;background:rgba(255,90,90,.08)}.push{color:#cbd3dc;background:rgba(255,255,255,.06)}
+    .pnl{margin-top:8px;font-size:11px;font-weight:950}.pnl.good{color:#72e8a2}.pnl.bad{color:#ff8585}
+    .footer-note{margin:16px 2px 0;color:#66717f;font-size:9px;line-height:1.65;text-align:center}
+    .toast{position:fixed;left:50%;bottom:28px;z-index:9999;transform:translate(-50%,20px);opacity:0;pointer-events:none;max-width:calc(100% - 30px);padding:10px 13px;border:1px solid rgba(242,189,75,.18);border-radius:12px;color:#f7e5b0;background:rgba(12,16,22,.96);box-shadow:0 18px 50px rgba(0,0,0,.4);font-size:10px;font-weight:900;transition:.2s ease}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:520px){.form-grid{grid-template-columns:1fr}.plan-meta{grid-template-columns:1fr 1fr}.plan-meta .mini:first-child{grid-column:1/-1}.hero h1{font-size:24px}}
+  </style>
+</head>
+<body>
+  <div class="app" id="app" hidden>
+    <div class="top">
+      <div class="brand">
+        <div class="logo"></div>
+        <div><div class="brand-title">HABAO</div><div class="brand-sub">MATCH AI / FUND PLAN</div></div>
+      </div>
+      <div class="beta-pill">PRIVATE BETA</div>
+    </div>
+
+    <a class="back" href="home-v2.html">← 返回首頁</a>
+
+    <section class="hero">
+      <div class="hero-kicker">HABAO FUND MANAGEMENT</div>
+      <h1>AI 資金計畫</h1>
+      <p>使用你已經解鎖的正式 AI 分析，建立每日模擬投注配置。現階段只做私人測試，不影響正式會員積分與真實資金。</p>
+      <div class="summary">
+        <div class="metric"><div class="metric-label">起始本金</div><div class="metric-value gold" id="mStart">30,000</div></div>
+        <div class="metric"><div class="metric-label">目前本金</div><div class="metric-value" id="mCurrent">30,000</div></div>
+        <div class="metric"><div class="metric-label">累積盈虧</div><div class="metric-value" id="mPnl">0</div></div>
+        <div class="metric"><div class="metric-label">ROI / 最大回撤</div><div class="metric-value" id="mRoi">0.00% / 0.00%</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">PLAN SETTINGS</div>
+          <div class="section-title">本月模擬計畫</div>
+          <div class="section-desc">先設定本金與風險模式。Beta 期間資料只保存在目前瀏覽器。</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="capital">起始本金</label>
+          <input id="capital" type="number" min="1000" step="1000" value="30000">
+        </div>
+        <div>
+          <label for="riskMode">風險模式</label>
+          <select id="riskMode">
+            <option value="conservative">保守型</option>
+            <option value="balanced" selected>平衡型</option>
+            <option value="aggressive">進取型</option>
+          </select>
+        </div>
+      </div>
+      <div class="mode-note" id="modeNote"></div>
+      <button class="main-btn" id="savePlanBtn">儲存本月計畫</button>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">ANALYZED MATCHES</div>
+          <div class="section-title">選擇已分析賽事</div>
+          <div class="section-desc">只讀取這個 Beta 帳號已經花積分解鎖的正式分析，不會再次扣積分。</div>
+        </div>
+        <button class="ghost-btn" id="refreshBtn">重新整理</button>
+      </div>
+      <div class="match-list" id="matchList"><div class="empty">讀取已分析賽事中…</div></div>
+      <button class="main-btn" id="generateBtn">產生今日資金配置</button>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">TODAY PLAN</div>
+          <div class="section-title">模擬投注紀錄</div>
+          <div class="section-desc">Beta 先用手動輸入十進位賠率與賽果結算；之後再接 Panda 即時賠率與自動完賽結算。</div>
+        </div>
+        <button class="danger-btn" id="resetBtn">重置</button>
+      </div>
+      <div class="plan-list" id="planList"><div class="empty">尚未建立投注配置</div></div>
+    </section>
+
+    <div class="footer-note">PRIVATE BETA｜模擬資金工具，不代表或保證任何實際獲利。</div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BETA_ACCOUNT = "google_2d3cef6b6e2d";
+  var HISTORY_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history";
+  var PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
+  var STORAGE_KEY = "habao_fund_beta_v1_" + BETA_ACCOUNT;
+
+  var member = readMember();
+  if (!member || String(member.account || "").trim() !== BETA_ACCOUNT) {
+    location.replace("home-v2.html");
+    return;
+  }
+
+  document.getElementById("app").hidden = false;
+
+  var state = loadState();
+  var historyMatches = [];
+  var selectedIds = new Set();
+
+  function readMember(){
+    try{return JSON.parse(sessionStorage.getItem("habao_member") || "null");}
+    catch(e){return null;}
+  }
+
+  function defaultState(){
+    return {startCapital:30000,riskMode:"balanced",bets:[],createdAt:new Date().toISOString()};
+  }
+
+  function loadState(){
+    try{
+      var raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if(raw && Number(raw.startCapital)>0 && Array.isArray(raw.bets)) return raw;
+    }catch(e){}
+    return defaultState();
+  }
+
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderDashboard();
+    renderPlan();
+  }
+
+  function money(v){
+    var n=Number(v)||0;
+    return new Intl.NumberFormat("zh-TW",{maximumFractionDigits:0}).format(n);
+  }
+
+  function pct(v){return (Number(v)||0).toFixed(2)+"%";}
+
+  function esc(v){
+    return String(v == null ? "" : v).replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function toast(msg){
+    var el=document.getElementById("toast");
+    el.textContent=msg;el.classList.add("show");
+    clearTimeout(toast._t);toast._t=setTimeout(function(){el.classList.remove("show");},1800);
+  }
+
+  function riskConfig(){
+    if(state.riskMode==="conservative") return {name:"保守型",daily:0.03,low:0.005,mid:0.0075,high:0.01,note:"單場約 0.5%～1%，單日總投入上限約本金 3%。"};
+    if(state.riskMode==="aggressive") return {name:"進取型",daily:0.07,low:0.01,mid:0.015,high:0.02,note:"單場約 1%～2%，單日總投入上限約本金 7%。"};
+    return {name:"平衡型",daily:0.05,low:0.0075,mid:0.01,high:0.015,note:"單場約 0.75%～1.5%，單日總投入上限約本金 5%。"};
+  }
+
+  function pnlForBet(bet){
+    if(!bet || bet.status==="pending") return 0;
+    var stake=Number(bet.stake)||0, odds=Number(bet.odds)||0;
+    if(bet.status==="win") return odds>1 ? stake*(odds-1) : 0;
+    if(bet.status==="half_win") return odds>1 ? stake*(odds-1)/2 : 0;
+    if(bet.status==="loss") return -stake;
+    if(bet.status==="half_loss") return -stake/2;
+    return 0;
+  }
+
+  function bankroll(){
+    return Number(state.startCapital)||0 + 0;
+  }
+
+  function metrics(){
+    var start=Number(state.startCapital)||0;
+    var pnl=0, peak=start, equity=start, maxDD=0;
+    (state.bets||[]).slice().sort(function(a,b){return String(a.createdAt).localeCompare(String(b.createdAt));}).forEach(function(b){
+      var p=pnlForBet(b);pnl+=p;equity+=p;
+      if(equity>peak) peak=equity;
+      if(peak>0) maxDD=Math.max(maxDD,(peak-equity)/peak*100);
+    });
+    return {start:start,current:start+pnl,pnl:pnl,roi:start>0?pnl/start*100:0,maxDD:maxDD};
+  }
+
+  function renderDashboard(){
+    var m=metrics();
+    document.getElementById("mStart").textContent=money(m.start);
+    document.getElementById("mCurrent").textContent=money(m.current);
+    var p=document.getElementById("mPnl");
+    p.textContent=(m.pnl>0?"+":"")+money(m.pnl);
+    p.className="metric-value "+(m.pnl>0?"good":m.pnl<0?"bad":"");
+    document.getElementById("mRoi").textContent=pct(m.roi)+" / "+pct(m.maxDD);
+    document.getElementById("capital").value=state.startCapital;
+    document.getElementById("riskMode").value=state.riskMode;
+    document.getElementById("modeNote").textContent=riskConfig().note;
+  }
+
+  function normalizePick(rec){
+    if(!rec) return "";
+    var pick=String(rec.pick||"").trim();
+    if(!pick || /暫不推薦|no recommendation/i.test(pick)) return "";
+    if(rec.line && !pick.includes(String(rec.line))) pick += " " + String(rec.line);
+    return pick;
+  }
+
+  function bestRecommendation(match){
+    var a=match && match.result_data && match.result_data.analysis;
+    var r=a && a.recommendations || {};
+    var list=[
+      {key:"moneyline",label:"獨贏",rec:r.moneyline},
+      {key:"handicap",label:"讓分",rec:r.handicap},
+      {key:"over_under",label:"大小球",rec:r.over_under},
+      {key:"btts",label:"雙方進球",rec:r.btts}
+    ].map(function(x){
+      return {key:x.key,label:x.label,pick:normalizePick(x.rec),confidence:Number(x.rec&&x.rec.confidence)||0};
+    }).filter(function(x){return x.pick && x.confidence>0;});
+    list.sort(function(a,b){return b.confidence-a.confidence;});
+    return list[0] || {key:"",label:"觀望",pick:"暫不推薦",confidence:0};
+  }
+
+  function fmtTime(v){
+    var d=new Date(v);if(Number.isNaN(d.getTime())) return "--";
+    return new Intl.DateTimeFormat("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+  }
+
+  async function loadHistory(){
+    var box=document.getElementById("matchList");
+    box.innerHTML='<div class="empty">讀取已分析賽事中…</div>';
+    try{
+      var res=await fetch(HISTORY_URL+"?account="+encodeURIComponent(BETA_ACCOUNT),{
+        method:"GET",
+        headers:{"apikey":PUBLISHABLE_KEY,"Authorization":"Bearer "+PUBLISHABLE_KEY},
+        cache:"no-store"
+      });
+      var data=await res.json().catch(function(){return{};});
+      if(!res.ok || data.success!==true) throw new Error(data.error||("HTTP "+res.status));
+      historyMatches=Array.isArray(data.matches)?data.matches:[];
+      historyMatches.sort(function(a,b){return new Date(b.fixture_time||0)-new Date(a.fixture_time||0);});
+      renderMatches();
+    }catch(e){
+      console.error(e);
+      box.innerHTML='<div class="empty">已分析賽事讀取失敗<br>'+esc(e.message||e)+'</div>';
+    }
+  }
+
+  function renderMatches(){
+    var box=document.getElementById("matchList");
+    if(!historyMatches.length){box.innerHTML='<div class="empty">這個帳號目前尚無已分析賽事。<br>先到賽事中心完成分析，再回來建立資金配置。</div>';return;}
+    box.innerHTML=historyMatches.slice(0,20).map(function(m){
+      var best=bestRecommendation(m), id=String(m.id), selected=selectedIds.has(id);
+      return '<div class="match '+(selected?'selected':'')+'" data-id="'+esc(id)+'">'+
+        '<div class="match-top"><span>'+esc(m.league_name||"足球賽事")+'</span><span>'+esc(fmtTime(m.fixture_time))+'</span></div>'+
+        '<div class="teams">'+esc(m.home_team||"--")+' <span style="color:#687483;font-weight:800">vs</span> '+esc(m.away_team||"--")+'</div>'+
+        '<div class="recommend"><div><div class="market">'+esc(best.label)+'</div><div class="pick">'+esc(best.pick)+'</div></div><div class="confidence">AI '+Math.round(best.confidence)+'%</div></div>'+
+        '<input class="check" type="checkbox" '+(selected?'checked':'')+' aria-label="選擇賽事">'+
+      '</div>';
+    }).join("");
+
+    box.querySelectorAll(".match").forEach(function(card){
+      var cb=card.querySelector(".check"), id=card.getAttribute("data-id");
+      cb.addEventListener("change",function(){
+        if(cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+        card.classList.toggle("selected",cb.checked);
+      });
+      card.addEventListener("click",function(e){
+        if(e.target===cb) return;
+        cb.checked=!cb.checked;cb.dispatchEvent(new Event("change"));
+      });
+    });
+  }
+
+  function stakeRate(conf){
+    var c=riskConfig();
+    if(conf>=80) return c.high;
+    if(conf>=70) return c.mid;
+    if(conf>=60) return c.low;
+    return 0;
+  }
+
+  function generatePlan(){
+    if(!selectedIds.size){toast("請先選擇至少一場賽事");return;}
+    var m=metrics(), cfg=riskConfig(), dailyCap=Math.max(0,m.current*cfg.daily);
+    var todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei"}).format(new Date());
+    var used=(state.bets||[]).filter(function(b){return b.planDate===todayKey;}).reduce(function(sum,b){return sum+(Number(b.stake)||0);},0);
+    var remain=Math.max(0,dailyCap-used);
+    var selected=historyMatches.filter(function(x){return selectedIds.has(String(x.id));}).map(function(x){
+      return {match:x,best:bestRecommendation(x)};
+    }).sort(function(a,b){return b.best.confidence-a.best.confidence;});
+
+    var added=0;
+    selected.forEach(function(item){
+      var id=String(item.match.id);
+      if(state.bets.some(function(b){return String(b.historyId)===id;})) return;
+      var rate=stakeRate(item.best.confidence);
+      if(rate<=0 || remain<=0) return;
+      var suggested=Math.round((m.current*rate)/10)*10;
+      var stake=Math.max(0,Math.min(suggested,remain));
+      if(stake<10) return;
+      remain-=stake;
+      state.bets.push({
+        id:"b_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+        historyId:id,fixtureTime:item.match.fixture_time||null,league:item.match.league_name||"",
+        home:item.match.home_team||"",away:item.match.away_team||"",
+        market:item.best.label,pick:item.best.pick,confidence:item.best.confidence,
+        stake:stake,odds:"",status:"pending",createdAt:new Date().toISOString(),planDate:todayKey
+      });
+      added++;
+    });
+    selectedIds.clear();
+    saveState();renderMatches();
+    toast(added ? "已建立 "+added+" 筆資金配置" : "沒有符合目前風控門檻的新賽事");
+  }
+
+  function statusText(s){
+    return {pending:"待結算",win:"獲利",loss:"虧損",push:"走盤",half_win:"半贏",half_loss:"半輸"}[s]||s;
+  }
+
+  function renderPlan(){
+    var box=document.getElementById("planList");
+    if(!state.bets.length){box.innerHTML='<div class="empty">尚未建立投注配置</div>';return;}
+    box.innerHTML=state.bets.slice().reverse().map(function(b){
+      var pnl=pnlForBet(b), settled=b.status!=="pending";
+      return '<div class="plan-row" data-bet="'+esc(b.id)+'">'+
+        '<div class="plan-row-head"><div class="plan-team">'+esc(b.home)+' vs '+esc(b.away)+'</div><div class="plan-status">'+esc(statusText(b.status))+'</div></div>'+
+        '<div class="plan-meta">'+
+          '<div class="mini"><span>推薦</span><strong>'+esc(b.market)+'｜'+esc(b.pick)+'</strong></div>'+
+          '<div class="mini"><span>AI 信心</span><strong>'+Math.round(Number(b.confidence)||0)+'%</strong></div>'+
+          '<div class="mini"><span>模擬注額</span><strong>'+money(b.stake)+'</strong></div>'+
+        '</div>'+
+        (settled
+          ? '<div class="pnl '+(pnl>0?'good':pnl<0?'bad':'')+'">單場盈虧：'+(pnl>0?'+':'')+money(pnl)+'</div>'
+          : '<div class="settle"><input class="odds-input" type="number" step="0.01" min="1.01" placeholder="輸入十進位賠率" value="'+esc(b.odds||"")+'"><div class="settle-actions"><button class="win" data-result="win">贏</button><button class="loss" data-result="loss">輸</button><button class="push" data-result="push">走</button></div></div>'
+        )+
+      '</div>';
+    }).join("");
+
+    box.querySelectorAll(".plan-row").forEach(function(row){
+      var id=row.getAttribute("data-bet"), bet=state.bets.find(function(x){return x.id===id;});
+      row.querySelectorAll("[data-result]").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          var result=btn.getAttribute("data-result"), oddsInput=row.querySelector(".odds-input");
+          var odds=Number(oddsInput&&oddsInput.value);
+          if(result==="win" && (!Number.isFinite(odds)||odds<=1)){toast("獲利結算前請輸入正確十進位賠率");return;}
+          bet.odds=Number.isFinite(odds)&&odds>1?Number(odds.toFixed(2)):"";
+          bet.status=result;bet.settledAt=new Date().toISOString();saveState();
+        });
+      });
+    });
+  }
+
+  document.getElementById("riskMode").addEventListener("change",function(){
+    state.riskMode=this.value;document.getElementById("modeNote").textContent=riskConfig().note;
+  });
+
+  document.getElementById("savePlanBtn").addEventListener("click",function(){
+    var capital=Number(document.getElementById("capital").value);
+    if(!Number.isFinite(capital)||capital<1000){toast("起始本金至少輸入 1,000");return;}
+    if(state.bets.some(function(b){return b.status!=="pending";}) && capital!==Number(state.startCapital)){
+      if(!confirm("已經有結算紀錄，修改起始本金會影響 ROI。確定修改？")) return;
+    }
+    state.startCapital=Math.round(capital);
+    state.riskMode=document.getElementById("riskMode").value;
+    saveState();toast("本月模擬計畫已儲存");
+  });
+
+  document.getElementById("refreshBtn").addEventListener("click",loadHistory);
+  document.getElementById("generateBtn").addEventListener("click",generatePlan);
+  document.getElementById("resetBtn").addEventListener("click",function(){
+    if(!confirm("確定清除目前 Beta 的所有模擬資金與投注紀錄？")) return;
+    state=defaultState();selectedIds.clear();saveState();renderMatches();toast("Beta 模擬資料已重置");
+  });
+
+  renderDashboard();
+  renderPlan();
+  loadHistory();
+})();
+</script>
+</body>
+</html>
