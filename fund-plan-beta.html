@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080b10">
-  <title>HABAO 資金計畫 Beta</title>
+  <title>HABAO 每週資金計畫 Beta</title>
   <style>
     :root{
       --bg:#070a0f;--panel:#10161f;--panel2:#151d28;--line:rgba(255,255,255,.08);
@@ -97,6 +97,8 @@
     .manual-reco strong{color:var(--gold2)}
     .match-fund-btn{margin-top:10px;width:100%;border:1px solid rgba(242,189,75,.22);border-radius:11px;padding:10px 12px;background:rgba(242,189,75,.07);color:var(--gold2);font-size:10px;font-weight:950}
     .ai-best-tag{display:inline-flex;align-items:center;gap:4px;margin-bottom:5px;padding:4px 7px;border-radius:999px;background:rgba(242,189,75,.11);color:var(--gold2);font-size:8px;font-weight:950}
+    .coach-reason{margin-top:6px;padding:8px 9px;border-radius:10px;background:rgba(110,168,255,.055);color:#9cb7d7;font-size:8px;font-weight:800;line-height:1.55}
+    .coach-phase{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(60,221,130,.07);color:#8fe9b2;font-size:8px;font-weight:950}
     .market-entry{position:relative}
     .market-entry.ai-best{border-color:rgba(242,189,75,.34);background:rgba(242,189,75,.045)}
     .market-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
@@ -135,12 +137,12 @@
 
     <section class="hero">
       <div class="hero-kicker">HABAO FUND MANAGEMENT</div>
-      <h1>AI 資金計畫</h1>
+      <h1>AI 每週資金計畫</h1>
       <p>使用你已經解鎖的正式 AI 分析，建立每日模擬投注配置。現階段只做私人測試，不影響正式會員積分與真實資金。</p>
       <div class="summary">
         <div class="metric"><div class="metric-label">起始本金</div><div class="metric-value gold" id="mStart">30,000</div></div>
         <div class="metric"><div class="metric-label">目前本金</div><div class="metric-value" id="mCurrent">30,000</div></div>
-        <div class="metric"><div class="metric-label">累積盈虧</div><div class="metric-value" id="mPnl">0</div></div>
+        <div class="metric"><div class="metric-label">本週盈虧</div><div class="metric-value" id="mPnl">0</div></div>
         <div class="metric"><div class="metric-label">ROI / 最大回撤</div><div class="metric-value" id="mRoi">0.00% / 0.00%</div></div>
       </div>
     </section>
@@ -149,7 +151,7 @@
       <div class="section-head">
         <div>
           <div class="section-kicker">PLAN SETTINGS</div>
-          <div class="section-title">本月模擬計畫</div>
+          <div class="section-title">本週資金計畫</div>
           <div class="section-desc">先設定本金與風險模式。Beta 資料會同步保存到 Supabase 雲端帳本。</div>
         </div>
       </div>
@@ -168,7 +170,8 @@
         </div>
       </div>
       <div class="mode-note" id="modeNote"></div>
-      <button class="main-btn" id="savePlanBtn">儲存本月計畫</button>
+      <div class="mode-note">動態配注會依本週盈虧、最大回撤與近期連勝／連敗調整；虧損期降風險，回穩後逐步恢復，正盈利時最多小幅放大。</div>
+      <button class="main-btn" id="savePlanBtn">儲存本週計畫</button>
     </section>
 
     <section class="section">
@@ -183,8 +186,8 @@
       <div class="match-list" id="matchList"><div class="empty">讀取已分析賽事中…</div></div>
       <div class="mode-note">點每場的「資金配置」，即可查看獨贏／讓分／大小球／BTTS 全部玩法。</div>
       <div class="action-row">
-        <button class="ghost-btn" id="recalcBtn">重新計算 AI 建議</button>
-        <button class="danger-btn" id="resetMonthBtn">清除本月測試資料</button>
+        <button class="ghost-btn" id="recalcBtn">重新計算動態建議</button>
+        <button class="danger-btn" id="resetMonthBtn">清除本週測試資料</button>
       </div>
     </section>
 
@@ -526,6 +529,159 @@
     return Math.round((bankroll*rate)/10)*10;
   }
 
+  function normalizeMarketPick(marketKey,pick){
+    var raw=String(pick||"").trim();
+    if(!raw)return"";
+
+    if(marketKey==="moneyline"){
+      if(/主隊|主胜|主勝|home/i.test(raw))return"主勝";
+      if(/客隊|客队|客胜|客勝|away/i.test(raw))return"客勝";
+      if(/和局|平局|draw/i.test(raw))return"和局";
+    }
+
+    if(marketKey==="handicap"){
+      if(/主隊|主队|home/i.test(raw))return"主隊";
+      if(/客隊|客队|away/i.test(raw))return"客隊";
+    }
+
+    if(marketKey==="over_under"){
+      if(/^大|over/i.test(raw))return"大";
+      if(/^小|under/i.test(raw))return"小";
+    }
+
+    if(marketKey==="btts"){
+      if(/yes|是|有/i.test(raw))return"Yes";
+      if(/no|否|無|无/i.test(raw))return"No";
+    }
+
+    return raw;
+  }
+
+  function parseLineValue(value){
+    var raw=String(value??"")
+      .replace(/−/g,"-")
+      .replace(/＋/g,"+")
+      .trim();
+    if(!raw)return null;
+
+    var parts=raw.split("/").map(function(x){
+      return Number(x.trim());
+    }).filter(Number.isFinite);
+
+    if(parts.length>=2)return(parts[0]+parts[1])/2;
+
+    var m=raw.match(/[+-]?\d+(?:\.\d+)?/);
+    return m?Number(m[0]):null;
+  }
+
+  function sameMarketLine(a,b){
+    var aa=String(a??"").trim();
+    var bb=String(b??"").trim();
+    if(!aa&&!bb)return true;
+    if(!aa||!bb)return false;
+
+    var na=parseLineValue(aa);
+    var nb=parseLineValue(bb);
+    if(na!==null&&nb!==null)return Math.abs(na-nb)<0.001;
+    return aa===bb;
+  }
+
+  function settledSequence(){
+    return (cloud.bets||[])
+      .filter(function(b){
+        return String(b.status||"pending")!=="pending";
+      })
+      .slice()
+      .sort(function(a,b){
+        return new Date(a.settled_at||a.updated_at||a.created_at||0)-
+               new Date(b.settled_at||b.updated_at||b.created_at||0);
+      });
+  }
+
+  function dynamicCoachState(confidence){
+    var base=suggestedStakeForConfidence(confidence);
+    var metrics=cloud.metrics||{};
+    var weekRoi=Number(metrics.roi)||0;
+    var drawdown=Number(metrics.max_drawdown)||0;
+    var seq=settledSequence();
+
+    var lossStreak=0;
+    var winStreak=0;
+
+    for(var i=seq.length-1;i>=0;i--){
+      var p=Number(seq[i].pnl)||0;
+      var status=String(seq[i].status||"");
+      if(status==="push"||status==="void")continue;
+      if(p<0){
+        if(winStreak>0)break;
+        lossStreak++;
+      }else if(p>0){
+        if(lossStreak>0)break;
+        winStreak++;
+      }
+    }
+
+    var multiplier=1;
+    var phase="正常";
+    var reasons=[];
+
+    if(weekRoi<=-8 || drawdown>=10 || lossStreak>=8){
+      multiplier=.45;
+      phase="深度保護";
+      reasons.push("本週回撤偏高，先保留約45%基礎注額");
+    }else if(weekRoi<=-5 || drawdown>=7 || lossStreak>=5){
+      multiplier=.60;
+      phase="保護";
+      reasons.push("連續回撤，建議注額降至約60%");
+    }else if(weekRoi<=-3 || drawdown>=5 || lossStreak>=3){
+      multiplier=.75;
+      phase="降風險";
+      reasons.push("虧損期降低曝險");
+    }else if(weekRoi<=-1 || lossStreak>=2){
+      multiplier=.85;
+      phase="輕度保護";
+      reasons.push("短期連敗，先小幅降注");
+    }
+
+    if(weekRoi<0 && winStreak>=3){
+      multiplier=Math.max(multiplier,1);
+      phase="恢復";
+      reasons.push("已連續回穩3筆，恢復正常注額");
+    }else if(weekRoi<0 && winStreak>=2){
+      multiplier=Math.max(multiplier,.90);
+      phase="恢復中";
+      reasons.push("已連續回穩2筆，逐步恢復注額");
+    }
+
+    if(weekRoi>=4 && lossStreak===0){
+      multiplier=Math.max(multiplier,1.15);
+      phase="穩定盈利";
+      reasons.push("本週盈利穩定，小幅放大至115%");
+    }else if(weekRoi>=2 && lossStreak===0){
+      multiplier=Math.max(multiplier,1.10);
+      phase="盈利";
+      reasons.push("本週正盈利，小幅放大至110%");
+    }
+
+    multiplier=Math.min(1.15,Math.max(.45,multiplier));
+
+    var finalStake=base>0
+      ? Math.max(10,Math.round((base*multiplier)/10)*10)
+      : 0;
+
+    return {
+      base:base,
+      final:finalStake,
+      multiplier:multiplier,
+      phase:phase,
+      weekRoi:weekRoi,
+      drawdown:drawdown,
+      lossStreak:lossStreak,
+      winStreak:winStreak,
+      reason:reasons.join("；")||"目前維持正常資金配置"
+    };
+  }
+
   function pickOptions(marketKey){
     if(marketKey==="moneyline")return ["主勝","和局","客勝"];
     if(marketKey==="handicap")return ["主隊","客隊"];
@@ -535,9 +691,10 @@
   }
 
   function optionHtml(marketKey,selected){
+    var normalized=normalizeMarketPick(marketKey,selected);
     return '<option value="">請選擇</option>'+
       pickOptions(marketKey).map(function(v){
-        var isSelected=String(v)===String(selected);
+        var isSelected=String(v)===String(normalized);
         return '<option value="'+esc(v)+'" '+(isSelected?'selected':'')+'>'+esc(v)+'</option>';
       }).join("");
   }
@@ -770,7 +927,7 @@
         away_api_name:sourceNames.away_api_name,
         market_key:rec.key,
         market_label:rec.label,
-        ai_pick:rec.pick||"",
+        ai_pick:normalizeMarketPick(rec.key,rec.pick||""),
         ai_line:rec.line,
         confidence:rec.confidence,
         ai_reason:rec.reason||"",
@@ -834,7 +991,8 @@
     var list=document.getElementById("quoteList");
     list.innerHTML=items.map(function(item,index){
       var needsLine=item.market_key==="handicap"||item.market_key==="over_under";
-      var suggested=suggestedStakeForConfidence(item.confidence);
+      var coach=dynamicCoachState(item.confidence);
+      var suggested=coach.final;
       var aiText=item.ai_pick
         ? (item.ai_pick+(item.ai_line!==null&&item.ai_line!==undefined&&item.ai_line!==""?(" "+item.ai_line):""))
         : "暫不推薦";
@@ -843,7 +1001,8 @@
         '<div class="market-entry-head"><div>'+
           (item.is_ai_recommended?'<div class="ai-best-tag">★ AI 首選</div>':'')+
           '<div class="market-entry-title">'+esc(item.market_label)+'</div>'+
-          '<div class="manual-reco">AI：<strong>'+esc(aiText)+'</strong>｜信心 '+Math.round(item.confidence)+'%｜建議注額 '+(suggested>0?money(suggested):"觀望")+'</div>'+
+          '<div class="manual-reco">AI：<strong>'+esc(aiText)+'</strong>｜信心 '+Math.round(item.confidence)+'%｜動態建議 '+(suggested>0?money(suggested):"觀望")+'</div>'+
+          '<div class="coach-reason"><span class="coach-phase">'+esc(coach.phase)+'</span>　基礎 '+money(coach.base)+' × '+coach.multiplier.toFixed(2)+' → '+money(coach.final)+'<br>'+esc(coach.reason)+'</div>'+
         '</div><input class="market-entry-check" type="checkbox" '+(item.is_ai_recommended?'checked':'')+'></div>'+
         '<div class="market-entry-grid">'+
           '<div class="manual-field"><label>投注方向</label><select class="actual-pick-input">'+optionHtml(item.market_key,item.ai_pick)+'</select></div>'+
@@ -920,28 +1079,36 @@
         return;
       }
 
-      if(item.ai_pick && actualPick!==item.ai_pick){
+      var normalizedActualPick=normalizeMarketPick(
+        item.market_key,
+        actualPick
+      );
+
+      var sameDirection=
+        !item.ai_pick ||
+        normalizedActualPick===normalizeMarketPick(item.market_key,item.ai_pick);
+
+      var sameLine=
+        !["handicap","over_under"].includes(item.market_key) ||
+        sameMarketLine(item.ai_line,actualLine);
+
+      if(item.ai_pick && !sameDirection){
         warnings.push(item.market_label+"方向不同");
       }
 
-      if(
-        item.ai_line!==null &&
-        item.ai_line!==undefined &&
-        String(item.ai_line).trim()!=="" &&
-        actualLine &&
-        String(item.ai_line).trim()!==actualLine
-      ){
+      if(item.ai_line && actualLine && !sameLine){
         warnings.push(item.market_label+"盤口不同");
       }
 
       manualItems.push(Object.assign({},item,{
-        actual_pick:actualPick,
+        actual_pick:normalizedActualPick,
         actual_line:actualLine||null,
         actual_odds:Number(actualOdds.toFixed(3)),
         actual_stake:Number(actualStake.toFixed(2)),
         is_ai_recommended:Boolean(
           item.is_ai_recommended &&
-          actualPick===item.ai_pick
+          sameDirection &&
+          sameLine
         )
       }));
     }
@@ -991,8 +1158,8 @@
   function statusText(s){
     return {
       pending:"待結算",
-      win:"獲利",
-      loss:"虧損",
+      win:"全贏",
+      loss:"全輸",
       push:"走盤",
       half_win:"半贏",
       half_loss:"半輸",
@@ -1118,7 +1285,7 @@
         );
 
         await loadCloudState(false);
-        toast("本月雲端資金計畫已儲存");
+        toast("本週雲端資金計畫已儲存");
       }catch(e){
         console.error("FUND BETA SAVE PLAN ERROR:",e);
         toast("儲存失敗："+e.message);
@@ -1180,7 +1347,7 @@
 
         if(updated>0){
           toast(
-            "已重新計算 "+updated+" 筆 AI 建議"+
+            "已更新 "+updated+" 筆動態建議"+
             (skip ? "｜"+skip : "")
           );
         }else{
@@ -1203,7 +1370,7 @@
     async function(){
       if(
         !confirm(
-          "確定清除本月所有 Beta 測試資料？\n\n這會刪除本月模擬本金設定與全部模擬投注紀錄，正式會員資料、積分、T-10 分析都不會受影響。"
+          "確定清除本週所有 Beta 測試資料？\n\n這會刪除本週模擬本金設定與全部模擬投注紀錄，正式會員資料、積分、T-10 分析都不會受影響。"
         )
       ){
         return;
@@ -1211,7 +1378,7 @@
 
       if(
         !confirm(
-          "最後確認：真的要把本月 Beta 測試資料清空，重新從 30,000 開始嗎？"
+          "最後確認：真的要把本週 Beta 測試資料清空，重新從 30,000 開始嗎？"
         )
       ){
         return;
@@ -1221,7 +1388,7 @@
         setBusy("resetMonthBtn",true,"清除中…");
 
         var data=await fundApi(
-          "reset_month",
+          "reset_week",
           {confirm:"RESET"}
         );
 
@@ -1229,7 +1396,7 @@
         applyCloud(data);
         renderMatches();
 
-        toast("本月 Beta 測試資料已清空");
+        toast("本週 Beta 測試資料已清空");
       }catch(e){
         console.error("FUND BETA RESET ERROR:",e);
         toast("清除失敗："+e.message);
