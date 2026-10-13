@@ -1432,6 +1432,9 @@ tr:last-child td{border-bottom:0}
                     <th>客隊</th>
                     <th>狀態</th>
                     <th>比分</th>
+                    <th>分析會員</th>
+                    <th>可推播</th>
+                    <th>比分推播</th>
                   </tr>
                 </thead>
                 <tbody id="fixturesBody"></tbody>
@@ -4231,6 +4234,9 @@ async function loadFixtures(force = false) {
     fixtureCacheRows =
       data.caches || [];
 
+    window.fixtureLivePushMeta =
+  data.fixture_meta || {};
+
     window.adminFixtureDates =
       data.dates || {};
 
@@ -4383,6 +4389,27 @@ function renderFixtures() {
           ? `${item.home_score} - ${item.away_score}`
           : "—";
 
+      const fixtureId =
+  Number(item?.fixtureId || 0);
+
+const liveMeta =
+  window.fixtureLivePushMeta?.[
+    String(fixtureId)
+  ] || {};
+
+const analysisMemberCount =
+  Number(
+    liveMeta?.analysis_member_count || 0
+  );
+
+const pushMemberCount =
+  Number(
+    liveMeta?.push_member_count || 0
+  );
+
+const livePushEnabled =
+  liveMeta?.live_push_enabled === true;
+
       return `
         <tr>
           <td>${escapeHtml(item?.cache_date || "—")}</td>
@@ -4391,8 +4418,18 @@ function renderFixtures() {
           <td>${escapeHtml(item?.league?.name || item?.league?.api_name || "—")}</td>
           <td>${escapeHtml(item?.home?.name || item?.home?.api_name || "—")}</td>
           <td>${escapeHtml(item?.away?.name || item?.away?.api_name || "—")}</td>
-          <td>${statusBadge(item?.status || "—")}</td>
-          <td>${score}</td>
+<td>${statusBadge(item?.status || "—")}</td>
+<td>${score}</td>
+<td>${analysisMemberCount} 人</td>
+<td>${pushMemberCount} 人</td>
+<td>
+  <button
+    class="action-btn ${livePushEnabled ? "red" : "green"}"
+    onclick="toggleFixtureLivePush(${fixtureId}, ${!livePushEnabled})"
+  >
+    ${livePushEnabled ? "關閉" : "開啟"}
+  </button>
+</td>
         </tr>
       `;
     }).join("");
@@ -4436,6 +4473,101 @@ function renderFixtures() {
   setText("fixtureTomorrowFetched", tomorrowCache?.fetched_at ? `${formatDate(tomorrowCache.fetched_at)}｜${tomorrowState}` : tomorrowState);
 }
 
+async function toggleFixtureLivePush(
+  fixtureId,
+  enabled
+) {
+  const item =
+    flattenFixtures().find(
+      row =>
+        Number(row?.fixtureId || 0) ===
+        Number(fixtureId)
+    );
+
+  if (!item) {
+    alert("找不到此場賽事資料");
+    return;
+  }
+
+  const meta =
+    window.fixtureLivePushMeta?.[
+      String(fixtureId)
+    ] || {};
+
+  const analysisCount =
+    Number(
+      meta?.analysis_member_count || 0
+    );
+
+  const pushCount =
+    Number(
+      meta?.push_member_count || 0
+    );
+
+  const actionText =
+    enabled
+      ? "開啟"
+      : "關閉";
+
+  if (
+    !confirm(
+      `${actionText}這場比分推播？\n\n` +
+      `${item?.home?.name || "主隊"} vs ${item?.away?.name || "客隊"}\n` +
+      `分析會員：${analysisCount} 人\n` +
+      `目前可推播：${pushCount} 人`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action:
+        "fixture_live_push_toggle",
+
+      fixture_id:
+        Number(fixtureId),
+
+      enabled,
+
+      fixture_date:
+        item?.cache_date || null,
+
+      kickoff_at:
+        item?.time || null,
+
+      league_name:
+        item?.league?.name ||
+        item?.league?.api_name ||
+        "",
+
+      home_team:
+        item?.home?.name ||
+        item?.home?.api_name ||
+        "",
+
+      away_team:
+        item?.away?.name ||
+        item?.away?.api_name ||
+        ""
+    });
+
+    await loadFixtures(true);
+
+    alert(
+      enabled
+        ? "比分推播已開啟"
+        : "比分推播已關閉"
+    );
+
+  } catch (error) {
+    alert(
+      "操作失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+  
 async function refreshFixtureSource(offset) {
   try {
     const label =
