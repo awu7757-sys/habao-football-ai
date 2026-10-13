@@ -1245,6 +1245,111 @@ tr:last-child td{border-bottom:0}
           <div class="panel-title" style="margin-top:18px">今日來源統計</div>
           <div id="apiSourceStats" class="mini-list" style="margin-top:10px"></div>
         </div>
+
+        <div class="panel" style="margin-top:15px">
+          <div class="panel-title">系統資源消耗 / 可用額度</div>
+
+          <div class="panel-desc" style="margin-top:8px;line-height:1.75">
+            Supabase FREE 額度與目前比分推播 V2 的固定消耗估算。
+            後續會再接入 Supabase 實際已使用量。
+          </div>
+
+          <div class="stats-grid" style="margin-top:14px">
+
+            <div class="stat-card gold">
+              <div class="stat-label">EDGE FUNCTION INVOCATIONS</div>
+              <div class="stat-value gold-text">500,000</div>
+              <div class="stat-note">
+                每月額度<br>
+                比分 Cron：約 720 次 / 日<br>
+                約 21,600 次 / 30 天
+              </div>
+            </div>
+
+            <div class="stat-card blue">
+              <div class="stat-label">DATABASE SIZE</div>
+              <div class="stat-value">500 MB</div>
+              <div class="stat-note">
+                每個 Project 額度<br>
+                實際已使用量：待同步
+              </div>
+            </div>
+
+            <div class="stat-card blue">
+              <div class="stat-label">EGRESS</div>
+              <div class="stat-value" style="font-size:22px">5 GB + 5 GB</div>
+              <div class="stat-note">
+                5 GB Uncached<br>
+                5 GB Cached
+              </div>
+            </div>
+
+            <div class="stat-card green">
+              <div class="stat-label">STORAGE</div>
+              <div class="stat-value green-text">1 GB</div>
+              <div class="stat-note">
+                Supabase Storage 額度<br>
+                實際已使用量：待同步
+              </div>
+            </div>
+
+          </div>
+
+          <div class="panel-title" style="margin-top:20px">
+            即時比分推播 V2 消耗
+          </div>
+
+          <div class="mini-list" style="margin-top:10px">
+
+            <div class="mini-item">
+              <span class="mini-key">Cron Edge Function</span>
+              <span class="mini-val">720 次 / 日</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">30 天 Cron 預估</span>
+              <span class="mini-val">21,600 次</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">佔 FREE Edge 額度</span>
+              <span class="mini-val">約 4.3%</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">API-Football｜一般賽事</span>
+              <span class="mini-val">約 75 次 / 日期</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">API-Football｜最壞監控</span>
+              <span class="mini-val">約 255 次 / 日期</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">OpenAI 分析消耗</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">會員分析積分</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">Panda 賠率 API</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+          </div>
+
+          <div class="danger-note" style="margin-top:14px">
+            ⚠ 目前 Edge Function、Database、Egress、Storage 的「官方實際已使用量」
+            尚未自動同步，因此這裡先顯示官方額度與已知固定消耗。
+            下一步會把實際已用 / 剩餘量接進來，再加入黃色、紅色警示。
+          </div>
+        </div>
+        
       </section>
 
     
