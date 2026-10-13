@@ -1,0 +1,6782 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<title>HABAO 賽事預測 AI｜Admin Center</title>
+
+<style>
+:root{
+  --bg:#070a0f;
+  --panel:#0e141d;
+  --panel2:#121b26;
+  --panel3:#0a1017;
+  --border:rgba(255,255,255,.08);
+  --border-gold:rgba(242,189,75,.18);
+  --text:#f7f9fc;
+  --soft:#dce3eb;
+  --muted:#8f9aaa;
+  --gold:#f2bd4b;
+  --gold-light:#ffe39d;
+  --gold-dark:#d99821;
+  --gold-soft:rgba(242,189,75,.10);
+  --green:#3cdd82;
+  --green-soft:rgba(60,221,130,.10);
+  --red:#ff6565;
+  --red-soft:rgba(255,101,101,.10);
+  --blue:#70a8ff;
+  --shadow:0 18px 48px rgba(0,0,0,.34);
+}
+
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(242,189,75,.10),transparent 25%),
+    radial-gradient(circle at 0 40%,rgba(60,221,130,.035),transparent 30%),
+    linear-gradient(180deg,#0c1118 0%,#080b10 42%,#06080c 100%);
+  -webkit-font-smoothing:antialiased;
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+.shell{min-height:100vh}
+
+/* LOGIN */
+.login-page{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px 18px;
+}
+.login-card{
+  width:min(100%,430px);
+  padding:30px;
+  border:1px solid var(--border-gold);
+  border-radius:26px;
+  background:
+    radial-gradient(circle at top right,rgba(242,189,75,.10),transparent 36%),
+    linear-gradient(180deg,rgba(20,28,39,.96),rgba(8,12,18,.98));
+  box-shadow:var(--shadow);
+}
+.login-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:28px;
+}
+.brand-logo{
+  width:50px;height:50px;flex:0 0 50px;
+  background:url("./habao-hb-logo.png") center/contain no-repeat;
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.4)) drop-shadow(0 0 12px rgba(242,189,75,.10));
+}
+.brand-name{font-size:18px;font-weight:950;letter-spacing:.2px}
+.brand-sub{margin-top:4px;color:var(--gold);font-size:9px;font-weight:900;letter-spacing:2px}
+.kicker{color:var(--gold);font-size:10px;font-weight:950;letter-spacing:2.2px}
+.login-card h1{margin:12px 0 8px;font-size:30px;letter-spacing:-1px}
+.desc{color:var(--muted);font-size:13px;line-height:1.75}
+.field{margin-top:18px}
+.label{display:block;margin-bottom:8px;color:#aeb7c3;font-size:11px;font-weight:850}
+.input{
+  width:100%;
+  min-height:46px;
+  padding:11px 13px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  outline:none;
+  color:var(--text);
+  background:#080d13;
+  transition:.2s ease;
+}
+.input:focus{
+  border-color:rgba(242,189,75,.42);
+  box-shadow:0 0 0 3px rgba(242,189,75,.07);
+}
+textarea.input{min-height:116px;resize:vertical}
+.btn-primary{
+  width:100%;
+  min-height:48px;
+  margin-top:16px;
+  border:0;
+  border-radius:14px;
+  color:#171006;
+  background:linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+  font-weight:950;
+  box-shadow:0 10px 27px rgba(242,189,75,.18);
+}
+.login-message{min-height:20px;margin-top:12px;font-size:12px;color:var(--red)}
+
+/* APP FRAME */
+.admin-app{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;
+  padding:22px 16px;
+  border-right:1px solid var(--border);
+  background:rgba(7,10,15,.94);
+  backdrop-filter:blur(18px);
+  overflow:auto;
+}
+.sidebar-brand{
+  display:flex;align-items:center;gap:11px;
+  padding:5px 7px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-brand .brand-logo{width:43px;height:43px;flex-basis:43px}
+.sidebar-brand .brand-name{font-size:15px}
+.sidebar-brand .brand-sub{font-size:8px;letter-spacing:1.5px}
+.side-section{margin-top:20px}
+.side-label{padding:0 10px 8px;color:#596473;font-size:9px;font-weight:950;letter-spacing:1.5px}
+.nav-btn{
+  width:100%;
+  display:flex;align-items:center;gap:10px;
+  padding:11px 12px;
+  margin:3px 0;
+  border:1px solid transparent;
+  border-radius:13px;
+  color:#aeb7c3;
+  background:transparent;
+  text-align:left;
+  font-size:12px;
+  font-weight:850;
+}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.035)}
+.nav-btn.active{
+  color:var(--gold-light);
+  border-color:rgba(242,189,75,.16);
+  background:linear-gradient(90deg,rgba(242,189,75,.11),rgba(242,189,75,.025));
+}
+.nav-icon{
+  width:27px;height:27px;flex:0 0 27px;
+  display:grid;place-items:center;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:rgba(255,255,255,.025);
+  font-size:12px;
+}
+.nav-btn.active .nav-icon{
+  border-color:rgba(242,189,75,.22);
+  background:var(--gold-soft);
+}
+.nav-btn.disabled{opacity:.34;cursor:not-allowed}
+.phase-tag{
+  margin-left:auto;
+  padding:3px 6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+  color:#697483;
+  font-size:8px;
+}
+.sidebar-bottom{margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+.logout-btn{
+  width:100%;padding:11px 12px;
+  border:1px solid rgba(255,101,101,.13);
+  border-radius:12px;
+  color:#ff9a9a;
+  background:rgba(255,101,101,.045);
+  font-weight:850;
+}
+
+.main{min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:30;
+  height:70px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,11,16,.84);
+  backdrop-filter:blur(18px);
+}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.mobile-menu{display:none}
+.page-name{font-size:14px;font-weight:950}
+.page-sub{margin-top:3px;color:#677281;font-size:9px;font-weight:750;letter-spacing:.5px}
+.top-actions{display:flex;align-items:center;gap:8px}
+.ghost-btn{
+  min-height:36px;padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  color:#d7dde5;
+  background:rgba(255,255,255,.03);
+  font-size:10px;font-weight:850;
+}
+.ghost-btn:hover{border-color:rgba(242,189,75,.22)}
+.content{padding:26px;max-width:1600px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:21px}
+.page-kicker{color:var(--gold);font-size:9px;font-weight:950;letter-spacing:2px}
+.page-title{margin:7px 0 5px;font-size:28px;font-weight:950;letter-spacing:-.8px}
+.page-desc{color:var(--muted);font-size:12px;line-height:1.65}
+
+/* COMPONENTS */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;
+}
+.stat-card{
+  position:relative;overflow:hidden;
+  min-height:118px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.014));
+  box-shadow:0 10px 28px rgba(0,0,0,.16);
+}
+.stat-card.gold{border-color:rgba(242,189,75,.20);background:linear-gradient(145deg,rgba(242,189,75,.11),rgba(255,255,255,.018))}
+.stat-card.green{border-color:rgba(60,221,130,.17);background:linear-gradient(145deg,rgba(60,221,130,.08),rgba(255,255,255,.016))}
+.stat-card.blue{border-color:rgba(112,168,255,.18);background:linear-gradient(145deg,rgba(112,168,255,.08),rgba(255,255,255,.016))}
+.stat-card.usage-ok{
+  border-color:rgba(60,221,130,.20);
+  background:linear-gradient(145deg,rgba(60,221,130,.07),rgba(255,255,255,.016));
+}
+
+.stat-card.usage-warning{
+  border-color:rgba(242,189,75,.40);
+  background:linear-gradient(145deg,rgba(242,189,75,.13),rgba(255,255,255,.018));
+}
+
+.stat-card.usage-danger{
+  border-color:rgba(255,101,101,.48);
+  background:linear-gradient(145deg,rgba(255,101,101,.14),rgba(255,255,255,.018));
+  box-shadow:0 0 0 1px rgba(255,101,101,.08),0 10px 28px rgba(0,0,0,.18);
+}  
+.stat-label{color:#778291;font-size:9px;font-weight:850;letter-spacing:.3px}
+.stat-value{margin-top:11px;color:#fff;font-size:28px;font-weight:950;letter-spacing:-.7px}
+.stat-value.gold-text{color:var(--gold-light)}
+.stat-value.green-text{color:var(--green)}
+.stat-note{margin-top:5px;color:#697584;font-size:9px;line-height:1.45}
+
+.panel{
+  margin-top:15px;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:19px;
+  background:linear-gradient(180deg,rgba(17,24,34,.94),rgba(9,14,20,.96));
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-bottom:15px;
+}
+.panel-title{font-size:14px;font-weight:950}
+.panel-desc{margin-top:4px;color:var(--muted);font-size:10px}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.three-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.progress-wrap{margin-top:14px}
+.progress-line{height:8px;border-radius:999px;background:#080c12;overflow:hidden;border:1px solid rgba(255,255,255,.045)}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));border-radius:999px;transition:width .35s ease}
+.progress-fill.green{background:linear-gradient(90deg,#169d5b,var(--green))}
+.progress-meta{display:flex;justify-content:space-between;gap:10px;margin-top:7px;color:#758190;font-size:9px}
+
+.toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:13px;
+}
+.filters{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.filters .input{width:auto;min-width:150px;min-height:40px}
+.search{min-width:270px!important;flex:1;max-width:420px}
+
+.table-shell{
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:#091019;
+}
+.table-scroll{overflow:auto;max-height:650px}
+table{width:100%;border-collapse:collapse;min-width:1120px}
+th{
+  position:sticky;top:0;z-index:2;
+  padding:12px 13px;
+  color:#7f8a98;
+  background:#0d1620;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  font-size:9px;font-weight:950;white-space:nowrap;
+}
+td{
+  padding:13px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  color:#dce3eb;
+  font-size:10px;
+  vertical-align:middle;
+}
+tr:last-child td{border-bottom:0}
+.account-name{color:#fff;font-weight:900;font-size:11px}
+.subline{margin-top:4px;color:#667281;font-size:8px}
+.status{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 8px;border-radius:999px;
+  font-size:9px;font-weight:900;
+}
+.status.active{color:var(--green);background:var(--green-soft)}
+.status.off{color:#ff9595;background:var(--red-soft)}
+.status.vip{color:var(--gold-light);background:var(--gold-soft)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.action-btn{
+  padding:7px 9px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  color:#d7dde5;
+  background:rgba(255,255,255,.025);
+  font-size:9px;font-weight:850;
+}
+.action-btn.gold{color:var(--gold-light);border-color:rgba(242,189,75,.16);background:rgba(242,189,75,.055)}
+.action-btn.red{color:#ff9595;border-color:rgba(255,101,101,.14);background:rgba(255,101,101,.045)}
+.action-btn.green{color:var(--green);border-color:rgba(60,221,130,.14);background:rgba(60,221,130,.045)}
+.empty,.loading{padding:48px 20px;text-align:center;color:#6d7988;font-size:11px}
+
+/* ANNOUNCEMENTS / PUSH */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-box{
+  padding:16px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.018)
+}
+.switch-row{
+  display:flex;align-items:center;gap:9px;margin-top:11px;
+  color:#b8c0ca;font-size:10px;font-weight:800
+}
+.switch-row input{accent-color:var(--gold)}
+.save-btn{
+  min-height:42px;padding:10px 16px;border:0;border-radius:11px;
+  color:#171006;background:linear-gradient(135deg,#ffe7a8,#f3bd49 52%,#dd9b23);
+  font-size:10px;font-weight:950
+}
+.danger-note{
+  margin-top:10px;padding:10px 12px;border:1px solid rgba(255,101,101,.12);
+  border-radius:11px;color:#d69292;background:rgba(255,101,101,.035);font-size:9px;line-height:1.55
+}
+.result-box{
+  min-height:40px;margin-top:12px;padding:11px 13px;
+  border:1px solid var(--border);border-radius:11px;
+  color:#99a5b3;background:#080d13;font-size:10px;line-height:1.5
+}
+
+/* API */
+.api-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:15px}
+.api-big{
+  padding:21px;border:1px solid rgba(242,189,75,.18);border-radius:20px;
+  background:linear-gradient(145deg,rgba(242,189,75,.09),rgba(255,255,255,.014));
+}
+.api-number{margin-top:10px;font-size:36px;font-weight:950;letter-spacing:-1px}
+.mini-list{display:grid;gap:9px}
+.mini-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px;border:1px solid var(--border);border-radius:13px;background:rgba(255,255,255,.018)
+}
+.mini-key{color:#7f8a98;font-size:10px}
+.mini-val{color:#fff;font-size:11px;font-weight:900}
+
+/* MODAL */
+.modal{
+  position:fixed;inset:0;z-index:1000;
+  display:grid;place-items:center;padding:18px;
+  background:rgba(0,0,0,.76);backdrop-filter:blur(12px)
+}
+.modal-card{
+  width:min(100%,430px);padding:22px;
+  border:1px solid var(--border-gold);border-radius:20px;
+  background:linear-gradient(180deg,#151c26,#090d13);
+  box-shadow:0 30px 90px rgba(0,0,0,.55)
+}
+.modal-title{font-size:17px;font-weight:950}
+.modal-account{margin:7px 0 17px;color:var(--gold-light);font-size:11px}
+.modal-actions{display:flex;gap:8px;margin-top:14px}
+.modal-actions button{flex:1}
+.modal-close{
+  padding:10px;border:1px solid var(--border);border-radius:10px;color:#c4ccd5;background:rgba(255,255,255,.03);font-size:10px;font-weight:850
+}
+
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .api-grid,.split-grid{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+  .admin-app{grid-template-columns:1fr}
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:100;
+    width:255px;transform:translateX(-102%);transition:.22s ease;
+    box-shadow:30px 0 80px rgba(0,0,0,.45)
+  }
+  .sidebar.open{transform:translateX(0)}
+  .mobile-menu{display:inline-flex}
+  .content{padding:18px 14px 40px}
+  .topbar{padding:0 14px}
+  .page-title{font-size:24px}
+  .form-grid,.three-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-card{min-height:103px;padding:13px}
+  .stat-value{font-size:23px}
+  .toolbar{align-items:stretch;flex-direction:column}
+  .filters{display:grid;grid-template-columns:1fr 1fr}
+  .filters .input,.search{width:100%!important;min-width:0!important;max-width:none}
+}
+
+/* ===== ADMIN V3 MODULES ===== */
+.metric-row{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:11px;
+  margin-top:11px;
+}
+.table-tools{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.compact-select{
+  min-height:38px;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:#dce3eb;
+  background:#080d13;
+  outline:none;
+  font-size:10px;
+}
+.json-pre{
+  max-height:58vh;
+  overflow:auto;
+  margin:14px 0 0;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:#b7c3ce;
+  background:#070b10;
+  font:10px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.modal-card.wide{
+  width:min(100%,760px);
+}
+.partner-form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.partner-logo{
+  width:42px;
+  height:42px;
+  object-fit:cover;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#090d12;
+}
+.health-ok{color:var(--green)}
+.health-warn{color:var(--gold-light)}
+.health-bad{color:#ff9696}
+.mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:9px;
+}
+.table-chip{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:#aeb9c4;
+  background:rgba(255,255,255,.025);
+  font-size:8px;
+  font-weight:850;
+}
+.inline-loader{
+  color:#7f8a98;
+  font-size:10px;
+}
+@media(max-width:1100px){
+  .metric-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .partner-form-grid{grid-template-columns:1fr}
+  .metric-row{grid-template-columns:1fr 1fr}
+}
+
+
+/* HABAO V3 FINAL */
+.toggle-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;color:#b8c0ca;font-size:10px;font-weight:800;margin-top:12px}
+.toggle-switch input{position:absolute;opacity:0;pointer-events:none}
+.toggle-track{width:42px;height:23px;border-radius:999px;background:#29313b;border:1px solid rgba(255,255,255,.10);position:relative;transition:.2s}
+.toggle-track::after{content:"";position:absolute;width:17px;height:17px;left:2px;top:2px;border-radius:50%;background:#87919d;transition:.2s}
+.toggle-switch input:checked + .toggle-track{background:rgba(60,221,130,.18);border-color:rgba(60,221,130,.35)}
+.toggle-switch input:checked + .toggle-track::after{transform:translateX(19px);background:var(--green)}
+.refresh-state{min-width:74px}
+.stale{color:#ff9696}.fresh{color:var(--green)}
+
+/* HABAO ADMIN SESSION / PERMISSION V2 */
+.permission-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.permission-item{display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#0b1118;color:#c8d0da;font-size:11px;font-weight:800}
+.permission-item input{accent-color:#e4ac36}
+.admin-identity{display:flex;align-items:center;gap:8px;color:#aeb8c4;font-size:10px;font-weight:800}
+.admin-identity .status{white-space:nowrap}
+.permission-hidden{display:none!important}
+@media(max-width:700px){.permission-grid{grid-template-columns:1fr}}
+
+/* ===== SHADOW TEST DETAIL ===== */
+.shadow-detail-head{
+  display:flex;justify-content:space-between;gap:14px;align-items:flex-start;
+  margin:4px 0 14px;padding:14px;border:1px solid var(--border);
+  border-radius:14px;background:rgba(255,255,255,.018)
+}
+.shadow-detail-title{font-size:14px;font-weight:950;color:#fff}
+.shadow-detail-sub{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.7}
+.shadow-detail-score{
+  flex:0 0 auto;padding:9px 12px;border-radius:11px;
+  border:1px solid var(--border-gold);background:rgba(242,189,75,.08);
+  color:var(--gold-light);font-size:18px;font-weight:1000
+}
+.shadow-detail-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0
+}
+.shadow-detail-card{
+  min-width:0;padding:14px;border:1px solid var(--border);
+  border-radius:14px;background:rgba(255,255,255,.018)
+}
+.shadow-detail-card.gold{border-color:var(--border-gold);background:rgba(242,189,75,.035)}
+.shadow-detail-card.green{border-color:rgba(60,221,130,.18);background:rgba(60,221,130,.025)}
+.shadow-detail-card h4{
+  margin:0 0 10px;color:#fff;font-size:12px;font-weight:950
+}
+.shadow-compare-table{width:100%;border-collapse:collapse;font-size:10px}
+.shadow-compare-table th,.shadow-compare-table td{
+  padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;vertical-align:top
+}
+.shadow-compare-table th{color:#82909f;font-size:9px;letter-spacing:.3px}
+.shadow-compare-table td{color:#e7edf3}
+.shadow-muted{color:#7f8a98}
+.shadow-scores{color:var(--gold-light);font-weight:900}
+.shadow-result{
+  display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;
+  font-size:9px;font-weight:900;border:1px solid var(--border)
+}
+.shadow-result.win,.shadow-result.half_win{color:#75edaa;border-color:rgba(60,221,130,.25);background:rgba(60,221,130,.08)}
+.shadow-result.loss,.shadow-result.half_loss{color:#ff8888;border-color:rgba(255,101,101,.24);background:rgba(255,101,101,.08)}
+.shadow-result.push{color:#ffd477;border-color:rgba(242,189,75,.24);background:rgba(242,189,75,.08)}
+.shadow-result.na{color:#8f9aaa}
+.shadow-snapshot-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px
+}
+.shadow-snapshot{
+  min-width:0;padding:12px;border:1px solid var(--border);border-radius:13px;background:#080d13
+}
+.shadow-snapshot-title{font-size:11px;font-weight:950;color:#fff}
+.shadow-snapshot-meta{margin-top:6px;color:#7f8a98;font-size:9px;line-height:1.65}
+.shadow-snapshot-source{margin-top:7px;color:#d7dee7;font-size:9px;overflow-wrap:anywhere}
+.shadow-snapshot details{margin-top:9px}
+.shadow-snapshot summary{cursor:pointer;color:var(--gold-light);font-size:9px;font-weight:900}
+.shadow-snapshot pre{
+  max-height:260px;overflow:auto;margin-top:8px;padding:9px;border-radius:9px;
+  background:#05090e;color:#aeb9c5;font-size:8px;line-height:1.6;white-space:pre-wrap
+}
+.shadow-note{
+  margin:10px 0;padding:10px 12px;border-radius:11px;
+  border:1px solid rgba(242,189,75,.15);background:rgba(242,189,75,.035);
+  color:#aeb8c4;font-size:9px;line-height:1.7
+}
+@media(max-width:820px){
+  .shadow-detail-grid{grid-template-columns:1fr}
+  .shadow-snapshot-grid{grid-template-columns:1fr}
+  .shadow-detail-head{flex-direction:column}
+}
+
+
+#jsonModal .shadow-compare-table tr.shadow-changed td{
+  background:rgba(242,189,75,.045);
+}
+#jsonModal .shadow-change-badge,
+#jsonModal .shadow-same-badge{
+  display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;
+  font-size:9px;font-weight:900;
+}
+#jsonModal .shadow-change-badge{
+  border:1px solid rgba(242,189,75,.24);
+  background:rgba(242,189,75,.08);
+  color:var(--gold-light);
+}
+#jsonModal .shadow-same-badge{
+  border:1px solid var(--border);
+  color:#8f9aaa;
+}
+#jsonModal .shadow-odds-cell{line-height:1.75}
+
+/* 影子模型詳情：避免橫向超出 */
+#jsonModal{
+  overflow-y:auto;
+}
+#jsonModal .modal-card.wide{
+  width:min(96vw,1180px);
+  max-width:1180px;
+  max-height:92vh;
+  overflow:hidden;
+}
+#jsonModalContent{
+  width:100%;
+  min-width:0;
+  max-height:76vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  white-space:normal;
+  font-family:inherit;
+}
+#jsonModal .shadow-detail-card,
+#jsonModal .shadow-snapshot,
+#jsonModal .shadow-detail-grid,
+#jsonModal .shadow-snapshot-grid{
+  min-width:0;
+  max-width:100%;
+}
+#jsonModal .shadow-compare-table{
+  width:100%;
+  max-width:100%;
+  table-layout:fixed;
+}
+#jsonModal .shadow-compare-table th,
+#jsonModal .shadow-compare-table td{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  white-space:normal;
+}
+#jsonModal .shadow-snapshot pre,
+#jsonModal details pre{
+  width:100%;
+  max-width:100%;
+  overflow:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+@media(max-width:820px){
+  #jsonModal{padding:8px}
+  #jsonModal .modal-card.wide{
+    width:98vw;
+    max-height:96vh;
+    padding:14px;
+    border-radius:14px;
+  }
+  #jsonModalContent{max-height:82vh}
+  #jsonModal .shadow-compare-table{font-size:9px}
+  #jsonModal .shadow-compare-table th,
+  #jsonModal .shadow-compare-table td{padding:7px 5px}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<section id="loginPage" class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-logo"></div>
+      <div>
+        <div class="brand-name">HABAO 賽事預測 AI</div>
+        <div class="brand-sub">SPORTS INTELLIGENCE</div>
+      </div>
+    </div>
+
+    <div class="kicker">HABAO ADMIN CENTER</div>
+    <h1>管理後台</h1>
+    <div class="desc">Super Admin 可只輸入總管理密碼；子管理員請輸入管理員帳號與密碼。</div>
+
+    <div class="field">
+      <label class="label" for="adminUsername">管理員帳號（Super Admin 可留空）</label>
+      <input id="adminUsername" class="input" type="text" placeholder="子管理員請輸入帳號" autocomplete="username">
+    </div>
+
+    <div class="field">
+      <label class="label" for="adminPassword">管理密碼</label>
+      <input id="adminPassword" class="input" type="password" placeholder="請輸入管理密碼" autocomplete="current-password">
+    </div>
+
+    <button id="loginBtn" class="btn-primary" onclick="adminLogin()">進入管理後台 →</button>
+    <div id="loginMessage" class="login-message"></div>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="adminApp" class="admin-app hidden">
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"></div>
+      <div>
+        <div class="brand-name">HABAO 賽事預測 AI</div>
+        <div class="brand-sub">ADMIN CENTER</div>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">核心管理</div>
+
+      <button class="nav-btn active" data-page="dashboardPage" onclick="switchPage('dashboardPage',this)">
+        <span class="nav-icon">◫</span> Dashboard
+      </button>
+
+      <button class="nav-btn" data-page="membersPage" onclick="switchPage('membersPage',this)">
+        <span class="nav-icon">◎</span> 會員管理
+      </button>
+
+      <button class="nav-btn" data-page="announcementPage" onclick="switchPage('announcementPage',this)">
+        <span class="nav-icon">✦</span> 公告管理
+      </button>
+
+      <button class="nav-btn" data-page="pushPage" onclick="switchPage('pushPage',this)">
+        <span class="nav-icon">↗</span> 推播通知
+      </button>
+
+      <button class="nav-btn" data-page="apiPage" onclick="switchPage('apiPage',this)">
+        <span class="nav-icon">⌁</span> API 配額
+      </button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">AI 與賽事</div>
+
+      <button class="nav-btn" data-page="analysisLogPage" onclick="switchPage('analysisLogPage',this)">
+        <span class="nav-icon">AI</span> AI 分析紀錄
+      </button>
+
+      <button class="nav-btn" data-page="jobsPage" onclick="switchPage('jobsPage',this)">
+        <span class="nav-icon">J</span> 分析任務
+      </button>
+
+      <button class="nav-btn" data-page="fixturesPage" onclick="switchPage('fixturesPage',this)">
+        <span class="nav-icon">⚽</span> 賽事管理
+      </button>
+
+      <button class="nav-btn" data-page="performanceAdminPage" onclick="switchPage('performanceAdminPage',this)">
+        <span class="nav-icon">✓</span> 公開 AI 戰績
+      </button>
+
+      <button class="nav-btn" data-page="shadowTestPage" onclick="switchPage('shadowTestPage',this)">
+        <span class="nav-icon">S</span> 臨場模型測試
+      </button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">營運與系統</div>
+
+      <button class="nav-btn" data-page="partnersPage" onclick="switchPage('partnersPage',this)">
+        <span class="nav-icon">P</span> 合作平台
+      </button>
+
+      <button class="nav-btn" data-page="adminUsersPage" data-super-only="true" onclick="switchPage('adminUsersPage',this)">
+        <span class="nav-icon">A</span> 管理員管理
+      </button>
+
+      <button class="nav-btn" data-page="healthPage" onclick="switchPage('healthPage',this)">
+        <span class="nav-icon">!</span> 系統健康
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="logoutAdmin()">登出管理後台</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ghost-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div id="topPageName" class="page-name">Dashboard</div>
+          <div class="page-sub">HABAO ADMIN CENTER</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="admin-identity"><span id="currentAdminLabel" class="status active">未登入</span></div>
+        <button class="ghost-btn" onclick="refreshAll()">↻ 重新整理</button>
+        <button class="ghost-btn" onclick="logoutAdmin()">登出</button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <section id="dashboardPage" class="page active">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SYSTEM OVERVIEW</div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-desc">快速查看會員、分析與 API 使用狀況。</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card gold">
+            <div class="stat-label">會員總數</div>
+            <div id="dashTotalMembers" class="stat-value gold-text">0</div>
+            <div class="stat-note">目前資料庫會員總量</div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-label">正常使用</div>
+            <div id="dashActiveMembers" class="stat-value green-text">0</div>
+            <div class="stat-note">可正常使用 HABAO AI</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">VIP 會員</div>
+            <div id="dashVipMembers" class="stat-value">0</div>
+            <div class="stat-note">目前會員等級為 VIP</div>
+          </div>
+
+          <div class="stat-card blue">
+            <div class="stat-label">今日登入</div>
+            <div id="dashTodayLogin" class="stat-value">0</div>
+            <div class="stat-note">依最後登入時間統計</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">今日 AI 分析</div>
+            <div id="dashTodayAnalysis" class="stat-value">0</div>
+            <div class="stat-note">analysis_usage 今日筆數</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">今日 API 使用量</div>
+            <div id="dashTodayApi" class="stat-value">0 / 7500</div>
+            <div class="stat-note">API-Football 使用紀錄</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">近 7 天平均 API</div>
+            <div id="dashAvgApi" class="stat-value">0</div>
+            <div id="dashAvgApiNote" class="stat-note">—</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">API 續費日期</div>
+            <div id="dashRenewalDate" class="stat-value" style="font-size:20px">—</div>
+            <div id="dashRenewalDays" class="stat-note">—</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="stat-card">
+            <div class="stat-label">今日 / 明日可分析賽事</div>
+            <div id="dashFixtureCount" class="stat-value">0 / 0</div>
+            <div class="stat-note">賽事快取資料</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">分析任務進行中</div>
+            <div id="dashRunningJobs" class="stat-value">0</div>
+            <div class="stat-note">排隊中＋執行中</div>
+          </div>
+
+          <div class="stat-card gold">
+            <div class="stat-label">公開戰績待驗證</div>
+            <div id="dashPendingSnapshots" class="stat-value gold-text">0</div>
+            <div class="stat-note">等待完賽驗證</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">防重複分析鎖</div>
+            <div id="dashProcessingLocks" class="stat-value">0</div>
+            <div class="stat-note">正常 / 過期</div>
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">今日 API 配額</div>
+                <div class="panel-desc">依目前每日上限顯示使用比例</div>
+              </div>
+              <button class="ghost-btn" onclick="switchPageById('apiPage')">查看 API</button>
+            </div>
+
+            <div class="progress-wrap">
+              <div class="progress-line">
+                <div id="dashApiProgress" class="progress-fill"></div>
+              </div>
+              <div class="progress-meta">
+                <span id="dashApiProgressText">0 / 7500</span>
+                <span id="dashApiRemaining">剩餘 7500</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">管理快速入口</div>
+                <div class="panel-desc">常用操作直接前往</div>
+              </div>
+            </div>
+
+            <div class="three-grid">
+              <button class="ghost-btn" onclick="switchPageById('membersPage')">會員管理</button>
+              <button class="ghost-btn" onclick="switchPageById('announcementPage')">公告管理</button>
+              <button class="ghost-btn" onclick="switchPageById('pushPage')">發送推播</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEMBERS -->
+      <section id="membersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">MEMBER MANAGEMENT</div>
+            <div class="page-title">會員管理</div>
+            <div class="page-desc">管理會員積分、VIP 等級、使用狀態與查看最後登入時間。新版已移除「新增會員」。</div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">會員總數</div>
+            <div id="memberTotalCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">正常使用</div>
+            <div id="memberActiveCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已停權</div>
+            <div id="memberInactiveCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">VIP</div>
+            <div id="memberVipCount" class="stat-value gold-text">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="searchInput" class="input search" placeholder="搜尋會員帳號、綁定平台或平台帳號..." oninput="renderMembers()">
+
+              <select id="levelFilter" class="input" onchange="renderMembers()">
+                <option value="all">全部等級</option>
+                <option value="vip">VIP</option>
+                <option value="normal">一般會員</option>
+              </select>
+
+              <select id="statusFilter" class="input" onchange="renderMembers()">
+                <option value="all">全部狀態</option>
+                <option value="active">正常使用</option>
+                <option value="inactive">已停權</option>
+              </select>
+            </div>
+
+            <button class="ghost-btn" onclick="loadMembers()">↻ 更新會員</button>
+          </div>
+
+          <div class="table-shell">
+            <div id="memberLoading" class="loading hidden">正在載入會員資料...</div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>會員帳號</th>
+                    <th>綁定平台</th>
+                    <th>平台帳號</th>
+                    <th>通知</th>
+                    <th>等級</th>
+                    <th>狀態</th>
+                    <th>積分</th>
+                    <th>最後登入</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="memberBody"></tbody>
+              </table>
+            </div>
+            <div id="memberEmpty" class="empty hidden">沒有符合條件的會員</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNOUNCEMENTS -->
+      <section id="announcementPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SITE NOTICE</div>
+            <div class="page-title">公告管理</div>
+            <div class="page-desc">管理一般公告與系統維護模式。福利活動管理已從新版後台移除。</div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-box">
+            <div class="panel-title">一般公告</div>
+            <div class="panel-desc">前台公告訊息，可隨時啟用或停用。</div>
+
+            <div class="field">
+              <label class="label">公告內容</label>
+              <textarea id="normalAnnouncement" class="input" placeholder="輸入一般公告內容..."></textarea>
+            </div>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="normalAnnouncementEnabled">
+              <span class="toggle-track"></span><span>啟用一般公告</span>
+            </label>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="normalAnnouncementMarqueeEnabled">
+              <span class="toggle-track"></span><span>啟用跑馬燈</span>
+            </label>
+
+            <div class="panel-desc" style="margin-top:8px">
+              開啟後公告文字會自動由右往左循環播放；關閉則維持一般靜態文字。
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="panel-title">緊急維護公告</div>
+            <div class="panel-desc">啟用後將依前台現有維護流程限制會員進入。</div>
+
+            <div class="field">
+              <label class="label">維護內容</label>
+              <textarea id="maintenanceAnnouncement" class="input" placeholder="輸入維護公告內容..."></textarea>
+            </div>
+
+            <label class="toggle-switch">
+              <input type="checkbox" id="maintenanceAnnouncementEnabled">
+              <span class="toggle-track"></span><span>開啟系統維護模式</span>
+            </label>
+
+            <div class="danger-note">開啟後會員將受到目前網站既有的維護模式限制，儲存前請再次確認。</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">AI 工具箱｜全新上線特效</div>
+              <div class="panel-desc">新功能宣傳期間可開啟；關閉後首頁會立即恢復一般 AI 工具箱卡片。</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-box">
+              <label class="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="toolboxLaunchEnabled"
+                >
+                <span class="toggle-track"></span>
+                <span>啟用「全新上線」特效</span>
+              </label>
+
+              <div class="field">
+                <label class="label">卡片標籤</label>
+                <input
+                  id="toolboxLaunchBadge"
+                  class="input"
+                  type="text"
+                  maxlength="40"
+                  value="NEW｜全新上線"
+                >
+              </div>
+
+              <div class="field">
+                <label class="label">上線副標</label>
+                <input
+                  id="toolboxLaunchSubtitle"
+                  class="input"
+                  type="text"
+                  maxlength="80"
+                  value="全新 AI 工具現已開放"
+                >
+              </div>
+            </div>
+
+            <div class="form-box">
+              <div class="panel-title">顯示控制</div>
+              <div class="panel-desc">儲存後不需要重新部署前台。關閉開關即可移除所有「全新上線」效果。</div>
+
+              <button
+                id="saveToolboxLaunchBtn"
+                class="save-btn"
+                type="button"
+                onclick="saveToolboxLaunchSettings()"
+                style="margin-top:18px"
+              >
+                儲存工具箱上線設定
+              </button>
+
+              <div
+                id="toolboxLaunchResult"
+                class="result-box"
+              >
+                尚未變更
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">儲存設定</div>
+              <div class="panel-desc">儲存後將同步更新網站公告與維護設定。</div>
+            </div>
+            <button id="saveAnnouncementBtn" class="save-btn" onclick="saveAnnouncementSettings()">儲存設定</button>
+          </div>
+
+          <div id="announcementResult" class="result-box">尚未變更</div><div id="announcementUpdatedAt" class="panel-desc" style="margin-top:8px">最後更新：—</div>
+        </div>
+      </section>
+
+      <!-- PUSH -->
+      <section id="pushPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PUSH NOTIFICATION</div>
+            <div class="page-title">推播通知</div>
+            <div class="page-desc">可發送給全部會員、VIP、一般會員或指定會員。</div>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:760px">
+          <div class="field">
+            <label class="label">發送對象</label>
+            <select id="pushAudience" class="input" onchange="togglePushMemberField()">
+              <option value="all">全部已開啟通知的會員</option>
+              <option value="vip">僅 VIP 會員</option>
+              <option value="normal">僅一般會員</option>
+              <option value="member">指定會員</option>
+            </select>
+          </div>
+
+          <div id="pushMemberField" class="field hidden">
+            <label class="label">指定會員帳號</label>
+            <input id="pushMemberUsername" class="input" placeholder="輸入 HABAO 會員帳號" oninput="debouncedLoadPushDeviceCount()"><div id="pushDeviceCount" class="panel-desc" style="margin-top:7px">訂閱裝置：—</div>
+          </div>
+
+          <div class="field">
+            <label class="label">通知標題</label>
+            <input id="pushTitle" class="input" type="text" maxlength="60" value="HABAO 賽事預測 AI">
+          </div>
+
+          <div class="field">
+            <label class="label">通知內容</label>
+            <textarea id="pushBody" class="input" maxlength="200" placeholder="例如：今晚賽事分析已更新，點擊立即查看"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">點擊通知後前往</label>
+            <select id="pushUrl" class="input">
+              <option value="https://awu7757-sys.github.io/habao-football-ai/home-v2.html">會員首頁</option>
+              <option value="https://awu7757-sys.github.io/habao-football-ai/football.html">賽事中心</option>
+              <option value="https://awu7757-sys.github.io/habao-football-ai/performance.html">AI 戰績</option>
+            </select>
+          </div>
+
+          <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" id="sendPushBtn" class="save-btn">發送推播</button>
+            <button type="button" class="ghost-btn" onclick="sendTestPush()">發送測試通知</button>
+            <button type="button" class="ghost-btn" onclick="loadPushLogs()">↻ 最近推播紀錄</button>
+          </div>
+
+          <div id="pushSendResult" class="result-box">尚未發送</div><div id="pushLogs" class="mini-list" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <!-- API -->
+      <section id="apiPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">API QUOTA</div>
+            <div class="page-title">API 配額</div>
+            <div class="page-desc">API-Football PRO｜月費 US$19｜每日上限 7,500 requests，每日重置。</div>
+          </div>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
+        </div>
+
+        <div class="api-grid">
+          <div class="api-big">
+            <div class="stat-label">今日 API 使用量</div>
+            <div id="apiTodayBig" class="api-number">0 / 7500</div>
+
+            <div class="progress-wrap">
+              <div class="progress-line">
+                <div id="apiPageProgress" class="progress-fill"></div>
+              </div>
+              <div class="progress-meta">
+                <span id="apiPagePercent">0%</span>
+                <span id="apiPageRemaining">剩餘 7500 次</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mini-list">
+            <div class="mini-item">
+              <span class="mini-key">每日上限</span>
+              <span id="apiDailyLimitText" class="mini-val">7500</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">近 7 天平均</span>
+              <span id="apiAvgText" class="mini-val">0</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">平均剩餘</span>
+              <span id="apiAvgRemainingText" class="mini-val">7500</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">API 續費日期</span>
+              <span id="apiRenewalText" class="mini-val">—</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">剩餘天數</span>
+              <span id="apiRenewalDaysText" class="mini-val">—</span>
+            </div>
+            <button class="save-btn" style="width:100%" onclick="confirmApiRenewal(this)">確認已續費</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">近 7 天 API 使用紀錄</div>
+          <div class="panel-desc" style="margin-top:8px;line-height:1.75">
+            每日配額各自重置；下方顯示最近 7 天實際記錄量。
+          </div>
+
+          <div class="table-shell" style="margin-top:14px">
+            <div class="table-scroll" style="max-height:360px">
+              <table style="min-width:620px">
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>使用量</th>
+                    <th>每日上限</th>
+                    <th>剩餘</th><th>使用率</th>
+                  </tr>
+                </thead>
+                <tbody id="apiDailyBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-title" style="margin-top:18px">今日來源統計</div>
+          <div id="apiSourceStats" class="mini-list" style="margin-top:10px"></div>
+        </div>
+
+        <div class="panel" style="margin-top:15px">
+          <div class="panel-title">系統資源消耗 / 可用額度</div>
+
+          <div class="panel-desc" style="margin-top:8px;line-height:1.75">
+Supabase FREE 最新用量快照。使用率達 70% 顯示黃色警示，90% 以上顯示紅色警示。
+          </div>
+
+<div
+  id="supabaseUsageGrid"
+  class="stats-grid"
+  style="margin-top:14px"
+>
+  <div class="stat-card">
+    <div class="stat-label">SUPABASE USAGE</div>
+    <div class="stat-value">讀取中…</div>
+    <div class="stat-note">正在讀取最新用量快照</div>
+  </div>
+</div>
+
+<div
+  id="supabaseUsageMeta"
+  class="panel-desc"
+  style="margin-top:10px"
+>
+  —
+</div>
+
+          <div class="panel-title" style="margin-top:20px">
+            即時比分推播 V2 消耗
+          </div>
+
+          <div class="mini-list" style="margin-top:10px">
+
+            <div class="mini-item">
+              <span class="mini-key">Cron Edge Function</span>
+              <span class="mini-val">720 次 / 日</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">30 天 Cron 預估</span>
+              <span class="mini-val">21,600 次</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">佔 FREE Edge 額度</span>
+              <span class="mini-val">約 4.3%</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">API-Football｜一般賽事</span>
+              <span class="mini-val">約 75 次 / 日期</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">API-Football｜最壞監控</span>
+              <span class="mini-val">約 255 次 / 日期</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">OpenAI 分析消耗</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">會員分析積分</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+            <div class="mini-item">
+              <span class="mini-key">Panda 賠率 API</span>
+              <span class="mini-val" style="color:#66e39d">0</span>
+            </div>
+
+          </div>
+
+          <div class="danger-note" style="margin-top:14px">
+⚠ 此區顯示 supabase_usage_snapshots 的最新快照。
+數值會隨最新快照更新，但目前不是直接即時讀取 Supabase 官方 Usage API。
+          </div>
+        </div>
+        
+      </section>
+
+    
+      <!-- AI ANALYSIS LOG -->
+      <section id="analysisLogPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">AI ANALYSIS HISTORY</div>
+            <div class="page-title">AI 分析紀錄</div>
+            <div class="page-desc">最近 7 天會員分析。後台僅顯示主要分析摘要，不顯示原始 JSON。</div>
+          </div>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'analysis')">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">目前載入紀錄</div>
+            <div id="analysisRecordCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">今日新增 / 更新紀錄</div>
+            <div id="analysisTodayCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">不同會員</div>
+            <div id="analysisMemberCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">有分析摘要</div>
+            <div id="analysisPayloadCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="analysisSearch" class="input search" placeholder="搜尋會員、賽事、聯賽..." oninput="renderAnalysisHistory()">
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>更新時間</th>
+                    <th>會員</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>賽事</th>
+                    <th>開賽時間</th>
+                    <th>狀態</th>
+                    <th>分析結果</th>
+                  </tr>
+                </thead>
+                <tbody id="analysisHistoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOBS -->
+      <section id="jobsPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">ANALYSIS QUEUE</div>
+            <div class="page-title">分析任務</div>
+            <div class="page-desc">查看背景分析工作、失敗原因與重新執行失敗任務。</div>
+          </div>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'jobs')">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">排隊中</div>
+            <div id="jobQueuedCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">執行中</div>
+            <div id="jobProcessingCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">已完成</div>
+            <div id="jobCompletedCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">失敗 / 部分失敗</div>
+            <div id="jobFailedCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="jobSearch" class="input search" placeholder="搜尋會員或任務 ID..." oninput="renderJobs()">
+              <select id="jobStatusFilter" class="input" onchange="renderJobs()">
+                <option value="all">全部狀態</option>
+                <option value="queued">排隊中</option>
+                <option value="processing">執行中</option>
+                <option value="completed">已完成</option>
+                <option value="partial">部分失敗</option>
+                <option value="failed">失敗</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>建立時間</th>
+                    <th>會員</th>
+                    <th>賽事數</th>
+                    <th>進度</th>
+                    <th>狀態</th>
+                    <th>失敗原因</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="jobsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FIXTURES -->
+      <section id="fixturesPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">FIXTURE CACHE</div>
+            <div class="page-title">賽事管理</div>
+            <div class="page-desc">查看今天與明天的可分析賽事及快取更新時間。</div>
+          </div>
+          <div class="table-tools">
+            <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
+            <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'fixtures')">↻ 更新</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card gold">
+            <div class="stat-label">今日賽事</div>
+            <div id="fixtureTodayCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">明日賽事</div>
+            <div id="fixtureTomorrowCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">今日快取更新</div>
+            <div id="fixtureTodayFetched" class="stat-value" style="font-size:16px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">明日快取更新</div>
+            <div id="fixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="fixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderFixtures()">
+              <select id="fixtureDateFilter" class="input" onchange="renderFixtures()">
+                <option value="all">今日＋明日</option>
+                <option value="today">今日</option>
+                <option value="tomorrow">明日</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>時間</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>主隊</th>
+                    <th>客隊</th>
+                    <th>狀態</th>
+                    <th>比分</th>
+                    <th>分析會員</th>
+                    <th>可推播</th>
+                    <th>比分推播</th>
+                  </tr>
+                </thead>
+                <tbody id="fixturesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERFORMANCE -->
+      <section id="performanceAdminPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PUBLIC PERFORMANCE</div>
+            <div class="page-title">公開 AI 戰績</div>
+            <div class="page-desc">管理公開預測快照、驗證狀態與市場結果。</div>
+          </div>
+          <div class="table-tools">
+            <button class="save-btn" onclick="runPublicRunner()">執行賽前預測排程</button>
+            <button class="ghost-btn" onclick="validateOverduePerformance(this)">補驗證逾期戰績</button>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'performance')">↻ 更新</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card gold">
+            <div class="stat-label">正常待驗證</div>
+            <div id="performancePendingCount" class="stat-value gold-text">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">已驗證</div>
+            <div id="performanceVerifiedCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">逾期待驗證</div>
+            <div id="performanceOverdueCount" class="stat-value" style="color:#ff9696">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">大小球命中</div>
+            <div id="performanceOuRate" class="stat-value">—</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="performanceSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderPerformanceAdmin()">
+              <select id="performanceStatusFilter" class="input" onchange="renderPerformanceAdmin()">
+                <option value="all">全部</option>
+                <option value="included">正常計入</option>
+                <option value="excluded">已排除</option>
+                <option value="pending">待驗證</option>
+                <option value="overdue">逾期待驗證</option>
+                <option value="verified">已驗證</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>開賽時間</th>
+                    <th>Fixture ID</th>
+                    <th>聯賽</th>
+                    <th>賽事</th>
+                    <th>比分</th>
+                    <th>狀態</th>
+                    <th>獨贏</th>
+                    <th>大小球</th>
+                    <th>BTTS</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="performanceBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHADOW TEST -->
+      <section id="shadowTestPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SHADOW ODDS TEST</div>
+            <div class="page-title">臨場模型測試</div>
+            <div class="page-desc">正式版答案不變；影子版只在後台比較初始賠率 → T-6H → T-30M 的臨場校正效果。</div>
+          </div>
+          <div class="table-tools">
+            <button class="save-btn" onclick="runShadowRunner(this)">立即執行影子排程</button>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'shadow')">↻ 更新</button>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:0;margin-bottom:15px">
+          <div class="panel-head" style="margin-bottom:10px">
+            <div>
+              <div class="panel-title">Panda 授權狀態</div>
+              <div id="pandaAuthMessage" class="panel-desc">等待第一次影子排程檢查。</div>
+            </div>
+            <span id="pandaAuthBadge" class="status">尚未檢查</span>
+          </div>
+          <div class="three-grid">
+            <div class="mini-item"><span class="mini-key">最後成功抓賠率</span><span id="pandaLastSuccess" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">最後自動換 Token</span><span id="pandaLastRefresh" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">Token 來源</span><span id="pandaAuthSource" class="mini-val">—</span></div>
+          </div>
+          <div id="pandaAuthAction" class="danger-note hidden"></div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card gold"><div class="stat-label">測試進度</div><div id="shadowProgress" class="stat-value gold-text">0 / 100</div><div class="stat-note">先看 100 場趨勢，300 場再決定正式啟用</div></div>
+          <div class="stat-card"><div class="stat-label">正式版命中</div><div id="shadowBaselineRate" class="stat-value">—</div><div class="stat-note">純數據正式模型</div></div>
+          <div class="stat-card green"><div class="stat-label">臨場版命中</div><div id="shadowAdjustedRate" class="stat-value green-text">—</div><div class="stat-note">影子賠率校正版</div></div>
+          <div class="stat-card"><div class="stat-label">淨改善</div><div id="shadowNetImprovement" class="stat-value">0</div><div class="stat-note">原錯→改對 − 原對→改錯（市場項目）</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">各市場比較</div><div class="panel-desc">走盤不列入命中率；半贏以 0.5 計分。先看哪些市場真的因臨場校正變好。</div></div></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:900px"><thead><tr><th>市場</th><th>正式版樣本</th><th>正式版命中</th><th>臨場版樣本</th><th>臨場版命中</th><th>錯→對</th><th>對→錯</th><th>改動次數</th></tr></thead><tbody id="shadowMarketBody"></tbody></table></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">測試賽事明細</div><div class="panel-desc">可查看三段賠率快照、正式答案、影子答案、校正原因與完賽結果。</div></div></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:1080px"><thead><tr><th>開賽時間</th><th>Fixture ID</th><th>聯賽</th><th>賽事</th><th>快照</th><th>狀態</th><th>比分</th><th>操作</th></tr></thead><tbody id="shadowTestBody"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <!-- PARTNERS -->
+      <section id="partnersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">PARTNER PLATFORMS</div>
+            <div class="page-title">合作平台管理</div>
+            <div class="page-desc">控制分析頁「立即投注」與首頁 VIP 綁定平台。修改後前台會讀取最新資料。</div>
+          </div>
+          <button class="save-btn" onclick="openPartnerModal()">＋ 新增平台</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">平台總數</div>
+            <div id="partnerTotalCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">目前啟用</div>
+            <div id="partnerEnabledCount" class="stat-value green-text">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">停用</div>
+            <div id="partnerDisabledCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">VIP 可選平台</div>
+            <div id="partnerVipCount" class="stat-value gold-text">0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">平台列表</div>
+              <div class="panel-desc">Logo 可填 GitHub 同站檔名（例如 hd-logo.png）或完整圖片網址。</div>
+            </div>
+            <button class="ghost-btn" onclick="refreshPartnerButton(this)">↻ 更新</button>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>排序</th>
+                    <th>Logo</th>
+                    <th>平台</th>
+                    <th>代碼</th>
+                    <th>投注網址</th>
+                    <th>註冊網址</th>
+                    <th>狀態</th>
+                    <th>已綁定會員</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="partnersBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMIN USERS -->
+      <section id="adminUsersPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">ADMIN ACCESS CONTROL</div>
+            <div class="page-title">管理員管理</div>
+            <div class="page-desc">只有 Super Admin 可以建立子管理員、停用帳號、重設密碼與分配模組權限。</div>
+          </div>
+          <button class="save-btn" onclick="openAdminUserModal()">＋ 新增管理員</button>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">子管理員列表</div><div class="panel-desc">權限會同時套用到左側選單與 Edge Function 後端驗證。</div></div><button class="ghost-btn" onclick="loadAdminUsers(true)">↻ 更新</button></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:940px"><thead><tr><th>帳號</th><th>顯示名稱</th><th>權限</th><th>狀態</th><th>最後登入</th><th>建立時間</th><th>操作</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <!-- HEALTH -->
+      <section id="healthPage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">SYSTEM HEALTH</div>
+            <div class="page-title">系統健康</div>
+            <div class="page-desc">集中查看賽事快取、分析任務、公開戰績驗證、防重複分析鎖與近期錯誤紀錄。</div>
+          </div>
+          <button class="ghost-btn" onclick="refreshAdminSection(this,'health')">↻ 更新</button>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:15px">
+          <div class="stat-card">
+            <div class="stat-label">賽事快取最後更新</div>
+            <div id="healthFixtureTime" class="stat-value" style="font-size:16px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">最後分析任務</div>
+            <div id="healthJobStatus" class="stat-value" style="font-size:18px">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">分析鎖</div>
+            <div id="healthLockCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">近期失敗任務</div>
+            <div id="healthFailedCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <div class="panel-title">服務資料狀態</div>
+            <div id="healthServiceList" class="mini-list" style="margin-top:12px"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">錯誤紀錄</div>
+            <div id="healthDebugInfo" class="panel-desc" style="margin-top:10px;line-height:1.75"></div>
+          </div>
+        </div>
+
+
+        <div class="panel">
+          <div class="panel-head"><div><div class="panel-title">分析鎖列表</div><div class="panel-desc">只允許清除已過期或疑似殘留的分析鎖。</div></div><button class="ghost-btn" onclick="clearExpiredLocks(this)">清除過期分析鎖</button></div>
+          <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>Fixture ID</th><th>建立時間</th><th>最後更新</th><th>expires_at</th><th>狀態</th></tr></thead><tbody id="healthLocksBody"></tbody></table></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">近期失敗 / 部分失敗任務</div>
+          <div class="table-shell" style="margin-top:12px">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>時間</th>
+                    <th>任務 ID</th>
+                    <th>會員</th>
+                    <th>狀態</th>
+                    <th>錯誤</th>
+                    <th>詳細</th>
+                  </tr>
+                </thead>
+                <tbody id="healthFailedJobsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- CREDITS MODAL -->
+<div id="creditsModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-title">積分管理</div>
+    <div class="modal-account">會員：<strong id="creditsModalAccount">—</strong></div>
+
+    <label class="label" for="editCredits">輸入要增加或扣除的積分數量</label>
+    <input id="editCredits" class="input" type="number" min="1" step="1" placeholder="例如：5">
+
+    <div class="modal-actions">
+      <button class="action-btn red" onclick="adjustCredits('subtract')">－ 扣除</button>
+      <button class="action-btn green" onclick="adjustCredits('add')">＋ 增加</button>
+      <button class="modal-close" onclick="closeCreditsModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER BINDING MODAL -->
+<div id="bindingModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-title">綁定資料</div>
+    <div class="modal-account">會員：<strong id="bindingModalAccount">—</strong></div>
+
+    <div class="field">
+      <label class="label" for="editBindingPlatform">合作平台</label>
+      <select id="editBindingPlatform" class="input">
+        <option value="">請選擇合作平台</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label" for="editBindingAccount">平台帳號</label>
+      <input
+        id="editBindingAccount"
+        class="input"
+        type="text"
+        maxlength="120"
+        placeholder="請輸入平台帳號"
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="danger-note">
+      此處只修改會員綁定的平台與平台帳號，不會自動變更 VIP 等級。
+      如需恢復或取消 VIP，請回會員列表使用「升級 VIP／降為一般」。
+    </div>
+
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveMemberBinding()">儲存綁定資料</button>
+      <button class="modal-close" onclick="closeBindingModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- JSON DETAIL MODAL -->
+<div id="jsonModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="jsonModalTitle">詳細資料</div>
+    <div id="jsonModalContent" class="json-pre"></div>
+    <div class="modal-actions">
+      <button class="modal-close" onclick="closeJsonModal()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTNER EDIT MODAL -->
+<div id="partnerModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="partnerModalTitle">合作平台</div>
+
+    <input type="hidden" id="partnerId">
+
+    <div class="partner-form-grid">
+      <div class="field">
+        <label class="label">平台代碼（英文）</label>
+        <input id="partnerSlug" class="input" placeholder="例如 huangding">
+      </div>
+
+      <div class="field">
+        <label class="label">平台名稱（存入會員資料）</label>
+        <input id="partnerName" class="input" placeholder="例如 皇鼎">
+      </div>
+
+      <div class="field">
+        <label class="label">前台顯示名稱</label>
+        <input id="partnerDisplayName" class="input" placeholder="例如 HD 皇鼎">
+      </div>
+
+      <div class="field">
+        <label class="label">Logo</label>
+        <input id="partnerLogoUrl" class="input" placeholder="hd-logo.png">
+      </div>
+
+      <div class="field">
+        <label class="label">立即投注網址</label>
+        <input id="partnerBetUrl" class="input" placeholder="https://...">
+      </div>
+
+      <div class="field">
+        <label class="label">免費註冊網址</label>
+        <input id="partnerRegisterUrl" class="input" placeholder="https://...">
+      </div>
+
+      <div class="field">
+        <label class="label">排序</label>
+        <input id="partnerSortOrder" class="input" type="number" value="10">
+      </div>
+
+      <div class="field">
+        <label class="label">狀態</label>
+        <select id="partnerEnabled" class="input">
+          <option value="true">啟用</option>
+          <option value="false">停用</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="save-btn" onclick="savePartner()">儲存平台</button>
+      <button class="modal-close" onclick="closePartnerModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN USER MODAL -->
+<div id="adminUserModal" class="modal hidden">
+  <div class="modal-card wide">
+    <div class="modal-title" id="adminUserModalTitle">新增管理員</div>
+    <input type="hidden" id="adminUserId">
+    <div class="partner-form-grid">
+      <div class="field">
+        <label class="label" for="adminUserUsername">管理員帳號</label>
+        <input id="adminUserUsername" class="input" placeholder="例如 operator01" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="label" for="adminUserDisplayName">顯示名稱</label>
+        <input id="adminUserDisplayName" class="input" placeholder="例如 晚班管理員">
+      </div>
+      <div class="field" id="adminUserPasswordField">
+        <label class="label" for="adminUserPassword">初始密碼（至少 8 碼）</label>
+        <input id="adminUserPassword" class="input" type="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="label">狀態</label>
+        <select id="adminUserActive" class="input"><option value="true">啟用</option><option value="false">停用</option></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">可使用功能</label>
+      <div id="adminPermissionGrid" class="permission-grid"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveAdminUser()">儲存管理員</button>
+      <button class="modal-close" onclick="closeAdminUserModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-members";
+
+const BENEFITS_ADMIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-benefits";
+
+const TOOLBOX_LAUNCH_ADMIN_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/toolbox-launch-settings";
+
+const PUSH_SEND_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/push-send";
+
+const ADMIN_CENTER_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-center";
+
+
+let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
+let adminSessionToken = sessionStorage.getItem("habao_admin_session_v2") || "";
+let currentAdmin = null;
+let adminUsers = [];
+let members = [];
+let editingMemberId = null;
+let editingBindingMemberId = null;
+
+let dashboardData = {
+  todayAnalysisCount: 0,
+  todayApiCount: 0,
+  last7DaysApiCount: 0
+};
+
+let adminOverview = {};
+let analysisHistoryRecords = [];
+let analysisJobs = [];
+let fixtureCacheRows = [];
+let performanceSnapshots = [];
+let shadowTestPayload = null;
+let shadowTestRows = [];
+let partnerPlatforms = [];
+let healthPayload = null;
+let apiStatsPayload = null;
+
+const pageLoaded = new Set();
+
+
+window.apiDailyLimit = 7500;
+window.apiRenewalDate = null;
+
+/* =========================
+   UI
+========================= */
+
+const PAGE_NAMES = {
+  dashboardPage: "Dashboard",
+  membersPage: "會員管理",
+  announcementPage: "公告管理",
+  pushPage: "推播通知",
+  apiPage: "API 配額",
+  analysisLogPage: "AI 分析紀錄",
+  jobsPage: "分析任務",
+  fixturesPage: "賽事管理",
+  performanceAdminPage: "公開 AI 戰績",
+  shadowTestPage: "臨場模型測試",
+  partnersPage: "合作平台",
+  adminUsersPage: "管理員管理",
+  healthPage: "系統健康"
+};
+
+const PAGE_PERMISSIONS = {
+  dashboardPage: "dashboard",
+  membersPage: "members",
+  announcementPage: "announcements",
+  pushPage: "push",
+  apiPage: "api",
+  analysisLogPage: "analysis_logs",
+  jobsPage: "analysis_jobs",
+  fixturesPage: "fixtures",
+  performanceAdminPage: "performance",
+  shadowTestPage: "shadow_test",
+  partnersPage: "partners",
+  healthPage: "health",
+  adminUsersPage: "admin_users"
+};
+
+const ADMIN_PERMISSION_LABELS = {
+  dashboard: "Dashboard",
+  members: "會員管理",
+  announcements: "公告管理",
+  push: "推播通知",
+  api: "API 配額",
+  analysis_logs: "AI 分析紀錄",
+  analysis_jobs: "分析任務",
+  fixtures: "賽事管理",
+  performance: "公開 AI 戰績",
+  shadow_test: "臨場模型測試",
+  partners: "合作平台",
+  health: "系統健康"
+};
+
+function switchPage(pageId, button) {
+  if (!canAccessAdminPage(pageId)) {
+    alert("此管理員沒有這項功能權限");
+    return;
+  }
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.page === pageId);
+  });
+
+  const topPageName = document.getElementById("topPageName");
+  if (topPageName) {
+    topPageName.textContent = PAGE_NAMES[pageId] || "Admin Center";
+  }
+
+  if (window.innerWidth <= 820) {
+    document.getElementById("sidebar")?.classList.remove("open");
+  }
+
+  ensurePageData(pageId);
+}
+
+function switchPageById(pageId) {
+  const btn = document.querySelector(`.nav-btn[data-page="${pageId}"]`);
+  switchPage(pageId, btn);
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar")?.classList.toggle("open");
+}
+
+/* =========================
+   API HELPERS / SESSION
+========================= */
+
+function adminAuthHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  if (adminSessionToken) headers["x-admin-session"] = adminSessionToken;
+  return headers;
+}
+
+async function adminServiceRequest(url, payload) {
+  const body = { ...payload };
+  if (!adminSessionToken && adminPassword) body.admin_password = adminPassword;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: adminAuthHeaders(),
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    if (response.status === 401 && adminSessionToken) {
+      clearAdminSession();
+    }
+    throw new Error(data?.message || data?.error || "操作失敗");
+  }
+
+  return data;
+}
+
+async function apiRequest(payload) {
+  return adminServiceRequest(API_URL, payload);
+}
+
+async function adminCenterRequest(payload) {
+  return adminServiceRequest(ADMIN_CENTER_URL, payload);
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+async function adminLogin() {
+  const usernameInput = document.getElementById("adminUsername");
+  const passwordInput = document.getElementById("adminPassword");
+  const message = document.getElementById("loginMessage");
+  const button = document.getElementById("loginBtn");
+
+  const username = String(usernameInput?.value || "").trim();
+  const password = String(passwordInput?.value || "");
+
+  if (!password) {
+    message.textContent = "請輸入管理密碼。";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "驗證中...";
+  message.textContent = "";
+
+  try {
+    const response = await fetch(ADMIN_CENTER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "auth_login", username, password })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success || !data?.session_token) {
+      throw new Error(data?.message || data?.error || "登入失敗");
+    }
+
+    adminPassword = "";
+    adminSessionToken = String(data.session_token);
+    currentAdmin = data.admin || null;
+    sessionStorage.setItem("habao_admin_session_v2", adminSessionToken);
+    sessionStorage.setItem("habao_admin_profile_v2", JSON.stringify(currentAdmin || {}));
+    sessionStorage.setItem("habao_admin_expires_v2", String(data.expires_at || ""));
+
+    passwordInput.value = "";
+    await enterAdminApp();
+  } catch (error) {
+    clearAdminSession();
+    message.textContent = error?.message || "登入失敗";
+  } finally {
+    button.disabled = false;
+    button.textContent = "進入管理後台 →";
+  }
+}
+
+document.getElementById("adminPassword").addEventListener("keydown", event => {
+  if (event.key === "Enter") adminLogin();
+});
+
+document.getElementById("adminUsername")?.addEventListener("keydown", event => {
+  if (event.key === "Enter") adminLogin();
+});
+
+function clearAdminSession() {
+  adminSessionToken = "";
+  currentAdmin = null;
+  adminPassword = "";
+  sessionStorage.removeItem("habao_admin_session_v2");
+  sessionStorage.removeItem("habao_admin_profile_v2");
+  sessionStorage.removeItem("habao_admin_expires_v2");
+}
+
+function hasAdminPermission(permission) {
+  if (!currentAdmin) return false;
+  if (currentAdmin?.is_super_admin === true) return true;
+  return Array.isArray(currentAdmin?.permissions) && currentAdmin.permissions.includes(permission);
+}
+
+function canAccessAdminPage(pageId) {
+  const permission = PAGE_PERMISSIONS[pageId];
+  if (!permission) return true;
+  if (permission === "admin_users") return currentAdmin?.is_super_admin === true;
+  return hasAdminPermission(permission);
+}
+
+function applyAdminPermissions() {
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => {
+    const pageId = btn.dataset.page;
+    btn.classList.toggle("permission-hidden", !canAccessAdminPage(pageId));
+  });
+
+  const label = document.getElementById("currentAdminLabel");
+  if (label) {
+    label.textContent = currentAdmin?.is_super_admin
+      ? "Super Admin"
+      : (currentAdmin?.display_name || currentAdmin?.username || "管理員");
+  }
+}
+
+function firstAccessiblePage() {
+  return Object.keys(PAGE_PERMISSIONS).find(pageId => canAccessAdminPage(pageId)) || "dashboardPage";
+}
+
+async function enterAdminApp() {
+  pageLoaded.clear();
+  applyAdminPermissions();
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("adminApp").classList.remove("hidden");
+
+  const targetPage = canAccessAdminPage("dashboardPage") ? "dashboardPage" : firstAccessiblePage();
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => btn.classList.remove("active"));
+  const btn = document.querySelector(`.nav-btn[data-page="${targetPage}"]`);
+  if (btn) btn.classList.add("active");
+  document.getElementById(targetPage)?.classList.add("active");
+  setText("topPageName", PAGE_NAMES[targetPage] || "Admin Center");
+
+  if (targetPage === "dashboardPage") {
+    await loadAdminOverview();
+    if (hasAdminPermission("announcements")) await loadAnnouncementSettings();
+    renderDashboard();
+    renderApiPage();
+    if (hasAdminPermission("api")) loadApiStats(false);
+  } else {
+    ensurePageData(targetPage);
+  }
+}
+
+async function restoreAdminSession() {
+  if (!adminSessionToken) return;
+  try {
+    const data = await adminCenterRequest({ action: "auth_me" });
+    currentAdmin = data?.admin || null;
+    if (!currentAdmin) throw new Error("session_invalid");
+    sessionStorage.setItem("habao_admin_profile_v2", JSON.stringify(currentAdmin));
+    await enterAdminApp();
+  } catch {
+    clearAdminSession();
+  }
+}
+
+async function logoutAdmin() {
+  try {
+    if (adminSessionToken) await adminCenterRequest({ action: "auth_logout" });
+  } catch {}
+
+  clearAdminSession();
+  members = [];
+  editingMemberId = null;
+  editingBindingMemberId = null;
+  adminOverview = {};
+  analysisHistoryRecords = [];
+  analysisJobs = [];
+  fixtureCacheRows = [];
+  performanceSnapshots = [];
+  shadowTestPayload = null;
+  shadowTestRows = [];
+  partnerPlatforms = [];
+  adminUsers = [];
+  healthPayload = null;
+  apiStatsPayload = null;
+  pageLoaded.clear();
+
+  const u = document.getElementById("adminUsername");
+  const p = document.getElementById("adminPassword");
+  if (u) u.value = "";
+  if (p) p.value = "";
+  document.getElementById("adminApp").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+}
+
+/* =========================
+   LOAD / DASHBOARD
+========================= */
+
+function applyMemberPayload(data) {
+  members =
+    Array.isArray(data?.members)
+      ? data.members
+      : [];
+
+  dashboardData.todayAnalysisCount =
+    Number(data?.today_analysis_count || 0);
+
+  dashboardData.todayApiCount =
+    Number(data?.today_api_count || 0);
+
+  dashboardData.last7DaysApiCount =
+    Number(data?.last_7_days_api_count || 0);
+}
+
+async function loadMembers() {
+  const loading =
+    document.getElementById("memberLoading");
+
+  loading?.classList.remove("hidden");
+
+  try {
+    const data =
+      await apiRequest({
+        action: "list"
+      });
+
+    applyMemberPayload(data);
+
+    renderMembers();
+    renderDashboard();
+    renderApiPage();
+
+  } catch (error) {
+    alert(
+      error?.message ||
+      "會員資料載入失敗"
+    );
+  } finally {
+    loading?.classList.add("hidden");
+  }
+}
+
+async function refreshAll() {
+  const button = document.querySelector('.top-actions .ghost-btn');
+  const originalText = button?.textContent || "↻ 重新整理";
+  if (button) { button.disabled = true; button.textContent = "更新中…"; }
+
+  try {
+    const activePage = document.querySelector(".page.active")?.id || firstAccessiblePage();
+
+    if (activePage === "dashboardPage") {
+      await loadAdminOverview();
+      if (hasAdminPermission("announcements")) await loadAnnouncementSettings();
+      if (hasAdminPermission("api")) await loadApiStats(false);
+      renderDashboard();
+      renderApiPage();
+    } else if (activePage === "membersPage") {
+      await loadMembers();
+    } else if (activePage === "announcementPage") {
+      await loadAnnouncementSettings();
+    } else if (activePage === "adminUsersPage") {
+      await loadAdminUsers(true);
+    } else {
+      await refreshPageData(activePage);
+    }
+
+    if (button) button.textContent = "已更新 ✓";
+  } catch (error) {
+    console.error("REFRESH ALL ERROR:", error);
+    if (button) button.textContent = "更新失敗";
+  } finally {
+    setTimeout(() => {
+      if (button) { button.disabled = false; button.textContent = originalText; }
+    }, 900);
+  }
+}
+
+function isTodayTaipei(value) {
+  if (!value) return false;
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    return false;
+  }
+
+  const valueDate =
+    d.toLocaleDateString(
+      "en-CA",
+      {
+        timeZone: "Asia/Taipei"
+      }
+    );
+
+  const today =
+    new Date()
+      .toLocaleDateString(
+        "en-CA",
+        {
+          timeZone: "Asia/Taipei"
+        }
+      );
+
+  return valueDate === today;
+}
+
+function renderDashboard() {
+  const total =
+    Number.isFinite(Number(adminOverview?.total_members))
+      ? Number(adminOverview.total_members)
+      : members.length;
+
+  const active =
+    Number.isFinite(Number(adminOverview?.active_members))
+      ? Number(adminOverview.active_members)
+      : members.filter(
+          item => item?.is_active === true
+        ).length;
+
+  const vip =
+    Number.isFinite(Number(adminOverview?.vip_members))
+      ? Number(adminOverview.vip_members)
+      : members.filter(
+          item =>
+            String(item?.member_level || "").toLowerCase() === "vip"
+        ).length;
+
+  const todayLogin =
+    Number.isFinite(Number(adminOverview?.today_logins))
+      ? Number(adminOverview.today_logins)
+      : members.filter(
+          item => isTodayTaipei(item?.last_login_at)
+        ).length;
+
+  const apiLimit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  const apiUsed =
+    Number.isFinite(Number(adminOverview?.today_api_count))
+      ? Number(adminOverview.today_api_count)
+      : dashboardData.todayApiCount;
+
+  const avgApi =
+    Math.ceil(
+      (Number.isFinite(Number(adminOverview?.last_7_days_api_count))
+        ? Number(adminOverview.last_7_days_api_count)
+        : dashboardData.last7DaysApiCount) /
+      7
+    );
+
+  setText(
+    "dashTotalMembers",
+    total
+  );
+
+  setText(
+    "dashActiveMembers",
+    active
+  );
+
+  setText(
+    "dashVipMembers",
+    vip
+  );
+
+  setText(
+    "dashTodayLogin",
+    todayLogin
+  );setText(
+    "dashTodayAnalysis",
+    Number.isFinite(Number(adminOverview?.today_analysis_count))
+      ? Number(adminOverview.today_analysis_count)
+      : dashboardData.todayAnalysisCount
+  );
+
+  setText(
+    "dashTodayApi",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "dashAvgApi",
+    `${avgApi}`
+  );
+
+  setText(
+    "dashAvgApiNote",
+    `平均剩餘 ${Math.max(
+      apiLimit - avgApi,
+      0
+    )} 次`
+  );
+
+  setText(
+    "dashRenewalDate",
+    window.apiRenewalDate
+      ? String(
+          window.apiRenewalDate
+        ).replace(/-/g, "/")
+      : "—"
+  );
+
+  const renewal =
+    calculateRenewalDays(
+      window.apiRenewalDate
+    );
+
+  setText(
+    "dashRenewalDays",
+    renewal.text
+  );
+
+  const percent =
+    apiLimit > 0
+      ? Math.min(
+          (apiUsed / apiLimit) *
+          100,
+          100
+        )
+      : 0;
+
+  const progress =
+    document.getElementById(
+      "dashApiProgress"
+    );
+
+  if (progress) {
+    progress.style.width =
+      `${percent}%`;
+  }
+
+  setText(
+    "dashApiProgressText",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "dashApiRemaining",
+    `剩餘 ${Math.max(
+      apiLimit - apiUsed,
+      0
+    )}`
+  );
+}
+
+/* =========================
+   MEMBERS
+========================= */
+
+function renderMembers() {
+  const tbody = document.getElementById("memberBody");
+  const empty = document.getElementById("memberEmpty");
+  if (!tbody) return;
+  const search = String(document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+  const levelFilter = document.getElementById("levelFilter")?.value || "all";
+  const statusFilter = document.getElementById("statusFilter")?.value || "all";
+  
+const filtered = members
+  .filter(member => {
+    const haystack = [
+      member?.account,
+      member?.platform_name,
+      member?.platform_account
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const level =
+      String(
+        member?.member_level ||
+        "normal"
+      ).toLowerCase();
+
+    const active =
+      member?.is_active === true;
+
+    return (
+      (!search ||
+        haystack.includes(search)) &&
+      (
+        levelFilter === "all" ||
+        level === levelFilter
+      ) &&
+      (
+        statusFilter === "all" ||
+        (
+          statusFilter === "active" &&
+          active
+        ) ||
+        (
+          statusFilter === "inactive" &&
+          !active
+        )
+      )
+    );
+  })
+  .sort((a, b) => {
+
+    const aTime =
+      a?.last_login_at
+        ? new Date(
+            a.last_login_at
+          ).getTime()
+        : 0;
+
+    const bTime =
+      b?.last_login_at
+        ? new Date(
+            b.last_login_at
+          ).getTime()
+        : 0;
+
+    return bTime - aTime;
+  });
+  
+  tbody.innerHTML="";
+  empty?.classList.toggle("hidden",filtered.length>0);
+  filtered.forEach(member=>{
+    const tr=document.createElement("tr");
+    const active=member?.is_active===true;
+    const isVip=String(member?.member_level||"").toLowerCase()==="vip";
+    const paid=Number(member?.analysis_credits||0), daily=isVip?Number(member?.daily_free_credits||0):0;
+    const devices=Number(member?.push_device_count||0);
+    tr.innerHTML=`
+      <td><div class="account-name">${escapeHtml(member?.account||"")}</div><div class="subline">ID ${escapeHtml(member?.id??"—")}</div></td>
+      <td>${escapeHtml(member?.platform_name||"—")}</td>
+      <td>${escapeHtml(member?.platform_account||"—")}</td>
+      <td>${devices>0?`<span class="status active"><span class="dot"></span>已訂閱 ${devices} 台</span>`:`<span class="status off">未訂閱</span>`}</td>
+      <td>${isVip?`<span class="status vip">VIP</span>`:`<span class="status">一般會員</span>`}</td>
+      <td><span class="status ${active?"active":"off"}"><span class="dot"></span>${active?"正常使用":"已停權"}</span></td>
+      <td><strong>${paid+daily} 點</strong><div class="subline">原有 ${paid}${isVip?`＋每日 ${daily}`:""}</div></td>
+      <td>${member?.last_login_at?formatDate(member.last_login_at):"—"}</td>
+      <td><div class="row-actions"><button class="action-btn gold" onclick="openCreditsModal(${Number(member.id)})">積分</button><button class="action-btn" onclick="openBindingModal(${Number(member.id)})">綁定資料</button><button class="action-btn" onclick="changeMemberLevel(${Number(member.id)})">${isVip?"降為一般":"升級 VIP"}</button><button class="action-btn ${active?"red":"green"}" onclick="changeActive(${Number(member.id)},${!active})">${active?"停權":"恢復"}</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+  const total=members.length, activeCount=members.filter(x=>x?.is_active===true).length, vipCount=members.filter(x=>String(x?.member_level||"").toLowerCase()==="vip").length;
+  setText("memberTotalCount",total); setText("memberActiveCount",activeCount); setText("memberInactiveCount",total-activeCount); setText("memberVipCount",vipCount);
+}
+
+/* =========================
+   CREDITS
+========================= */
+
+function openCreditsModal(id) {
+  const member =
+    members.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (!member) return;
+
+  editingMemberId =
+    Number(id);
+
+  setText(
+    "creditsModalAccount",
+    member.account
+  );
+
+  const input =
+    document.getElementById(
+      "editCredits"
+    );
+
+  if (input) {
+    input.value = "";
+  }
+
+  document
+    .getElementById(
+      "creditsModal"
+    )
+    ?.classList
+    .remove("hidden");
+}
+
+function closeCreditsModal() {
+  editingMemberId = null;
+
+  document
+    .getElementById(
+      "creditsModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+async function adjustCredits(type) {
+  if (!editingMemberId) {
+    return;
+  }
+
+  const member =
+    members.find(
+      item =>
+        Number(item.id) ===
+        Number(
+          editingMemberId
+        )
+    );
+
+  if (!member) return;
+
+  const amount =
+    Number(
+      document
+        .getElementById(
+          "editCredits"
+        )?.value
+    );
+
+  if (
+    !Number.isInteger(amount) ||
+    amount <= 0
+  ) {
+    alert(
+      "請輸入 1 以上的整數積分。"
+    );
+    return;
+  }
+
+  const currentCredits =
+    Number(
+      member
+        .analysis_credits ||
+      0
+    );
+
+  let newCredits =
+    currentCredits;
+
+  if (type === "add") {
+    newCredits =
+      currentCredits +
+      amount;
+  } else if (
+    type === "subtract"
+  ) {
+    if (
+      amount >
+      currentCredits
+    ) {
+      alert(
+        "扣除積分不能大於會員目前積分。"
+      );
+      return;
+    }
+
+    newCredits =
+      currentCredits -
+      amount;
+  } else {
+    return;
+  }
+
+  const actionText =
+    type === "add"
+      ? "增加"
+      : "扣除";
+
+  if (
+    !confirm(
+      `確定為「${member.account}」${actionText} ${amount} 點積分？`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await apiRequest({
+      action:
+        "update_credits",
+      id:
+        editingMemberId,
+      analysis_credits:
+        newCredits
+    });
+
+    closeCreditsModal();
+
+    await loadMembers();
+
+  } catch (error) {
+    alert(
+      error?.message ||
+      "積分修改失敗"
+    );
+  }
+}
+
+/* =========================
+   MEMBER PLATFORM BINDING
+========================= */
+
+function platformBindingKeys(platform) {
+  return [
+    platform?.slug,
+    platform?.name,
+    platform?.display_name
+  ]
+    .map(value =>
+      String(value || "")
+        .trim()
+        .toLowerCase()
+    )
+    .filter(Boolean);
+}
+
+async function ensurePartnerPlatformsForBinding() {
+  if (
+    Array.isArray(partnerPlatforms) &&
+    partnerPlatforms.length > 0
+  ) {
+    return partnerPlatforms;
+  }
+
+  const data =
+    await adminCenterRequest({
+      action: "partners"
+    });
+
+  partnerPlatforms =
+    Array.isArray(data?.platforms)
+      ? data.platforms
+      : [];
+
+  return partnerPlatforms;
+}
+
+async function openBindingModal(id) {
+  const member =
+    members.find(
+      item =>
+        Number(item?.id) ===
+        Number(id)
+    );
+
+  if (!member) {
+    return;
+  }
+
+  editingBindingMemberId =
+    Number(id);
+
+  setText(
+    "bindingModalAccount",
+    member?.account || "—"
+  );
+
+  const select =
+    document.getElementById(
+      "editBindingPlatform"
+    );
+
+  const accountInput =
+    document.getElementById(
+      "editBindingAccount"
+    );
+
+  if (select) {
+    select.disabled = true;
+    select.innerHTML =
+      '<option value="">正在讀取合作平台...</option>';
+  }
+
+  if (accountInput) {
+    accountInput.value =
+      member?.platform_account || "";
+  }
+
+  document
+    .getElementById(
+      "bindingModal"
+    )
+    ?.classList
+    .remove("hidden");
+
+  try {
+    const platforms =
+      await ensurePartnerPlatformsForBinding();
+
+    const currentPlatformName =
+      String(
+        member?.platform_name || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const visiblePlatforms =
+      platforms.filter(platform => {
+        if (platform?.enabled === true) {
+          return true;
+        }
+
+        return platformBindingKeys(
+          platform
+        ).includes(
+          currentPlatformName
+        );
+      });
+
+    if (select) {
+      select.innerHTML =
+        '<option value="">請選擇合作平台</option>' +
+        visiblePlatforms
+          .map(platform => {
+            const disabledText =
+              platform?.enabled === true
+                ? ""
+                : "（已停用）";
+
+            return `
+              <option value="${Number(platform?.id || 0)}">
+                ${escapeHtml(
+                  platform?.display_name ||
+                  platform?.name ||
+                  platform?.slug ||
+                  "未命名平台"
+                )}${disabledText}
+              </option>
+            `;
+          })
+          .join("");
+
+      const currentPlatform =
+        visiblePlatforms.find(
+          platform =>
+            platformBindingKeys(
+              platform
+            ).includes(
+              currentPlatformName
+            )
+        );
+
+      select.value =
+        currentPlatform?.id
+          ? String(currentPlatform.id)
+          : "";
+
+      select.disabled = false;
+    }
+
+  } catch (error) {
+    if (select) {
+      select.innerHTML =
+        '<option value="">合作平台讀取失敗</option>';
+      select.disabled = true;
+    }
+
+    alert(
+      "合作平台讀取失敗：" +
+      (
+        error?.message ||
+        "未知錯誤"
+      )
+    );
+  }
+}
+
+function closeBindingModal() {
+  editingBindingMemberId = null;
+
+  const select =
+    document.getElementById(
+      "editBindingPlatform"
+    );
+
+  const accountInput =
+    document.getElementById(
+      "editBindingAccount"
+    );
+
+  if (select) {
+    select.innerHTML =
+      '<option value="">請選擇合作平台</option>';
+    select.disabled = false;
+  }
+
+  if (accountInput) {
+    accountInput.value = "";
+  }
+
+  document
+    .getElementById(
+      "bindingModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+async function saveMemberBinding() {
+  if (!editingBindingMemberId) {
+    return;
+  }
+
+  const member =
+    members.find(
+      item =>
+        Number(item?.id) ===
+        Number(
+          editingBindingMemberId
+        )
+    );
+
+  if (!member) {
+    return;
+  }
+
+  const platformId =
+    Number(
+      document
+        .getElementById(
+          "editBindingPlatform"
+        )?.value ||
+      0
+    );
+
+  const platformAccount =
+    String(
+      document
+        .getElementById(
+          "editBindingAccount"
+        )?.value ||
+      ""
+    ).trim();
+
+  if (!platformId) {
+    alert(
+      "請先選擇合作平台。"
+    );
+    return;
+  }
+
+  if (!platformAccount) {
+    alert(
+      "請輸入平台帳號。"
+    );
+    return;
+  }
+
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item?.id) ===
+        platformId
+    );
+
+  if (!platform) {
+    alert(
+      "找不到合作平台資料，請重新開啟視窗再試。"
+    );
+    return;
+  }
+
+  if (
+    platform?.enabled !== true
+  ) {
+    alert(
+      "此合作平台目前已停用，請先啟用平台或選擇其他平台。"
+    );
+    return;
+  }
+
+  const platformLabel =
+    platform?.display_name ||
+    platform?.name ||
+    platform?.slug ||
+    "合作平台";
+
+  if (
+    !confirm(
+      `確定修改「${member.account}」的綁定資料？\n\n平台：${platformLabel}\n平台帳號：${platformAccount}\n\n此操作不會自動變更 VIP 等級。`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await apiRequest({
+      action:
+        "update_platform_binding",
+      id:
+        editingBindingMemberId,
+      platform_id:
+        platformId,
+      platform_account:
+        platformAccount
+    });
+
+    closeBindingModal();
+
+    await loadMembers();
+
+  } catch (error) {
+    alert(
+      "綁定資料修改失敗：" +
+      (
+        error?.message ||
+        "未知錯誤"
+      )
+    );
+  }
+}
+
+
+/* =========================
+   MEMBER LEVEL
+========================= */
+
+async function changeMemberLevel(id) {
+  const member =
+    members.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (!member) return;
+
+  const isVip =
+    String(
+      member
+        .member_level ||
+      ""
+    ).toLowerCase() ===
+    "vip";
+
+  const newLevel =
+    isVip
+      ? "normal"
+      : "vip";
+
+  const text =
+    isVip
+      ? `確定將「${member.account}」降為一般會員？`
+      : `確定將「${member.account}」升級為 VIP？`;
+
+  if (!confirm(text)) {
+    return;
+  }
+
+  try {
+    await apiRequest({
+      action:
+        "update_member_level",
+      id,
+      member_level:
+        newLevel
+    });
+
+    await loadMembers();
+
+  } catch (error) {
+    alert(
+      error?.message ||
+      "會員等級修改失敗"
+    );
+  }
+}
+
+/* =========================
+   ACTIVE / INACTIVE
+========================= */
+
+async function changeActive(
+  id,
+  newState
+) {
+  const member =
+    members.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (!member) return;
+
+  const text =
+    newState
+      ? `確定恢復「${member.account}」使用權限？`
+      : `確定停權「${member.account}」？`;
+
+  if (!confirm(text)) {
+    return;
+  }
+
+  try {
+    await apiRequest({
+      action: "set_active",
+      id,
+      is_active:
+        newState
+    });
+
+    await loadMembers();
+
+  } catch (error) {
+    alert(
+      error?.message ||
+      "會員狀態修改失敗"
+    );
+  }
+}
+
+/* =========================
+   ANNOUNCEMENTS / SETTINGS
+========================= */
+
+async function loadToolboxLaunchSettings() {
+  try {
+    const data =
+      await adminServiceRequest(
+        TOOLBOX_LAUNCH_ADMIN_URL,
+        {
+          action: "get_admin"
+        }
+      );
+
+    const settings =
+      data?.settings || {};
+
+    const enabled =
+      document.getElementById(
+        "toolboxLaunchEnabled"
+      );
+
+    const badge =
+      document.getElementById(
+        "toolboxLaunchBadge"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "toolboxLaunchSubtitle"
+      );
+
+    if (enabled) {
+      enabled.checked =
+        settings.enabled === true;
+    }
+
+    if (badge) {
+      badge.value =
+        settings.badge_text ||
+        "NEW｜全新上線";
+    }
+
+    if (subtitle) {
+      subtitle.value =
+        settings.subtitle_text ||
+        "全新 AI 工具現已開放";
+    }
+
+  } catch (error) {
+    console.error(
+      "LOAD TOOLBOX LAUNCH SETTINGS ERROR:",
+      error
+    );
+  }
+}
+
+
+async function saveToolboxLaunchSettings() {
+  const button =
+    document.getElementById(
+      "saveToolboxLaunchBtn"
+    );
+
+  const result =
+    document.getElementById(
+      "toolboxLaunchResult"
+    );
+
+  try {
+    if (button) {
+      button.disabled = true;
+      button.textContent =
+        "儲存中...";
+    }
+
+    if (result) {
+      result.textContent =
+        "正在儲存設定...";
+    }
+
+    const data =
+      await adminServiceRequest(
+        TOOLBOX_LAUNCH_ADMIN_URL,
+        {
+          action: "save",
+
+          enabled:
+            document.getElementById(
+              "toolboxLaunchEnabled"
+            )?.checked === true,
+
+          badge_text:
+            document.getElementById(
+              "toolboxLaunchBadge"
+            )?.value?.trim() ||
+            "NEW｜全新上線",
+
+          subtitle_text:
+            document.getElementById(
+              "toolboxLaunchSubtitle"
+            )?.value?.trim() ||
+            "全新 AI 工具現已開放"
+        }
+      );
+
+    if (result) {
+      result.textContent =
+        data?.settings?.enabled === true
+          ? "✅ 全新上線特效已啟用"
+          : "✅ 全新上線特效已關閉";
+    }
+
+  } catch (error) {
+    console.error(
+      "SAVE TOOLBOX LAUNCH SETTINGS ERROR:",
+      error
+    );
+
+    if (result) {
+      result.textContent =
+        "❌ " +
+        (
+          error?.message ||
+          "儲存失敗"
+        );
+    }
+
+    alert(
+      error?.message ||
+      "儲存工具箱上線設定失敗"
+    );
+
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "儲存工具箱上線設定";
+    }
+  }
+}
+
+
+async function loadAnnouncementSettings() {
+  try {
+
+    await loadToolboxLaunchSettings();
+    const data = await adminServiceRequest(
+      BENEFITS_ADMIN_URL,
+      { action: "get_settings" }
+    );
+
+    const settings =
+      data.settings || {};
+
+    window.apiDailyLimit =
+      Number(
+        settings
+          .api_daily_limit ||
+        7500
+      );
+
+    window.apiRenewalDate =
+      settings
+        .api_renewal_date ||
+      null;
+
+    const normal =
+      document.getElementById(
+        "normalAnnouncement"
+      );
+
+    const maintenance =
+      document.getElementById(
+        "maintenanceAnnouncement"
+      );
+
+    const normalEnabled =
+      document.getElementById(
+        "normalAnnouncementEnabled"
+      );
+
+    const normalMarqueeEnabled =
+      document.getElementById(
+        "normalAnnouncementMarqueeEnabled"
+      );
+
+    const maintenanceEnabled =
+      document.getElementById(
+        "maintenanceAnnouncementEnabled"
+      );
+
+    if (normal) {
+      normal.value =
+        settings
+          .normal_announcement ||
+        "";
+    }
+
+    if (maintenance) {
+      maintenance.value =
+        settings
+          .maintenance_announcement ||
+        "";
+    }
+
+    if (normalEnabled) {
+      normalEnabled.checked =
+        settings
+          .normal_enabled ===
+        true;
+    }
+
+    if (normalMarqueeEnabled) {
+      normalMarqueeEnabled.checked =
+        settings
+          .normal_marquee_enabled ===
+        true;
+    }
+
+    if (
+      maintenanceEnabled
+    ) {
+      maintenanceEnabled.checked =
+        settings
+          .maintenance_enabled ===
+        true;
+    }
+
+    renderDashboard();
+    renderApiPage();
+
+  } catch (error) {
+    console.error(
+      "LOAD SETTINGS ERROR:",
+      error
+    );
+  }
+}
+
+async function saveAnnouncementSettings() {
+  const button =
+    document.getElementById(
+      "saveAnnouncementBtn"
+    );
+
+  const result =
+    document.getElementById(
+      "announcementResult"
+    );
+
+  const normal =
+    document
+      .getElementById(
+        "normalAnnouncement"
+      )?.value
+      .trim() || "";
+
+  const maintenance =
+    document
+      .getElementById(
+        "maintenanceAnnouncement"
+      )?.value
+      .trim() || "";
+
+  const normalEnabled =
+    document
+      .getElementById(
+        "normalAnnouncementEnabled"
+      )?.checked === true;
+
+  const normalMarqueeEnabled =
+    document
+      .getElementById(
+        "normalAnnouncementMarqueeEnabled"
+      )?.checked === true;
+
+  const maintenanceEnabled =
+    document
+      .getElementById(
+        "maintenanceAnnouncementEnabled"
+      )?.checked === true;
+
+  if (maintenanceEnabled && !confirm("確定開啟系統維護模式？開啟後會員將直接看到維護畫面，無法登入網站。")) return;
+
+  try {
+    button.disabled = true;
+    button.textContent =
+      "儲存中...";
+
+    if (result) {
+      result.textContent =
+        "正在儲存設定...";
+    }
+
+    const data = await adminServiceRequest(
+      BENEFITS_ADMIN_URL,
+      {
+        action: "save_settings",
+        normal_announcement: normal,
+        maintenance_announcement: maintenance,
+        normal_enabled: normalEnabled,
+        normal_marquee_enabled: normalMarqueeEnabled,
+        maintenance_enabled: maintenanceEnabled
+      }
+    );
+
+    if (result) {
+      result.textContent =
+        "✅ 公告與系統設定已儲存";
+    }
+
+  } catch (error) {
+    console.error(
+      "SAVE SETTINGS ERROR:",
+      error
+    );
+
+    if (result) {
+      result.textContent =
+        "❌ " +
+        (
+          error?.message ||
+          "儲存失敗"
+        );
+    }
+
+    alert(
+      error?.message ||
+      "儲存公告失敗"
+    );
+
+  } finally {
+    button.disabled = false;
+    button.textContent =
+      "儲存設定";
+  }
+}
+
+/* =========================
+   PUSH
+========================= */
+
+const sendPushBtn =
+  document.getElementById(
+    "sendPushBtn"
+  );
+
+sendPushBtn?.addEventListener(
+  "click",
+  async () => {
+    const title =
+      document
+        .getElementById(
+          "pushTitle"
+        )?.value
+        .trim();
+
+    const body =
+      document
+        .getElementById(
+          "pushBody"
+        )?.value
+        .trim();
+
+    const url =
+      document
+        .getElementById(
+          "pushUrl"
+        )?.value;
+
+    const resultEl =
+      document.getElementById(
+        "pushSendResult"
+      );
+
+    if (!title) {
+      alert(
+        "請輸入通知標題"
+      );
+      return;
+    }
+
+    if (!body) {
+      alert(
+        "請輸入通知內容"
+      );
+      return;
+    }
+
+    if (
+      !confirm(
+        `確定發送這則推播？\n\n標題：${title}\n內容：${body}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      sendPushBtn.disabled =
+        true;
+
+      sendPushBtn.textContent =
+        "正在發送...";
+
+      if (resultEl) {
+        resultEl.textContent =
+          "推播發送中，請稍候...";
+      }
+
+      const audience =
+        document
+          .getElementById(
+            "pushAudience"
+          )?.value || "all";
+
+      const memberUsername =
+        document.getElementById(
+            "pushMemberUsername"
+          )?.value
+          .trim() || "";
+
+      if (
+        audience === "member" &&
+        !memberUsername
+      ) {
+        throw new Error(
+          "請輸入指定會員帳號"
+        );
+      }
+
+      if (audience === "member") {
+        const deviceCount = await loadPushDeviceCount();
+        if (deviceCount <= 0) throw new Error("此會員目前沒有有效訂閱裝置，無法發送推播");
+      }
+
+      const data = await adminServiceRequest(
+        PUSH_SEND_URL,
+        {
+          action: "send",
+          title, body, url, audience,
+          member_username: audience === "member" ? memberUsername : null
+        }
+      );
+
+      if (resultEl) {
+        resultEl.textContent =
+          `✅ 發送完成｜找到 ${data.found ?? data.total ?? 0}｜服務接受 ${data.accepted ?? data.sent ?? 0}｜失效 ${data.removed_expired ?? 0}｜失敗 ${data.failed ?? 0}`;
+      }
+
+      alert(
+        `推播發送完成！\n\n總訂閱：${data.total ?? 0}\n成功：${data.sent ?? 0}\n失敗：${data.failed ?? 0}`
+      );
+
+    } catch (error) {
+      console.error(
+        "PUSH SEND ERROR:",
+        error
+      );
+
+      if (resultEl) {
+        resultEl.textContent =
+          "❌ " +
+          (
+            error?.message ||
+            "推播發送失敗"
+          );
+      }
+
+      alert(
+        "推播發送失敗：" +
+        (
+          error?.message ||
+          "未知錯誤"
+        )
+      );
+
+    } finally {
+      sendPushBtn.disabled =
+        false;
+
+      sendPushBtn.textContent =
+        "發送推播";
+    }
+  }
+);
+
+/* =========================
+   API PAGE
+========================= */
+
+function calculateRenewalDays(
+  dateValue
+) {
+  if (!dateValue) {
+    return {
+      days: null,
+      text: "尚未設定"
+    };
+  }
+
+  const renewal =
+    new Date(
+      `${dateValue}T00:00:00`
+    );
+
+  const today =
+    new Date();
+
+  const taipeiToday =
+    new Date(
+      today.toLocaleString(
+        "en-US",
+        {
+          timeZone:
+            "Asia/Taipei"
+        }
+      )
+    );
+
+  taipeiToday.setHours(
+    0,0,0,0
+  );
+
+  const days =
+    Math.ceil(
+      (
+        renewal -
+        taipeiToday
+      ) /
+      (
+        1000 *
+        60 *
+        60 *
+        24
+      )
+    );
+
+  if (days <= 0) {
+    return {
+      days,
+      text:
+        "需要續費"
+    };
+  }
+
+  return {
+    days,
+    text:
+      `剩餘 ${days} 天`
+  };
+}
+
+function renderApiPage() {
+  const apiLimit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  const apiUsed =
+    Number(
+      dashboardData
+        .todayApiCount ||
+      0
+    );
+
+  const avg =
+    Math.ceil(
+      Number(
+        dashboardData
+          .last7DaysApiCount ||
+        0
+      ) /
+      7
+    );
+
+  const remaining =
+    Math.max(
+      apiLimit -
+      apiUsed,
+      0
+    );
+
+  const avgRemaining =
+    Math.max(
+      apiLimit -
+      avg,
+      0
+    );
+
+  const percent =
+    apiLimit > 0
+      ? Math.min(
+          (
+            apiUsed /
+            apiLimit
+          ) * 100,
+          100
+        )
+      : 0;
+
+  setText(
+    "apiTodayBig",
+    `${apiUsed} / ${apiLimit}`
+  );
+
+  setText(
+    "apiDailyLimitText",
+    apiLimit
+  );
+
+  setText(
+    "apiAvgText",
+    avg
+  );
+
+  setText(
+    "apiAvgRemainingText",
+    avgRemaining
+  );
+
+  setText(
+    "apiRenewalText",
+    window.apiRenewalDate
+      ? String(
+          window.apiRenewalDate
+        ).replace(/-/g,"/")
+      : "—"
+  );
+
+  const renewal =
+    calculateRenewalDays(
+      window.apiRenewalDate
+    );
+
+  setText(
+    "apiRenewalDaysText",
+    renewal.text
+  );
+
+  setText(
+    "apiPagePercent",
+    `${percent.toFixed(1)}%`
+  );
+
+  setText(
+    "apiPageRemaining",
+    `剩餘 ${remaining} 次`
+  );
+
+  const progress =
+    document.getElementById(
+      "apiPageProgress"
+    );
+
+  if (progress) {
+    progress.style.width =
+      `${percent}%`;
+
+    if (percent >= 90) {
+      progress.style.background =
+        "linear-gradient(90deg,#b93a3a,#ff6565)";
+    } else if (
+      percent >= 70
+    ) {
+      progress.style.background =
+        "linear-gradient(90deg,#b2771f,#f2bd4b)";
+    } else {
+      progress.style.background =
+        "linear-gradient(90deg,#d99821,#ffe39d)";
+    }
+  }
+}
+
+
+/* =========================
+   ADMIN CENTER V3
+========================= */
+
+function togglePushMemberField() {
+  const audience =
+    document.getElementById(
+      "pushAudience"
+    )?.value;
+
+  document
+    .getElementById(
+      "pushMemberField"
+    )
+    ?.classList.toggle(
+      "hidden",
+      audience !== "member"
+    );
+  if (audience === "member") loadPushDeviceCount();
+  else setText("pushDeviceCount", "訂閱裝置：—");
+}
+
+async function loadAdminOverview() {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "overview"
+      });
+
+    adminOverview =
+      data.overview || {};
+
+    setText(
+      "dashFixtureCount",
+      `${Number(adminOverview.today_fixtures || 0)} / ${Number(adminOverview.tomorrow_fixtures || 0)}`
+    );
+
+    setText(
+      "dashRunningJobs",
+      adminOverview.running_jobs || 0
+    );
+
+    setText("dashPendingSnapshots", `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`);
+
+    setText("dashProcessingLocks", `${Number(adminOverview.normal_processing_locks||0)} / 過期 ${Number(adminOverview.expired_processing_locks||0)}`);
+
+    renderDashboard();
+
+  } catch (error) {
+    console.error(
+      "OVERVIEW ERROR:",
+      error
+    );
+  }
+}
+
+function ensurePageData(pageId) {
+  if ((!adminSessionToken && !adminPassword) || pageLoaded.has(pageId) || !canAccessAdminPage(pageId)) return;
+
+  pageLoaded.add(pageId);
+
+  if (pageId === "membersPage") loadMembers();
+  else if (pageId === "announcementPage") loadAnnouncementSettings();
+  else if (pageId === "analysisLogPage") loadAnalysisHistory(false);
+  else if (pageId === "jobsPage") loadJobs(false);
+  else if (pageId === "fixturesPage") loadFixtures(false);
+  else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
+  else if (pageId === "shadowTestPage") loadShadowTests(false);
+  else if (pageId === "partnersPage") loadPartners(false);
+  else if (pageId === "adminUsersPage") loadAdminUsers(false);
+  else if (pageId === "healthPage") loadHealth(false);
+  else if (pageId === "apiPage") loadApiStats(false);
+}
+
+function refreshPageData(pageId) {
+  if (!canAccessAdminPage(pageId)) return;
+  if (pageId === "analysisLogPage") return loadAnalysisHistory(true);
+  if (pageId === "jobsPage") return loadJobs(true);
+  if (pageId === "fixturesPage") return loadFixtures(true);
+  if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
+  if (pageId === "shadowTestPage") return loadShadowTests(true);
+  if (pageId === "partnersPage") return loadPartners(true);
+  if (pageId === "adminUsersPage") return loadAdminUsers(true);
+  if (pageId === "healthPage") return loadHealth(true);
+  if (pageId === "apiPage") return loadApiStats(true);
+}
+
+/* ---------- Analysis History ---------- */
+
+async function loadAnalysisHistory(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action:
+          "analysis_history",
+        limit: 400
+      });
+
+    analysisHistoryRecords =
+      data.records || [];
+
+    renderAnalysisHistory();
+
+  } catch (error) {
+    console.error(
+      "ANALYSIS HISTORY ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "分析紀錄讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function getAnalysisMatchStatusLabel(item) {
+
+  const rawStatus =
+    String(
+      item?.match_status || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const kickoffTime =
+    item?.fixture_time
+      ? new Date(
+          item.fixture_time
+        ).getTime()
+      : NaN;
+
+  const now =
+    Date.now();
+
+  /*
+   * 已完賽
+   */
+  if (
+    [
+      "FT",
+      "AET",
+      "PEN",
+      "AWD",
+      "WO",
+      "已完賽",
+      "完賽"
+    ].includes(rawStatus)
+  ) {
+    return "已完賽";
+  }
+
+  /*
+   * 進行中
+   */
+  if (
+    [
+      "1H",
+      "HT",
+      "2H",
+      "ET",
+      "BT",
+      "P",
+      "INT",
+      "LIVE"
+    ].includes(rawStatus)
+  ) {
+    return "進行中";
+  }
+
+  /*
+   * 特殊狀態
+   */
+  if (
+    [
+      "PST",
+      "POSTPONED"
+    ].includes(rawStatus)
+  ) {
+    return "延期";
+  }
+
+  if (
+    [
+      "CANC",
+      "CANCELLED"
+    ].includes(rawStatus)
+  ) {
+    return "取消";
+  }
+
+  if (
+    [
+      "ABD",
+      "ABANDONED"
+    ].includes(rawStatus)
+  ) {
+    return "中止";
+  }
+
+  /*
+   * 開賽時間尚未到
+   */
+  if (
+    Number.isFinite(
+      kickoffTime
+    ) &&
+    kickoffTime > now
+  ) {
+    return "未開賽";
+  }
+
+  /*
+   * 原始資料仍寫未開賽，
+   * 但實際開賽時間已經過了。
+   * 不亂判斷成已完賽，只標示已開賽。
+   */
+  if (
+    Number.isFinite(
+      kickoffTime
+    ) &&
+    kickoffTime <= now
+  ) {
+    return "已開賽";
+  }
+
+  return (
+    item?.match_status ||
+    "已分析"
+  );
+}
+  
+function renderAnalysisHistory() {
+  const body =
+    document.getElementById(
+      "analysisHistoryBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "analysisSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const filtered =
+    analysisHistoryRecords.filter(
+      item => {
+        const haystack = [
+          item?.account,
+          item?.fixture_id,
+          item?.league_name,
+          item?.home_team,
+          item?.away_team
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          !search ||
+          haystack.includes(search)
+        );
+      }
+    );
+
+  body.innerHTML =
+    filtered
+      .map(item => `
+        <tr>
+          <td>${formatDate(item?.updated_at)}</td>
+          <td class="account-name">${escapeHtml(item?.account || "—")}</td>
+          <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
+          <td>${escapeHtml(normalizeLeagueDisplay(item?.league_name))}</td>
+          <td>
+            <strong>${escapeHtml(item?.home_team || "—")}</strong>
+            <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
+          </td>
+          <td>${formatDate(item?.fixture_time)}</td>
+          <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
+          <td>
+            <button
+              class="action-btn gold"
+              onclick='showAnalysisSummaryById("${String(item?.id)}")'
+            >查看摘要</button>
+          </td>
+        </tr>
+      `)
+      .join("");
+
+  const today =
+    new Date()
+      .toLocaleDateString(
+        "en-CA",
+        { timeZone: "Asia/Taipei" }
+      );
+
+  const todayCount =
+    analysisHistoryRecords.filter(
+      item => {
+        if (!item?.updated_at) {
+          return false;
+        }
+
+        return new Date(
+          item.updated_at
+        ).toLocaleDateString(
+          "en-CA",
+          { timeZone: "Asia/Taipei" }
+        ) === today;
+      }
+    ).length;
+
+  const memberCount =
+    new Set(
+      analysisHistoryRecords
+        .map(item =>
+          String(
+            item?.account || ""
+          )
+        )
+        .filter(Boolean)
+    ).size;
+
+  const payloadCount =
+    analysisHistoryRecords.filter(
+      item =>
+        item?.result_data != null
+    ).length;
+
+  setText(
+    "analysisRecordCount",
+    analysisHistoryRecords.length
+  );
+  setText(
+    "analysisTodayCount",
+    todayCount
+  );
+  setText(
+    "analysisMemberCount",
+    memberCount
+  );
+  setText(
+    "analysisPayloadCount",
+    payloadCount
+  );
+}
+
+/* ---------- Jobs ---------- */
+
+async function loadJobs(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "jobs",
+        limit: 400
+      });
+
+    analysisJobs =
+      data.jobs || [];
+
+    renderJobs();
+
+  } catch (error) {
+    console.error(
+      "JOBS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "分析任務資料讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderJobs() {
+  const body=document.getElementById("jobsBody"); if(!body)return;
+  const search=String(document.getElementById("jobSearch")?.value||"").trim().toLowerCase();
+  const status=document.getElementById("jobStatusFilter")?.value||"all";
+  const filtered=analysisJobs.filter(job=>{const h=`${job?.id||""} ${job?.account||""}`.toLowerCase();return(!search||h.includes(search))&&(status==="all"||String(job?.status)===status);});
+  body.innerHTML=filtered.map(job=>{
+    const completed=Number(job?.completed_count||0), failed=Number(job?.failed_count||0), total=Number(job?.total_count||job?.fixture_ids?.length||0);
+    const retryable=["failed","partial"].includes(String(job?.status));
+    const reason=job?.error_message||job?.failures?.[0]?.message||"—";
+    const progress=total?`${completed+failed}/${total}`:"—";
+    const stuck=job?.suspected_stuck===true;
+    return `<tr><td>${formatDate(job?.created_at)}</td><td class="account-name">${escapeHtml(job?.account||"—")}</td><td>${total}</td><td>${progress}</td><td>${statusBadge(job?.status)}${stuck?'<div class="subline stale">疑似卡住</div>':''}</td><td>${escapeHtml(reason)}</td><td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("分析任務詳細", analysisJobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>詳細</button>${retryable?`<button class="action-btn gold" onclick='retryAnalysisJob("${String(job?.id)}")'>重新執行</button>`:""}</div></td></tr>`;
+  }).join("");
+  setText("jobQueuedCount",analysisJobs.filter(j=>j?.status==="queued").length);
+  setText("jobProcessingCount",analysisJobs.filter(j=>j?.status==="processing").length);
+  setText("jobCompletedCount",analysisJobs.filter(j=>j?.status==="completed").length);
+  setText("jobFailedCount",analysisJobs.filter(j=>["failed","partial"].includes(j?.status)).length);
+}
+
+async function retryAnalysisJob(jobId) {
+  if (
+    !confirm(
+      "確定重新執行此失敗分析任務？"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action: "retry_job",
+      job_id: jobId
+    });
+
+    alert(
+      "已建立重新執行任務"
+    );
+
+    setTimeout(
+      () => loadJobs(true),
+      800
+    );
+
+  } catch (error) {
+    alert(
+      "重試失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Fixtures ---------- */
+
+async function loadFixtures(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "fixtures"
+      });
+
+    fixtureCacheRows =
+      data.caches || [];
+
+    window.fixtureLivePushMeta =
+  data.fixture_meta || {};
+
+    window.adminFixtureDates =
+      data.dates || {};
+
+    renderFixtures();
+
+  } catch (error) {
+    console.error(
+      "FIXTURE ADMIN ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "賽事資料讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function flattenFixtures() {
+  const list = [];
+
+  fixtureCacheRows
+    .forEach(cache => {
+      const fixtures =
+        Array.isArray(
+          cache?.fixtures
+        )
+          ? cache.fixtures
+          : [];
+
+      fixtures.forEach(
+        fixture => {
+          list.push({
+            ...fixture,
+            cache_date:
+              cache.fixture_date,
+            cache_fetched_at:
+              cache.fetched_at
+          });
+        }
+      );
+    });
+
+  return list;
+}
+
+function cacheFreshness(row){
+  if(!row?.fetched_at)return {fresh:false,text:"資料待更新"};
+  const age=Date.now()-new Date(row.fetched_at).getTime();
+  const fresh=Number.isFinite(age)&&age<=6*60*60*1000;
+  return {fresh,text:fresh?"資料已更新":"待更新"};
+}
+
+function renderFixtures() {
+  const body =
+    document.getElementById(
+      "fixturesBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "fixtureSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const dateFilter =
+    document
+      .getElementById(
+        "fixtureDateFilter"
+      )?.value || "all";
+
+  const today =
+    window.adminFixtureDates
+      ?.today;
+
+  const tomorrow =
+    window.adminFixtureDates
+      ?.tomorrow;
+
+  const rows =
+    flattenFixtures()
+      .filter(item => {
+        const dateOk =
+          dateFilter === "all" ||
+          (
+            dateFilter === "today" &&
+            item.cache_date === today
+          ) ||
+          (
+            dateFilter === "tomorrow" &&
+            item.cache_date === tomorrow
+          );
+
+        const haystack = [
+          item?.fixtureId,
+          item?.league?.name,
+          item?.league?.api_name,
+          item?.home?.name,
+          item?.home?.api_name,
+          item?.away?.name,
+          item?.away?.api_name
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          dateOk &&
+          (
+            !search ||
+            haystack.includes(search)
+          )
+        );
+      });
+
+  body.innerHTML =
+    rows.map(item => {
+      const kickoff =
+        item?.time
+          ? new Date(item.time)
+          : null;
+
+      const time =
+        kickoff &&
+        !Number.isNaN(
+          kickoff.getTime()
+        )
+          ? kickoff.toLocaleTimeString(
+              "zh-TW",
+              {
+                timeZone:
+                  "Asia/Taipei",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+              }
+            )
+          : "—";
+
+      const score =
+        item?.home_score != null &&
+        item?.away_score != null
+          ? `${item.home_score} - ${item.away_score}`
+          : "—";
+
+      const fixtureId =
+  Number(item?.fixtureId || 0);
+
+const liveMeta =
+  window.fixtureLivePushMeta?.[
+    String(fixtureId)
+  ] || {};
+
+const analysisMemberCount =
+  Number(
+    liveMeta?.analysis_member_count || 0
+  );
+
+const pushMemberCount =
+  Number(
+    liveMeta?.push_member_count || 0
+  );
+
+const livePushEnabled =
+  liveMeta?.live_push_enabled === true;
+
+      return `
+        <tr>
+          <td>${escapeHtml(item?.cache_date || "—")}</td>
+          <td>${time}</td>
+          <td class="mono">${escapeHtml(item?.fixtureId ?? "—")}</td>
+          <td>${escapeHtml(item?.league?.name || item?.league?.api_name || "—")}</td>
+          <td>${escapeHtml(item?.home?.name || item?.home?.api_name || "—")}</td>
+          <td>${escapeHtml(item?.away?.name || item?.away?.api_name || "—")}</td>
+<td>${statusBadge(item?.status || "—")}</td>
+<td>${score}</td>
+<td>${analysisMemberCount} 人</td>
+<td>${pushMemberCount} 人</td>
+<td>
+  <button
+    class="action-btn ${livePushEnabled ? "red" : "green"}"
+    onclick="toggleFixtureLivePush(${fixtureId}, ${!livePushEnabled})"
+  >
+    ${livePushEnabled ? "關閉" : "開啟"}
+  </button>
+</td>
+        </tr>
+      `;
+    }).join("");
+
+  const todayCache =
+    fixtureCacheRows.find(
+      row =>
+        row?.fixture_date ===
+        today
+    );
+
+  const tomorrowCache =
+    fixtureCacheRows.find(
+      row =>
+        row?.fixture_date ===
+        tomorrow
+    );
+
+  setText(
+    "fixtureTodayCount",
+    Number(
+      todayCache?.total ||
+      todayCache?.fixtures?.length ||
+      0
+    )
+  );
+
+  setText(
+    "fixtureTomorrowCount",
+    Number(
+      tomorrowCache?.total ||
+      tomorrowCache?.fixtures?.length ||
+      0
+    )
+  );
+
+  const todayFresh=cacheFreshness(todayCache), tomorrowFresh=cacheFreshness(tomorrowCache);
+  setText("fixtureTodayFetched", todayCache?.fetched_at ? `${formatDate(todayCache.fetched_at)}｜${todayFresh.text}` : "資料待更新");
+  const tomorrowCount=Number(tomorrowCache?.total || tomorrowCache?.fixtures?.length || 0);
+  const tomorrowState=!tomorrowCache?.fetched_at || !tomorrowFresh.fresh ? "資料待更新" : (tomorrowCount===0 ? "已更新，無可分析賽事" : "資料已更新");
+  setText("fixtureTomorrowFetched", tomorrowCache?.fetched_at ? `${formatDate(tomorrowCache.fetched_at)}｜${tomorrowState}` : tomorrowState);
+}
+
+async function toggleFixtureLivePush(
+  fixtureId,
+  enabled
+) {
+  const item =
+    flattenFixtures().find(
+      row =>
+        Number(row?.fixtureId || 0) ===
+        Number(fixtureId)
+    );
+
+  if (!item) {
+    alert("找不到此場賽事資料");
+    return;
+  }
+
+  const meta =
+    window.fixtureLivePushMeta?.[
+      String(fixtureId)
+    ] || {};
+
+  const analysisCount =
+    Number(
+      meta?.analysis_member_count || 0
+    );
+
+  const pushCount =
+    Number(
+      meta?.push_member_count || 0
+    );
+
+  const actionText =
+    enabled
+      ? "開啟"
+      : "關閉";
+
+  if (
+    !confirm(
+      `${actionText}這場比分推播？\n\n` +
+      `${item?.home?.name || "主隊"} vs ${item?.away?.name || "客隊"}\n` +
+      `分析會員：${analysisCount} 人\n` +
+      `目前可推播：${pushCount} 人`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action:
+        "fixture_live_push_toggle",
+
+      fixture_id:
+        Number(fixtureId),
+
+      enabled,
+
+      fixture_date:
+        item?.cache_date || null,
+
+      kickoff_at:
+        item?.time || null,
+
+      league_name:
+        item?.league?.name ||
+        item?.league?.api_name ||
+        "",
+
+      home_team:
+        item?.home?.name ||
+        item?.home?.api_name ||
+        "",
+
+      away_team:
+        item?.away?.name ||
+        item?.away?.api_name ||
+        ""
+    });
+
+    await loadFixtures(true);
+
+    alert(
+      enabled
+        ? "比分推播已開啟"
+        : "比分推播已關閉"
+    );
+
+  } catch (error) {
+    alert(
+      "操作失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+  
+async function refreshFixtureSource(offset) {
+  try {
+    const label =
+      offset === 0
+        ? "今日"
+        : "明日";
+
+    if (
+      !confirm(
+        `確定更新${label}賽事資料？若快取仍有效，系統會沿用快取。`
+      )
+    ) {
+      return;
+    }
+
+    await adminCenterRequest({
+      action:
+        "refresh_fixtures",
+      offset
+    });
+
+    await loadFixtures(true);
+    await loadAdminOverview();
+
+    alert(
+      `${label}賽事更新完成`
+    );
+
+  } catch (error) {
+    alert(
+      "更新失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Public Performance ---------- */
+
+async function loadPerformanceAdmin(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({action: "performance",
+        limit: 400
+      });
+
+    performanceSnapshots =
+      data.snapshots || [];
+
+    renderPerformanceAdmin();
+
+  } catch (error) {
+    console.error(
+      "PERFORMANCE ADMIN ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "公開戰績讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function settlementResult(
+  settlement,
+  market
+) {
+  const value =
+    settlement?.[market];
+
+  if (
+    value &&
+    typeof value === "object"
+  ) {
+    return String(
+      value?.result ||
+      value?.status ||
+      ""
+    ).toLowerCase();
+  }
+
+  return String(
+    value || ""
+  ).toLowerCase();
+}
+
+function resultBadge(value) {
+  const v =
+    String(value || "")
+      .toLowerCase();
+
+  if (v === "win" || v === "half_win") {
+    return `<span class="status active">${v === "win" ? "命中" : "半贏"}</span>`;
+  }
+
+  if (v === "loss" || v === "half_loss") {
+    return `<span class="status off">${v === "loss" ? "未命中" : "半輸"}</span>`;
+  }
+
+  if (v === "push") {
+    return `<span class="table-chip">走盤</span>`;
+  }
+
+  return "—";
+}
+
+function marketWinRate(market) {
+  const results =
+    performanceSnapshots
+      .filter(row => row?.status === "verified" && row?.excluded_from_public !== true)
+      .map(
+        row =>
+          settlementResult(
+            row?.settlement,
+            market
+          )
+      )
+      .filter(Boolean);
+
+  const decided =
+    results.filter(
+      r =>
+        ["win","loss","half_win","half_loss"]
+          .includes(r)
+    );
+
+  if (!decided.length) {
+    return "—";
+  }
+
+  const score =
+    decided.reduce(
+      (sum, r) =>
+        sum +
+        (
+          r === "win"
+            ? 1
+            : r === "half_win"
+              ? .5
+              : 0
+        ),
+      0
+    );
+
+  return (
+    (
+      score /
+      decided.length
+    ) *
+    100
+  ).toFixed(1) + "%";
+}
+
+function renderPerformanceAdmin() {
+  const body=document.getElementById("performanceBody"); if(!body)return;
+  const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
+  const filter=document.getElementById("performanceStatusFilter")?.value||"all";
+  const filtered=performanceSnapshots.filter(row=>{
+    const h=[row?.fixture_id,normalizeLeagueDisplay(row?.league_name),row?.home_team,row?.away_team].join(" ").toLowerCase();
+    const excluded=row?.excluded_from_public===true, overdue=row?.is_overdue===true;
+    let ok=true;
+    if(filter==="included")ok=!excluded;
+    else if(filter==="excluded")ok=excluded;
+    else if(filter==="pending")ok=row?.status==="pending"&&!overdue;
+    else if(filter==="overdue")ok=overdue;
+    else if(filter==="verified")ok=row?.status==="verified";
+    return ok&&(!search||h.includes(search));
+  });
+  body.innerHTML=filtered.map(row=>`<tr>
+    <td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
+    <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
+    <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
+    <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
+    <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td><td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td><td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+    <td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button><button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded(${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button><button class="action-btn red" onclick="deletePerformanceSnapshot(${Number(row?.fixture_id)})">刪除</button></div></td></tr>`).join("");
+  const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
+  const overdue=performanceSnapshots.filter(x=>x?.is_overdue===true).length;
+  const verified=performanceSnapshots.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
+  setText("performancePendingCount",normalPending); setText("performanceOverdueCount",overdue); setText("performanceVerifiedCount",verified);
+  setText("performanceOuRate",marketWinRate("over_under"));
+}
+
+async function runPublicRunner() {
+  if (
+    !confirm(
+      "確定執行賽前預測排程？"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const data =
+      await adminCenterRequest({
+        action:
+          "run_public_runner"
+      });
+
+    showJsonModal(
+      "賽前預測排程結果",
+      data.report || data
+    );
+
+    await loadPerformanceAdmin(true);
+    await loadAdminOverview();
+
+  } catch (error) {
+    alert(
+      "賽前預測排程失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- Shadow Odds Test ---------- */
+
+async function loadShadowTests(force = false) {
+  try {
+    const data = await adminCenterRequest({ action: "shadow_test_stats", limit: 400 });
+    shadowTestPayload = data;
+    shadowTestRows = data.tests || [];
+    renderShadowTests();
+  } catch (error) {
+    console.error("SHADOW TEST ERROR:", error);
+    if (force) alert("臨場模型測試讀取失敗：" + (error?.message || ""));
+  }
+}
+
+function shadowRate(value) { return value == null ? "—" : `${Number(value).toFixed(1)}%`; }
+
+function renderPandaAuthStatus() {
+  const auth = shadowTestPayload?.panda_auth || {};
+  const status = String(auth?.status || "unknown");
+  const badge = document.getElementById("pandaAuthBadge");
+  const action = document.getElementById("pandaAuthAction");
+  const map = { healthy:["正常","active"], requestid_refreshed:["自動更新成功","active"], platform_session_expired:["A 平台 Session 已過期","off"], platform_session_not_configured:["尚未設定 A 平台 Session","vip"], platform_refresh_failed:["自動更新失敗","off"], panda_auth_expired:["Panda 授權異常","off"], panda_config_missing:["Panda 設定缺失","off"], state_unavailable:["狀態表未建立","off"], unknown:["尚未檢查",""] };
+  const info = map[status] || [status, ""];
+  if (badge) { badge.textContent=info[0]; badge.className=`status ${info[1]}`.trim(); }
+  const message = auth?.last_error_message || (status === "healthy" ? "Panda 賠率連線正常；requestid 過期時會嘗試透過 A 平台 Session 自動取得新 token。" : status === "requestid_refreshed" ? "Panda requestid 已由 A 平台轉址自動更新。" : "等待影子排程檢查 Panda 授權狀態。");
+  setText("pandaAuthMessage",message);
+  setText("pandaLastSuccess",auth?.last_success_at?formatDate(auth.last_success_at):"—");
+  setText("pandaLastRefresh",auth?.last_refresh_at?formatDate(auth.last_refresh_at):"—");
+  setText("pandaAuthSource",auth?.source === "a_platform_redirect" ? "A 平台自動轉址" : auth?.source || "—");
+  if(action){ const needs=["platform_session_expired","platform_session_not_configured","platform_refresh_failed","panda_auth_expired"].includes(status); action.classList.toggle("hidden",!needs); action.textContent=needs?"需要人工處理：重新登入 A 平台（含數字驗證碼）後，只更新 A_PLATFORM_PHPSESSID；Panda requestid 不需要再手動抄。":""; }
+}
+
+function shadowSnapshotText(row){const s=row?.snapshots||{};const parts=[];if(s.initial)parts.push(`初盤 T-${Math.abs(Number(s.initial.minutes_to_kickoff||0))}m`);if(s.t6h)parts.push(`6H T-${Math.abs(Number(s.t6h.minutes_to_kickoff||0))}m`);if(s.t30m)parts.push(`30M T-${Math.abs(Number(s.t30m.minutes_to_kickoff||0))}m`);return parts.length?parts.join(" / "):"—";}
+
+function renderShadowTests(){
+  renderPandaAuthStatus(); const summary=shadowTestPayload?.summary||{};
+  setText("shadowProgress",`${Number(summary.verified_matches||0)} / ${Number(summary.target||100)}`);
+  setText("shadowBaselineRate",shadowRate(summary.baseline_rate)); setText("shadowAdjustedRate",shadowRate(summary.shadow_rate)); setText("shadowNetImprovement",`${Number(summary.net_improvement||0)>=0?"+":""}${Number(summary.net_improvement||0)}`);
+  const marketBody=document.getElementById("shadowMarketBody"); const labels={moneyline:"獨贏",over_under:"大小分",handicap:"讓分",btts:"BTTS"};
+  if(marketBody){marketBody.innerHTML=Object.entries(labels).map(([key,label])=>{const item=shadowTestPayload?.markets?.[key]||{};return `<tr><td class="account-name">${label}</td><td>${Number(item.baseline_sample||0)}</td><td>${shadowRate(item.baseline_rate)}</td><td>${Number(item.shadow_sample||0)}</td><td>${shadowRate(item.shadow_rate)}</td><td><span class="status active">${Number(item.wrong_to_right||0)}</span></td><td><span class="status off">${Number(item.right_to_wrong||0)}</span></td><td>${Number(item.changed||0)}</td></tr>`;}).join("");}
+  const body=document.getElementById("shadowTestBody"); if(!body)return; if(!shadowTestRows.length){body.innerHTML='<tr><td colspan="8" class="empty">尚未累積影子測試資料。排程開始後會自動出現。</td></tr>';return;}
+  body.innerHTML=shadowTestRows.map(row=>`<tr><td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td><td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td><td>${escapeHtml(shadowSnapshotText(row))}</td><td>${statusBadge(row?.status)}</td><td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td><td><button class="action-btn" onclick="showShadowTestDetail(${Number(row?.fixture_id)})">查看分析</button></td></tr>`).join("");
+}
+
+
+function shadowResultLabel(value) {
+  const raw = String(value?.result || value || "").toLowerCase();
+  const labels = {
+    win: "命中",
+    half_win: "半贏",
+    push: "走盤",
+    half_loss: "半輸",
+    loss: "未命中"
+  };
+  return labels[raw] || "無有效結算";
+}
+
+function shadowResultClass(value) {
+  const raw = String(value?.result || value || "").toLowerCase();
+  return ["win","half_win","push","half_loss","loss"].includes(raw) ? raw : "na";
+}
+
+function shadowRecText(prediction, market) {
+  const rec = prediction?.recommendations?.[market] || null;
+  if (!rec) return "—";
+
+  const pick = String(rec?.pick || "—");
+  let line = rec?.line;
+
+  if (
+    (line === undefined || line === null || line === "") &&
+    market === "over_under"
+  ) {
+    const m = pick.match(/-?\d+(?:\.\d+)?/);
+    if (m) line = m[0];
+  }
+
+  const confidence =
+    Number.isFinite(Number(rec?.confidence))
+      ? `${Number(rec.confidence)}%`
+      : "—";
+
+  const lineText =
+    line === undefined || line === null || line === ""
+      ? ""
+      : `｜盤口 ${line}`;
+
+  return `${pick}${lineText}｜信心 ${confidence}`;
+}
+
+function shadowScoreText(prediction) {
+  const scores = Array.isArray(prediction?.predicted_scores)
+    ? prediction.predicted_scores
+    : [];
+
+  if (!scores.length) return "—";
+
+  return scores
+    .map(item => {
+      if (typeof item === "string") return item;
+      const score = String(item?.score || "—");
+      const confidence =
+        Number.isFinite(Number(item?.confidence))
+          ? ` ${Number(item.confidence)}%`
+          : "";
+      return `${score}${confidence}`;
+    })
+    .join("、");
+}
+
+function shadowSettlementHtml(settlement, market) {
+  const item = settlement?.[market] || null;
+  const label = shadowResultLabel(item);
+  const cls = shadowResultClass(item);
+  return `<span class="shadow-result ${cls}">${escapeHtml(label)}</span>`;
+}
+
+function shadowSnapshotSource(snapshot) {
+  const odds = snapshot?.odds || {};
+  return String(
+    odds?.matchSource ||
+    odds?.source ||
+    odds?.provider ||
+    odds?.oddsSource ||
+    (snapshot?.panda_match_id ? "Panda（僅由 match id 判斷）" : "") ||
+    "未記錄（不可驗證）"
+  );
+}
+
+function shadowSnapshotHtml(label, snapshot) {
+  if (!snapshot) {
+    return `
+      <div class="shadow-snapshot">
+        <div class="shadow-snapshot-title">${escapeHtml(label)}</div>
+        <div class="shadow-snapshot-meta">沒有保存快照</div>
+      </div>
+    `;
+  }
+
+  const captured = snapshot?.captured_at
+    ? formatDate(snapshot.captured_at)
+    : "—";
+
+  const minutes =
+    Number.isFinite(Number(snapshot?.minutes_to_kickoff))
+      ? `${Math.abs(Number(snapshot.minutes_to_kickoff))} 分鐘`
+      : "—";
+
+  const source = shadowSnapshotSource(snapshot);
+  const rawOdds = snapshot?.odds ?? null;
+
+  return `
+    <div class="shadow-snapshot">
+      <div class="shadow-snapshot-title">${escapeHtml(label)}</div>
+      <div class="shadow-snapshot-meta">
+        實際抓取：${escapeHtml(captured)}<br>
+        距開賽：約 ${escapeHtml(minutes)}<br>
+        Panda Match ID：${escapeHtml(snapshot?.panda_match_id || "—")}
+      </div>
+      <div class="shadow-snapshot-source">
+        來源：${escapeHtml(source)}
+      </div>
+      <details>
+        <summary>進階：查看此階段原始賠率資料</summary>
+        <pre>${escapeHtml(JSON.stringify(rawOdds ?? {}, null, 2))}</pre>
+      </details>
+    </div>
+  `;
+}
+
+function shadowCorrectionSummary(meta) {
+  const markets = meta?.markets || {};
+  const labels = {
+    moneyline: "獨贏",
+    over_under: "大小分",
+    handicap: "讓分",
+    btts: "BTTS"
+  };
+
+  const rows = Object.entries(labels)
+    .map(([key,label]) => {
+      const item = markets?.[key] || null;
+      if (!item) return "";
+
+      const action = String(item?.action || "keep");
+      const actionLabel = {
+        keep: "維持原預測",
+        unchanged: "維持原預測",
+        flip: "改變預測方向",
+        strengthen: "強化原預測",
+        strength: "強化原預測",
+        weaken: "降低原預測信心",
+        weakening: "降低原預測信心",
+        no_recommendation: "改為暫不推薦",
+        market_unmatched: "市場盤口無法配對",
+        market_missing: "缺少可用市場盤口",
+        insufficient_move: "市場變化不足，不調整",
+        no_change: "維持原預測"
+      }[action] || `系統狀態：${action}`;
+
+      const reason =
+        item?.reason ||
+        item?.message ||
+        item?.note ||
+        "";
+
+      return `
+        <tr>
+          <td>${escapeHtml(label)}</td>
+          <td>${escapeHtml(actionLabel)}</td>
+          <td>${escapeHtml(reason || "—")}</td>
+        </tr>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  if (!rows) {
+    return `<div class="shadow-muted">沒有保存可讀的校正明細。</div>`;
+  }
+
+  return `
+    <table class="shadow-compare-table">
+      <thead><tr><th>市場</th><th>校正動作</th><th>原因</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+
+function shadowPickChanged(baseline, shadow, market) {
+  const a = String(baseline?.recommendations?.[market]?.pick || "").trim();
+  const b = String(shadow?.recommendations?.[market]?.pick || "").trim();
+  const la = String(baseline?.recommendations?.[market]?.line ?? "").trim();
+  const lb = String(shadow?.recommendations?.[market]?.line ?? "").trim();
+  return a !== b || la !== lb;
+}
+
+function shadowParseLine(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const raw = String(value ?? "").replace(/−/g,"-").replace(/＋/g,"+");
+  const parts = raw.split("/").map(x => Number(x.trim())).filter(Number.isFinite);
+  if (parts.length >= 2) return Number(((parts[0] + parts[1]) / 2).toFixed(2));
+  const m = raw.match(/[+-]?\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+
+function shadowOddsNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n.toFixed(2) : "—";
+}
+
+function shadowSideMatch(row, side) {
+  const raw = `${row?.selection ?? ""} ${row?.side ?? ""} ${row?.name ?? ""}`.toLowerCase();
+  const map = {
+    home:["1","home","主"],
+    draw:["x","draw","平","和"],
+    away:["2","away","客"],
+    over:["over","大"],
+    under:["under","小"],
+    yes:["yes","是"],
+    no:["no","否"]
+  };
+  return (map[side] || []).some(x => raw === x || raw.includes(x));
+}
+
+function shadowFindSide(rows, side) {
+  return (Array.isArray(rows) ? rows : []).find(row => shadowSideMatch(row, side)) || null;
+}
+
+function shadowFindByLine(rows, line, side) {
+  const wanted = shadowParseLine(line);
+  if (wanted === null) return null;
+  return (Array.isArray(rows) ? rows : []).find(row => {
+    const rowLine = shadowParseLine(row?.line);
+    return rowLine !== null &&
+      Math.abs(rowLine - wanted) <= 0.001 &&
+      (!side || shadowSideMatch(row, side));
+  }) || null;
+}
+
+function shadowMarketOddsText(snapshot, market, baseline, shadow) {
+  const odds = snapshot?.odds || {};
+  const rec = baseline?.recommendations?.[market] || shadow?.recommendations?.[market] || {};
+
+  if (market === "moneyline") {
+    const h = shadowFindSide(odds?.oneXtwo, "home");
+    const d = shadowFindSide(odds?.oneXtwo, "draw");
+    const a = shadowFindSide(odds?.oneXtwo, "away");
+    if (!h && !d && !a) return "—";
+    return `主 ${shadowOddsNumber(h?.odds)}｜和 ${shadowOddsNumber(d?.odds)}｜客 ${shadowOddsNumber(a?.odds)}`;
+  }
+
+  if (market === "over_under") {
+    const line = shadowParseLine(rec?.line ?? rec?.pick);
+    if (line === null) return "—";
+    const over = shadowFindByLine(odds?.totals, line, "over");
+    const under = shadowFindByLine(odds?.totals, line, "under");
+    if (!over && !under) return `盤 ${line}｜無配對`;
+    return `盤 ${line}｜大 ${shadowOddsNumber(over?.odds)}｜小 ${shadowOddsNumber(under?.odds)}`;
+  }
+
+  if (market === "handicap") {
+    const line = shadowParseLine(rec?.line);
+    if (line === null) return "—";
+    const rows = Array.isArray(odds?.handicap) ? odds.handicap : [];
+    const abs = Math.abs(line);
+    const matched = rows.filter(row => {
+      const rowLine = shadowParseLine(row?.line);
+      return rowLine !== null && Math.abs(Math.abs(rowLine) - abs) <= 0.001;
+    });
+    if (!matched.length) return `盤 ${line}｜無配對`;
+    const home = shadowFindSide(matched, "home");
+    const away = shadowFindSide(matched, "away");
+    return `盤 ${line}｜主 ${shadowOddsNumber(home?.odds)}｜客 ${shadowOddsNumber(away?.odds)}`;
+  }
+
+  if (market === "btts") {
+    const yes = shadowFindSide(odds?.btts, "yes");
+    const no = shadowFindSide(odds?.btts, "no");
+    if (!yes && !no) return "—";
+    return `是 ${shadowOddsNumber(yes?.odds)}｜否 ${shadowOddsNumber(no?.odds)}`;
+  }
+
+  return "—";
+}
+
+function shadowSelectedOdds(snapshot, market, prediction) {
+  const odds = snapshot?.odds || {};
+  const rec = prediction?.recommendations?.[market] || {};
+  const pick = String(rec?.pick || "").toLowerCase();
+
+  if (market === "moneyline") {
+    const side = pick.includes("主") || pick.includes("home") ? "home"
+      : pick.includes("客") || pick.includes("away") ? "away"
+      : pick.includes("和") || pick.includes("平") || pick.includes("draw") ? "draw" : "";
+    const row = side ? shadowFindSide(odds?.oneXtwo, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "over_under") {
+    const line = shadowParseLine(rec?.line ?? rec?.pick);
+    const side = pick.includes("大") || pick.includes("over") ? "over"
+      : pick.includes("小") || pick.includes("under") ? "under" : "";
+    const row = line !== null && side ? shadowFindByLine(odds?.totals, line, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "btts") {
+    const side = pick === "是" || pick.includes("yes") ? "yes"
+      : pick === "否" || pick.includes("no") ? "no" : "";
+    const row = side ? shadowFindSide(odds?.btts, side) : null;
+    return row ? Number(row?.odds) : null;
+  }
+
+  if (market === "handicap") {
+    const line = shadowParseLine(rec?.line);
+    const side = pick.includes("主") || pick.includes("home") ? "home"
+      : pick.includes("客") || pick.includes("away") ? "away" : "";
+    if (line === null || !side) return null;
+    const rows = Array.isArray(odds?.handicap) ? odds.handicap : [];
+    const abs = Math.abs(line);
+    const matched = rows.filter(row => {
+      const rowLine = shadowParseLine(row?.line);
+      return rowLine !== null && Math.abs(Math.abs(rowLine) - abs) <= 0.001;
+    });
+    const row = shadowFindSide(matched, side);
+    return row ? Number(row?.odds) : null;
+  }
+
+  return null;
+}
+
+function shadowMovementText(market, baseline, snapshots) {
+  const initial = shadowSelectedOdds(snapshots?.initial, market, baseline);
+  const t6h = shadowSelectedOdds(snapshots?.t6h, market, baseline);
+  const t30m = shadowSelectedOdds(snapshots?.t30m, market, baseline);
+  const values = [initial,t6h,t30m].filter(Number.isFinite);
+
+  if (values.length < 2) return "資料不足";
+
+  const first = Number.isFinite(initial) ? initial : values[0];
+  const last = Number.isFinite(t30m) ? t30m : values[values.length - 1];
+  const diff = last - first;
+
+  if (Math.abs(diff) < 0.03) return "變化很小";
+  return diff < 0 ? "原預測方向升溫" : "原預測方向降溫";
+}
+
+
+async function showShadowTestDetail(fixtureId) {
+  const row = shadowTestRows.find(
+    x => Number(x?.fixture_id) === Number(fixtureId)
+  ) || {};
+
+  setText(
+    "jsonModalTitle",
+    `臨場模型逐場對照｜${row?.home_team || "—"} vs ${row?.away_team || "—"}`
+  );
+
+  const content = document.getElementById("jsonModalContent");
+  if (!content) return;
+
+  content.style.whiteSpace = "normal";
+  content.innerHTML = `
+    <div style="padding:4px 0;color:#8f9aaa;font-size:10px">
+      正在讀取已保存的正式版、影子版與三階段賠率…
+    </div>
+  `;
+
+  document.getElementById("jsonModal")?.classList.remove("hidden");
+
+  try {
+    const data = await adminCenterRequest({
+      action: "shadow_test_detail",
+      fixture_id: Number(fixtureId)
+    });
+
+    const item = data?.test || {};
+    const baseline = item?.baseline_prediction || {};
+    const shadow = item?.shadow_prediction || {};
+    const baselineSettlement = item?.baseline_settlement || {};
+    const shadowSettlement = item?.shadow_settlement || {};
+    const snapshots = item?.snapshots || {};
+
+    const markets = [
+      ["moneyline","獨贏"],
+      ["over_under","大小分"],
+      ["handicap","讓分"],
+      ["btts","BTTS"]
+    ];
+
+    const changedCount = markets.filter(([key]) =>
+      shadowPickChanged(baseline, shadow, key)
+    ).length;
+
+    const comparisonRows = markets.map(([key,label]) => {
+      const changed = shadowPickChanged(baseline, shadow, key);
+      return `
+        <tr class="${changed ? "shadow-changed" : ""}">
+          <td><strong>${escapeHtml(label)}</strong></td>
+          <td>${escapeHtml(shadowRecText(baseline,key))}</td>
+          <td>${shadowSettlementHtml(baselineSettlement,key)}</td>
+          <td>${escapeHtml(shadowRecText(shadow,key))}</td>
+          <td>${shadowSettlementHtml(shadowSettlement,key)}</td>
+          <td>
+            ${changed
+              ? '<span class="shadow-change-badge">有修改</span>'
+              : '<span class="shadow-same-badge">未修改</span>'}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    const movementRows = markets.map(([key,label]) => `
+      <tr>
+        <td><strong>${escapeHtml(label)}</strong></td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.initial,key,baseline,shadow))}</td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.t6h,key,baseline,shadow))}</td>
+        <td class="shadow-odds-cell">${escapeHtml(shadowMarketOddsText(snapshots?.t30m,key,baseline,shadow))}</td>
+        <td>${escapeHtml(shadowMovementText(key,baseline,snapshots))}</td>
+      </tr>
+    `).join("");
+
+    const realScore =
+      item?.home_score != null && item?.away_score != null
+        ? `${item.home_score} - ${item.away_score}`
+        : "—";
+
+    content.innerHTML = `
+      <div class="shadow-detail-head">
+        <div>
+          <div class="shadow-detail-title">
+            ${escapeHtml(item?.home_team || "—")} vs ${escapeHtml(item?.away_team || "—")}
+          </div>
+          <div class="shadow-detail-sub">
+            賽事編號：${escapeHtml(item?.fixture_id ?? "—")}<br>
+            聯賽：${escapeHtml(normalizeLeagueDisplay(item?.league_name))}<br>
+            開賽：${item?.kickoff_at ? escapeHtml(formatDate(item.kickoff_at)) : "—"}<br>
+            結算狀態：${escapeHtml(item?.status === "verified" ? "已結算" : (item?.status || "—"))}
+          </div>
+        </div>
+        <div class="shadow-detail-score">${escapeHtml(realScore)}</div>
+      </div>
+
+      <div class="shadow-note">
+        這場共有 <strong>${changedCount}</strong> 個市場被影子模型修改。
+        這張表直接看「改了什麼」以及「修改後有沒有命中」。
+      </div>
+
+      <div class="shadow-detail-card">
+        <h4>正式版 vs 影子版｜修改後是否有中</h4>
+        <div class="shadow-muted" style="font-size:9px;margin-bottom:8px">
+          正式版比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(baseline))}</span>
+          ｜影子版比分：<span class="shadow-scores">${escapeHtml(shadowScoreText(shadow))}</span>
+        </div>
+
+        <table class="shadow-compare-table">
+          <thead>
+            <tr>
+              <th>市場</th>
+              <th>正式版</th>
+              <th>正式結果</th>
+              <th>影子版</th>
+              <th>影子結果</th>
+              <th>是否修改</th>
+            </tr>
+          </thead>
+          <tbody>${comparisonRows}</tbody>
+        </table>
+      </div>
+
+      <div class="shadow-detail-card" style="margin-top:12px">
+        <h4>初盤 → 6 小時 → 30 分鐘｜賠率變化</h4>
+        <div class="shadow-note" style="margin-top:0">
+          影子模型會比較不同時間點的市場賠率變化。
+          賠率越低通常代表該方向的市場支持度越強。
+        </div>
+
+        <table class="shadow-compare-table">
+          <thead>
+            <tr>
+              <th>市場</th>
+              <th>初盤</th>
+              <th>開賽前 6 小時</th>
+              <th>開賽前 30 分鐘</th>
+              <th>變化判讀</th>
+            </tr>
+          </thead>
+          <tbody>${movementRows}</tbody>
+        </table>
+
+        <div class="shadow-snapshot-grid" style="margin-top:12px">
+          ${shadowSnapshotHtml("初盤", snapshots?.initial)}
+          ${shadowSnapshotHtml("開賽前 6 小時（T-6H）", snapshots?.t6h)}
+          ${shadowSnapshotHtml("開賽前 30 分鐘（T-30M）", snapshots?.t30m)}
+        </div>
+      </div>
+    `;
+
+  } catch (error) {
+    content.innerHTML = `
+      <div class="danger-note">
+        逐場詳情讀取失敗：${escapeHtml(error?.message || String(error))}
+      </div>
+    `;
+  }
+}
+
+async function runShadowRunner(button){const old=button?.textContent;if(button){button.disabled=true;button.textContent="執行中…";}try{const data=await adminCenterRequest({action:"run_shadow_runner"});showJsonModal("影子排程結果",data.report||data);await loadShadowTests(false);}catch(error){alert("影子排程執行失敗："+(error?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"立即執行影子排程";}}}
+
+/* ---------- Admin Users ---------- */
+
+function renderAdminPermissionGrid(selected = []) {
+  const grid = document.getElementById("adminPermissionGrid");
+  if (!grid) return;
+  const set = new Set(Array.isArray(selected) ? selected : []);
+  grid.innerHTML = Object.entries(ADMIN_PERMISSION_LABELS).map(([key,label]) => `
+    <label class="permission-item"><input type="checkbox" value="${key}" ${set.has(key)?"checked":""}> <span>${label}</span></label>`).join("");
+}
+
+async function loadAdminUsers(force = false) {
+  if (currentAdmin?.is_super_admin !== true) return;
+  try {
+    const data = await adminCenterRequest({ action: "admin_users_list" });
+    adminUsers = Array.isArray(data?.admins) ? data.admins : [];
+    renderAdminUsers();
+  } catch (error) {
+    console.error("ADMIN USERS ERROR:", error);
+    if (force) alert("管理員資料讀取失敗：" + (error?.message || ""));
+  }
+}
+
+function renderAdminUsers() {
+  const body = document.getElementById("adminUsersBody");
+  if (!body) return;
+  if (!adminUsers.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty">尚未建立子管理員。</td></tr>';
+    return;
+  }
+  body.innerHTML = adminUsers.map(item => {
+    const perms = Array.isArray(item?.permissions) ? item.permissions.map(p => ADMIN_PERMISSION_LABELS[p] || p).join("、") : "—";
+    return `<tr>
+      <td class="account-name">${escapeHtml(item?.username||"—")}</td>
+      <td>${escapeHtml(item?.display_name||"—")}</td>
+      <td><div class="subline">${escapeHtml(perms||"無")}</div></td>
+      <td>${item?.is_active?'<span class="status active">啟用</span>':'<span class="status off">停用</span>'}</td>
+      <td>${item?.last_login_at?formatDate(item.last_login_at):"—"}</td>
+      <td>${item?.created_at?formatDate(item.created_at):"—"}</td>
+      <td><div class="row-actions">
+        <button class="action-btn gold" onclick="editAdminUser(${Number(item.id)})">編輯</button>
+        <button class="action-btn" onclick="resetAdminUserPassword(${Number(item.id)})">重設密碼</button>
+        <button class="action-btn ${item?.is_active?'red':'green'}" onclick="toggleAdminUser(${Number(item.id)},${!item?.is_active})">${item?.is_active?'停用':'啟用'}</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+function openAdminUserModal(item = null) {
+  if (currentAdmin?.is_super_admin !== true) return;
+  document.getElementById("adminUserId").value = item?.id || "";
+  document.getElementById("adminUserUsername").value = item?.username || "";
+  document.getElementById("adminUserUsername").disabled = Boolean(item?.id);
+  document.getElementById("adminUserDisplayName").value = item?.display_name || "";
+  document.getElementById("adminUserPassword").value = "";
+  document.getElementById("adminUserPasswordField")?.classList.toggle("hidden", Boolean(item?.id));
+  document.getElementById("adminUserActive").value = item?.is_active === false ? "false" : "true";
+  document.getElementById("adminUserModalTitle").textContent = item?.id ? "編輯管理員" : "新增管理員";
+  renderAdminPermissionGrid(item?.permissions || []);
+  document.getElementById("adminUserModal")?.classList.remove("hidden");
+}
+
+function editAdminUser(id) {
+  const item = adminUsers.find(x => Number(x?.id) === Number(id));
+  if (item) openAdminUserModal(item);
+}
+
+function closeAdminUserModal() { document.getElementById("adminUserModal")?.classList.add("hidden"); }
+
+function selectedAdminPermissions() {
+  return [...document.querySelectorAll('#adminPermissionGrid input[type="checkbox"]:checked')].map(x => x.value);
+}
+
+async function saveAdminUser() {
+  const id = Number(document.getElementById("adminUserId")?.value || 0);
+  const username = String(document.getElementById("adminUserUsername")?.value || "").trim().toLowerCase();
+  const displayName = String(document.getElementById("adminUserDisplayName")?.value || "").trim();
+  const password = String(document.getElementById("adminUserPassword")?.value || "");
+  const isActive = document.getElementById("adminUserActive")?.value !== "false";
+  const permissions = selectedAdminPermissions();
+  try {
+    if (id) {
+      await adminCenterRequest({ action:"admin_users_update", id, display_name:displayName, permissions });
+      const current = adminUsers.find(x => Number(x?.id) === id);
+      if (current && current.is_active !== isActive) await adminCenterRequest({ action:"admin_users_toggle", id, is_active:isActive });
+    } else {
+      if (!username || !password) throw new Error("請輸入管理員帳號與初始密碼");
+      await adminCenterRequest({ action:"admin_users_create", username, display_name:displayName, password, permissions, is_active:isActive });
+    }
+    closeAdminUserModal();
+    await loadAdminUsers(true);
+  } catch (error) { alert("管理員儲存失敗：" + (error?.message || "")); }
+}
+
+async function toggleAdminUser(id, isActive) {
+  if (!confirm(isActive ? "確定啟用此管理員？" : "確定停用此管理員？停用後既有 Session 會立即失效。")) return;
+  try { await adminCenterRequest({ action:"admin_users_toggle", id:Number(id), is_active:isActive }); await loadAdminUsers(true); }
+  catch(error){ alert("管理員狀態修改失敗：" + (error?.message || "")); }
+}
+
+async function resetAdminUserPassword(id) {
+  const password = prompt("請輸入新的管理員密碼（至少 8 碼）：");
+  if (password == null) return;
+  if (password.length < 8) { alert("密碼至少需要 8 碼"); return; }
+  try {
+    const data = await adminCenterRequest({ action:"admin_users_reset_password", id:Number(id), password });
+    alert(data?.message || "管理員密碼已重設");
+  } catch(error){ alert("密碼重設失敗：" + (error?.message || "")); }
+}
+
+/* ---------- Partners ---------- */
+
+async function loadPartners(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "partners"
+      });
+
+    partnerPlatforms =
+      data.platforms || [];
+
+    renderPartners();
+
+  } catch (error) {
+    console.error(
+      "PARTNERS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "合作平台讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderPartners() {
+  const body =
+    document.getElementById(
+      "partnersBody"
+    );
+
+  if (!body) return;
+
+  body.innerHTML =
+    partnerPlatforms
+      .map(platform => `
+        <tr>
+          <td>${Number(platform?.sort_order || 0)}</td>
+          <td>
+            <img
+              class="partner-logo"
+              src="${escapeHtml(platform?.logo_url || "habao-hb-logo.png")}"
+              alt=""
+            >
+          </td>
+          <td>
+            <strong>${escapeHtml(platform?.display_name || platform?.name || "—")}</strong>
+            <div class="subline">${escapeHtml(platform?.name || "—")}</div>
+          </td>
+          <td class="mono">${escapeHtml(platform?.slug || "—")}</td>
+          <td class="mono">${escapeHtml(platform?.bet_url || "—")}</td>
+          <td class="mono">${escapeHtml(platform?.register_url || "—")}</td>
+          <td>
+            ${
+              platform?.enabled
+                ? `<span class="status active"><span class="dot"></span>啟用</span>`
+                : `<span class="status off"><span class="dot"></span>停用</span>`
+            }
+          </td>
+          <td><strong>${Number(platform?.bound_member_count || 0)}</strong></td>
+          <td>
+            <div class="row-actions">
+              <button
+                class="action-btn gold"
+                onclick="editPartner(${Number(platform.id)})"
+              >編輯</button>
+
+              <button
+                class="action-btn ${platform?.enabled ? "red" : "green"}"
+                onclick="togglePartner(${Number(platform.id)},${!platform?.enabled})"
+              >
+                ${platform?.enabled ? "停用" : "啟用"}
+              </button>
+
+              <button
+                class="action-btn red"
+                onclick="deletePartner(${Number(platform.id)})"
+              >刪除</button>
+            </div>
+          </td>
+        </tr>
+      `)
+      .join("");
+
+  const enabled =
+    partnerPlatforms
+      .filter(
+        x => x?.enabled === true
+      ).length;
+
+  setText(
+    "partnerTotalCount",
+    partnerPlatforms.length
+  );
+
+  setText(
+    "partnerEnabledCount",
+    enabled
+  );
+
+  setText(
+    "partnerDisabledCount",
+    partnerPlatforms.length -
+    enabled
+  );
+
+  setText(
+    "partnerVipCount",
+    enabled
+  );
+}
+
+function openPartnerModal(platform = null) {
+  setText(
+    "partnerModalTitle",
+    platform
+      ? "編輯合作平台"
+      : "新增合作平台"
+  );
+
+  document.getElementById("partnerId").value =
+    platform?.id || "";
+
+  document.getElementById("partnerSlug").value =
+    platform?.slug || "";
+
+  document.getElementById("partnerName").value =
+    platform?.name || "";
+
+  document.getElementById("partnerDisplayName").value =
+    platform?.display_name || "";
+
+  document.getElementById("partnerLogoUrl").value =
+    platform?.logo_url || "";
+
+  document.getElementById("partnerBetUrl").value =
+    platform?.bet_url || "";
+
+  document.getElementById("partnerRegisterUrl").value =
+    platform?.register_url || "";
+
+  document.getElementById("partnerSortOrder").value =
+    Number(
+      platform?.sort_order ??
+      10
+    );
+
+  document.getElementById("partnerEnabled").value =
+    platform?.enabled === false
+      ? "false"
+      : "true";
+
+  document
+    .getElementById(
+      "partnerModal"
+    )
+    ?.classList
+    .remove("hidden");
+}
+
+function editPartner(id) {
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (platform) {
+    openPartnerModal(platform);
+  }
+}
+
+function closePartnerModal() {
+  document
+    .getElementById(
+      "partnerModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+async function savePartner() {
+  const payload = {
+    action: "partner_save",
+    id:
+      Number(
+        document.getElementById("partnerId")?.value || 0
+      ) || undefined,
+    slug:
+      document.getElementById("partnerSlug")?.value.trim(),
+    name:
+      document.getElementById("partnerName")?.value.trim(),
+    display_name:
+      document.getElementById("partnerDisplayName")?.value.trim(),
+    logo_url:
+      document.getElementById("partnerLogoUrl")?.value.trim(),
+    bet_url:
+      document.getElementById("partnerBetUrl")?.value.trim(),
+    register_url:
+      document.getElementById("partnerRegisterUrl")?.value.trim(),
+    sort_order:
+      Number(
+        document.getElementById("partnerSortOrder")?.value || 0
+      ),
+    enabled:
+      document.getElementById("partnerEnabled")?.value === "true"
+  };
+
+  try {
+    await adminCenterRequest(
+      payload
+    );
+
+    closePartnerModal();
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "平台儲存失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+async function togglePartner(
+  id,
+  enabled
+) {
+  try {
+    await adminCenterRequest({
+      action:
+        "partner_toggle",
+      id,
+      enabled
+    });
+
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "狀態修改失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+async function deletePartner(id) {
+  const platform =
+    partnerPlatforms.find(
+      item =>
+        Number(item.id) ===
+        Number(id)
+    );
+
+  if (
+    !confirm(
+      `確定刪除「${platform?.display_name || platform?.name || id}」？有會員綁定的平台不可刪除，請先停用。`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await adminCenterRequest({
+      action:
+        "partner_delete",
+      id
+    });
+
+    await loadPartners(true);
+
+  } catch (error) {
+    alert(
+      "平台刪除失敗：" +
+      (error?.message || "")
+    );
+  }
+}
+
+/* ---------- API stats ---------- */
+
+async function loadApiSettings() {
+  if (!hasAdminPermission("api")) return;
+  try {
+    const data = await adminServiceRequest(BENEFITS_ADMIN_URL, { action: "get_api_settings" });
+    const settings = data?.settings || {};
+    window.apiDailyLimit = Number(settings.api_daily_limit || 7500);
+    window.apiRenewalDate = settings.api_renewal_date || null;
+    renderDashboard();
+    renderApiPage();
+  } catch (error) {
+    console.error("API SETTINGS ERROR:", error);
+  }
+}
+
+async function loadApiStats(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "api_stats"
+      });
+
+apiStatsPayload =
+  data;
+
+const apiDays =
+  Array.isArray(data?.days)
+    ? data.days
+    : [];
+
+const todayKey =
+  new Date().toLocaleDateString(
+    "en-CA",
+    {
+      timeZone: "Asia/Taipei"
+    }
+  );
+
+const todayRow =
+  apiDays.find(
+    item =>
+      String(item?.date || "") ===
+      todayKey
+  );
+
+dashboardData.todayApiCount =
+  Number(
+    todayRow?.count || 0
+  );
+
+dashboardData.last7DaysApiCount =
+  apiDays.reduce(
+    (sum, item) =>
+      sum +
+      Number(item?.count || 0),
+    0
+  );
+
+renderApiStats();
+renderApiPage();
+renderDashboard();
+
+  } catch (error) {
+    console.error(
+      "API STATS ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "API 統計讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderApiStats() {
+  if (!apiStatsPayload) {
+    return;
+  }
+
+  const body =
+    document.getElementById(
+      "apiDailyBody"
+    );
+
+  const limit =
+    Number(
+      window.apiDailyLimit ||
+      7500
+    );
+
+  if (body) {
+    body.innerHTML =
+      (apiStatsPayload.days || [])
+        .slice()
+        .reverse()
+        .map(day => {
+          const count =
+            Number(
+              day?.count || 0
+            );
+
+          const remaining =
+            Math.max(
+              limit - count,
+              0
+            );
+
+          const rate =
+            limit > 0
+              ? (
+                  count /
+                  limit *
+                  100
+                ).toFixed(1)
+              : "0.0";
+
+          return `
+            <tr>
+              <td>${escapeHtml(day?.date || "—")}</td>
+              <td><strong>${count}</strong></td>
+              <td>${limit}</td>
+              <td>${remaining}</td>
+              <td>${rate}%</td>
+            </tr>
+          `;
+        })
+        .join("");
+  }
+
+  const sourceBox =
+    document.getElementById(
+      "apiSourceStats"
+    );
+
+  if (sourceBox) {
+    sourceBox.innerHTML =
+      (apiStatsPayload.sources || [])
+        .map(item => `
+          <div class="mini-item">
+            <span class="mini-key">${escapeHtml(apiSourceName(item?.source))}</span>
+            <span class="mini-val">${Number(item?.count || 0)}</span>
+          </div>
+        `)
+        .join("");
+  }
+
+  renderSupabaseUsage();
+  
+}
+
+function formatUsageNumber(
+  value,
+  kind = "gb"
+) {
+  const number =
+    Number(value || 0);
+
+  if (kind === "count") {
+    return Math.round(number)
+      .toLocaleString("en-US");
+  }
+
+  return number
+    .toFixed(3)
+    .replace(/\.?0+$/, "");
+}
+
+function usageState(percent) {
+  if (percent >= 90) {
+    return {
+      className: "usage-danger",
+      label: "危險",
+      color: "#ff9595"
+    };
+  }
+
+  if (percent >= 70) {
+    return {
+      className: "usage-warning",
+      label: "注意",
+      color: "#f2bd4b"
+    };
+  }
+
+  return {
+    className: "usage-ok",
+    label: "正常",
+    color: "#3cdd82"
+  };
+}
+
+function renderSupabaseUsage() {
+  const grid =
+    document.getElementById(
+      "supabaseUsageGrid"
+    );
+
+  const meta =
+    document.getElementById(
+      "supabaseUsageMeta"
+    );
+
+  if (!grid) return;
+
+  const snapshot =
+    apiStatsPayload
+      ?.usage_snapshot;
+
+  if (!snapshot) {
+    grid.innerHTML = `
+      <div class="stat-card usage-warning">
+        <div class="stat-label">SUPABASE USAGE</div>
+        <div class="stat-value">尚無資料</div>
+        <div class="stat-note">
+          尚未建立 Supabase 用量快照
+        </div>
+      </div>
+    `;
+
+    if (meta) {
+      meta.textContent =
+        "尚未取得 Supabase Usage 快照。";
+    }
+
+    return;
+  }
+
+  const resources = [
+    {
+      label:
+        "EDGE FUNCTION INVOCATIONS",
+      used:
+        snapshot.edge_function_used,
+      quota:
+        snapshot.edge_function_quota,
+      unit: "次",
+      kind: "count"
+    },
+    {
+      label:
+        "DATABASE SIZE",
+      used:
+        snapshot.database_used_gb,
+      quota:
+        snapshot.database_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "EGRESS",
+      used:
+        snapshot.egress_used_gb,
+      quota:
+        snapshot.egress_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "CACHED EGRESS",
+      used:
+        snapshot.cached_egress_used_gb,
+      quota:
+        snapshot.cached_egress_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "STORAGE SIZE",
+      used:
+        snapshot.storage_used_gb,
+      quota:
+        snapshot.storage_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "LOG INGESTION",
+      used:
+        snapshot.log_ingestion_used_gb,
+      quota:
+        snapshot.log_ingestion_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    },
+    {
+      label:
+        "LOG QUERY",
+      used:
+        snapshot.log_query_used_gb,
+      quota:
+        snapshot.log_query_quota_gb,
+      unit: "GB",
+      kind: "gb"
+    }
+  ];
+
+  grid.innerHTML =
+    resources
+      .map(item => {
+        const used =
+          Number(item.used || 0);
+
+        const quota =
+          Number(item.quota || 0);
+
+        const remaining =
+          Math.max(
+            quota - used,
+            0
+          );
+
+        const percent =
+          quota > 0
+            ? used / quota * 100
+            : 0;
+
+        const state =
+          usageState(percent);
+
+        return `
+          <div class="stat-card ${state.className}">
+            <div class="stat-label">
+              ${item.label}
+            </div>
+
+            <div
+              class="stat-value"
+              style="font-size:21px"
+            >
+              ${formatUsageNumber(
+                used,
+                item.kind
+              )}
+              /
+              ${formatUsageNumber(
+                quota,
+                item.kind
+              )}
+              ${item.unit}
+            </div>
+
+            <div class="stat-note">
+              使用率：
+              <strong style="color:${state.color}">
+                ${percent.toFixed(1)}%
+                · ${state.label}
+              </strong>
+              <br>
+
+              剩餘：
+              ${formatUsageNumber(
+                remaining,
+                item.kind
+              )}
+              ${item.unit}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+  if (meta) {
+    const usageDate =
+      String(
+        snapshot.usage_date ||
+        "—"
+      ).replace(/-/g, "/");
+
+    const cycleStart =
+      String(
+        snapshot.billing_cycle_start ||
+        "—"
+      ).replace(/-/g, "/");
+
+    const cycleEnd =
+      String(
+        snapshot.billing_cycle_end ||
+        "—"
+      ).replace(/-/g, "/");
+
+    meta.textContent =
+      `最新快照：${usageDate}｜Billing Cycle：${cycleStart} ～ ${cycleEnd}`;
+  }
+}
+  
+/* ---------- Health ---------- */
+
+async function loadHealth(force = false) {
+  try {
+    const data =
+      await adminCenterRequest({
+        action: "health"
+      });
+
+    healthPayload =
+      data.health || {};
+
+    renderHealth();
+
+  } catch (error) {
+    console.error(
+      "HEALTH ERROR:",
+      error
+    );
+
+    if (force) {
+      alert(
+        "系統健康讀取失敗：" +
+        (error?.message || "")
+      );
+    }
+  }
+}
+
+function renderHealth() {
+  if(!healthPayload)return;
+  const latestFixture=healthPayload.latest_fixture, latestJob=healthPayload.latest_job, locks=healthPayload.processing_locks||[], failed=healthPayload.failed_jobs||[];
+  setText("healthFixtureTime",latestFixture?.fetched_at?formatDate(latestFixture.fetched_at):"—");
+  setText("healthJobStatus",statusLabel(latestJob?.status||"—"));
+  setText("healthLockCount",locks.length);
+  setText("healthFailedCount",failed.length);
+  const services=document.getElementById("healthServiceList");
+  if(services) services.innerHTML=`
+    <div class="mini-item"><span class="mini-key">賽事快取資料</span><span class="mini-val ${latestFixture?"health-ok":"health-warn"}">${latestFixture?"正常":"無資料"}</span></div>
+    <div class="mini-item"><span class="mini-key">分析任務</span><span class="mini-val">${escapeHtml(statusLabel(latestJob?.status||"無紀錄"))}</span></div>
+    <div class="mini-item"><span class="mini-key">公開戰績</span><span class="mini-val">已驗證 ${Number(healthPayload.verified_snapshots||0)}｜正常待驗證 ${Math.max(0,Number(healthPayload.pending_snapshots||0)-Number(healthPayload.overdue_pending_snapshots||0))}｜逾期 ${Number(healthPayload.overdue_pending_snapshots||0)}</span></div>
+    <div class="mini-item"><span class="mini-key">防重複分析鎖</span><span class="mini-val ${locks.some(x=>x?.is_expired)?"health-warn":"health-ok"}">正常 ${locks.filter(x=>!x?.is_expired).length}｜過期 ${locks.filter(x=>x?.is_expired).length}</span></div>`;
+  const debug=document.getElementById("healthDebugInfo");
+  if(debug) debug.innerHTML=`近期失敗 / 部分失敗任務：<strong>${failed.length}</strong> 筆。<br>錯誤以中文摘要顯示，不另建立大型 Log 系統。`;
+  const lockBody=document.getElementById("healthLocksBody");
+  if(lockBody) lockBody.innerHTML=locks.map(row=>`<tr><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${formatDate(row?.created_at)}</td><td>${formatDate(row?.updated_at)}</td><td>${formatDate(row?.expires_at)}</td><td>${row?.is_expired?'<span class="status off">疑似殘留 / 過期</span>':'<span class="status active">正常</span>'}</td></tr>`).join("");
+  const body=document.getElementById("healthFailedJobsBody");
+  if(body) body.innerHTML=failed.map(job=>`<tr><td>${formatDate(job?.created_at)}</td><td class="mono">${escapeHtml(job?.id||"—")}</td><td>${escapeHtml(job?.account||"—")}</td><td>${statusBadge(job?.status)}</td><td>${escapeHtml(classifyJobError(job))}</td><td><button class="action-btn" onclick='showJsonModal("失敗任務", healthPayload.failed_jobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>查看</button></td></tr>`).join("");
+}
+function statusLabel(value){const key=String(value||"").toLowerCase();const m={queued:"排隊中",processing:"執行中",completed:"已完成",failed:"失敗",partial:"部分失敗",pending:"待驗證",verified:"已驗證",ft:"已完賽",aet:"延長賽完賽",pen:"點球完賽"};return m[key]||String(value||"—");}
+function classifyJobError(job){const text=String(job?.error_message||job?.failures?.[0]?.message||"").toLowerCase();if(!text)return "其他錯誤";if(text.includes("credit")||text.includes("次數")||text.includes("積分"))return "會員分析次數不足";if(text.includes("network")||text.includes("fetch")||text.includes("api")||text.includes("timeout"))return "API / 網路錯誤";if(text.includes("boot")||text.includes("config")||text.includes("啟動"))return "系統啟動失敗";return "其他錯誤";}
+
+async function refreshPartnerButton(button){
+  const original=button?.textContent||"↻ 更新";
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{await loadPartners(false);if(button)button.textContent="已更新 ✓";}catch(e){if(button)button.textContent="更新失敗";alert("更新失敗："+(e?.message||""));}
+  finally{setTimeout(()=>{if(button){button.disabled=false;button.textContent=original;}},900);}
+}
+
+async function refreshAdminSection(button, section) {
+  const original=button?.textContent||"↻ 更新";
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const map={analysis:loadAnalysisHistory,jobs:loadJobs,fixtures:loadFixtures,performance:loadPerformanceAdmin,shadow:loadShadowTests,api:loadApiStats,health:loadHealth};
+    await map[section]?.(false);
+    if (hasAdminPermission("dashboard")) await loadAdminOverview();
+    if(button) button.textContent="已更新 ✓";
+    setTimeout(()=>{if(button){button.disabled=false;button.textContent=original;}},900);
+  }catch(error){if(button){button.disabled=false;button.textContent="更新失敗";} alert("更新失敗："+(error?.message||"未知錯誤"));}
+}
+
+function normalizeLeagueDisplay(value){
+  if(value&&typeof value==="object") return value.name||value.api_name||value.league_name||"其他聯賽";
+  const t=String(value??"").trim(); if(!t)return "其他聯賽";
+  if(t.startsWith("{")||t.startsWith("[")){try{return normalizeLeagueDisplay(JSON.parse(t));}catch{}}
+  return t;
+}
+
+function analysisSummaryHtml(item){
+  const d =
+    item?.result_data || {};
+
+  /*
+   * 正式分析資料通常在：
+   * result_data.analysis
+   */
+  const analysis =
+    d?.analysis &&
+    typeof d.analysis === "object"
+      ? d.analysis
+      : d;
+
+  /*
+   * AI 推薦主要位於：
+   * analysis.recommendations
+   */
+  const recommendations =
+    analysis?.recommendations &&
+    typeof analysis.recommendations === "object"
+      ? analysis.recommendations
+      : (
+          d?.recommendations &&
+          typeof d.recommendations === "object"
+            ? d.recommendations
+            : {}
+        );
+
+  /*
+   * 相容舊資料與新版資料。
+   */
+  const pick = (keys) => {
+    for (const k of keys) {
+
+      if (
+        recommendations?.[k] != null
+      ) {
+        return recommendations[k];
+      }
+
+      if (
+        analysis?.[k] != null
+      ) {
+        return analysis[k];
+      }
+
+      if (
+        d?.[k] != null
+      ) {
+        return d[k];
+      }
+    }
+
+    return null;
+  };
+
+    /*
+   * 後台分析摘要固定使用繁體中文顯示
+   */
+  const localizeSummaryPick = value => {
+    let text =
+      value == null
+        ? ""
+        : String(value).trim();
+
+    if (!text) {
+      return "—";
+    }
+
+    const exact = {
+      "Home Team": "主隊",
+      "Away Team": "客隊",
+      "Draw": "和局",
+      "No Recommendation": "暫不推薦",
+      "Yes": "是",
+      "No": "否",
+      "Home or Draw": "主隊或和局",
+      "Home or Away": "主隊或客隊",
+      "Draw or Away": "和局或客隊"
+    };
+
+    if (exact[text]) {
+      return exact[text];
+    }
+
+    text = text
+      .replace(
+        /^Over\s*([0-9.]+)$/i,
+        "大$1"
+      )
+      .replace(
+        /^Under\s*([0-9.]+)$/i,
+        "小$1"
+      );
+
+    return text;
+  };
+  
+  const fmt = (v) => {
+
+    if (v == null) {
+      return "—";
+    }
+
+    if (
+      typeof v === "object"
+    ) {
+return escapeHtml(
+  localizeSummaryPick(
+    v.pick ||
+    v.selection ||
+    v.value ||
+    v.prediction ||
+    "—"
+  )
+);
+    }
+
+    return escapeHtml(
+  localizeSummaryPick(v)
+);
+  };
+
+  /*
+   * 讓分除了推薦方向，
+   * 一併顯示實際盤口。
+   */
+  const fmtHandicap = (v) => {
+
+    if (v == null) {
+      return "—";
+    }
+
+    if (
+      typeof v !== "object"
+    ) {
+      return escapeHtml(v);
+    }
+
+const value =
+  localizeSummaryPick(
+    v.pick ||
+    v.selection ||
+    v.value ||
+    v.prediction ||
+    "—"
+  );
+
+    const line =
+      v.line != null &&
+      String(v.line).trim() !== ""
+        ? ` ${v.line}`
+        : "";
+
+    return escapeHtml(
+      `${value}${line}`
+    );
+  };
+
+  /*
+   * 預測比分
+   */
+  const scores =
+    Array.isArray(
+      analysis?.predicted_scores
+    )
+      ? analysis.predicted_scores
+          .map(row =>
+            row?.score || ""
+          )
+          .filter(Boolean)
+          .map(score =>
+            escapeHtml(score)
+          )
+          .join("、")
+      : "—";
+
+  return `
+    <div style="line-height:1.9">
+
+      <strong>
+        ${escapeHtml(item?.home_team || "—")}
+        vs
+        ${escapeHtml(item?.away_team || "—")}
+      </strong>
+
+      <br>
+
+      聯賽：
+      ${escapeHtml(
+        normalizeLeagueDisplay(
+          item?.league_name
+        )
+      )}
+
+      <br>
+
+      開賽：
+      ${formatDate(
+        item?.fixture_time
+      )}
+
+      <hr style="border-color:rgba(255,255,255,.08)">
+
+      獨贏：
+      ${fmt(
+        pick([
+          "moneyline",
+          "oneXtwo",
+          "one_x_two",
+          "1x2"
+        ])
+      )}
+
+      <br>
+
+      大小分：
+      ${fmt(
+        pick([
+          "over_under",
+          "totals",
+          "total"
+        ])
+      )}
+
+      <br>
+
+      讓分：
+      ${fmtHandicap(
+        pick([
+          "handicap",
+          "asian_handicap"
+        ])
+      )}
+
+      <br>
+
+      BTTS：
+      ${fmt(
+        pick([
+          "btts",
+          "both_teams_to_score"
+        ])
+      )}
+
+      <br>
+
+      雙重機會：
+      ${fmt(
+        pick([
+          "double_chance",
+          "doubleChance"
+        ])
+      )}
+
+      <br>
+
+      預測比分：
+      ${scores || "—"}
+
+      <br>
+
+      分析時間：
+      ${formatDate(
+        item?.updated_at
+      )}
+
+    </div>
+  `;
+}
+function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
+
+let pushCountTimer=null;
+function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
+async function pushAdminRequest(payload){return adminServiceRequest(PUSH_SEND_URL,payload);}
+async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
+async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://awu7757-sys.github.io/habao-football-ai/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
+async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
+
+async function confirmApiRenewal(button){
+  if(!confirm("確定 API 已完成續費？續費日期會自動更新為今天 + 1 個月。")) return;
+  const old=button?.textContent;
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const d=await adminServiceRequest(BENEFITS_ADMIN_URL,{action:"confirm_api_renewal"});
+    window.apiRenewalDate=d.settings?.api_renewal_date||null;
+    renderDashboard(); renderApiPage();
+    alert(d.message||"續費日期已更新");
+  }catch(e){alert("續費更新失敗："+(e?.message||""));}
+  finally{if(button){button.disabled=false;button.textContent=old||"確認已續費";}}
+}
+
+async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
+async function togglePerformanceExcluded(fixtureId,excluded){const msg=excluded?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？":"確定恢復此場計入公開戰績？";if(!confirm(msg))return;try{await adminCenterRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});await loadPerformanceAdmin(false);}catch(e){alert("操作失敗："+(e?.message||""));}}
+async function deletePerformanceSnapshot(fixtureId){
+  const id=Number(fixtureId||0);
+  if(!id){alert("Fixture ID 無效");return;}
+  if(!confirm(`確定永久刪除 Fixture ${id} 的公開戰績？\n\n刪除後無法直接恢復，預測、比分與結算資料都會一起移除。`))return;
+  try{
+    await adminCenterRequest({action:"performance_delete",fixture_id:id});
+    await loadPerformanceAdmin(false);
+    await loadAdminOverview();
+    alert("公開戰績已刪除");
+  }catch(e){
+    alert("刪除失敗："+(e?.message||"未知錯誤"));
+  }
+}
+
+async function clearExpiredLocks(button){if(!confirm("只會清除已過期或疑似殘留的分析鎖，不會清除正常執行中的分析。確定繼續？"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="清除中…";}try{const d=await adminCenterRequest({action:"clear_expired_locks"});alert(`已清除 ${d.cleared||0} 筆過期分析鎖`);await loadHealth(false);await loadAdminOverview();}catch(e){alert("清除失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"清除過期分析鎖";}}}
+
+function apiSourceName(source){return ({"tomorrow-fixtures":"賽事資料 API","match-analysis":"AI 分析 API","panda-odds":"Panda 賠率"})[String(source)]||String(source||"其他來源");}
+
+/* ---------- Generic Detail ---------- */
+
+function showJsonModal(
+  title,
+  data
+) {
+  setText(
+    "jsonModalTitle",
+    title || "詳細資料"
+  );
+
+  const pre =
+    document.getElementById(
+      "jsonModalContent"
+    );
+
+  if (pre) {
+    pre.textContent =
+      JSON.stringify(
+        data ?? {},
+        null,
+        2
+      );
+  }
+
+  document
+    .getElementById(
+      "jsonModal"
+    )
+    ?.classList
+    .remove("hidden");
+}
+
+function closeJsonModal() {
+  const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="pre-wrap";pre.textContent="";}
+  document
+    .getElementById(
+      "jsonModal"
+    )
+    ?.classList
+    .add("hidden");
+}
+
+function statusBadge(value) {
+  const raw=String(value||"—"), lower=raw.toLowerCase();
+  const labels={active:"正常",completed:"已完成",verified:"已驗證",ready:"就緒",ft:"已完賽",failed:"失敗",inactive:"停用",cancelled:"已取消",processing:"執行中",queued:"排隊中",pending:"待驗證",partial:"部分失敗",aet:"延長賽完賽",pen:"點球完賽",ns:"未開賽",live:"進行中",ht:"中場",pst:"延期",canc:"取消",abd:"中止",awd:"判定",wo:"棄權"};
+  const label=labels[lower]||raw;
+  if (["active","completed","verified","ready","ft","aet","pen"].includes(lower)) return `<span class="status active"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["failed","inactive","cancelled","canc","abd","wo"].includes(lower)) return `<span class="status off"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["processing","queued","pending","partial","pst"].includes(lower)) return `<span class="status vip">${escapeHtml(label)}</span>`;
+  return `<span class="table-chip">${escapeHtml(label)}</span>`;
+}
+
+/* =========================
+   UTILITIES
+========================= */
+
+function setText(
+  id,
+  value
+) {
+  const el =
+    document.getElementById(
+      id
+    );
+
+  if (el) {
+    el.textContent =
+      String(
+        value ??
+        ""
+      );
+  }
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return String(value);
+  }
+
+  return date
+    .toLocaleString(
+      "zh-TW",
+      {
+        timeZone:
+          "Asia/Taipei",
+        year:
+          "numeric",
+        month:
+          "2-digit",
+        day:
+          "2-digit",
+        hour:
+          "2-digit",
+        minute:
+          "2-digit",
+        hour12:false
+      }
+    );
+}
+
+function escapeHtml(value) {
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+restoreAdminSession();
+</script>
+
+</body>
+</html>
