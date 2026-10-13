@@ -452,6 +452,49 @@
     return 0;
   }
 
+  function pandaContextOf(match){
+    var rd=match?.result_data||{};
+    var candidates=[
+      rd?.panda_odds,
+      rd?.pandaOdds,
+      rd?.source_data?.panda_odds,
+      rd?.sourceData?.panda_odds,
+      rd?.analysis?.source_data?.panda_odds,
+      rd?.analysis?.sourceData?.panda_odds
+    ];
+
+    var panda=null;
+    for(var i=0;i<candidates.length;i++){
+      if(candidates[i] && typeof candidates[i]==="object"){
+        panda=candidates[i];
+        break;
+      }
+    }
+
+    var matchId=
+      panda?.matchId||
+      panda?.match_id||
+      panda?.panda_match_id||
+      rd?.panda_match_id||
+      rd?.pandaMatchId||
+      "";
+
+    var tid=
+      panda?.tid||
+      panda?.tournamentId||
+      panda?.tournament_id||
+      rd?.panda_tid||
+      rd?.pandaTid||
+      "";
+
+    return {
+      panda_match_id:String(matchId||"").trim(),
+      panda_tid:String(tid||"").trim()
+    };
+  }
+
+
+
   function displayPick(best){
     if(!best?.pick)return "暫不推薦";
     var line=best.line;
@@ -577,6 +620,8 @@
       })
       .map(function(m){
         var best=bestRecommendation(m);
+        var pandaCtx=pandaContextOf(m);
+
         return {
           history_id:m.id,
           fixture_id:fixtureIdOf(m),
@@ -584,6 +629,8 @@
           league_name:m.league_name||"",
           home_team:m.home_team||"",
           away_team:m.away_team||"",
+          panda_match_id:pandaCtx.panda_match_id,
+          panda_tid:pandaCtx.panda_tid,
           market_key:best.key,
           market_label:best.label,
           pick:best.pick,
@@ -605,7 +652,7 @@
       confidence_below_threshold:"低於風控門檻",
       daily_limit_reached:"已達單日投入上限",
       stake_too_small:"建議注額過低",
-      panda_odds_unavailable:"Panda 找不到對應賠率"
+      panda_odds_unavailable:"Panda 找不到對應賠率（舊賽事可能尚無映射）"
     };
 
     var counts={};
