@@ -106,7 +106,7 @@
         <div>
           <div class="section-kicker">PLAN SETTINGS</div>
           <div class="section-title">本月模擬計畫</div>
-          <div class="section-desc">先設定本金與風險模式。Beta 期間資料只保存在目前瀏覽器。</div>
+          <div class="section-desc">先設定本金與風險模式。Beta 資料會同步保存到 Supabase 雲端帳本。</div>
         </div>
       </div>
       <div class="form-grid">
@@ -145,9 +145,9 @@
         <div>
           <div class="section-kicker">TODAY PLAN</div>
           <div class="section-title">模擬投注紀錄</div>
-          <div class="section-desc">Beta 先用手動輸入十進位賠率與賽果結算；之後再接 Panda 即時賠率與自動完賽結算。</div>
+          <div class="section-desc">建立配置時鎖定 Panda 當下賠率；完賽後依正式 T-10 快照驗證結果自動結算。</div>
         </div>
-        <button class="danger-btn" id="resetBtn">重置</button>
+        <button class="ghost-btn" id="syncBtn">同步結算</button>
       </div>
       <div class="plan-list" id="planList"><div class="empty">尚未建立投注配置</div></div>
     </section>
@@ -156,14 +156,16 @@
   </div>
   <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   "use strict";
 
   var BETA_ACCOUNT = "google_2d3cef6b6e2d";
-  var HISTORY_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history";
+  var SUPABASE_URL = "https://oqtbsbohcfeghgnykwxy.supabase.co";
+  var HISTORY_URL = SUPABASE_URL + "/functions/v1/member-analysis-history";
+  var FUND_API_URL = SUPABASE_URL + "/functions/v1/fund-plan-beta";
   var PUBLISHABLE_KEY = "sb_publishable_q6zWQwsHeH5HKQTDj561vQ_VyvmMwSH";
-  var STORAGE_KEY = "habao_fund_beta_v1_" + BETA_ACCOUNT;
 
   var member = readMember();
   if (!member || String(member.account || "").trim() !== BETA_ACCOUNT) {
@@ -171,276 +173,624 @@
     return;
   }
 
-  document.getElementById("app").hidden = false;
+  var sb = window.supabase.createClient(
+    SUPABASE_URL,
+    PUBLISHABLE_KEY,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true
+      }
+    }
+  );
 
-  var state = loadState();
   var historyMatches = [];
   var selectedIds = new Set();
+  var cloud = {
+    plan:{
+      start_capital:30000,
+      risk_mode:"balanced"
+    },
+    bets:[],
+    metrics:{
+      start_capital:30000,
+      current_capital:30000,
+      pnl:0,
+      roi:0,
+      max_drawdown:0
+    }
+  };
+
+  document.getElementById("app").hidden = false;
 
   function readMember(){
-    try{return JSON.parse(sessionStorage.getItem("habao_member") || "null");}
-    catch(e){return null;}
-  }
-
-  function defaultState(){
-    return {startCapital:30000,riskMode:"balanced",bets:[],createdAt:new Date().toISOString()};
-  }
-
-  function loadState(){
     try{
-      var raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if(raw && Number(raw.startCapital)>0 && Array.isArray(raw.bets)) return raw;
-    }catch(e){}
-    return defaultState();
-  }
-
-  function saveState(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    renderDashboard();
-    renderPlan();
+      return JSON.parse(
+        sessionStorage.getItem("habao_member") || "null"
+      );
+    }catch(e){
+      return null;
+    }
   }
 
   function money(v){
     var n=Number(v)||0;
-    return new Intl.NumberFormat("zh-TW",{maximumFractionDigits:0}).format(n);
+    return new Intl.NumberFormat(
+      "zh-TW",
+      {maximumFractionDigits:0}
+    ).format(n);
   }
 
-  function pct(v){return (Number(v)||0).toFixed(2)+"%";}
+  function pct(v){
+    return (Number(v)||0).toFixed(2)+"%";
+  }
 
   function esc(v){
-    return String(v == null ? "" : v).replace(/[&<>"']/g,function(c){
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
-    });
+    return String(v == null ? "" : v).replace(
+      /[&<>"']/g,
+      function(c){
+        return {
+          "&":"&amp;",
+          "<":"&lt;",
+          ">":"&gt;",
+          '"':"&quot;",
+          "'":"&#39;"
+        }[c];
+      }
+    );
   }
 
   function toast(msg){
     var el=document.getElementById("toast");
-    el.textContent=msg;el.classList.add("show");
-    clearTimeout(toast._t);toast._t=setTimeout(function(){el.classList.remove("show");},1800);
+    el.textContent=msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t=setTimeout(function(){
+      el.classList.remove("show");
+    },2200);
   }
 
-  function riskConfig(){
-    if(state.riskMode==="conservative") return {name:"保守型",daily:0.03,low:0.005,mid:0.0075,high:0.01,note:"單場約 0.5%～1%，單日總投入上限約本金 3%。"};
-    if(state.riskMode==="aggressive") return {name:"進取型",daily:0.07,low:0.01,mid:0.015,high:0.02,note:"單場約 1%～2%，單日總投入上限約本金 7%。"};
-    return {name:"平衡型",daily:0.05,low:0.0075,mid:0.01,high:0.015,note:"單場約 0.75%～1.5%，單日總投入上限約本金 5%。"};
+  function setBusy(id,busy,text){
+    var btn=document.getElementById(id);
+    if(!btn)return;
+    if(busy){
+      if(!btn.dataset.oldText) btn.dataset.oldText=btn.textContent;
+      btn.disabled=true;
+      btn.textContent=text||"處理中…";
+      btn.style.opacity=".7";
+    }else{
+      btn.disabled=false;
+      btn.textContent=btn.dataset.oldText||btn.textContent;
+      btn.style.opacity="";
+      delete btn.dataset.oldText;
+    }
   }
 
-  function pnlForBet(bet){
-    if(!bet || bet.status==="pending") return 0;
-    var stake=Number(bet.stake)||0, odds=Number(bet.odds)||0;
-    if(bet.status==="win") return odds>1 ? stake*(odds-1) : 0;
-    if(bet.status==="half_win") return odds>1 ? stake*(odds-1)/2 : 0;
-    if(bet.status==="loss") return -stake;
-    if(bet.status==="half_loss") return -stake/2;
-    return 0;
+  function riskNote(mode){
+    if(mode==="conservative"){
+      return "保守型｜單場約 0.5%～1%，單日總投入上限約本金 3%。";
+    }
+    if(mode==="aggressive"){
+      return "進取型｜單場約 1%～2%，單日總投入上限約本金 7%。";
+    }
+    return "平衡型｜單場約 0.75%～1.5%，單日總投入上限約本金 5%。";
   }
 
-  function bankroll(){
-    return Number(state.startCapital)||0 + 0;
+  async function accessToken(){
+    var result=await sb.auth.getSession();
+    var token=result?.data?.session?.access_token||"";
+    if(!token){
+      toast("登入狀態已失效，請重新登入");
+      setTimeout(function(){
+        location.replace("index.html");
+      },800);
+      throw new Error("LOGIN_REQUIRED");
+    }
+    return token;
   }
 
-  function metrics(){
-    var start=Number(state.startCapital)||0;
-    var pnl=0, peak=start, equity=start, maxDD=0;
-    (state.bets||[]).slice().sort(function(a,b){return String(a.createdAt).localeCompare(String(b.createdAt));}).forEach(function(b){
-      var p=pnlForBet(b);pnl+=p;equity+=p;
-      if(equity>peak) peak=equity;
-      if(peak>0) maxDD=Math.max(maxDD,(peak-equity)/peak*100);
-    });
-    return {start:start,current:start+pnl,pnl:pnl,roi:start>0?pnl/start*100:0,maxDD:maxDD};
+  async function fundApi(action,payload){
+    var token=await accessToken();
+    var res=await fetch(
+      FUND_API_URL,
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":PUBLISHABLE_KEY,
+          "Authorization":"Bearer "+token
+        },
+        body:JSON.stringify(
+          Object.assign({action:action},payload||{})
+        ),
+        cache:"no-store"
+      }
+    );
+
+    var data=await res.json().catch(function(){return{};});
+
+    if(!res.ok || data?.success!==true){
+      if(res.status===401){
+        toast("登入狀態已失效，請重新登入");
+      }else if(res.status===403){
+        toast("此帳號沒有 Beta 權限");
+      }
+      throw new Error(
+        data?.message||
+        data?.error||
+        ("HTTP "+res.status)
+      );
+    }
+    return data;
+  }
+
+  function applyCloud(data){
+    if(data?.plan) cloud.plan=data.plan;
+    if(Array.isArray(data?.bets)) cloud.bets=data.bets;
+    if(data?.metrics) cloud.metrics=data.metrics;
+    renderDashboard();
+    renderPlan();
   }
 
   function renderDashboard(){
-    var m=metrics();
-    document.getElementById("mStart").textContent=money(m.start);
-    document.getElementById("mCurrent").textContent=money(m.current);
-    var p=document.getElementById("mPnl");
-    p.textContent=(m.pnl>0?"+":"")+money(m.pnl);
-    p.className="metric-value "+(m.pnl>0?"good":m.pnl<0?"bad":"");
-    document.getElementById("mRoi").textContent=pct(m.roi)+" / "+pct(m.maxDD);
-    document.getElementById("capital").value=state.startCapital;
-    document.getElementById("riskMode").value=state.riskMode;
-    document.getElementById("modeNote").textContent=riskConfig().note;
+    var p=cloud.plan||{};
+    var m=cloud.metrics||{};
+
+    document.getElementById("mStart").textContent=
+      money(m.start_capital ?? p.start_capital ?? 30000);
+
+    document.getElementById("mCurrent").textContent=
+      money(m.current_capital ?? p.start_capital ?? 30000);
+
+    var pnl=Number(m.pnl)||0;
+    var pEl=document.getElementById("mPnl");
+    pEl.textContent=(pnl>0?"+":"")+money(pnl);
+    pEl.className="metric-value "+(pnl>0?"good":pnl<0?"bad":"");
+
+    document.getElementById("mRoi").textContent=
+      pct(m.roi)+" / "+pct(m.max_drawdown);
+
+    document.getElementById("capital").value=
+      Number(p.start_capital)||30000;
+
+    document.getElementById("riskMode").value=
+      p.risk_mode||"balanced";
+
+    document.getElementById("modeNote").textContent=
+      riskNote(p.risk_mode||"balanced");
+  }
+
+  async function loadCloudState(showToast){
+    try{
+      if(showToast) setBusy("syncBtn",true,"同步中…");
+      var data=await fundApi("get_state");
+      applyCloud(data);
+      if(showToast){
+        var n=Number(data?.settlement_sync?.updated)||0;
+        toast(n>0 ? "已自動結算 "+n+" 筆" : "雲端帳本已同步");
+      }
+    }catch(e){
+      console.error("FUND BETA CLOUD LOAD ERROR:",e);
+      if(e.message!=="LOGIN_REQUIRED") toast("雲端帳本讀取失敗："+e.message);
+    }finally{
+      if(showToast) setBusy("syncBtn",false);
+    }
+  }
+
+  function recommendationRoot(match){
+    return (
+      match?.result_data?.analysis?.recommendations ||
+      match?.result_data?.recommendations ||
+      {}
+    );
   }
 
   function normalizePick(rec){
-    if(!rec) return "";
+    if(!rec)return "";
     var pick=String(rec.pick||"").trim();
-    if(!pick || /暫不推薦|no recommendation/i.test(pick)) return "";
-    if(rec.line && !pick.includes(String(rec.line))) pick += " " + String(rec.line);
+    if(!pick || /暫不推薦|暂不推荐|no recommendation|no pick/i.test(pick)){
+      return "";
+    }
     return pick;
   }
 
   function bestRecommendation(match){
-    var a=match && match.result_data && match.result_data.analysis;
-    var r=a && a.recommendations || {};
+    var r=recommendationRoot(match);
     var list=[
       {key:"moneyline",label:"獨贏",rec:r.moneyline},
       {key:"handicap",label:"讓分",rec:r.handicap},
       {key:"over_under",label:"大小球",rec:r.over_under},
       {key:"btts",label:"雙方進球",rec:r.btts}
     ].map(function(x){
-      return {key:x.key,label:x.label,pick:normalizePick(x.rec),confidence:Number(x.rec&&x.rec.confidence)||0};
-    }).filter(function(x){return x.pick && x.confidence>0;});
-    list.sort(function(a,b){return b.confidence-a.confidence;});
-    return list[0] || {key:"",label:"觀望",pick:"暫不推薦",confidence:0};
+      return {
+        key:x.key,
+        label:x.label,
+        pick:normalizePick(x.rec),
+        line:x.rec?.line ?? null,
+        confidence:Number(x.rec?.confidence)||0
+      };
+    }).filter(function(x){
+      return x.pick && x.confidence>0;
+    });
+
+    list.sort(function(a,b){
+      return b.confidence-a.confidence;
+    });
+
+    return list[0]||{
+      key:"",
+      label:"觀望",
+      pick:"暫不推薦",
+      line:null,
+      confidence:0
+    };
+  }
+
+  function fixtureIdOf(match){
+    var rd=match?.result_data||{};
+    var f=rd?.fixture||rd?.source_data?.fixture||rd?.sourceData?.fixture||{};
+    var candidates=[
+      match?.fixture_id,
+      match?.fixtureId,
+      f?.id,
+      f?.fixture_id,
+      f?.fixtureId,
+      rd?.fixture_id,
+      rd?.fixtureId
+    ];
+    for(var i=0;i<candidates.length;i++){
+      var n=Number(candidates[i]);
+      if(Number.isFinite(n)&&n>0)return n;
+    }
+    return 0;
+  }
+
+  function displayPick(best){
+    if(!best?.pick)return "暫不推薦";
+    var line=best.line;
+    if(line===undefined||line===null||line==="") return best.pick;
+    var lineText=String(line);
+    return String(best.pick).includes(lineText)
+      ? best.pick
+      : best.pick+" "+lineText;
   }
 
   function fmtTime(v){
-    var d=new Date(v);if(Number.isNaN(d.getTime())) return "--";
-    return new Intl.DateTimeFormat("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d);
+    var d=new Date(v);
+    if(Number.isNaN(d.getTime()))return"--";
+    return new Intl.DateTimeFormat(
+      "zh-TW",
+      {
+        timeZone:"Asia/Taipei",
+        month:"2-digit",
+        day:"2-digit",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+      }
+    ).format(d);
   }
 
   async function loadHistory(){
     var box=document.getElementById("matchList");
     box.innerHTML='<div class="empty">讀取已分析賽事中…</div>';
+
     try{
-      var res=await fetch(HISTORY_URL+"?account="+encodeURIComponent(BETA_ACCOUNT),{
-        method:"GET",
-        headers:{"apikey":PUBLISHABLE_KEY,"Authorization":"Bearer "+PUBLISHABLE_KEY},
-        cache:"no-store"
-      });
+      var res=await fetch(
+        HISTORY_URL+"?account="+encodeURIComponent(BETA_ACCOUNT),
+        {
+          method:"GET",
+          headers:{
+            "apikey":PUBLISHABLE_KEY,
+            "Authorization":"Bearer "+PUBLISHABLE_KEY
+          },
+          cache:"no-store"
+        }
+      );
+
       var data=await res.json().catch(function(){return{};});
-      if(!res.ok || data.success!==true) throw new Error(data.error||("HTTP "+res.status));
+
+      if(!res.ok || data.success!==true){
+        throw new Error(data.error||("HTTP "+res.status));
+      }
+
       historyMatches=Array.isArray(data.matches)?data.matches:[];
-      historyMatches.sort(function(a,b){return new Date(b.fixture_time||0)-new Date(a.fixture_time||0);});
+
+      historyMatches.sort(function(a,b){
+        return new Date(b.fixture_time||0)-new Date(a.fixture_time||0);
+      });
+
       renderMatches();
     }catch(e){
       console.error(e);
-      box.innerHTML='<div class="empty">已分析賽事讀取失敗<br>'+esc(e.message||e)+'</div>';
+      box.innerHTML=
+        '<div class="empty">已分析賽事讀取失敗<br>'+
+        esc(e.message||e)+
+        '</div>';
     }
+  }
+
+  function alreadyAdded(historyId,fixtureId){
+    return (cloud.bets||[]).some(function(b){
+      if(historyId!=null && String(b.history_id||"")===String(historyId)){
+        return true;
+      }
+      return Number(b.fixture_id||0)===Number(fixtureId||0);
+    });
   }
 
   function renderMatches(){
     var box=document.getElementById("matchList");
-    if(!historyMatches.length){box.innerHTML='<div class="empty">這個帳號目前尚無已分析賽事。<br>先到賽事中心完成分析，再回來建立資金配置。</div>';return;}
+
+    if(!historyMatches.length){
+      box.innerHTML=
+        '<div class="empty">這個帳號目前尚無已分析賽事。<br>'+
+        '先到賽事中心完成分析，再回來建立資金配置。</div>';
+      return;
+    }
+
     box.innerHTML=historyMatches.slice(0,20).map(function(m){
-      var best=bestRecommendation(m), id=String(m.id), selected=selectedIds.has(id);
+      var best=bestRecommendation(m);
+      var id=String(m.id);
+      var fixtureId=fixtureIdOf(m);
+      var selected=selectedIds.has(id);
+      var added=alreadyAdded(m.id,fixtureId);
+      var canSelect=best.key && fixtureId>0 && !added;
+
       return '<div class="match '+(selected?'selected':'')+'" data-id="'+esc(id)+'">'+
         '<div class="match-top"><span>'+esc(m.league_name||"足球賽事")+'</span><span>'+esc(fmtTime(m.fixture_time))+'</span></div>'+
         '<div class="teams">'+esc(m.home_team||"--")+' <span style="color:#687483;font-weight:800">vs</span> '+esc(m.away_team||"--")+'</div>'+
-        '<div class="recommend"><div><div class="market">'+esc(best.label)+'</div><div class="pick">'+esc(best.pick)+'</div></div><div class="confidence">AI '+Math.round(best.confidence)+'%</div></div>'+
-        '<input class="check" type="checkbox" '+(selected?'checked':'')+' aria-label="選擇賽事">'+
+        '<div class="recommend"><div><div class="market">'+esc(added?"已加入資金計畫":best.label)+'</div><div class="pick">'+esc(added?"等待／已完成結算":displayPick(best))+'</div></div><div class="confidence">'+(added?"已加入":"AI "+Math.round(best.confidence)+"%")+'</div></div>'+
+        '<input class="check" type="checkbox" '+(selected?'checked':'')+' '+(!canSelect?'disabled':'')+' aria-label="選擇賽事">'+
       '</div>';
     }).join("");
 
     box.querySelectorAll(".match").forEach(function(card){
-      var cb=card.querySelector(".check"), id=card.getAttribute("data-id");
+      var cb=card.querySelector(".check");
+      var id=card.getAttribute("data-id");
+
       cb.addEventListener("change",function(){
-        if(cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+        if(cb.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
         card.classList.toggle("selected",cb.checked);
       });
+
       card.addEventListener("click",function(e){
-        if(e.target===cb) return;
-        cb.checked=!cb.checked;cb.dispatchEvent(new Event("change"));
+        if(e.target===cb || cb.disabled)return;
+        cb.checked=!cb.checked;
+        cb.dispatchEvent(new Event("change"));
       });
     });
   }
 
-  function stakeRate(conf){
-    var c=riskConfig();
-    if(conf>=80) return c.high;
-    if(conf>=70) return c.mid;
-    if(conf>=60) return c.low;
-    return 0;
+  function buildSelectedItems(){
+    return historyMatches
+      .filter(function(m){
+        return selectedIds.has(String(m.id));
+      })
+      .map(function(m){
+        var best=bestRecommendation(m);
+        return {
+          history_id:m.id,
+          fixture_id:fixtureIdOf(m),
+          fixture_time:m.fixture_time||null,
+          league_name:m.league_name||"",
+          home_team:m.home_team||"",
+          away_team:m.away_team||"",
+          market_key:best.key,
+          market_label:best.label,
+          pick:best.pick,
+          line:best.line,
+          confidence:best.confidence
+        };
+      })
+      .filter(function(x){
+        return x.fixture_id>0 && x.market_key;
+      });
   }
 
-  function generatePlan(){
-    if(!selectedIds.size){toast("請先選擇至少一場賽事");return;}
-    var m=metrics(), cfg=riskConfig(), dailyCap=Math.max(0,m.current*cfg.daily);
-    var todayKey=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei"}).format(new Date());
-    var used=(state.bets||[]).filter(function(b){return b.planDate===todayKey;}).reduce(function(sum,b){return sum+(Number(b.stake)||0);},0);
-    var remain=Math.max(0,dailyCap-used);
-    var selected=historyMatches.filter(function(x){return selectedIds.has(String(x.id));}).map(function(x){
-      return {match:x,best:bestRecommendation(x)};
-    }).sort(function(a,b){return b.best.confidence-a.best.confidence;});
+  function skippedText(skipped){
+    if(!Array.isArray(skipped)||!skipped.length)return"";
 
-    var added=0;
-    selected.forEach(function(item){
-      var id=String(item.match.id);
-      if(state.bets.some(function(b){return String(b.historyId)===id;})) return;
-      var rate=stakeRate(item.best.confidence);
-      if(rate<=0 || remain<=0) return;
-      var suggested=Math.round((m.current*rate)/10)*10;
-      var stake=Math.max(0,Math.min(suggested,remain));
-      if(stake<10) return;
-      remain-=stake;
-      state.bets.push({
-        id:"b_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
-        historyId:id,fixtureTime:item.match.fixture_time||null,league:item.match.league_name||"",
-        home:item.match.home_team||"",away:item.match.away_team||"",
-        market:item.best.label,pick:item.best.pick,confidence:item.best.confidence,
-        stake:stake,odds:"",status:"pending",createdAt:new Date().toISOString(),planDate:todayKey
-      });
-      added++;
+    var labels={
+      invalid_item:"資料不完整",
+      already_added:"已加入",
+      confidence_below_threshold:"低於風控門檻",
+      daily_limit_reached:"已達單日投入上限",
+      stake_too_small:"建議注額過低",
+      panda_odds_unavailable:"Panda 找不到對應賠率"
+    };
+
+    var counts={};
+    skipped.forEach(function(x){
+      var key=labels[x.reason]||x.reason||"略過";
+      counts[key]=(counts[key]||0)+1;
     });
-    selectedIds.clear();
-    saveState();renderMatches();
-    toast(added ? "已建立 "+added+" 筆資金配置" : "沒有符合目前風控門檻的新賽事");
+
+    return Object.keys(counts).map(function(k){
+      return k+" "+counts[k]+" 場";
+    }).join("、");
+  }
+
+  async function generatePlan(){
+    if(!selectedIds.size){
+      toast("請先選擇至少一場賽事");
+      return;
+    }
+
+    var items=buildSelectedItems();
+    if(!items.length){
+      toast("選擇的賽事沒有可用推薦或 Fixture ID");
+      return;
+    }
+
+    try{
+      setBusy("generateBtn",true,"抓取 Panda 賠率並配置中…");
+
+      var data=await fundApi(
+        "create_bets",
+        {items:items}
+      );
+
+      selectedIds.clear();
+      applyCloud(data);
+      renderMatches();
+
+      var created=Array.isArray(data.created)?data.created.length:0;
+      var skip=skippedText(data.skipped);
+
+      if(created>0){
+        toast(
+          "已建立 "+created+" 筆雲端配置"+
+          (skip ? "｜"+skip : "")
+        );
+      }else{
+        toast(
+          skip ||
+          "沒有符合風控與 Panda 賠率條件的新配置"
+        );
+      }
+    }catch(e){
+      console.error("FUND BETA CREATE ERROR:",e);
+      toast("建立配置失敗："+e.message);
+    }finally{
+      setBusy("generateBtn",false);
+    }
   }
 
   function statusText(s){
-    return {pending:"待結算",win:"獲利",loss:"虧損",push:"走盤",half_win:"半贏",half_loss:"半輸"}[s]||s;
+    return {
+      pending:"待結算",
+      win:"獲利",
+      loss:"虧損",
+      push:"走盤",
+      half_win:"半贏",
+      half_loss:"半輸"
+    }[s]||s||"待結算";
   }
 
   function renderPlan(){
     var box=document.getElementById("planList");
-    if(!state.bets.length){box.innerHTML='<div class="empty">尚未建立投注配置</div>';return;}
-    box.innerHTML=state.bets.slice().reverse().map(function(b){
-      var pnl=pnlForBet(b), settled=b.status!=="pending";
-      return '<div class="plan-row" data-bet="'+esc(b.id)+'">'+
-        '<div class="plan-row-head"><div class="plan-team">'+esc(b.home)+' vs '+esc(b.away)+'</div><div class="plan-status">'+esc(statusText(b.status))+'</div></div>'+
+    var bets=Array.isArray(cloud.bets)?cloud.bets:[];
+
+    if(!bets.length){
+      box.innerHTML=
+        '<div class="empty">尚未建立雲端投注配置</div>';
+      return;
+    }
+
+    box.innerHTML=bets.slice().reverse().map(function(b){
+      var pnl=Number(b.pnl)||0;
+      var settled=String(b.status||"pending")!=="pending";
+      var odds=Number(b.odds);
+      var oddsText=Number.isFinite(odds)&&odds>1
+        ? odds.toFixed(2)
+        : "--";
+      var captured=b.odds_captured_at
+        ? fmtTime(b.odds_captured_at)
+        : "--";
+
+      return '<div class="plan-row">'+
+        '<div class="plan-row-head"><div class="plan-team">'+esc(b.home_team||"--")+' vs '+esc(b.away_team||"--")+'</div><div class="plan-status">'+esc(statusText(b.status))+'</div></div>'+
         '<div class="plan-meta">'+
-          '<div class="mini"><span>推薦</span><strong>'+esc(b.market)+'｜'+esc(b.pick)+'</strong></div>'+
+          '<div class="mini"><span>推薦</span><strong>'+esc(b.market_label||b.market_key)+'｜'+esc(b.pick||"--")+(b.line?(" "+esc(b.line)):"")+'</strong></div>'+
           '<div class="mini"><span>AI 信心</span><strong>'+Math.round(Number(b.confidence)||0)+'%</strong></div>'+
           '<div class="mini"><span>模擬注額</span><strong>'+money(b.stake)+'</strong></div>'+
+          '<div class="mini"><span>Panda 賠率</span><strong>@ '+esc(oddsText)+'</strong></div>'+
+          '<div class="mini"><span>鎖定時間</span><strong>'+esc(captured)+'</strong></div>'+
         '</div>'+
         (settled
           ? '<div class="pnl '+(pnl>0?'good':pnl<0?'bad':'')+'">單場盈虧：'+(pnl>0?'+':'')+money(pnl)+'</div>'
-          : '<div class="settle"><input class="odds-input" type="number" step="0.01" min="1.01" placeholder="輸入十進位賠率" value="'+esc(b.odds||"")+'"><div class="settle-actions"><button class="win" data-result="win">贏</button><button class="loss" data-result="loss">輸</button><button class="push" data-result="push">走</button></div></div>'
+          : '<div class="pnl">等待正式賽果自動結算</div>'
         )+
       '</div>';
     }).join("");
-
-    box.querySelectorAll(".plan-row").forEach(function(row){
-      var id=row.getAttribute("data-bet"), bet=state.bets.find(function(x){return x.id===id;});
-      row.querySelectorAll("[data-result]").forEach(function(btn){
-        btn.addEventListener("click",function(){
-          var result=btn.getAttribute("data-result"), oddsInput=row.querySelector(".odds-input");
-          var odds=Number(oddsInput&&oddsInput.value);
-          if(result==="win" && (!Number.isFinite(odds)||odds<=1)){toast("獲利結算前請輸入正確十進位賠率");return;}
-          bet.odds=Number.isFinite(odds)&&odds>1?Number(odds.toFixed(2)):"";
-          bet.status=result;bet.settledAt=new Date().toISOString();saveState();
-        });
-      });
-    });
   }
 
-  document.getElementById("riskMode").addEventListener("change",function(){
-    state.riskMode=this.value;document.getElementById("modeNote").textContent=riskConfig().note;
-  });
-
-  document.getElementById("savePlanBtn").addEventListener("click",function(){
-    var capital=Number(document.getElementById("capital").value);
-    if(!Number.isFinite(capital)||capital<1000){toast("起始本金至少輸入 1,000");return;}
-    if(state.bets.some(function(b){return b.status!=="pending";}) && capital!==Number(state.startCapital)){
-      if(!confirm("已經有結算紀錄，修改起始本金會影響 ROI。確定修改？")) return;
+  document.getElementById("riskMode").addEventListener(
+    "change",
+    function(){
+      document.getElementById("modeNote").textContent=
+        riskNote(this.value);
     }
-    state.startCapital=Math.round(capital);
-    state.riskMode=document.getElementById("riskMode").value;
-    saveState();toast("本月模擬計畫已儲存");
-  });
+  );
 
-  document.getElementById("refreshBtn").addEventListener("click",loadHistory);
-  document.getElementById("generateBtn").addEventListener("click",generatePlan);
-  document.getElementById("resetBtn").addEventListener("click",function(){
-    if(!confirm("確定清除目前 Beta 的所有模擬資金與投注紀錄？")) return;
-    state=defaultState();selectedIds.clear();saveState();renderMatches();toast("Beta 模擬資料已重置");
-  });
+  document.getElementById("savePlanBtn").addEventListener(
+    "click",
+    async function(){
+      var capital=Number(document.getElementById("capital").value);
+      var riskMode=document.getElementById("riskMode").value;
 
-  renderDashboard();
-  renderPlan();
-  loadHistory();
+      if(!Number.isFinite(capital)||capital<1000){
+        toast("起始本金至少輸入 1,000");
+        return;
+      }
+
+      try{
+        setBusy("savePlanBtn",true,"儲存中…");
+
+        await fundApi(
+          "save_plan",
+          {
+            start_capital:Math.round(capital),
+            risk_mode:riskMode
+          }
+        );
+
+        await loadCloudState(false);
+        toast("本月雲端資金計畫已儲存");
+      }catch(e){
+        console.error("FUND BETA SAVE PLAN ERROR:",e);
+        toast("儲存失敗："+e.message);
+      }finally{
+        setBusy("savePlanBtn",false);
+      }
+    }
+  );
+
+  document.getElementById("refreshBtn").addEventListener(
+    "click",
+    async function(){
+      setBusy("refreshBtn",true,"更新中…");
+      try{
+        await Promise.all([
+          loadHistory(),
+          loadCloudState(false)
+        ]);
+        renderMatches();
+        toast("賽事與雲端帳本已更新");
+      }finally{
+        setBusy("refreshBtn",false);
+      }
+    }
+  );
+
+  document.getElementById("generateBtn").addEventListener(
+    "click",
+    generatePlan
+  );
+
+  document.getElementById("syncBtn").addEventListener(
+    "click",
+    function(){
+      loadCloudState(true).then(renderMatches);
+    }
+  );
+
+  async function init(){
+    try{
+      await Promise.all([
+        loadCloudState(false),
+        loadHistory()
+      ]);
+      renderMatches();
+    }catch(e){
+      console.error("FUND BETA INIT ERROR:",e);
+    }
+  }
+
+  init();
 })();
 </script>
 </body>
