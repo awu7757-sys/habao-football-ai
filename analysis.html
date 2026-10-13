@@ -2984,7 +2984,6 @@ const analysisTranslations = {
     handicap: "讓分",
     overUnder: "大小球",
     btts: "BTTS",
-    doubleChance: "雙重機會",
 
     noRecommendation: "暫不推薦",
     insufficientData: "資料不足",
@@ -3040,7 +3039,6 @@ const analysisTranslations = {
     handicap: "让分",
     overUnder: "大小球",
     btts: "BTTS",
-    doubleChance: "双重机会",
 
     noRecommendation: "暂不推荐",
     insufficientData: "资料不足",
@@ -3096,7 +3094,6 @@ const analysisTranslations = {
     handicap: "Handicap",
     overUnder: "Over / Under",
     btts: "BTTS",
-    doubleChance: "Double Chance",
 
     noRecommendation: "No Recommendation",
     insufficientData: "Insufficient data",
@@ -3674,7 +3671,6 @@ const moneyline = rec.moneyline || {};
 const handicap = rec.handicap || {};
 const overUnder = rec.over_under || {};
 const btts = rec.btts || {};
-const doubleChance = rec.double_chance || {};
 const scores = analysis.predicted_scores || [];
 
     const gameDate = fixture.date
@@ -3959,30 +3955,7 @@ ${getAnalysisLeagueName(
         </div>
 
 
-        <!-- 雙重機會 -->
-        <div class="pick-card">
-          <div class="pick-label">${analysisT("doubleChance", "雙重機會")}</div>
-
-          <div class="pick-value">
-            ${localizeAnalysisText(doubleChance.pick) || analysisT("noRecommendation", "暫不推薦")}
-          </div>
-
-          <div class="confidence">
-            ${analysisT("aiConfidence", "AI 信心")} ${doubleChance.confidence || 0}%
-            ${confidenceFire(
-              doubleChance.confidence,
-              doubleChance.pick
-            )}
-          </div>
-
-          <div class="bar">
-            <div style="width:${confidenceBar(doubleChance.confidence)}%"></div>
-          </div>
-
-          <div class="reason">
-            ${localizeAnalysisText(doubleChance.reason) || analysisT("insufficientData", "資料不足")}
-          </div>
-        </div>
+</div>
 
       </div>
       </div>
