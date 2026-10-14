@@ -459,6 +459,91 @@ h1{
   }
 }  
 
+/* ===== 我的分析｜運動分類 ===== */
+.history-sport-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 16px;
+  padding:6px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  background:rgba(4,14,23,.62);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.history-sport-tab{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:10px 8px;
+  border:1px solid transparent;
+  border-radius:11px;
+  background:transparent;
+  color:#748693;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.history-sport-tab.active{
+  color:#171208;
+  border-color:rgba(255,225,118,.42);
+  background:linear-gradient(135deg,#ffe076,#e4a92e);
+  box-shadow:
+    0 8px 20px rgba(216,155,36,.16),
+    inset 0 1px 0 rgba(255,255,255,.38);
+}
+
+.history-sport-tab:active{
+  transform:scale(.98);
+}
+
+.history-sport-empty{
+  padding:34px 18px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(245,196,81,.07),transparent 45%),
+    rgba(7,20,30,.84);
+}
+
+.history-sport-empty-icon{
+  margin-bottom:10px;
+  font-size:34px;
+}
+
+.history-sport-empty-title{
+  color:#fff;
+  font-size:16px;
+  font-weight:950;
+}
+
+.history-sport-empty-text{
+  margin-top:7px;
+  color:#748693;
+  font-size:11px;
+  line-height:1.65;
+}
+
+@media(max-width:600px){
+  .history-sport-tabs{
+    gap:6px;
+    padding:5px;
+  }
+
+  .history-sport-tab{
+    min-height:42px;
+    padding:9px 5px;
+    font-size:10px;
+  }
+}
+
 /* ========================================
    HABAO V2 - ANALYSIS HISTORY EMPTY
 ======================================== */
@@ -8689,8 +8774,17 @@ const allMatches =
     return aTime - bTime;
   });
 
+window.habaoHistoryAllMatches =
+  allMatches;
+
+window.habaoHistorySport =
+  currentHabaoSport === "basketball"
+    ? "basketball"
+    : "football";
+
 renderAnalysisHistory(
-  allMatches
+  allMatches,
+  window.habaoHistorySport
 );
 
   } catch (error) {
@@ -8708,7 +8802,34 @@ renderAnalysisHistory(
 );
   }
 }
-function renderAnalysisHistory(matches) {
+function setAnalysisHistorySport(
+  sport
+) {
+  const allowed = [
+    "football",
+    "basketball",
+    "baseball"
+  ];
+
+  if (!allowed.includes(sport)) {
+    return;
+  }
+
+  window.habaoHistorySport =
+    sport;
+
+  renderAnalysisHistory(
+    window.habaoHistoryAllMatches || [],
+    sport
+  );
+}
+
+function renderAnalysisHistory(
+  matches,
+  selectedSport =
+    window.habaoHistorySport ||
+    "football"
+) {
   const container =
     document.getElementById(
       "matchesContainer"
@@ -8741,22 +8862,120 @@ function renderAnalysisHistory(matches) {
       );
   }
 
-if (!matches.length) {
+  const allMatches =
+    Array.isArray(matches)
+      ? matches
+      : [];
 
-  container.innerHTML = `
-    <div class="ai-note">
-      ${t(
-        "noHistory",
-        "尚無分析紀錄"
-      )}
+  const normalizedSport =
+    [
+      "football",
+      "basketball",
+      "baseball"
+    ].includes(selectedSport)
+      ? selectedSport
+      : "football";
+
+  window.habaoHistorySport =
+    normalizedSport;
+
+  const historyTabsHtml = `
+    <div class="history-sport-tabs">
+      <button
+        type="button"
+        class="history-sport-tab ${normalizedSport === "football" ? "active" : ""}"
+        onclick="setAnalysisHistorySport('football')"
+      >
+        ⚽ 足球
+      </button>
+      <button
+        type="button"
+        class="history-sport-tab ${normalizedSport === "basketball" ? "active" : ""}"
+        onclick="setAnalysisHistorySport('basketball')"
+      >
+        🏀 籃球
+      </button>
+      <button
+        type="button"
+        class="history-sport-tab ${normalizedSport === "baseball" ? "active" : ""}"
+        onclick="setAnalysisHistorySport('baseball')"
+      >
+        ⚾ 棒球
+      </button>
     </div>
   `;
 
-  window.habaoAnalysisHistory = {};
-  window.habaoCurrentHistoryMatches = [];
+  const displayMatches =
+    allMatches.filter(
+      match =>
+        String(
+          match?.sport ||
+          "football"
+        ).toLowerCase() ===
+          normalizedSport
+    );
 
-  return;
-}
+  if (!displayMatches.length) {
+    const emptyIcon =
+      normalizedSport === "basketball"
+        ? "🏀"
+        : normalizedSport === "baseball"
+          ? "⚾"
+          : "⚽";
+
+    const emptyTitle =
+      normalizedSport === "baseball"
+        ? "棒球分析紀錄尚未開放"
+        : t(
+            "noHistory",
+            "尚無分析紀錄"
+          );
+
+    const emptyText =
+      normalizedSport === "baseball"
+        ? "棒球功能開放後，完成的分析會顯示在這裡。"
+        : "完成賽事分析後，紀錄會自動保存在這裡。";
+
+    container.innerHTML =
+      historyTabsHtml +
+      `
+        <div class="history-sport-empty">
+          <div class="history-sport-empty-icon">${emptyIcon}</div>
+          <div class="history-sport-empty-title">${emptyTitle}</div>
+          <div class="history-sport-empty-text">${emptyText}</div>
+        </div>
+      `;
+
+    window.habaoAnalysisHistory =
+      Object.fromEntries(
+        allMatches.map(
+          match => {
+            const sport =
+              String(
+                match?.sport ||
+                "football"
+              ).toLowerCase();
+
+            const key =
+              String(
+                match.history_key ||
+                sport +
+                ":" +
+                String(match.id)
+              );
+
+            return [
+              key,
+              match
+            ];
+          }
+        )
+      );
+
+    window.habaoCurrentHistoryMatches = [];
+
+    return;
+  }
 
   const historyLeagueNameZH = {
     "Premier League":
@@ -9049,7 +9268,8 @@ if (!matches.length) {
         : "zh-TW";
 
   container.innerHTML =
-    matches
+    historyTabsHtml +
+    displayMatches
       .map(match => {
 
         const gameTime =
@@ -9291,7 +9511,7 @@ const historyKey =
 
   window.habaoAnalysisHistory =
     Object.fromEntries(
-      matches.map(
+      allMatches.map(
         match => {
           const sport =
             String(
@@ -9316,7 +9536,7 @@ const historyKey =
     );
 
   window.habaoCurrentHistoryMatches =
-    matches;
+    displayMatches;
 }
 
 function viewAnalysisHistory(historyKey) {
