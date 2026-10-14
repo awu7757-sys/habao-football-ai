@@ -1499,7 +1499,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div>
             <div class="page-kicker">AI ANALYSIS HISTORY</div>
             <div class="page-title">AI 分析紀錄</div>
-            <div class="page-desc">最近 7 天會員分析。後台僅顯示主要分析摘要，不顯示原始 JSON。</div>
+            <div class="page-desc">最多顯示近 7 天會員分析，可依運動與時間篩選；預設顯示今日。</div>
           </div>
           <button class="ghost-btn" onclick="refreshAdminSection(this,'analysis')">↻ 更新</button>
         </div>
@@ -1527,6 +1527,16 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div class="toolbar">
             <div class="filters">
               <input id="analysisSearch" class="input search" placeholder="搜尋會員、賽事、聯賽..." oninput="renderAnalysisHistory()">
+              <select id="analysisSportFilter" class="input" onchange="renderAnalysisHistory()">
+                <option value="all">全部運動</option>
+                <option value="football">⚽ 足球</option>
+                <option value="basketball">🏀 NBA</option>
+              </select>
+              <select id="analysisDaysFilter" class="input" onchange="renderAnalysisHistory()">
+                <option value="1" selected>今日</option>
+                <option value="3">近 3 天</option>
+                <option value="7">近 7 天</option>
+              </select>
             </div>
           </div>
 
@@ -1559,7 +1569,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div>
             <div class="page-kicker">ANALYSIS QUEUE</div>
             <div class="page-title">分析任務</div>
-            <div class="page-desc">查看背景分析工作、失敗原因與重新執行失敗任務。</div>
+            <div class="page-desc">最多顯示近 7 天背景分析工作，可選擇今日／近 3 天／近 7 天。</div>
           </div>
           <button class="ghost-btn" onclick="refreshAdminSection(this,'jobs')">↻ 更新</button>
         </div>
@@ -1595,6 +1605,11 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                 <option value="partial">部分失敗</option>
                 <option value="failed">失敗</option>
               </select>
+              <select id="jobDaysFilter" class="input" onchange="renderJobs()">
+                <option value="1" selected>今日</option>
+                <option value="3">近 3 天</option>
+                <option value="7">近 7 天</option>
+              </select>
             </div>
           </div>
 
@@ -1628,37 +1643,27 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div class="page-desc">查看今天與明天的可分析賽事及快取更新時間。</div>
           </div>
           <div class="table-tools">
-            <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
-            <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
-            <button class="ghost-btn" onclick="refreshAdminSection(this,'fixtures')">↻ 更新</button>
-          </div>
-        </div>
-
-        <div class="stats-grid" style="margin-bottom:15px">
-          <div class="stat-card gold">
-            <div class="stat-label">今日賽事</div>
-            <div id="fixtureTodayCount" class="stat-value gold-text">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">明日賽事</div>
-            <div id="fixtureTomorrowCount" class="stat-value">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">今日快取更新</div>
-            <div id="fixtureTodayFetched" class="stat-value" style="font-size:16px">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">明日快取更新</div>
-            <div id="fixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div>
+            <button class="ghost-btn" onclick="refreshAdminSection(this,'fixtures')">↻ 更新全部</button>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title">⚽ 足球賽事</div>
-              <div class="panel-desc">既有足球快取、會員分析人數與比分推播管理。</div>
+              <div class="panel-title">⚽ 足球賽事管理</div>
+              <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
+            <div class="table-tools">
+              <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
+              <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
+            </div>
+          </div>
+
+          <div class="stats-grid" style="margin-bottom:15px">
+            <div class="stat-card gold"><div class="stat-label">今日足球</div><div id="fixtureTodayCount" class="stat-value gold-text">0</div></div>
+            <div class="stat-card"><div class="stat-label">明日足球</div><div id="fixtureTomorrowCount" class="stat-value">0</div></div>
+            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="fixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
+            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="fixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
           </div>
 
           <div class="toolbar">
@@ -1697,31 +1702,25 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px;border-color:rgba(112,168,255,.18)">
-          <div class="panel-head">
+          <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title">🏀 NBA T-10 管理</div>
-              <div class="panel-desc">查看 NBA 今日／明日賽程、T-10 固定快取、首次預測快照與會員取用人數。</div>
+              <div class="panel-title">🏀 NBA 賽事管理</div>
+              <div class="panel-desc">今日／明日賽程、快取更新、T-10 快取、固定快照與會員取用。</div>
             </div>
             <button class="ghost-btn" onclick="refreshNbaFixtureSource(this)">同步 NBA 賽程 / T-10</button>
           </div>
 
           <div class="stats-grid" style="margin-bottom:15px">
-            <div class="stat-card gold">
-              <div class="stat-label">今日 NBA</div>
-              <div id="nbaFixtureTodayCount" class="stat-value gold-text">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">明日 NBA</div>
-              <div id="nbaFixtureTomorrowCount" class="stat-value">0</div>
-            </div>
-            <div class="stat-card green">
-              <div class="stat-label">T-10 快取完成</div>
-              <div id="nbaFixtureReadyCacheCount" class="stat-value green-text">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">會員取用總人次</div>
-              <div id="nbaFixtureMemberViews" class="stat-value">0</div>
-            </div>
+            <div class="stat-card gold"><div class="stat-label">今日 NBA</div><div id="nbaFixtureTodayCount" class="stat-value gold-text">0</div></div>
+            <div class="stat-card"><div class="stat-label">明日 NBA</div><div id="nbaFixtureTomorrowCount" class="stat-value">0</div></div>
+            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="nbaFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
+            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="nbaFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
+          </div>
+
+          <div class="three-grid" style="margin-bottom:15px">
+            <div class="mini-item"><span class="mini-key">T-10 快取完成</span><span id="nbaFixtureReadyCacheCount" class="mini-val">0</span></div>
+            <div class="mini-item"><span class="mini-key">固定快照</span><span id="nbaFixtureSnapshotCount" class="mini-val">0</span></div>
+            <div class="mini-item"><span class="mini-key">會員取用總人次</span><span id="nbaFixtureMemberViews" class="mini-val">0</span></div>
           </div>
 
           <div class="toolbar">
@@ -2239,6 +2238,7 @@ let analysisHistoryRecords = [];
 let analysisJobs = [];
 let fixtureCacheRows = [];
 let nbaFixtureRows = [];
+let nbaFixtureCacheRows = [];
 let nbaFixtureStats = {};
 let nbaFixtureDates = {};
 let nbaProviderUsage = {};
@@ -2551,6 +2551,7 @@ async function logoutAdmin() {
   analysisJobs = [];
   fixtureCacheRows = [];
   nbaFixtureRows = [];
+  nbaFixtureCacheRows = [];
   nbaFixtureStats = {};
   nbaFixtureDates = {};
   performanceSnapshots = [];
@@ -2708,8 +2709,7 @@ function renderDashboard() {
   setText("dashApiProgressText",`${apiUsed} / ${apiLimit}`);setText("dashApiRemaining",`剩餘 ${Math.max(apiLimit-apiUsed,0)}`);setAdminProgressBar("dashApiProgress",apiLimit>0?apiUsed/apiLimit*100:0);
 
   const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500);
-  const nu=Number(nbaProviderUsage?.used),nr=Number(nbaProviderUsage?.remaining),na=Number(nbaProviderUsage?.average_7d);
-  const nbaUsed=Number.isFinite(nu)?nu:null,nbaRemain=Number.isFinite(nr)?nr:null,nbaAvg=Number.isFinite(na)?na:null;
+  const nbaUsed=adminNullableNumber(nbaProviderUsage?.used),nbaRemain=adminNullableNumber(nbaProviderUsage?.remaining),nbaAvg=adminNullableNumber(nbaProviderUsage?.average_7d);
   const nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
   setText("dashNbaTodayApi",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);
   setText("dashNbaApiProgressText",nbaUsed===null?"等待配額快照":`${nbaUsed} / ${nbaLimit}`);setText("dashNbaApiRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain}`);
@@ -2717,8 +2717,7 @@ function renderDashboard() {
   setText("dashNbaRenewalDate",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("dashNbaRenewalDays",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("dashNbaApiProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
   const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000);
-  const ou=Number(oddsProviderUsage?.used),or=Number(oddsProviderUsage?.remaining);
-  const oddsUsed=Number.isFinite(ou)?ou:null,oddsRemain=Number.isFinite(or)?or:null,oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
+  const oddsUsed=adminNullableNumber(oddsProviderUsage?.used),oddsRemain=adminNullableNumber(oddsProviderUsage?.remaining),oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
   setText("dashOddsUsage",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("dashOddsProgressText",oddsUsed===null?"等待市場快照":`${oddsUsed} / ${oddsLimit}`);setText("dashOddsRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain}`);
   setText("dashOddsLastCost",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("dashOddsEvents",oddsProviderUsage?.events==null?"—":`目前快取 ${Number(oddsProviderUsage.events||0)} 場`);
   setText("dashOddsRenewalDate",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("dashOddsRenewalDays",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("dashOddsProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
@@ -3998,12 +3997,10 @@ function renderApiPage() {
   const apiLimit=Number(window.apiDailyLimit||7500),apiUsed=Number(dashboardData.todayApiCount||0),avg=Math.ceil(Number(dashboardData.last7DaysApiCount||0)/7),remaining=Math.max(apiLimit-apiUsed,0),percent=apiLimit>0?Math.min(apiUsed/apiLimit*100,100):0;
   setText("apiTodayBig",`${apiUsed} / ${apiLimit}`);setText("apiAvgText",avg);setText("apiAvgRemainingText",`平均剩餘 ${Math.max(apiLimit-avg,0)}`);setText("apiRenewalText",window.apiRenewalDate?String(window.apiRenewalDate).replace(/-/g,"/"):"—");setText("apiRenewalDaysText",calculateRenewalDays(window.apiRenewalDate).text);setText("apiPagePercent",`${percent.toFixed(1)}%`);setText("apiPageRemaining",`剩餘 ${remaining} 次`);setAdminProgressBar("apiPageProgress",percent);
 
-  const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500),nu=Number(nbaProviderUsage?.used),nr=Number(nbaProviderUsage?.remaining),na=Number(nbaProviderUsage?.average_7d);
-  const nbaUsed=Number.isFinite(nu)?nu:null,nbaRemain=Number.isFinite(nr)?nr:null,nbaAvg=Number.isFinite(na)?na:null,nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
+  const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500),nbaUsed=adminNullableNumber(nbaProviderUsage?.used),nbaRemain=adminNullableNumber(nbaProviderUsage?.remaining),nbaAvg=adminNullableNumber(nbaProviderUsage?.average_7d),nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
   setText("nbaApiTodayBig",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);setText("nbaApiPagePercent",nbaUsed===null||nbaLimit<=0?"—":`${(nbaUsed/nbaLimit*100).toFixed(1)}%`);setText("nbaApiPageRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain} 次`);setText("nbaApiAvgText",nbaAvg===null?"—":nbaAvg);setText("nbaApiDailyLimitText",`每日上限 ${nbaLimit.toLocaleString("en-US")}`);setText("nbaApiRenewalText",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("nbaApiRenewalDaysText",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("nbaApiPageProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
-  const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000),ou=Number(oddsProviderUsage?.used),or=Number(oddsProviderUsage?.remaining);
-  const oddsUsed=Number.isFinite(ou)?ou:null,oddsRemain=Number.isFinite(or)?or:null,oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
+  const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000),oddsUsed=adminNullableNumber(oddsProviderUsage?.used),oddsRemain=adminNullableNumber(oddsProviderUsage?.remaining),oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
   setText("oddsApiTodayBig",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("oddsApiPagePercent",oddsUsed===null||oddsLimit<=0?"—":`${(oddsUsed/oddsLimit*100).toFixed(1)}%`);setText("oddsApiPageRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain} credits`);setText("oddsApiLastCostText",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("oddsApiEventsText",oddsProviderUsage?.events==null?"—":`快取 ${Number(oddsProviderUsage.events||0)} 場`);setText("oddsApiRenewalText",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("oddsApiRenewalDaysText",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("oddsApiPageProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
 
   setText("renewalSummaryFootball",window.apiRenewalDate?`${String(window.apiRenewalDate).replace(/-/g,"/")}｜${calculateRenewalDays(window.apiRenewalDate).text}`:"—");setText("renewalSummaryNba",nbaRenewal?`${String(nbaRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(nbaRenewal).text}`:"—");setText("renewalSummaryOdds",oddsRenewal?`${String(oddsRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(oddsRenewal).text}`:"—");
@@ -4355,134 +4352,58 @@ function getAnalysisMatchStatusLabel(item) {
   );
 }
   
+function isWithinAdminDays(value, days) {
+  if (!value) return false;
+  const n = Math.max(1, Math.min(Number(days || 1), 7));
+  if (n === 1) return isTodayTaipei(value);
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) && time >= Date.now() - n * 24 * 60 * 60 * 1000;
+}
+
+function adminNullableNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function renderAnalysisHistory() {
-  const body =
-    document.getElementById(
-      "analysisHistoryBody"
-    );
+  const body=document.getElementById("analysisHistoryBody");
+  if(!body)return;
 
-  if (!body) return;
+  const search=String(document.getElementById("analysisSearch")?.value||"").trim().toLowerCase();
+  const sport=document.getElementById("analysisSportFilter")?.value||"all";
+  const days=Number(document.getElementById("analysisDaysFilter")?.value||1);
 
-  const search =
-    String(
-      document
-        .getElementById(
-          "analysisSearch"
-        )?.value || ""
-    )
-      .trim()
-      .toLowerCase();
+  const filtered=analysisHistoryRecords.filter(item=>{
+    const rowSport=String(item?.sport||"football");
+    const sportOk=sport==="all"||rowSport===sport;
+    const dateOk=isWithinAdminDays(item?.updated_at,days);
+    const haystack=[item?.account,item?.fixture_id,item?.game_id,item?.league_name,item?.home_team,item?.away_team].join(" ").toLowerCase();
+    return sportOk&&dateOk&&(!search||haystack.includes(search));
+  });
 
-  const filtered =
-    analysisHistoryRecords.filter(
-      item => {
-        const haystack = [
-          item?.account,
-          item?.fixture_id,
-          item?.league_name,
-          item?.home_team,
-          item?.away_team
-        ]
-          .join(" ")
-          .toLowerCase();
+  body.innerHTML=filtered.length?filtered.map(item=>`
+    <tr>
+      <td>${formatDate(item?.updated_at)}</td>
+      <td class="account-name">${escapeHtml(item?.account||"—")}</td>
+      <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
+      <td class="mono">${escapeHtml(item?.fixture_id??item?.game_id??"—")}</td>
+      <td>${escapeHtml(String(item?.sport||"")==="basketball"?"NBA":normalizeLeagueDisplay(item?.league_name))}</td>
+      <td><strong>${escapeHtml(item?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(item?.away_team||"—")}</div></td>
+      <td>${formatDate(item?.fixture_time)}</td>
+      <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
+      <td><button class="action-btn gold" onclick='showAnalysisSummaryById("${String(item?.admin_key||item?.id)}")'>查看摘要</button></td>
+    </tr>
+  `).join(""):'<tr><td colspan="9" class="empty">此篩選條件目前沒有分析紀錄</td></tr>';
 
-        return (
-          !search ||
-          haystack.includes(search)
-        );
-      }
-    );
+  const memberCount=new Set(filtered.map(x=>String(x?.account||"")).filter(Boolean)).size;
+  const payloadCount=filtered.filter(x=>x?.result_data!=null).length;
+  const todayCount=filtered.filter(x=>isTodayTaipei(x?.updated_at)).length;
 
-  body.innerHTML =
-    filtered
-      .map(item => `
-        <tr>
-          <td>${formatDate(item?.updated_at)}</td>
-          <td class="account-name">${escapeHtml(item?.account || "—")}</td>
-          <td>
-            ${String(item?.sport || "football") === "basketball"
-              ? '<span class="status active"><span class="dot"></span>🏀 NBA</span>'
-              : '<span class="status"><span class="dot"></span>⚽ 足球</span>'
-            }
-          </td>
-          <td class="mono">${escapeHtml(item?.fixture_id ?? item?.game_id ?? "—")}</td>
-          <td>${escapeHtml(
-            String(item?.sport || "") === "basketball"
-              ? "NBA"
-              : normalizeLeagueDisplay(item?.league_name)
-          )}</td>
-          <td>
-            <strong>${escapeHtml(item?.home_team || "—")}</strong>
-            <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
-          </td>
-          <td>${formatDate(item?.fixture_time)}</td>
-          <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
-          <td>
-            <button
-              class="action-btn gold"
-              onclick='showAnalysisSummaryById("${String(item?.admin_key || item?.id)}")'
-            >查看摘要</button>
-          </td>
-        </tr>
-      `)
-      .join("");
-
-  const today =
-    new Date()
-      .toLocaleDateString(
-        "en-CA",
-        { timeZone: "Asia/Taipei" }
-      );
-
-  const todayCount =
-    analysisHistoryRecords.filter(
-      item => {
-        if (!item?.updated_at) {
-          return false;
-        }
-
-        return new Date(
-          item.updated_at
-        ).toLocaleDateString(
-          "en-CA",
-          { timeZone: "Asia/Taipei" }
-        ) === today;
-      }
-    ).length;
-
-  const memberCount =
-    new Set(
-      analysisHistoryRecords
-        .map(item =>
-          String(
-            item?.account || ""
-          )
-        )
-        .filter(Boolean)
-    ).size;
-
-  const payloadCount =
-    analysisHistoryRecords.filter(
-      item =>
-        item?.result_data != null
-    ).length;
-
-  setText(
-    "analysisRecordCount",
-    analysisHistoryRecords.length
-  );
-  setText(
-    "analysisTodayCount",
-    todayCount
-  );
-  setText(
-    "analysisMemberCount",
-    memberCount
-  );
-  setText(
-    "analysisPayloadCount",
-    payloadCount
-  );
+  setText("analysisRecordCount",filtered.length);
+  setText("analysisTodayCount",todayCount);
+  setText("analysisMemberCount",memberCount);
+  setText("analysisPayloadCount",payloadCount);
 }
 
 /* ---------- Jobs ---------- */
@@ -4519,19 +4440,25 @@ function renderJobs() {
   const body=document.getElementById("jobsBody"); if(!body)return;
   const search=String(document.getElementById("jobSearch")?.value||"").trim().toLowerCase();
   const status=document.getElementById("jobStatusFilter")?.value||"all";
-  const filtered=analysisJobs.filter(job=>{const h=`${job?.id||""} ${job?.account||""}`.toLowerCase();return(!search||h.includes(search))&&(status==="all"||String(job?.status)===status);});
-  body.innerHTML=filtered.map(job=>{
-    const completed=Number(job?.completed_count||0), failed=Number(job?.failed_count||0), total=Number(job?.total_count||job?.fixture_ids?.length||0);
+  const days=Number(document.getElementById("jobDaysFilter")?.value||1);
+  const filtered=analysisJobs.filter(job=>{
+    const h=`${job?.id||""} ${job?.account||""}`.toLowerCase();
+    return isWithinAdminDays(job?.created_at,days)&&(!search||h.includes(search))&&(status==="all"||String(job?.status)===status);
+  });
+
+  body.innerHTML=filtered.length?filtered.map(job=>{
+    const completed=Number(job?.completed_count||0),failed=Number(job?.failed_count||0),total=Number(job?.total_count||job?.fixture_ids?.length||0);
     const retryable=["failed","partial"].includes(String(job?.status));
     const reason=job?.error_message||job?.failures?.[0]?.message||"—";
     const progress=total?`${completed+failed}/${total}`:"—";
     const stuck=job?.suspected_stuck===true;
-    return `<tr><td>${formatDate(job?.created_at)}</td><td class="account-name">${escapeHtml(job?.account||"—")}</td><td>${total}</td><td>${progress}</td><td>${statusBadge(job?.status)}${stuck?'<div class="subline stale">疑似卡住</div>':''}</td><td>${escapeHtml(reason)}</td><td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("分析任務詳細", analysisJobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>詳細</button>${retryable?`<button class="action-btn gold" onclick='retryAnalysisJob("${String(job?.id)}")'>重新執行</button>`:""}</div></td></tr>`;
-  }).join("");
-  setText("jobQueuedCount",analysisJobs.filter(j=>j?.status==="queued").length);
-  setText("jobProcessingCount",analysisJobs.filter(j=>j?.status==="processing").length);
-  setText("jobCompletedCount",analysisJobs.filter(j=>j?.status==="completed").length);
-  setText("jobFailedCount",analysisJobs.filter(j=>["failed","partial"].includes(j?.status)).length);
+    return `<tr><td>${formatDate(job?.created_at)}</td><td class="account-name">${escapeHtml(job?.account||"—")}</td><td>${total}</td><td>${progress}</td><td>${statusBadge(job?.status)}${stuck?'<div class="subline stale">疑似卡住</div>':""}</td><td>${escapeHtml(reason)}</td><td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("分析任務詳細", analysisJobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>詳細</button>${retryable?`<button class="action-btn gold" onclick='retryAnalysisJob("${String(job?.id)}")'>重新執行</button>`:""}</div></td></tr>`;
+  }).join(""):'<tr><td colspan="7" class="empty">此時間範圍目前沒有分析任務</td></tr>';
+
+  setText("jobQueuedCount",filtered.filter(j=>j?.status==="queued").length);
+  setText("jobProcessingCount",filtered.filter(j=>j?.status==="processing").length);
+  setText("jobCompletedCount",filtered.filter(j=>j?.status==="completed").length);
+  setText("jobFailedCount",filtered.filter(j=>["failed","partial"].includes(j?.status)).length);
 }
 
 async function retryAnalysisJob(jobId) {
@@ -4607,6 +4534,10 @@ async function loadFixtures(force = false) {
         nbaResult.value
           ?.fixtures || [];
 
+      nbaFixtureCacheRows =
+        nbaResult.value
+          ?.caches || [];
+
       nbaFixtureStats =
         nbaResult.value
           ?.stats || {};
@@ -4616,6 +4547,7 @@ async function loadFixtures(force = false) {
           ?.dates || {};
     } else {
       nbaFixtureRows = [];
+      nbaFixtureCacheRows = [];
       nbaFixtureStats = {};
       nbaFixtureDates = {};
 
@@ -5046,6 +4978,21 @@ function renderNbaFixtures() {
         ?.member_views || 0
     )
   );
+
+  setText(
+    "nbaFixtureSnapshotCount",
+    Number(
+      nbaFixtureStats
+        ?.snapshots || 0
+    )
+  );
+
+  const nbaTodayCache=(nbaFixtureCacheRows||[]).find(row=>String(row?.fixture_date||"")===String(today||""));
+  const nbaTomorrowCache=(nbaFixtureCacheRows||[]).find(row=>String(row?.fixture_date||"")===String(tomorrow||""));
+  const nbaTodayFresh=cacheFreshness(nbaTodayCache);
+  const nbaTomorrowFresh=cacheFreshness(nbaTomorrowCache);
+  setText("nbaFixtureTodayFetched",nbaTodayCache?.fetched_at?`${formatDate(nbaTodayCache.fetched_at)}｜${nbaTodayFresh.text}`:"資料待更新");
+  setText("nbaFixtureTomorrowFetched",nbaTomorrowCache?.fetched_at?`${formatDate(nbaTomorrowCache.fetched_at)}｜${nbaTomorrowFresh.text}`:"資料待更新");
 
   loadBasketballPushFixtures();
 }
