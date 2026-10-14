@@ -6182,6 +6182,9 @@ async function loadApiSettings() {
 
 async function loadApiStats(force = false) {
   try {
+
+    await loadApiSettings();
+
     const data =
       await adminCenterRequest({
         action: "api_stats"
