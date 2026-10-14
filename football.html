@@ -4108,6 +4108,15 @@ const MATCH_ANALYSIS_URL =
 const ANALYSIS_JOB_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/analysis-job";
 
+const BASKETBALL_MEMBER_ANALYSIS_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-member-analysis";
+
+const BASKETBALL_ANALYSIS_PREVIEW_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-analysis";
+
+const HABAO_NBA_PREVIEW_TEST_ACCOUNT =
+  "google_2d3cef6b6e2d";
+
 const HABAO_ANALYSIS_JOB_KEY =
   "habao_active_analysis_job";
 
@@ -5967,6 +5976,288 @@ async function loadBasketballFixtures(
   }
 }
 
+function isHabaoNbaPreviewTester() {
+  if (!HABAO_NBA_TEST_MODE) {
+    return false;
+  }
+
+  try {
+    const member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) || "null"
+      );
+
+    return (
+      String(
+        member?.account || ""
+      ).trim() ===
+      HABAO_NBA_PREVIEW_TEST_ACCOUNT
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function openBasketballMatch(
+  gameId,
+  button
+) {
+  const normalizedGameId =
+    Number(gameId || 0);
+
+  if (!normalizedGameId) {
+    alert(
+      "找不到這場 NBA 賽事資料"
+    );
+    return;
+  }
+
+  let member = null;
+
+  try {
+    member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) || "null"
+      );
+  } catch {
+    member = null;
+  }
+
+  if (!member?.account) {
+    alert(
+      "無法確認會員帳號，請重新登入"
+    );
+    return;
+  }
+
+  const previewTest =
+    isHabaoNbaPreviewTester();
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText =
+      button.textContent || "";
+
+    button.classList.add(
+      "loading"
+    );
+
+    button.textContent =
+      previewTest
+        ? "NBA 測試分析中..."
+        : "NBA AI 分析中...";
+
+    button.style.setProperty(
+      "--progress",
+      "30%"
+    );
+  }
+
+  try {
+    const endpoint =
+      previewTest
+        ? BASKETBALL_ANALYSIS_PREVIEW_URL
+        : BASKETBALL_MEMBER_ANALYSIS_URL;
+
+    const requestBody =
+      previewTest
+        ? {
+            game_id:
+              normalizedGameId,
+            debug:
+              false
+          }
+        : {
+            game_id:
+              normalizedGameId,
+            account:
+              member.account
+          };
+
+    const response =
+      await fetch(
+        endpoint,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            "apikey":
+              FIXTURES_PUBLISHABLE_KEY,
+            "Authorization":
+              "Bearer " +
+              FIXTURES_PUBLISHABLE_KEY
+          },
+          body:
+            JSON.stringify(
+              requestBody
+            )
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      data?.success !== true
+    ) {
+      const error =
+        new Error(
+          data?.message ||
+          data?.error ||
+          "NBA AI 分析失敗"
+        );
+
+      error.code =
+        data?.error ||
+        "nba_analysis_failed";
+
+      error.data =
+        data;
+
+      throw error;
+    }
+
+    if (
+      !previewTest &&
+      data?.member_access
+    ) {
+      const access =
+        data.member_access;
+
+      if (
+        access.analysis_unlimited !==
+        true
+      ) {
+        if (
+          access.remaining_paid_credits !==
+          null &&
+          access.remaining_paid_credits !==
+          undefined
+        ) {
+          member.analysis_credits =
+            Number(
+              access
+                .remaining_paid_credits ||
+              0
+            );
+        }
+
+        if (
+          String(
+            member.member_level || ""
+          ).toLowerCase() === "vip" &&
+          access.remaining_daily_credits !==
+            null &&
+          access.remaining_daily_credits !==
+            undefined
+        ) {
+          member.daily_free_credits =
+            Number(
+              access
+                .remaining_daily_credits ||
+              0
+            );
+        }
+
+        sessionStorage.setItem(
+          "habao_member",
+          JSON.stringify(member)
+        );
+      }
+    }
+
+    sessionStorage.setItem(
+      "matchAnalysis",
+      JSON.stringify(data)
+    );
+
+    sessionStorage.setItem(
+      "habao_analysis_sport",
+      "basketball"
+    );
+
+    window.location.href =
+      previewTest
+        ? "analysis.html?sport=basketball&nba_preview=1"
+        : "analysis.html?sport=basketball";
+
+  } catch (error) {
+    console.error(
+      "NBA ANALYSIS ERROR:",
+      error
+    );
+
+    if (
+      error?.code ===
+      "analysis_credits_empty"
+    ) {
+      showQuotaLimitModal(
+        "credits_empty"
+      );
+
+    } else if (
+      error?.code ===
+      "daily_limit_reached"
+    ) {
+      showQuotaLimitModal(
+        error?.data?.limit ??
+        0
+      );
+
+    } else if (
+      error?.code ===
+      "member_inactive"
+    ) {
+      alert(
+        "AI 分析權限目前已停用，請聯絡客服"
+      );
+
+    } else if (
+      error?.code ===
+      "analysis_not_open"
+    ) {
+      alert(
+        error?.data?.message ||
+        "此場尚未開放 AI 分析"
+      );
+
+    } else if (
+      error?.code ===
+      "member_analysis_processing"
+    ) {
+      alert(
+        "此場分析正在處理中，請稍後再試"
+      );
+
+    } else {
+      alert(
+        error?.message ||
+        "NBA AI 分析失敗，請稍後再試"
+      );
+    }
+
+    if (button) {
+      button.disabled = false;
+      button.classList.remove(
+        "loading"
+      );
+      button.style.removeProperty(
+        "--progress"
+      );
+
+      button.textContent =
+        button.dataset.originalText ||
+        "開始分析";
+    }
+  }
+}
+
 function renderBasketballFixtureData(
   data,
   offset,
@@ -6097,6 +6388,48 @@ function renderBasketballFixtureData(
           .filter(Boolean)
           .join("・");
 
+      const gameId =
+        Number(
+          match?.fixture_id ||
+          0
+        );
+
+      const analysisWindow =
+        getHabaoAnalysisWindowState({
+          time:
+            match?.kickoff_at ||
+            null
+        });
+
+      const previewTest =
+        isHabaoNbaPreviewTester();
+
+      const analysisAvailable =
+        Boolean(gameId) &&
+        (
+          analysisWindow.isOpen ||
+          analysisWindow.isStarted ||
+          previewTest
+        );
+
+      const analysisStatusText =
+        previewTest &&
+        !analysisWindow.isOpen &&
+        !analysisWindow.isStarted
+          ? "NBA TEST PREVIEW"
+          : analysisAvailable
+            ? "NBA AI READY"
+            : "T-10 LOCKED";
+
+      const analysisButtonText =
+        previewTest &&
+        !analysisWindow.isOpen &&
+        !analysisWindow.isStarted
+          ? "測試 NBA AI 分析"
+          : analysisAvailable
+            ? "開始分析"
+            : "賽前 10 小時開放";
+
       return `
         <article
           class="match-card v2-match-card"
@@ -6169,9 +6502,9 @@ function renderBasketballFixtureData(
 
           <div class="analysis v2-match-action">
 
-            <div class="ai-status v2-status locked">
+            <div class="ai-status v2-status ${analysisAvailable ? "" : "locked"}">
               <span></span>
-              NBA LIVE DATA
+              ${analysisStatusText}
             </div>
 
             ${venueText
@@ -6183,10 +6516,13 @@ function renderBasketballFixtureData(
               : ""}
 
             <button
-              class="analysis-btn v2-analysis-btn locked"
-              disabled
+              class="analysis-btn v2-analysis-btn ${analysisAvailable ? "" : "locked"}"
+              ${analysisAvailable
+                ? `onclick="openBasketballMatch(${gameId}, this)"`
+                : "disabled"
+              }
             >
-              AI 分析功能準備中
+              ${analysisButtonText}
             </button>
 
           </div>
