@@ -478,6 +478,7 @@
 
 <script>
 const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
+const BASKETBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-performance-api";
 let topDays="", lowerDays=7, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
 let topData=null, lowerData=null, allData=null;
 
@@ -635,7 +636,56 @@ function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSamp
 
 function renderRange(){const start=topData?.summary?.range_start,end=topData?.summary?.range_end;if(start&&end){document.getElementById("rangeText").textContent=`${ymd(start)} - ${ymd(end)}`;return}const rows=topData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
-function marketLabel(key){return key==="overall"?tr("overall"):key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):"BTTS"}
+function sportMetricLabel(key){
+  if(currentSport==="basketball"){
+    if(key==="moneyline")return tr("moneyline");
+    if(key==="over_under")return getLang()==="en"?"Total Error ≤ 8":"總分誤差 ≤ 8";
+    if(key==="btts")return getLang()==="en"?"Margin Error ≤ 6":"勝分差誤差 ≤ 6";
+    return tr("overall");
+  }
+  return key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):key==="btts"?"BTTS":tr("overall");
+}
+function marketLabel(key){return sportMetricLabel(key)}
+function applySportLabels(){
+  const basketball=currentSport==="basketball";
+  const totalLabel=basketball?(getLang()==="en"?"Total Error ≤ 8":"總分誤差 ≤ 8"):tr("overUnder");
+  const marginLabel=basketball?(getLang()==="en"?"Margin Error ≤ 6":"勝分差誤差 ≤ 6"):"BTTS";
+
+  const mlName=document.querySelector(".market-card.moneyline .market-name");
+  const ouName=document.querySelector(".market-card.overunder .market-name");
+  const thirdName=document.querySelector(".market-card.btts .market-name");
+  const mlTag=document.querySelector(".market-card.moneyline .market-tag");
+  const ouTag=document.querySelector(".market-card.overunder .market-tag");
+  const thirdTag=document.querySelector(".market-card.btts .market-tag");
+
+  if(mlName)mlName.textContent=tr("moneyline");
+  if(ouName)ouName.textContent=totalLabel;
+  if(thirdName)thirdName.textContent=marginLabel;
+  if(mlTag)mlTag.textContent=basketball?"ML":"1X2";
+  if(ouTag)ouTag.textContent=basketball?"Σ":"O/U";
+  if(thirdTag)thirdTag.textContent=basketball?"±":"BTTS";
+
+  const trendOU=document.querySelector('.trend-tab[data-trend="over_under"]');
+  const trendThird=document.querySelector('.trend-tab[data-trend="btts"]');
+  if(trendOU)trendOU.textContent=totalLabel;
+  if(trendThird)trendThird.textContent=marginLabel;
+
+  const heads=document.querySelectorAll("#footballPerformance table thead th");
+  if(heads.length>=9){
+    heads[6].textContent=tr("moneyline");
+    heads[7].textContent=totalLabel;
+    heads[8].textContent=marginLabel;
+  }
+
+  const note=document.querySelector("#footballPerformance .method-note");
+  if(note){
+    note.textContent=basketball
+      ? (getLang()==="en"
+          ? "NBA performance uses the first saved T-10 model snapshot and the official final score. Winner accuracy is reported directly; total projection is counted as a hit within 8 points, and margin projection within 6 points. These are model-error metrics, not sportsbook spread/total results."
+          : "NBA 戰績使用首次保存的 T-10 模型快照與正式完場比分驗證；獨贏直接計算命中，模型總分誤差 ≤ 8 分視為命中、勝分差誤差 ≤ 6 分視為命中。後兩項是模型誤差指標，不代表莊家讓分／大小分盤結果。")
+      : tr("methodNote");
+  }
+}
 function renderRecent(){
 
   const recentRow =
@@ -744,6 +794,52 @@ function renderRecords(){
     return;
   }
 
+  if(currentSport==="basketball"){
+    body.innerHTML=shown.map(x=>{
+      const s=x.settlement||{};
+      const ov=overallResult(s);
+      const money=localizedPick(predictionPick(x.prediction,"moneyline"));
+      const ph=x?.model?.predicted_score?.home;
+      const pa=x?.model?.predicted_score?.away;
+      const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
+      return`<tr>
+        <td>${esc(dateFmt(x.kickoff_at))}</td>
+        <td><b>NBA</b></td>
+        <td>${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</td>
+        <td class="score">${esc(x.final_score||"-")}</td>
+        <td><div class="pred-main">${esc(money)}</div><div class="pred-sub">${esc(getLang()==="en"?"Projected score":"預測比分")} ${esc(scorePrediction)}</div></td>
+        <td><div class="verify-dot">${resultMark(ov)}</div></td>
+        ${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
+        <td class="row-arrow">›</td>
+      </tr>`;
+    }).join("");
+
+    mobile.innerHTML=shown.map(x=>{
+      const s=x.settlement||{};
+      const ph=x?.model?.predicted_score?.home;
+      const pa=x?.model?.predicted_score?.away;
+      const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
+      const money=localizedPick(predictionPick(x.prediction,"moneyline"));
+      return`<article class="record-card">
+        <div class="record-top">
+          <div class="record-league"><span>NBA</span></div>
+          <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
+        </div>
+        <div class="record-match">
+          <div class="record-teams">${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</div>
+          <div class="record-score">${esc(x.final_score||"-")}</div>
+        </div>
+        <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(money)}｜${esc(getLang()==="en"?"Score":"比分")} ${esc(scorePrediction)}</div>
+        <div class="record-results">
+          ${[["moneyline",sportMetricLabel("moneyline")],["over_under",sportMetricLabel("over_under")],["btts",sportMetricLabel("btts")]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
+        </div>
+      </article>`;
+    }).join("");
+
+    document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
+    return;
+  }
+
   body.innerHTML=shown.map(x=>{
     const s=x.settlement||{},ov=overallResult(s),mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
     return`<tr>
@@ -801,28 +897,42 @@ function renderSportSkeleton(){
 }
 let performanceSportToastTimer=null;
 
-function switchSport(sport){
-  if(sport==="football"){
-    currentSport="football";
+async function switchSport(sport){
+  if(sport==="football"||sport==="basketball"){
+    currentSport=sport;
+    showAll=false;
+    currentRecent="overall";
+    currentTrend="overall";
+
     document.querySelectorAll(".sport-tab").forEach(btn=>{
-      btn.classList.toggle("active",btn.dataset.sport==="football");
+      btn.classList.toggle("active",btn.dataset.sport===sport);
     });
 
     const football=document.getElementById("footballPerformance");
     const coming=document.getElementById("sportComingSoon");
     if(football)football.style.display="";
     if(coming)coming.classList.remove("active");
+
+    applySportLabels();
+
+    try{
+      allData=await fetchData("");
+      topData=allData;
+      lowerData=await fetchData(String(lowerDays));
+    }catch(e){
+      console.error("SPORT PERFORMANCE ERROR",e);
+      allData=topData=lowerData=emptyPerformanceData();
+    }
+
+    renderAll();
+    applySportLabels();
     return;
   }
 
   const toast=document.getElementById("performanceSportToast");
   if(!toast)return;
 
-  toast.textContent=
-    sport==="basketball"
-      ? tr("basketballComingSoon")
-      : tr("baseballComingSoon");
-
+  toast.textContent=tr("baseballComingSoon");
   toast.classList.add("show");
 
   if(performanceSportToastTimer){
@@ -838,10 +948,18 @@ function emptyPerformanceData(){return{summary:{verified_matches:0},markets:{},r
 function renderTop(){document.getElementById("verifiedMatches").textContent=num(topData?.summary?.verified_matches);const pill=document.getElementById("sampleKindPill");if(pill){const isSimulation=!topDays&&String(topData?.summary?.backtest_kind||"")==="simulation"&&num(topData?.summary?.backtest_matches)>0;pill.textContent=tr("simulationSample");pill.classList.toggle("show",isSimulation);pill.title=isSimulation?String(topData?.summary?.backtest_note||""):"";}renderRange();renderMarkets()}
 function renderLower(){renderRecent();renderTrend();renderLeagues();renderRecords()}
 function renderAll(){renderTop();renderLower()}
-async function fetchData(days=""){const url=days?`${AI_PERFORMANCE_API}?days=${encodeURIComponent(days)}`:AI_PERFORMANCE_API;const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});if(!res.ok)throw new Error(`API ${res.status}`);const j=await res.json();if(!j?.success)throw new Error(j?.error||"API failed");return j}
+async function fetchData(days=""){
+  const base=currentSport==="basketball"?BASKETBALL_PERFORMANCE_API:AI_PERFORMANCE_API;
+  const url=days?`${base}?days=${encodeURIComponent(days)}`:base;
+  const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
+  if(!res.ok)throw new Error(`API ${res.status}`);
+  const j=await res.json();
+  if(!j?.success)throw new Error(j?.error||"API failed");
+  return j;
+}
 async function loadTopView(){try{topData=topDays?await fetchData(topDays):allData;if(!topData)topData=await fetchData("");renderTop()}catch(e){console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop()}}
 async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
-async function init(){applyLang();try{allData=await fetchData("");topData=allData;lowerData=await fetchData(String(lowerDays));renderAll()}catch(e){console.error(e);allData=topData=lowerData=emptyPerformanceData();renderAll()}}
+async function init(){applyLang();applySportLabels();try{allData=await fetchData("");topData=allData;lowerData=await fetchData(String(lowerDays));renderAll();applySportLabels()}catch(e){console.error(e);allData=topData=lowerData=emptyPerformanceData();renderAll();applySportLabels()}}
 
 document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>switchSport(btn.dataset.sport||"football")));
 document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadTopView()}));
@@ -856,8 +974,8 @@ document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click
 document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||7;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadLowerView()}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
-window.addEventListener("habao:languagechange",()=>{applyLang();if(currentSport==="football")renderAll()});
-window.addEventListener("habao:translationsapplied",()=>{applyLang();if(currentSport==="football")renderAll()});
+window.addEventListener("habao:languagechange",()=>{applyLang();renderAll();applySportLabels()});
+window.addEventListener("habao:translationsapplied",()=>{applyLang();renderAll();applySportLabels()});
 init();
 </script>
 
