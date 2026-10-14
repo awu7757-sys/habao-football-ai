@@ -982,13 +982,13 @@ tr:last-child td{border-bottom:0}
           <div class="stat-card">
             <div class="stat-label">今日 AI 分析</div>
             <div id="dashTodayAnalysis" class="stat-value">0</div>
-            <div class="stat-note">analysis_usage 今日筆數</div>
+            <div class="stat-note">足球＋NBA 今日首次分析使用量</div>
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">今日 / 明日可分析賽事</div>
-            <div id="dashFixtureCount" class="stat-value">0 / 0</div>
-            <div class="stat-note">賽事快取資料</div>
+            <div class="stat-label">今日 / 明日賽事</div>
+            <div id="dashFixtureCount" class="stat-value" style="font-size:18px">0 / 0</div>
+            <div class="stat-note">足球與 NBA 賽事快取</div>
           </div>
 
           <div class="stat-card">
@@ -1622,7 +1622,8 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                   <tr>
                     <th>更新時間</th>
                     <th>會員</th>
-                    <th>Fixture ID</th>
+                    <th>運動</th>
+                    <th>Fixture / Game ID</th>
                     <th>聯賽</th>
                     <th>賽事</th>
                     <th>開賽時間</th>
@@ -1738,6 +1739,13 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel">
+          <div class="panel-head" style="margin-bottom:12px">
+            <div>
+              <div class="panel-title">⚽ 足球賽事</div>
+              <div class="panel-desc">既有足球快取、會員分析人數與比分推播管理。</div>
+            </div>
+          </div>
+
           <div class="toolbar">
             <div class="filters">
               <input id="fixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderFixtures()">
@@ -1768,6 +1776,68 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                   </tr>
                 </thead>
                 <tbody id="fixturesBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;border-color:rgba(112,168,255,.18)">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">🏀 NBA T-10 管理</div>
+              <div class="panel-desc">查看 NBA 今日／明日賽程、T-10 固定快取、首次預測快照與會員取用人數。</div>
+            </div>
+            <button class="ghost-btn" onclick="refreshNbaFixtureSource(this)">同步 NBA 賽程 / T-10</button>
+          </div>
+
+          <div class="stats-grid" style="margin-bottom:15px">
+            <div class="stat-card gold">
+              <div class="stat-label">今日 NBA</div>
+              <div id="nbaFixtureTodayCount" class="stat-value gold-text">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">明日 NBA</div>
+              <div id="nbaFixtureTomorrowCount" class="stat-value">0</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-label">T-10 快取完成</div>
+              <div id="nbaFixtureReadyCacheCount" class="stat-value green-text">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">會員取用總人次</div>
+              <div id="nbaFixtureMemberViews" class="stat-value">0</div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="filters">
+              <input id="nbaFixtureSearch" class="input search" placeholder="搜尋 NBA 隊伍、Game ID..." oninput="renderNbaFixtures()">
+              <select id="nbaFixtureDateFilter" class="input" onchange="renderNbaFixtures()">
+                <option value="all">今日＋明日</option>
+                <option value="today">今日</option>
+                <option value="tomorrow">明日</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>時間</th>
+                    <th>Game ID</th>
+                    <th>主隊</th>
+                    <th>客隊</th>
+                    <th>狀態</th>
+                    <th>T-10 快取</th>
+                    <th>固定快照</th>
+                    <th>分析會員</th>
+                    <th>模型版本</th>
+                  </tr>
+                </thead>
+                <tbody id="nbaFixturesBody"></tbody>
               </table>
             </div>
           </div>
@@ -2221,6 +2291,9 @@ const PUSH_SEND_URL =
 const ADMIN_CENTER_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-center";
 
+const ADMIN_BASKETBALL_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball";
+
 
 let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
 let adminSessionToken = sessionStorage.getItem("habao_admin_session_v2") || "";
@@ -2237,9 +2310,13 @@ let dashboardData = {
 };
 
 let adminOverview = {};
+let nbaAdminOverview = {};
 let analysisHistoryRecords = [];
 let analysisJobs = [];
 let fixtureCacheRows = [];
+let nbaFixtureRows = [];
+let nbaFixtureStats = {};
+let nbaFixtureDates = {};
 let performanceSnapshots = [];
 let shadowTestPayload = null;
 let shadowTestRows = [];
@@ -2382,6 +2459,13 @@ async function apiRequest(payload) {
 
 async function adminCenterRequest(payload) {
   return adminServiceRequest(ADMIN_CENTER_URL, payload);
+}
+
+async function adminBasketballRequest(payload) {
+  return adminServiceRequest(
+    ADMIN_BASKETBALL_URL,
+    payload
+  );
 }
 
 /* =========================
@@ -2531,9 +2615,13 @@ async function logoutAdmin() {
   editingMemberId = null;
   editingBindingMemberId = null;
   adminOverview = {};
+  nbaAdminOverview = {};
   analysisHistoryRecords = [];
   analysisJobs = [];
   fixtureCacheRows = [];
+  nbaFixtureRows = [];
+  nbaFixtureStats = {};
+  nbaFixtureDates = {};
   performanceSnapshots = [];
   shadowTestPayload = null;
   shadowTestRows = [];
@@ -2727,11 +2815,29 @@ function renderDashboard() {
   setText(
     "dashTodayLogin",
     todayLogin
-  );setText(
+  );
+
+  const footballTodayAnalysis =
+    Number.isFinite(
+      Number(
+        adminOverview?.today_analysis_count
+      )
+    )
+      ? Number(
+          adminOverview.today_analysis_count
+        )
+      : dashboardData.todayAnalysisCount;
+
+  const nbaTodayAnalysis =
+    Number(
+      nbaAdminOverview
+        ?.today_analysis_usage || 0
+    );
+
+  setText(
     "dashTodayAnalysis",
-    Number.isFinite(Number(adminOverview?.today_analysis_count))
-      ? Number(adminOverview.today_analysis_count)
-      : dashboardData.todayAnalysisCount
+    footballTodayAnalysis +
+    nbaTodayAnalysis
   );
 
   setText(
@@ -4235,17 +4341,43 @@ function togglePushMemberField() {
 
 async function loadAdminOverview() {
   try {
-    const data =
-      await adminCenterRequest({
-        action: "overview"
-      });
+    const [footballResult, nbaResult] =
+      await Promise.allSettled([
+        adminCenterRequest({
+          action: "overview"
+        }),
+        adminBasketballRequest({
+          action: "overview"
+        })
+      ]);
+
+    if (footballResult.status !== "fulfilled") {
+      throw footballResult.reason;
+    }
 
     adminOverview =
-      data.overview || {};
+      footballResult.value?.overview || {};
+
+    nbaAdminOverview =
+      nbaResult.status === "fulfilled"
+        ? (nbaResult.value?.overview || {})
+        : {};
+
+    const footballToday =
+      Number(adminOverview.today_fixtures || 0);
+
+    const footballTomorrow =
+      Number(adminOverview.tomorrow_fixtures || 0);
+
+    const nbaToday =
+      Number(nbaAdminOverview.today_fixtures || 0);
+
+    const nbaTomorrow =
+      Number(nbaAdminOverview.tomorrow_fixtures || 0);
 
     setText(
       "dashFixtureCount",
-      `${Number(adminOverview.today_fixtures || 0)} / ${Number(adminOverview.tomorrow_fixtures || 0)}`
+      `⚽ ${footballToday}/${footballTomorrow}｜🏀 ${nbaToday}/${nbaTomorrow}`
     );
 
     setText(
@@ -4253,9 +4385,15 @@ async function loadAdminOverview() {
       adminOverview.running_jobs || 0
     );
 
-    setText("dashPendingSnapshots", `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`);
+    setText(
+      "dashPendingSnapshots",
+      `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`
+    );
 
-    setText("dashProcessingLocks", `${Number(adminOverview.normal_processing_locks||0)} / 過期 ${Number(adminOverview.expired_processing_locks||0)}`);
+    setText(
+      "dashProcessingLocks",
+      `${Number(adminOverview.normal_processing_locks||0)} / 過期 ${Number(adminOverview.expired_processing_locks||0)}`
+    );
 
     renderDashboard();
 
@@ -4302,15 +4440,67 @@ function refreshPageData(pageId) {
 
 async function loadAnalysisHistory(force = false) {
   try {
-    const data =
-      await adminCenterRequest({
-        action:
-          "analysis_history",
-        limit: 400
-      });
+    const [footballResult, nbaResult] =
+      await Promise.allSettled([
+        adminCenterRequest({
+          action:
+            "analysis_history",
+          limit: 400
+        }),
+        adminBasketballRequest({
+          action:
+            "analysis_history",
+          limit: 400
+        })
+      ]);
+
+    if (
+      footballResult.status !==
+      "fulfilled"
+    ) {
+      throw footballResult.reason;
+    }
+
+    const footballRecords =
+      (
+        footballResult
+          .value
+          ?.records || []
+      ).map(item => ({
+        ...item,
+        sport: "football",
+        admin_key:
+          "football:" +
+          String(item?.id)
+      }));
+
+    const nbaRecords =
+      nbaResult.status ===
+        "fulfilled"
+        ? (
+            nbaResult
+              .value
+              ?.records || []
+          )
+        : [];
 
     analysisHistoryRecords =
-      data.records || [];
+      [
+        ...footballRecords,
+        ...nbaRecords
+      ].sort((a, b) => {
+        const aTime =
+          new Date(
+            a?.updated_at || 0
+          ).getTime();
+
+        const bTime =
+          new Date(
+            b?.updated_at || 0
+          ).getTime();
+
+        return bTime - aTime;
+      });
 
     renderAnalysisHistory();
 
@@ -4489,8 +4679,18 @@ function renderAnalysisHistory() {
         <tr>
           <td>${formatDate(item?.updated_at)}</td>
           <td class="account-name">${escapeHtml(item?.account || "—")}</td>
-          <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
-          <td>${escapeHtml(normalizeLeagueDisplay(item?.league_name))}</td>
+          <td>
+            ${String(item?.sport || "football") === "basketball"
+              ? '<span class="status active"><span class="dot"></span>🏀 NBA</span>'
+              : '<span class="status"><span class="dot"></span>⚽ 足球</span>'
+            }
+          </td>
+          <td class="mono">${escapeHtml(item?.fixture_id ?? item?.game_id ?? "—")}</td>
+          <td>${escapeHtml(
+            String(item?.sport || "") === "basketball"
+              ? "NBA"
+              : normalizeLeagueDisplay(item?.league_name)
+          )}</td>
           <td>
             <strong>${escapeHtml(item?.home_team || "—")}</strong>
             <div class="subline">vs ${escapeHtml(item?.away_team || "—")}</div>
@@ -4500,7 +4700,7 @@ function renderAnalysisHistory() {
           <td>
             <button
               class="action-btn gold"
-              onclick='showAnalysisSummaryById("${String(item?.id)}")'
+              onclick='showAnalysisSummaryById("${String(item?.admin_key || item?.id)}")'
             >查看摘要</button>
           </td>
         </tr>
@@ -4650,21 +4850,63 @@ async function retryAnalysisJob(jobId) {
 
 async function loadFixtures(force = false) {
   try {
+    const [footballResult, nbaResult] =
+      await Promise.allSettled([
+        adminCenterRequest({
+          action: "fixtures"
+        }),
+        adminBasketballRequest({
+          action: "fixtures"
+        })
+      ]);
+
+    if (
+      footballResult.status !==
+      "fulfilled"
+    ) {
+      throw footballResult.reason;
+    }
+
     const data =
-      await adminCenterRequest({
-        action: "fixtures"
-      });
+      footballResult.value;
 
     fixtureCacheRows =
       data.caches || [];
 
     window.fixtureLivePushMeta =
-  data.fixture_meta || {};
+      data.fixture_meta || {};
 
     window.adminFixtureDates =
       data.dates || {};
 
+    if (
+      nbaResult.status ===
+      "fulfilled"
+    ) {
+      nbaFixtureRows =
+        nbaResult.value
+          ?.fixtures || [];
+
+      nbaFixtureStats =
+        nbaResult.value
+          ?.stats || {};
+
+      nbaFixtureDates =
+        nbaResult.value
+          ?.dates || {};
+    } else {
+      nbaFixtureRows = [];
+      nbaFixtureStats = {};
+      nbaFixtureDates = {};
+
+      console.warn(
+        "NBA FIXTURE ADMIN ERROR:",
+        nbaResult.reason
+      );
+    }
+
     renderFixtures();
+    renderNbaFixtures();
 
   } catch (error) {
     console.error(
@@ -4901,6 +5143,233 @@ const livePushEnabled =
   const tomorrowCount=Number(tomorrowCache?.total || tomorrowCache?.fixtures?.length || 0);
   const tomorrowState=!tomorrowCache?.fetched_at || !tomorrowFresh.fresh ? "資料待更新" : (tomorrowCount===0 ? "已更新，無可分析賽事" : "資料已更新");
   setText("fixtureTomorrowFetched", tomorrowCache?.fetched_at ? `${formatDate(tomorrowCache.fetched_at)}｜${tomorrowState}` : tomorrowState);
+}
+
+function renderNbaFixtures() {
+  const body =
+    document.getElementById(
+      "nbaFixturesBody"
+    );
+
+  if (!body) return;
+
+  const search =
+    String(
+      document
+        .getElementById(
+          "nbaFixtureSearch"
+        )?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const dateFilter =
+    document
+      .getElementById(
+        "nbaFixtureDateFilter"
+      )?.value || "all";
+
+  const today =
+    nbaFixtureDates?.today;
+
+  const tomorrow =
+    nbaFixtureDates?.tomorrow;
+
+  const rows =
+    (nbaFixtureRows || [])
+      .filter(item => {
+        const rowDate =
+          String(
+            item?.fixture_date ||
+            item?.kickoff_date_taipei ||
+            ""
+          );
+
+        const dateOk =
+          dateFilter === "all" ||
+          (
+            dateFilter === "today" &&
+            rowDate === today
+          ) ||
+          (
+            dateFilter === "tomorrow" &&
+            rowDate === tomorrow
+          );
+
+        const haystack = [
+          item?.fixture_id,
+          item?.home?.name,
+          item?.away?.name,
+          item?.home?.code,
+          item?.away?.code
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
+          dateOk &&
+          (
+            !search ||
+            haystack.includes(search)
+          )
+        );
+      });
+
+  body.innerHTML =
+    rows.length
+      ? rows.map(item => {
+          const kickoff =
+            item?.kickoff_at
+              ? new Date(
+                  item.kickoff_at
+                )
+              : null;
+
+          const time =
+            kickoff &&
+            !Number.isNaN(
+              kickoff.getTime()
+            )
+              ? kickoff
+                  .toLocaleTimeString(
+                    "zh-TW",
+                    {
+                      timeZone:
+                        "Asia/Taipei",
+                      hour:
+                        "2-digit",
+                      minute:
+                        "2-digit",
+                      hour12:
+                        false
+                    }
+                  )
+              : "—";
+
+          const cache =
+            item?.analysis_cache;
+
+          const snapshot =
+            item?.snapshot;
+
+          const cacheLabel =
+            cache?.ready === true
+              ? '<span class="status active"><span class="dot"></span>已完成</span>'
+              : '<span class="status off"><span class="dot"></span>尚未建立</span>';
+
+          const snapshotLabel =
+            snapshot?.exists === true
+              ? '<span class="status active"><span class="dot"></span>已固定</span>'
+              : '<span class="status off"><span class="dot"></span>尚未建立</span>';
+
+          return `
+            <tr>
+              <td>${escapeHtml(
+                item?.fixture_date ||
+                item?.kickoff_date_taipei ||
+                "—"
+              )}</td>
+              <td>${time}</td>
+              <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
+              <td>${escapeHtml(item?.home?.name || "—")}</td>
+              <td>${escapeHtml(item?.away?.name || "—")}</td>
+              <td>${statusBadge(item?.status?.long || item?.status?.short || "Scheduled")}</td>
+              <td>
+                ${cacheLabel}
+                ${cache?.generated_at ? `<div class="subline">${formatDate(cache.generated_at)}</div>` : ""}
+              </td>
+              <td>
+                ${snapshotLabel}
+                ${snapshot?.generated_at ? `<div class="subline">${formatDate(snapshot.generated_at)}</div>` : ""}
+              </td>
+              <td>${Number(item?.analysis_member_count || 0)} 人</td>
+              <td class="mono">${escapeHtml(cache?.model_version || snapshot?.model_version || "—")}</td>
+            </tr>
+          `;
+        }).join("")
+      : `
+        <tr>
+          <td colspan="10" style="text-align:center;color:#8fa4b5;padding:24px">
+            尚無 NBA 賽事快取資料
+          </td>
+        </tr>
+      `;
+
+  setText(
+    "nbaFixtureTodayCount",
+    Number(
+      nbaFixtureStats
+        ?.today || 0
+    )
+  );
+
+  setText(
+    "nbaFixtureTomorrowCount",
+    Number(
+      nbaFixtureStats
+        ?.tomorrow || 0
+    )
+  );
+
+  setText(
+    "nbaFixtureReadyCacheCount",
+    Number(
+      nbaFixtureStats
+        ?.ready_cache || 0
+    )
+  );
+
+  setText(
+    "nbaFixtureMemberViews",
+    Number(
+      nbaFixtureStats
+        ?.member_views || 0
+    )
+  );
+}
+
+async function refreshNbaFixtureSource(button) {
+  const old =
+    button?.textContent ||
+    "同步 NBA 賽程 / T-10";
+
+  if (
+    !confirm(
+      "確定同步 NBA 今日／明日賽程並執行一次 T-10 判定？\n\n只有已進入賽前 10 小時且尚未建立快取的場次才會自動分析。"
+    )
+  ) {
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "同步中…";
+  }
+
+  try {
+    await adminBasketballRequest({
+      action:
+        "refresh_fixtures"
+    });
+
+    await loadFixtures(true);
+    await loadAdminOverview();
+
+    alert(
+      "NBA 賽程 / T-10 同步完成"
+    );
+  } catch (error) {
+    alert(
+      "NBA 同步失敗：" +
+      (error?.message || "")
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = old;
+    }
+  }
 }
 
 async function toggleFixtureLivePush(
@@ -6801,20 +7270,53 @@ const value =
   /*
    * 預測比分
    */
+  const isBasketball =
+    String(
+      item?.sport ||
+      d?.fixture?.sport ||
+      ""
+    ).toLowerCase() ===
+    "basketball";
+
   const scores =
-    Array.isArray(
-      analysis?.predicted_scores
-    )
-      ? analysis.predicted_scores
-          .map(row =>
-            row?.score || ""
+    isBasketball
+      ? (
+          d?.model
+            ?.predicted_score
+            ?.home != null &&
+          d?.model
+            ?.predicted_score
+            ?.away != null
+            ? escapeHtml(
+                String(
+                  d.model
+                    .predicted_score
+                    .home
+                ) +
+                "-" +
+                String(
+                  d.model
+                    .predicted_score
+                    .away
+                )
+              )
+            : "—"
+        )
+      : (
+          Array.isArray(
+            analysis?.predicted_scores
           )
-          .filter(Boolean)
-          .map(score =>
-            escapeHtml(score)
-          )
-          .join("、")
-      : "—";
+            ? analysis.predicted_scores
+                .map(row =>
+                  row?.score || ""
+                )
+                .filter(Boolean)
+                .map(score =>
+                  escapeHtml(score)
+                )
+                .join("、")
+            : "—"
+        );
 
   return `
     <div style="line-height:1.9">
@@ -6876,25 +7378,65 @@ const value =
 
       <br>
 
-      BTTS：
-      ${fmt(
-        pick([
-          "btts",
-          "both_teams_to_score"
-        ])
-      )}
+      ${isBasketball
+        ? `
+          模型公平讓分：
+          ${escapeHtml(
+            d?.model
+              ?.fair_spread
+              ?.display ||
+            "—"
+          )}
 
-      <br>
+          <br>
 
-      雙重機會：
-      ${fmt(
-        pick([
-          "double_chance",
-          "doubleChance"
-        ])
-      )}
+          模型公平總分：
+          ${escapeHtml(
+            d?.model
+              ?.fair_total ??
+            "—"
+          )}
 
-      <br>
+          <br>
+
+          模型勝率：
+          主 ${escapeHtml(
+            d?.model
+              ?.win_probability
+              ?.home ??
+            "—"
+          )}% /
+          客 ${escapeHtml(
+            d?.model
+              ?.win_probability
+              ?.away ??
+            "—"
+          )}%
+
+          <br>
+        `
+        : `
+          BTTS：
+          ${fmt(
+            pick([
+              "btts",
+              "both_teams_to_score"
+            ])
+          )}
+
+          <br>
+
+          雙重機會：
+          ${fmt(
+            pick([
+              "double_chance",
+              "doubleChance"
+            ])
+          )}
+
+          <br>
+        `
+      }
 
       預測比分：
       ${scores || "—"}
@@ -6909,7 +7451,7 @@ const value =
     </div>
   `;
 }
-function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
+function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.admin_key||x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
 
 let pushCountTimer=null;
 function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
