@@ -5664,6 +5664,116 @@ const NBA_TEAM_NAME_ZH = {
   "Washington Wizards": "華盛頓巫師"
 };
 
+const NBA_OFFICIAL_TEAM_ID = {
+  "atlanta hawks": "1610612737",
+  "boston celtics": "1610612738",
+  "cleveland cavaliers": "1610612739",
+  "new orleans pelicans": "1610612740",
+  "chicago bulls": "1610612741",
+  "dallas mavericks": "1610612742",
+  "denver nuggets": "1610612743",
+  "golden state warriors": "1610612744",
+  "houston rockets": "1610612745",
+  "los angeles clippers": "1610612746",
+  "la clippers": "1610612746",
+  "los angeles lakers": "1610612747",
+  "miami heat": "1610612748",
+  "milwaukee bucks": "1610612749",
+  "minnesota timberwolves": "1610612750",
+  "brooklyn nets": "1610612751",
+  "new york knicks": "1610612752",
+  "orlando magic": "1610612753",
+  "indiana pacers": "1610612754",
+  "philadelphia 76ers": "1610612755",
+  "phoenix suns": "1610612756",
+  "portland trail blazers": "1610612757",
+  "sacramento kings": "1610612758",
+  "san antonio spurs": "1610612759",
+  "oklahoma city thunder": "1610612760",
+  "toronto raptors": "1610612761",
+  "utah jazz": "1610612762",
+  "memphis grizzlies": "1610612763",
+  "washington wizards": "1610612764",
+  "detroit pistons": "1610612765",
+  "charlotte hornets": "1610612766"
+};
+
+function normalizeBasketballTeamKey(
+  name
+) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.’']/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function getBasketballTeamLogoData(
+  teamName,
+  apiLogo
+) {
+  const teamKey =
+    normalizeBasketballTeamKey(
+      teamName
+    );
+
+  const officialTeamId =
+    NBA_OFFICIAL_TEAM_ID[
+      teamKey
+    ] || "";
+
+  const officialLogo =
+    officialTeamId
+      ? `https://cdn.nba.com/logos/nba/${officialTeamId}/primary/L/logo.svg`
+      : "";
+
+  const providerLogo =
+    safeBasketballImageURL(
+      apiLogo
+    );
+
+  return {
+    src:
+      officialLogo ||
+      providerLogo ||
+      "",
+    fallback:
+      officialLogo &&
+      providerLogo &&
+      officialLogo !== providerLogo
+        ? providerLogo
+        : ""
+  };
+}
+
+function handleBasketballLogoError(
+  image
+) {
+  const fallback =
+    image?.dataset
+      ?.fallbackLogo || "";
+
+  if (fallback) {
+    image.dataset.fallbackLogo =
+      "";
+
+    image.src =
+      fallback;
+
+    return;
+  }
+
+  const box =
+    image?.closest(
+      ".v2-team-logo-box"
+    );
+
+  if (box) {
+    box.innerHTML =
+      '<span aria-hidden="true" style="font-size:30px;line-height:1">🏀</span>';
+  }
+}
+
 function escapeBasketballHTML(
   value
 ) {
@@ -5959,12 +6069,14 @@ function renderBasketballFixtureData(
         );
 
       const homeLogo =
-        safeBasketballImageURL(
+        getBasketballTeamLogoData(
+          match?.home?.name,
           match?.home?.logo
         );
 
       const awayLogo =
-        safeBasketballImageURL(
+        getBasketballTeamLogoData(
+          match?.away?.name,
           match?.away?.logo
         );
 
@@ -6010,8 +6122,10 @@ function renderBasketballFixtureData(
               <div class="v2-team-logo-box">
                 <img
                   class="team-logo"
-                  src="${homeLogo}"
+                  src="${homeLogo.src}"
+                  data-fallback-logo="${escapeBasketballHTML(homeLogo.fallback)}"
                   alt="${homeAlt}"
+                  onerror="handleBasketballLogoError(this)"
                 >
               </div>
 
@@ -6035,8 +6149,10 @@ function renderBasketballFixtureData(
               <div class="v2-team-logo-box">
                 <img
                   class="team-logo"
-                  src="${awayLogo}"
+                  src="${awayLogo.src}"
+                  data-fallback-logo="${escapeBasketballHTML(awayLogo.fallback)}"
                   alt="${awayAlt}"
+                  onerror="handleBasketballLogoError(this)"
                 >
               </div>
 
