@@ -7650,7 +7650,7 @@ function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTi
 async function pushAdminRequest(payload){return adminServiceRequest(PUSH_SEND_URL,payload);}
 async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
 
-function loadBasketballPushFixtures() {
+async function loadBasketballPushFixtures() {
   const select =
     document.getElementById(
       "pushBasketballGameId"
@@ -7663,12 +7663,44 @@ function loadBasketballPushFixtures() {
       select.value || ""
     );
 
-  const rows =
-    Array.isArray(
-      nbaFixtureRows
-    )
-      ? nbaFixtureRows
-      : [];
+  select.innerHTML =
+    '<option value="">NBA 賽事讀取中…</option>';
+
+  let rows = [];
+
+  try {
+    const data =
+      await pushAdminRequest({
+        action:
+          "basketball_game_fixtures"
+      });
+
+    rows =
+      Array.isArray(
+        data?.fixtures
+      )
+        ? data.fixtures
+        : [];
+
+    if (
+      rows.length
+    ) {
+      nbaFixtureRows =
+        rows;
+    }
+  } catch (error) {
+    console.warn(
+      "NBA PUSH FIXTURE LOAD ERROR:",
+      error
+    );
+
+    rows =
+      Array.isArray(
+        nbaFixtureRows
+      )
+        ? nbaFixtureRows
+        : [];
+  }
 
   select.innerHTML =
     '<option value="">請先選擇 NBA 賽事</option>' +
@@ -7750,6 +7782,8 @@ function loadBasketballPushFixtures() {
   ) {
     select.value =
       current;
+
+    await loadBasketballGamePushCount();
   }
 }
 
