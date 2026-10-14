@@ -384,7 +384,7 @@ tr:last-child td{border-bottom:0}
 .dashboard-api-panel{margin-top:15px}
 .dashboard-api-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:14px;
 }
 .api-provider-card{
@@ -401,6 +401,10 @@ tr:last-child td{border-bottom:0}
 .api-provider-card.nba{
   border-color:rgba(112,168,255,.20);
   background:linear-gradient(145deg,rgba(112,168,255,.07),rgba(255,255,255,.012));
+}
+.api-provider-card.odds{
+  border-color:rgba(70,214,159,.20);
+  background:linear-gradient(145deg,rgba(70,214,159,.07),rgba(255,255,255,.012));
 }
 .api-provider-top{
   display:flex;
@@ -1014,91 +1018,28 @@ tr:last-child td{border-bottom:0}
           <div class="panel-head">
             <div>
               <div class="panel-title">API 使用與續費</div>
-              <div class="panel-desc">API-Football 與 API-NBA 分開顯示，不混用配額與續費日期。</div>
+              <div class="panel-desc">API-Football、API-NBA、The Odds API 分開顯示額度與續費。</div>
             </div>
             <button class="ghost-btn" onclick="switchPageById('apiPage')">查看 API 配額</button>
           </div>
-
           <div class="dashboard-api-grid">
             <div class="api-provider-card football">
-              <div class="api-provider-top">
-                <div>
-                  <div class="api-provider-name">API-Football PRO</div>
-                  <div class="api-provider-sub">足球賽事資料｜每日配額獨立計算</div>
-                </div>
-                <span class="status active"><span class="dot"></span>使用中</span>
-              </div>
-
-              <div class="api-provider-main">
-                <div>
-                  <div class="api-provider-label">今日使用量</div>
-                  <div id="dashTodayApi" class="api-provider-number">0 / 7500</div>
-                </div>
-                <div class="api-provider-badge">7,500 / 日</div>
-              </div>
-
-              <div class="progress-wrap">
-                <div class="progress-line">
-                  <div id="dashApiProgress" class="progress-fill"></div>
-                </div>
-                <div class="progress-meta">
-                  <span id="dashApiProgressText">0 / 7500</span>
-                  <span id="dashApiRemaining">剩餘 7500</span>
-                </div>
-              </div>
-
-              <div class="api-provider-meta">
-                <div>
-                  <span>近 7 天平均</span>
-                  <strong id="dashAvgApi">0</strong>
-                  <small id="dashAvgApiNote">—</small>
-                </div>
-                <div>
-                  <span>續費日期</span>
-                  <strong id="dashRenewalDate">—</strong>
-                  <small id="dashRenewalDays">—</small>
-                </div>
-              </div>
+              <div class="api-provider-top"><div><div class="api-provider-name">API-Football PRO</div><div class="api-provider-sub">足球資料｜每日 7,500 requests</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+              <div class="api-provider-main"><div><div class="api-provider-label">今日使用量</div><div id="dashTodayApi" class="api-provider-number">0 / 7500</div></div><div class="api-provider-badge">7,500 / 日</div></div>
+              <div class="progress-wrap"><div class="progress-line"><div id="dashApiProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="dashApiProgressText">0 / 7500</span><span id="dashApiRemaining">剩餘 7500</span></div></div>
+              <div class="api-provider-meta"><div><span>近 7 天平均</span><strong id="dashAvgApi">0</strong><small id="dashAvgApiNote">—</small></div><div><span>續費日期</span><strong id="dashRenewalDate">—</strong><small id="dashRenewalDays">—</small></div></div>
             </div>
-
             <div class="api-provider-card nba">
-              <div class="api-provider-top">
-                <div>
-                  <div class="api-provider-name">API-NBA PRO</div>
-                  <div class="api-provider-sub">NBA 專用資料源｜2026/10/14 啟用</div>
-                </div>
-                <span class="status active"><span class="dot"></span>PRO 已啟用</span>
-              </div>
-
-              <div class="api-provider-main">
-                <div>
-                  <div class="api-provider-label">每日配額</div>
-                  <div id="dashNbaDailyLimit" class="api-provider-number">7,500</div>
-                </div>
-                <div class="api-provider-badge">requests / day</div>
-              </div>
-
-              <div class="api-provider-meta">
-                <div>
-                  <span>方案</span>
-                  <strong id="dashNbaPlan">PRO</strong>
-                  <small>All Endpoints / Competitions</small>
-                </div>
-                <div>
-                  <span>開始日期</span>
-                  <strong id="dashNbaStartDate">2026/10/14</strong>
-                  <small>NBA 資料源正式啟用</small>
-                </div>
-                <div>
-                  <span>續費 / 到期</span>
-                  <strong id="dashNbaRenewalDate">2026/11/14</strong>
-                  <small id="dashNbaRenewalDays">—</small>
-                </div>
-              </div>
-
-              <div class="api-provider-note">
-                今日 NBA 實際用量尚未納入後台統計；正式接入賽事來源後再加入，不以 0 誤導顯示。
-              </div>
+              <div class="api-provider-top"><div><div class="api-provider-name">API-NBA PRO</div><div class="api-provider-sub">NBA 資料｜每日 7,500 requests</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+              <div class="api-provider-main"><div><div class="api-provider-label">今日使用量</div><div id="dashNbaTodayApi" class="api-provider-number">— / 7,500</div></div><div class="api-provider-badge">7,500 / 日</div></div>
+              <div class="progress-wrap"><div class="progress-line"><div id="dashNbaApiProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="dashNbaApiProgressText">等待配額快照</span><span id="dashNbaApiRemaining">—</span></div></div>
+              <div class="api-provider-meta"><div><span>近 7 天平均</span><strong id="dashNbaAvgApi">—</strong><small id="dashNbaAvgApiNote">依供應商配額快照</small></div><div><span>續費日期</span><strong id="dashNbaRenewalDate">—</strong><small id="dashNbaRenewalDays">—</small></div></div>
+            </div>
+            <div class="api-provider-card odds">
+              <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">NBA 真實讓分＋大小分｜每月 20,000 credits</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+              <div class="api-provider-main"><div><div class="api-provider-label">本期使用量</div><div id="dashOddsUsage" class="api-provider-number">— / 20,000</div></div><div class="api-provider-badge">20K / 月</div></div>
+              <div class="progress-wrap"><div class="progress-line"><div id="dashOddsProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="dashOddsProgressText">等待市場快照</span><span id="dashOddsRemaining">—</span></div></div>
+              <div class="api-provider-meta"><div><span>最近一次成本</span><strong id="dashOddsLastCost">—</strong><small id="dashOddsEvents">—</small></div><div><span>續費日期</span><strong id="dashOddsRenewalDate">—</strong><small id="dashOddsRenewalDays">—</small></div></div>
             </div>
           </div>
         </div>
@@ -1403,85 +1344,34 @@ tr:last-child td{border-bottom:0}
           <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
         </div>
 
-        <div class="api-grid">
-          <div class="api-big">
-            <div class="stat-label">今日 API 使用量</div>
-            <div id="apiTodayBig" class="api-number">0 / 7500</div>
-
-            <div class="progress-wrap">
-              <div class="progress-line">
-                <div id="apiPageProgress" class="progress-fill"></div>
-              </div>
-              <div class="progress-meta">
-                <span id="apiPagePercent">0%</span>
-                <span id="apiPageRemaining">剩餘 7500 次</span>
-              </div>
-            </div>
+        <div class="dashboard-api-grid" style="margin-bottom:15px">
+          <div class="api-provider-card football">
+            <div class="api-provider-top"><div><div class="api-provider-name">API-Football PRO</div><div class="api-provider-sub">足球資料｜每日額度與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+            <div class="api-provider-main"><div><div class="api-provider-label">今日使用量</div><div id="apiTodayBig" class="api-provider-number">0 / 7500</div></div><div class="api-provider-badge">7,500 / 日</div></div>
+            <div class="progress-wrap"><div class="progress-line"><div id="apiPageProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="apiPagePercent">0%</span><span id="apiPageRemaining">剩餘 7500 次</span></div></div>
+            <div class="api-provider-meta"><div><span>近 7 天平均</span><strong id="apiAvgText">0</strong><small id="apiAvgRemainingText">平均剩餘 7500</small></div><div><span>續費日期</span><strong id="apiRenewalText">—</strong><small id="apiRenewalDaysText">—</small></div></div>
+            <button class="save-btn" style="width:100%;margin-top:12px" onclick="confirmApiRenewal(this)">確認 Football 已續費</button>
           </div>
-
-          <div class="mini-list">
-            <div class="mini-item">
-              <span class="mini-key">API-Football 每日上限</span>
-              <span id="apiDailyLimitText" class="mini-val">7500</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">近 7 天平均</span>
-              <span id="apiAvgText" class="mini-val">0</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">平均剩餘</span>
-              <span id="apiAvgRemainingText" class="mini-val">7500</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">API-Football 續費日期</span>
-              <span id="apiRenewalText" class="mini-val">—</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">剩餘天數</span>
-              <span id="apiRenewalDaysText" class="mini-val">—</span>
-            </div>
-            <button class="save-btn" style="width:100%" onclick="confirmApiRenewal(this)">確認 Football 已續費</button>
+          <div class="api-provider-card nba">
+            <div class="api-provider-top"><div><div class="api-provider-name">API-NBA PRO</div><div class="api-provider-sub">NBA 資料｜每日額度與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+            <div class="api-provider-main"><div><div class="api-provider-label">今日使用量</div><div id="nbaApiTodayBig" class="api-provider-number">— / 7,500</div></div><div class="api-provider-badge">7,500 / 日</div></div>
+            <div class="progress-wrap"><div class="progress-line"><div id="nbaApiPageProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="nbaApiPagePercent">—</span><span id="nbaApiPageRemaining">—</span></div></div>
+            <div class="api-provider-meta"><div><span>近 7 天平均</span><strong id="nbaApiAvgText">—</strong><small id="nbaApiDailyLimitText">每日上限 7,500</small></div><div><span>續費日期</span><strong id="nbaApiRenewalText">—</strong><small id="nbaApiRenewalDaysText">—</small></div></div>
+            <button class="save-btn" style="width:100%;margin-top:12px" onclick="confirmNbaApiRenewal(this)">確認 NBA 已續費</button>
           </div>
-        </div>
-
-        <div class="panel" style="margin-top:15px;border-color:rgba(112,168,255,.18)">
-          <div class="panel-head">
-            <div>
-              <div class="panel-title">API-NBA PRO</div>
-              <div class="panel-desc">NBA 專用資料源｜PRO Plan｜每日 7,500 requests｜獨立續費。</div>
-            </div>
-            <span class="status active"><span class="dot"></span>已啟用</span>
-          </div>
-
-          <div class="mini-list">
-            <div class="mini-item">
-              <span class="mini-key">方案</span>
-              <span id="nbaApiPlanText" class="mini-val">PRO</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">開始日期</span>
-              <span id="nbaApiStartText" class="mini-val">2026/10/14</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">每日上限</span>
-              <span id="nbaApiDailyLimitText" class="mini-val">7,500</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">續費 / 到期日期</span>
-              <span id="nbaApiRenewalText" class="mini-val">2026/11/14</span>
-            </div>
-            <div class="mini-item">
-              <span class="mini-key">剩餘天數</span>
-              <span id="nbaApiRenewalDaysText" class="mini-val">—</span>
-            </div>
-            <button class="save-btn" style="width:100%" onclick="confirmNbaApiRenewal(this)">確認 NBA 已續費</button>
+          <div class="api-provider-card odds">
+            <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">NBA 真實讓分＋大小分｜每月 credits 與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+            <div class="api-provider-main"><div><div class="api-provider-label">本期使用量</div><div id="oddsApiTodayBig" class="api-provider-number">— / 20,000</div></div><div class="api-provider-badge">20K / 月</div></div>
+            <div class="progress-wrap"><div class="progress-line"><div id="oddsApiPageProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="oddsApiPagePercent">—</span><span id="oddsApiPageRemaining">—</span></div></div>
+            <div class="api-provider-meta"><div><span>最近一次成本</span><strong id="oddsApiLastCostText">—</strong><small id="oddsApiEventsText">—</small></div><div><span>續費日期</span><strong id="oddsApiRenewalText">—</strong><small id="oddsApiRenewalDaysText">—</small></div></div>
+            <button class="save-btn" style="width:100%;margin-top:12px" onclick="confirmOddsApiRenewal(this)">確認 The Odds 已續費</button>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-title">近 7 天 API 使用紀錄</div>
           <div class="panel-desc" style="margin-top:8px;line-height:1.75">
-            每日配額各自重置；下方顯示最近 7 天實際記錄量。
+            API-Football 與 API-NBA 分開記錄；The Odds 為月額度，直接看上方本期使用量。
           </div>
 
           <div class="table-shell" style="margin-top:14px">
@@ -1500,6 +1390,11 @@ tr:last-child td{border-bottom:0}
             </div>
           </div>
 
+          <div class="panel-title" style="margin-top:18px">API-NBA 近 7 天配額快照</div>
+          <div class="table-shell" style="margin-top:14px"><div class="table-scroll" style="max-height:360px"><table style="min-width:620px">
+            <thead><tr><th>日期</th><th>使用量</th><th>每日上限</th><th>剩餘</th><th>使用率</th></tr></thead>
+            <tbody id="nbaApiDailyBody"></tbody>
+          </table></div></div>
           <div class="panel-title" style="margin-top:18px">今日來源統計</div>
           <div id="apiSourceStats" class="mini-list" style="margin-top:10px"></div>
         </div>
@@ -1531,6 +1426,15 @@ Supabase FREE 最新用量快照。使用率達 70% 顯示黃色警示，90% 以
   —
 </div>
 
+          <div class="panel-title" style="margin-top:18px">固定續費 / 付費服務總覽</div>
+          <div class="mini-list" style="margin-top:10px">
+            <div class="mini-item"><span class="mini-key">API-Football PRO</span><span id="renewalSummaryFootball" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">API-NBA PRO</span><span id="renewalSummaryNba" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">The Odds API 20K</span><span id="renewalSummaryOdds" class="mini-val">—</span></div>
+            <div class="mini-item"><span class="mini-key">OpenAI API</span><span class="mini-val">按量計費｜無固定續費日</span></div>
+            <div class="mini-item"><span class="mini-key">Supabase</span><span class="mini-val">FREE｜目前無固定續費</span></div>
+          </div>
+
           <div class="panel-title" style="margin-top:20px">
             即時比分推播 V2 消耗
           </div>
@@ -1539,17 +1443,17 @@ Supabase FREE 最新用量快照。使用率達 70% 顯示黃色警示，90% 以
 
             <div class="mini-item">
               <span class="mini-key">Cron Edge Function</span>
-              <span class="mini-val">720 次 / 日</span>
+              <span class="mini-val" style="color:#ff9c9c">已暫停｜0 次 / 日</span>
             </div>
 
             <div class="mini-item">
               <span class="mini-key">30 天 Cron 預估</span>
-              <span class="mini-val">21,600 次</span>
+              <span class="mini-val">目前 0 次（Job 5 已暫停）</span>
             </div>
 
             <div class="mini-item">
               <span class="mini-key">佔 FREE Edge 額度</span>
-              <span class="mini-val">約 4.3%</span>
+              <span class="mini-val">目前 0%</span>
             </div>
 
             <div class="mini-item">
@@ -2337,6 +2241,8 @@ let fixtureCacheRows = [];
 let nbaFixtureRows = [];
 let nbaFixtureStats = {};
 let nbaFixtureDates = {};
+let nbaProviderUsage = {};
+let oddsProviderUsage = {};
 let performanceSnapshots = [];
 let shadowTestPayload = null;
 let shadowTestRows = [];
@@ -2354,6 +2260,11 @@ window.nbaApiPlan = "PRO";
 window.nbaApiDailyLimit = 7500;
 window.nbaApiStartDate = null;
 window.nbaApiRenewalDate = null;
+
+window.oddsApiPlan = "20K";
+window.oddsApiMonthlyLimit = 20000;
+window.oddsApiStartDate = null;
+window.oddsApiRenewalDate = null;
 
 /* =========================
    UI
@@ -2770,200 +2681,47 @@ function isTodayTaipei(value) {
   return valueDate === today;
 }
 
+function setAdminProgressBar(id, percent) {
+  const el=document.getElementById(id);
+  if(!el)return;
+  const safe=Math.max(0,Math.min(Number(percent||0),100));
+  el.style.width=safe+"%";
+  el.style.background=safe>=90?"linear-gradient(90deg,#b93a3a,#ff6565)":safe>=70?"linear-gradient(90deg,#b2771f,#f2bd4b)":"linear-gradient(90deg,#d99821,#ffe39d)";
+}
+
 function renderDashboard() {
-  const total =
-    Number.isFinite(Number(adminOverview?.total_members))
-      ? Number(adminOverview.total_members)
-      : members.length;
+  const total=Number.isFinite(Number(adminOverview?.total_members))?Number(adminOverview.total_members):members.length;
+  const active=Number.isFinite(Number(adminOverview?.active_members))?Number(adminOverview.active_members):members.filter(x=>x?.is_active===true).length;
+  const vip=Number.isFinite(Number(adminOverview?.vip_members))?Number(adminOverview.vip_members):members.filter(x=>String(x?.member_level||"").toLowerCase()==="vip").length;
+  const todayLogin=Number.isFinite(Number(adminOverview?.today_logins))?Number(adminOverview.today_logins):members.filter(x=>isTodayTaipei(x?.last_login_at)).length;
+  setText("dashTotalMembers",total);setText("dashActiveMembers",active);setText("dashVipMembers",vip);setText("dashTodayLogin",todayLogin);
 
-  const active =
-    Number.isFinite(Number(adminOverview?.active_members))
-      ? Number(adminOverview.active_members)
-      : members.filter(
-          item => item?.is_active === true
-        ).length;
+  const footballTodayAnalysis=Number.isFinite(Number(adminOverview?.today_analysis_count))?Number(adminOverview.today_analysis_count):dashboardData.todayAnalysisCount;
+  const nbaTodayAnalysis=Number(nbaAdminOverview?.today_analysis_usage||0);
+  setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis);
 
-  const vip =
-    Number.isFinite(Number(adminOverview?.vip_members))
-      ? Number(adminOverview.vip_members)
-      : members.filter(
-          item =>
-            String(item?.member_level || "").toLowerCase() === "vip"
-        ).length;
+  const apiLimit=Number(window.apiDailyLimit||7500);
+  const apiUsed=Number.isFinite(Number(adminOverview?.today_api_count))?Number(adminOverview.today_api_count):dashboardData.todayApiCount;
+  const avgApi=Math.ceil((Number.isFinite(Number(adminOverview?.last_7_days_api_count))?Number(adminOverview.last_7_days_api_count):dashboardData.last7DaysApiCount)/7);
+  setText("dashTodayApi",`${apiUsed} / ${apiLimit}`);setText("dashAvgApi",String(avgApi));setText("dashAvgApiNote",`平均剩餘 ${Math.max(apiLimit-avgApi,0)} 次`);
+  setText("dashRenewalDate",window.apiRenewalDate?String(window.apiRenewalDate).replace(/-/g,"/"):"—");setText("dashRenewalDays",calculateRenewalDays(window.apiRenewalDate).text);
+  setText("dashApiProgressText",`${apiUsed} / ${apiLimit}`);setText("dashApiRemaining",`剩餘 ${Math.max(apiLimit-apiUsed,0)}`);setAdminProgressBar("dashApiProgress",apiLimit>0?apiUsed/apiLimit*100:0);
 
-  const todayLogin =
-    Number.isFinite(Number(adminOverview?.today_logins))
-      ? Number(adminOverview.today_logins)
-      : members.filter(
-          item => isTodayTaipei(item?.last_login_at)
-        ).length;
+  const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500);
+  const nu=Number(nbaProviderUsage?.used),nr=Number(nbaProviderUsage?.remaining),na=Number(nbaProviderUsage?.average_7d);
+  const nbaUsed=Number.isFinite(nu)?nu:null,nbaRemain=Number.isFinite(nr)?nr:null,nbaAvg=Number.isFinite(na)?na:null;
+  const nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
+  setText("dashNbaTodayApi",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);
+  setText("dashNbaApiProgressText",nbaUsed===null?"等待配額快照":`${nbaUsed} / ${nbaLimit}`);setText("dashNbaApiRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain}`);
+  setText("dashNbaAvgApi",nbaAvg===null?"—":String(nbaAvg));setText("dashNbaAvgApiNote",nbaAvg===null?"依供應商配額快照":`平均剩餘 ${Math.max(nbaLimit-nbaAvg,0)} 次`);
+  setText("dashNbaRenewalDate",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("dashNbaRenewalDays",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("dashNbaApiProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
-  const apiLimit =
-    Number(
-      window.apiDailyLimit ||
-      7500
-    );
-
-  const apiUsed =
-    Number.isFinite(Number(adminOverview?.today_api_count))
-      ? Number(adminOverview.today_api_count)
-      : dashboardData.todayApiCount;
-
-  const avgApi =
-    Math.ceil(
-      (Number.isFinite(Number(adminOverview?.last_7_days_api_count))
-        ? Number(adminOverview.last_7_days_api_count)
-        : dashboardData.last7DaysApiCount) /
-      7
-    );
-
-  setText(
-    "dashTotalMembers",
-    total
-  );
-
-  setText(
-    "dashActiveMembers",
-    active
-  );
-
-  setText(
-    "dashVipMembers",
-    vip
-  );
-
-  setText(
-    "dashTodayLogin",
-    todayLogin
-  );
-
-  const footballTodayAnalysis =
-    Number.isFinite(
-      Number(
-        adminOverview?.today_analysis_count
-      )
-    )
-      ? Number(
-          adminOverview.today_analysis_count
-        )
-      : dashboardData.todayAnalysisCount;
-
-  const nbaTodayAnalysis =
-    Number(
-      nbaAdminOverview
-        ?.today_analysis_usage || 0
-    );
-
-  setText(
-    "dashTodayAnalysis",
-    footballTodayAnalysis +
-    nbaTodayAnalysis
-  );
-
-  setText(
-    "dashTodayApi",
-    `${apiUsed} / ${apiLimit}`
-  );
-
-  setText(
-    "dashAvgApi",
-    `${avgApi}`
-  );
-
-  setText(
-    "dashAvgApiNote",
-    `平均剩餘 ${Math.max(
-      apiLimit - avgApi,
-      0
-    )} 次`
-  );
-
-  setText(
-    "dashRenewalDate",
-    window.apiRenewalDate
-      ? String(
-          window.apiRenewalDate
-        ).replace(/-/g, "/")
-      : "—"
-  );
-
-  const renewal =
-    calculateRenewalDays(
-      window.apiRenewalDate
-    );
-
-  setText(
-    "dashRenewalDays",
-    renewal.text
-  );
-
-  const nbaRenewal =
-    calculateRenewalDays(
-      window.nbaApiRenewalDate
-    );
-
-  setText(
-    "dashNbaPlan",
-    window.nbaApiPlan || "PRO"
-  );
-
-  setText(
-    "dashNbaDailyLimit",
-    Number(
-      window.nbaApiDailyLimit || 7500
-    ).toLocaleString("en-US")
-  );
-
-  setText(
-    "dashNbaStartDate",
-    window.nbaApiStartDate
-      ? String(window.nbaApiStartDate).replace(/-/g, "/")
-      : "—"
-  );
-
-  setText(
-    "dashNbaRenewalDate",
-    window.nbaApiRenewalDate
-      ? String(window.nbaApiRenewalDate).replace(/-/g, "/")
-      : "—"
-  );
-
-  setText(
-    "dashNbaRenewalDays",
-    nbaRenewal.text
-  );
-
-  const percent =
-    apiLimit > 0
-      ? Math.min(
-          (apiUsed / apiLimit) *
-          100,
-          100
-        )
-      : 0;
-
-  const progress =
-    document.getElementById(
-      "dashApiProgress"
-    );
-
-  if (progress) {
-    progress.style.width =
-      `${percent}%`;
-  }
-
-  setText(
-    "dashApiProgressText",
-    `${apiUsed} / ${apiLimit}`
-  );
-
-  setText(
-    "dashApiRemaining",
-    `剩餘 ${Math.max(
-      apiLimit - apiUsed,
-      0
-    )}`
-  );
+  const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000);
+  const ou=Number(oddsProviderUsage?.used),or=Number(oddsProviderUsage?.remaining);
+  const oddsUsed=Number.isFinite(ou)?ou:null,oddsRemain=Number.isFinite(or)?or:null,oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
+  setText("dashOddsUsage",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("dashOddsProgressText",oddsUsed===null?"等待市場快照":`${oddsUsed} / ${oddsLimit}`);setText("dashOddsRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain}`);
+  setText("dashOddsLastCost",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("dashOddsEvents",oddsProviderUsage?.events==null?"—":`目前快取 ${Number(oddsProviderUsage.events||0)} 場`);
+  setText("dashOddsRenewalDate",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("dashOddsRenewalDays",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("dashOddsProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
 }
 
 /* =========================
@@ -4237,161 +3995,19 @@ function calculateRenewalDays(
 }
 
 function renderApiPage() {
-  const apiLimit =
-    Number(
-      window.apiDailyLimit ||
-      7500
-    );
+  const apiLimit=Number(window.apiDailyLimit||7500),apiUsed=Number(dashboardData.todayApiCount||0),avg=Math.ceil(Number(dashboardData.last7DaysApiCount||0)/7),remaining=Math.max(apiLimit-apiUsed,0),percent=apiLimit>0?Math.min(apiUsed/apiLimit*100,100):0;
+  setText("apiTodayBig",`${apiUsed} / ${apiLimit}`);setText("apiAvgText",avg);setText("apiAvgRemainingText",`平均剩餘 ${Math.max(apiLimit-avg,0)}`);setText("apiRenewalText",window.apiRenewalDate?String(window.apiRenewalDate).replace(/-/g,"/"):"—");setText("apiRenewalDaysText",calculateRenewalDays(window.apiRenewalDate).text);setText("apiPagePercent",`${percent.toFixed(1)}%`);setText("apiPageRemaining",`剩餘 ${remaining} 次`);setAdminProgressBar("apiPageProgress",percent);
 
-  const apiUsed =
-    Number(
-      dashboardData
-        .todayApiCount ||
-      0
-    );
+  const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500),nu=Number(nbaProviderUsage?.used),nr=Number(nbaProviderUsage?.remaining),na=Number(nbaProviderUsage?.average_7d);
+  const nbaUsed=Number.isFinite(nu)?nu:null,nbaRemain=Number.isFinite(nr)?nr:null,nbaAvg=Number.isFinite(na)?na:null,nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
+  setText("nbaApiTodayBig",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);setText("nbaApiPagePercent",nbaUsed===null||nbaLimit<=0?"—":`${(nbaUsed/nbaLimit*100).toFixed(1)}%`);setText("nbaApiPageRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain} 次`);setText("nbaApiAvgText",nbaAvg===null?"—":nbaAvg);setText("nbaApiDailyLimitText",`每日上限 ${nbaLimit.toLocaleString("en-US")}`);setText("nbaApiRenewalText",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("nbaApiRenewalDaysText",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("nbaApiPageProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
-  const avg =
-    Math.ceil(
-      Number(
-        dashboardData
-          .last7DaysApiCount ||
-        0
-      ) /
-      7
-    );
+  const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000),ou=Number(oddsProviderUsage?.used),or=Number(oddsProviderUsage?.remaining);
+  const oddsUsed=Number.isFinite(ou)?ou:null,oddsRemain=Number.isFinite(or)?or:null,oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
+  setText("oddsApiTodayBig",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("oddsApiPagePercent",oddsUsed===null||oddsLimit<=0?"—":`${(oddsUsed/oddsLimit*100).toFixed(1)}%`);setText("oddsApiPageRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain} credits`);setText("oddsApiLastCostText",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("oddsApiEventsText",oddsProviderUsage?.events==null?"—":`快取 ${Number(oddsProviderUsage.events||0)} 場`);setText("oddsApiRenewalText",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("oddsApiRenewalDaysText",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("oddsApiPageProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
 
-  const remaining =
-    Math.max(
-      apiLimit -
-      apiUsed,
-      0
-    );
-
-  const avgRemaining =
-    Math.max(
-      apiLimit -
-      avg,
-      0
-    );
-
-  const percent =
-    apiLimit > 0
-      ? Math.min(
-          (
-            apiUsed /
-            apiLimit
-          ) * 100,
-          100
-        )
-      : 0;
-
-  setText(
-    "apiTodayBig",
-    `${apiUsed} / ${apiLimit}`
-  );
-
-  setText(
-    "apiDailyLimitText",
-    apiLimit
-  );
-
-  setText(
-    "apiAvgText",
-    avg
-  );
-
-  setText(
-    "apiAvgRemainingText",
-    avgRemaining
-  );
-
-  setText(
-    "apiRenewalText",
-    window.apiRenewalDate
-      ? String(
-          window.apiRenewalDate
-        ).replace(/-/g,"/")
-      : "—"
-  );
-
-  const renewal =
-    calculateRenewalDays(
-      window.apiRenewalDate
-    );
-
-  setText(
-    "apiRenewalDaysText",
-    renewal.text
-  );
-
-  setText(
-    "nbaApiPlanText",
-    window.nbaApiPlan || "PRO"
-  );
-
-  setText(
-    "nbaApiStartText",
-    window.nbaApiStartDate
-      ? String(window.nbaApiStartDate).replace(/-/g,"/")
-      : "—"
-  );
-
-  setText(
-    "nbaApiDailyLimitText",
-    Number(window.nbaApiDailyLimit || 7500).toLocaleString("en-US")
-  );
-
-  setText(
-    "nbaApiRenewalText",
-    window.nbaApiRenewalDate
-      ? String(window.nbaApiRenewalDate).replace(/-/g,"/")
-      : "—"
-  );
-
-  const nbaRenewal =
-    calculateRenewalDays(
-      window.nbaApiRenewalDate
-    );
-
-  setText(
-    "nbaApiRenewalDaysText",
-    nbaRenewal.text
-  );
-
-  setText(
-    "apiPagePercent",
-    `${percent.toFixed(1)}%`
-  );
-
-  setText(
-    "apiPageRemaining",
-    `剩餘 ${remaining} 次`
-  );
-
-  const progress =
-    document.getElementById(
-      "apiPageProgress"
-    );
-
-  if (progress) {
-    progress.style.width =
-      `${percent}%`;
-
-    if (percent >= 90) {
-      progress.style.background =
-        "linear-gradient(90deg,#b93a3a,#ff6565)";
-    } else if (
-      percent >= 70
-    ) {
-      progress.style.background =
-        "linear-gradient(90deg,#b2771f,#f2bd4b)";
-    } else {
-      progress.style.background =
-        "linear-gradient(90deg,#d99821,#ffe39d)";
-    }
-  }
+  setText("renewalSummaryFootball",window.apiRenewalDate?`${String(window.apiRenewalDate).replace(/-/g,"/")}｜${calculateRenewalDays(window.apiRenewalDate).text}`:"—");setText("renewalSummaryNba",nbaRenewal?`${String(nbaRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(nbaRenewal).text}`:"—");setText("renewalSummaryOdds",oddsRenewal?`${String(oddsRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(oddsRenewal).text}`:"—");
 }
-
 
 /* =========================
    ADMIN CENTER V3
@@ -6852,10 +6468,20 @@ async function loadApiStats(force = false) {
 
     await loadApiSettings();
 
-    const data =
-      await adminCenterRequest({
-        action: "api_stats"
-      });
+    const [footballStats,providerStats]=await Promise.allSettled([
+      adminCenterRequest({action:"api_stats"}),
+      adminBasketballRequest({action:"api_usage"})
+    ]);
+    if(footballStats.status!=="fulfilled")throw footballStats.reason;
+    const data=footballStats.value;
+    if(providerStats.status==="fulfilled"){
+      nbaProviderUsage=providerStats.value?.nba||{};
+      oddsProviderUsage=providerStats.value?.odds||{};
+      window.nbaApiDailyLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500);
+      window.nbaApiRenewalDate=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
+      window.oddsApiMonthlyLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000);
+      window.oddsApiRenewalDate=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
+    }else{console.warn("NBA / ODDS API USAGE ERROR:",providerStats.reason);}
 
 apiStatsPayload =
   data;
@@ -6965,6 +6591,15 @@ function renderApiStats() {
           `;
         })
         .join("");
+  }
+
+  const nbaBody=document.getElementById("nbaApiDailyBody");
+  if(nbaBody){
+    const days=Array.isArray(nbaProviderUsage?.days)?nbaProviderUsage.days:[];
+    nbaBody.innerHTML=days.length?days.map(day=>{
+      const limit=Number(day?.daily_limit||window.nbaApiDailyLimit||7500),used=Number(day?.used_count||0),remaining=day?.remaining_count==null?Math.max(limit-used,0):Number(day.remaining_count),rate=limit>0?(used/limit*100).toFixed(1):"0.0";
+      return `<tr><td>${escapeHtml(day?.usage_date||"—")}</td><td><strong>${used}</strong></td><td>${limit}</td><td>${remaining}</td><td>${rate}%</td></tr>`;
+    }).join(""):'<tr><td colspan="5" class="empty">等待 API-NBA 配額快照</td></tr>';
   }
 
   const sourceBox =
@@ -7940,6 +7575,21 @@ async function confirmNbaApiRenewal(button){
       button.textContent=old||"確認 NBA 已續費";
     }
   }
+}
+
+async function confirmOddsApiRenewal(button){
+  if(!confirm("確定 The Odds API 20K 已完成續費？續費日期會更新為今天 + 1 個月。"))return;
+  const old=button?.textContent;if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const d=await adminBasketballRequest({action:"confirm_odds_renewal"});
+    window.oddsApiPlan=d.settings?.odds_api_plan||window.oddsApiPlan||"20K";
+    window.oddsApiMonthlyLimit=Number(d.settings?.odds_api_monthly_limit||window.oddsApiMonthlyLimit||20000);
+    window.oddsApiStartDate=d.settings?.odds_api_start_date||window.oddsApiStartDate||null;
+    window.oddsApiRenewalDate=d.settings?.odds_api_renewal_date||null;
+    oddsProviderUsage={...oddsProviderUsage,plan:window.oddsApiPlan,monthly_limit:window.oddsApiMonthlyLimit,start_date:window.oddsApiStartDate,renewal_date:window.oddsApiRenewalDate};
+    renderDashboard();renderApiPage();alert(d.message||"The Odds API 續費日期已更新");
+  }catch(e){alert("The Odds API 續費更新失敗："+(e?.message||""));}
+  finally{if(button){button.disabled=false;button.textContent=old||"確認 The Odds 已續費";}}
 }
 
 async function validateOverduePerformance(button){
