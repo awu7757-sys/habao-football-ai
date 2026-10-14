@@ -1853,7 +1853,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div class="page-desc">管理公開預測快照、驗證狀態與市場結果。</div>
           </div>
           <div class="table-tools">
-            <button class="save-btn" onclick="runPublicRunner()">執行賽前預測排程</button>
+            <button class="save-btn" onclick="runPublicRunner()">執行足球賽前預測排程</button>
             <button class="ghost-btn" onclick="validateOverduePerformance(this)">補驗證逾期戰績</button>
             <button class="ghost-btn" onclick="refreshAdminSection(this,'performance')">↻ 更新</button>
           </div>
@@ -1873,7 +1873,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div id="performanceOverdueCount" class="stat-value" style="color:#ff9696">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">大小球命中</div>
+            <div class="stat-label">市場二命中</div>
             <div id="performanceOuRate" class="stat-value">—</div>
           </div>
         </div>
@@ -1881,7 +1881,12 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel">
           <div class="toolbar">
             <div class="filters">
-              <input id="performanceSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderPerformanceAdmin()">
+              <input id="performanceSearch" class="input search" placeholder="搜尋聯賽、隊伍、賽事 ID..." oninput="renderPerformanceAdmin()">
+              <select id="performanceSportFilter" class="input" onchange="renderPerformanceAdmin()">
+                <option value="all">全部運動</option>
+                <option value="football">⚽ 足球</option>
+                <option value="basketball">🏀 NBA</option>
+              </select>
               <select id="performanceStatusFilter" class="input" onchange="renderPerformanceAdmin()">
                 <option value="all">全部</option>
                 <option value="included">正常計入</option>
@@ -1899,14 +1904,15 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                 <thead>
                   <tr>
                     <th>開賽時間</th>
-                    <th>Fixture ID</th>
+                    <th>運動</th>
+                    <th>賽事 ID</th>
                     <th>聯賽</th>
                     <th>賽事</th>
                     <th>比分</th>
                     <th>狀態</th>
                     <th>獨贏</th>
-                    <th>大小球</th>
-                    <th>BTTS</th>
+                    <th>大小球 / 總分誤差</th>
+                    <th>BTTS / 勝分差誤差</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -2293,6 +2299,9 @@ const ADMIN_CENTER_URL =
 
 const ADMIN_BASKETBALL_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball";
+
+const ADMIN_BASKETBALL_PERFORMANCE_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball-performance";
 
 
 let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
@@ -5507,15 +5516,57 @@ async function refreshFixtureSource(offset) {
 
 async function loadPerformanceAdmin(force = false) {
   try {
-    const data =
-      await adminCenterRequest({action: "performance",
-        limit: 400
-      });
+    const [footballResult, basketballResult] =
+      await Promise.allSettled([
+        adminCenterRequest({
+          action: "performance",
+          limit: 400
+        }),
+        adminServiceRequest(
+          ADMIN_BASKETBALL_PERFORMANCE_URL,
+          {
+            action: "performance",
+            limit: 400
+          }
+        )
+      ]);
 
-    performanceSnapshots =
-      data.snapshots || [];
+    const footballSnapshots =
+      footballResult.status === "fulfilled"
+        ? (footballResult.value.snapshots || []).map(row => ({
+            ...row,
+            sport: "football",
+            fixture_id: Number(row?.fixture_id || 0)
+          }))
+        : [];
+
+    const basketballSnapshots =
+      basketballResult.status === "fulfilled"
+        ? (basketballResult.value.snapshots || []).map(row => ({
+            ...row,
+            sport: "basketball",
+            fixture_id: Number(row?.fixture_id || row?.game_id || 0)
+          }))
+        : [];
+
+    performanceSnapshots = [
+      ...footballSnapshots,
+      ...basketballSnapshots
+    ].sort((a,b)=>
+      new Date(b?.kickoff_at || 0).getTime() -
+      new Date(a?.kickoff_at || 0).getTime()
+    );
 
     renderPerformanceAdmin();
+
+    if (force) {
+      const failed = [];
+      if (footballResult.status === "rejected") failed.push("足球");
+      if (basketballResult.status === "rejected") failed.push("NBA");
+      if (failed.length) {
+        alert(`${failed.join("、")}公開戰績讀取失敗，其餘資料已正常顯示。`);
+      }
+    }
 
   } catch (error) {
     console.error(
@@ -5543,6 +5594,10 @@ function settlementResult(
     value &&
     typeof value === "object"
   ) {
+    if (value?.decided === false) {
+      return "";
+    }
+
     return String(
       value?.result ||
       value?.status ||
@@ -5622,12 +5677,20 @@ function marketWinRate(market) {
   ).toFixed(1) + "%";
 }
 
+function performanceSportLabel(row) {
+  return row?.sport === "basketball"
+    ? "🏀 NBA"
+    : "⚽ 足球";
+}
+
 function renderPerformanceAdmin() {
   const body=document.getElementById("performanceBody"); if(!body)return;
   const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
   const filter=document.getElementById("performanceStatusFilter")?.value||"all";
+  const sportFilter=document.getElementById("performanceSportFilter")?.value||"all";
+
   const filtered=performanceSnapshots.filter(row=>{
-    const h=[row?.fixture_id,normalizeLeagueDisplay(row?.league_name),row?.home_team,row?.away_team].join(" ").toLowerCase();
+    const h=[row?.fixture_id,normalizeLeagueDisplay(row?.league_name),row?.home_team,row?.away_team,performanceSportLabel(row)].join(" ").toLowerCase();
     const excluded=row?.excluded_from_public===true, overdue=row?.is_overdue===true;
     let ok=true;
     if(filter==="included")ok=!excluded;
@@ -5635,22 +5698,54 @@ function renderPerformanceAdmin() {
     else if(filter==="pending")ok=row?.status==="pending"&&!overdue;
     else if(filter==="overdue")ok=overdue;
     else if(filter==="verified")ok=row?.status==="verified";
-    return ok&&(!search||h.includes(search));
+
+    const sportOk =
+      sportFilter === "all" ||
+      row?.sport === sportFilter;
+
+    return ok&&sportOk&&(!search||h.includes(search));
   });
-  body.innerHTML=filtered.map(row=>`<tr>
-    <td>${formatDate(row?.kickoff_at)}</td><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
-    <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
-    <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
-    <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
-    <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td><td>${resultBadge(settlementResult(row?.settlement,"over_under"))}</td><td>${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-    <td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("公開戰績詳細", performanceSnapshots.find(x=>String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button><button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded(${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button><button class="action-btn red" onclick="deletePerformanceSnapshot(${Number(row?.fixture_id)})">刪除</button></div></td></tr>`).join("");
+
+  body.innerHTML=filtered.map(row=>{
+    const isNba=row?.sport==="basketball";
+    const market2Title=isNba
+      ? "模型總分誤差 ≤ 8"
+      : "大小球";
+    const market3Title=isNba
+      ? "模型勝分差誤差 ≤ 6"
+      : "BTTS";
+
+    return `<tr>
+      <td>${formatDate(row?.kickoff_at)}</td>
+      <td><span class="table-chip">${performanceSportLabel(row)}</span></td>
+      <td class="mono">${escapeHtml(row?.fixture_id??"—")}</td>
+      <td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
+      <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
+      <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
+      <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
+      <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
+      <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
+      <td title="${market3Title}">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+      <td><div class="row-actions">
+        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
+        <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
+        <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+
+  if(!filtered.length){
+    body.innerHTML='<tr><td colspan="11" class="empty">目前沒有符合條件的公開戰績資料</td></tr>';
+  }
+
   const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
   const overdue=performanceSnapshots.filter(x=>x?.is_overdue===true).length;
   const verified=performanceSnapshots.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
-  setText("performancePendingCount",normalPending); setText("performanceOverdueCount",overdue); setText("performanceVerifiedCount",verified);
+  setText("performancePendingCount",normalPending);
+  setText("performanceOverdueCount",overdue);
+  setText("performanceVerifiedCount",verified);
   setText("performanceOuRate",marketWinRate("over_under"));
 }
-
 async function runPublicRunner() {
   if (
     !confirm(
@@ -7513,14 +7608,94 @@ async function confirmNbaApiRenewal(button){
   }
 }
 
-async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
-async function togglePerformanceExcluded(fixtureId,excluded){const msg=excluded?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？":"確定恢復此場計入公開戰績？";if(!confirm(msg))return;try{await adminCenterRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});await loadPerformanceAdmin(false);}catch(e){alert("操作失敗："+(e?.message||""));}}
-async function deletePerformanceSnapshot(fixtureId){
-  const id=Number(fixtureId||0);
-  if(!id){alert("Fixture ID 無效");return;}
-  if(!confirm(`確定永久刪除 Fixture ${id} 的公開戰績？\n\n刪除後無法直接恢復，預測、比分與結算資料都會一起移除。`))return;
+async function validateOverduePerformance(button){
+  if(!confirm("確定補驗證足球＋NBA所有逾期待驗證戰績？"))return;
+  const old=button?.textContent;
+  if(button){button.disabled=true;button.textContent="補驗證中…";}
   try{
-    await adminCenterRequest({action:"performance_delete",fixture_id:id});
+    const [footballResult,basketballResult]=await Promise.allSettled([
+      adminCenterRequest({action:"validate_overdue_performance"}),
+      adminServiceRequest(
+        ADMIN_BASKETBALL_PERFORMANCE_URL,
+        {action:"validate_overdue_performance"}
+      )
+    ]);
+
+    showJsonModal(
+      "足球＋NBA 補驗證結果",
+      {
+        football:
+          footballResult.status==="fulfilled"
+            ? (footballResult.value.report||footballResult.value)
+            : {success:false,error:String(footballResult.reason?.message||footballResult.reason||"failed")},
+        basketball:
+          basketballResult.status==="fulfilled"
+            ? (basketballResult.value.report||basketballResult.value)
+            : {success:false,error:String(basketballResult.reason?.message||basketballResult.reason||"failed")}
+      }
+    );
+
+    await loadPerformanceAdmin(false);
+    await loadAdminOverview();
+  }catch(e){
+    alert("補驗證失敗："+(e?.message||""));
+  }finally{
+    if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}
+  }
+}
+
+async function togglePerformanceExcluded(sport,fixtureId,excluded){
+  const msg=excluded
+    ?"排除後此場不會出現在公開戰績與統計，但原始資料會保留。確定排除？"
+    :"確定恢復此場計入公開戰績？";
+  if(!confirm(msg))return;
+
+  try{
+    if(sport==="basketball"){
+      await adminServiceRequest(
+        ADMIN_BASKETBALL_PERFORMANCE_URL,
+        {
+          action:"performance_toggle_excluded",
+          fixture_id:Number(fixtureId),
+          excluded
+        }
+      );
+    }else{
+      await adminCenterRequest({
+        action:"performance_toggle_excluded",
+        fixture_id:Number(fixtureId),
+        excluded
+      });
+    }
+    await loadPerformanceAdmin(false);
+  }catch(e){
+    alert("操作失敗："+(e?.message||""));
+  }
+}
+
+async function deletePerformanceSnapshot(sport,fixtureId){
+  const id=Number(fixtureId||0);
+  if(!id){alert("賽事 ID 無效");return;}
+
+  const sportLabel=sport==="basketball"?"NBA":"足球";
+  if(!confirm(`確定永久刪除 ${sportLabel} 賽事 ${id} 的公開戰績？\n\n刪除後無法直接恢復，預測、比分與結算資料都會一起移除。`))return;
+
+  try{
+    if(sport==="basketball"){
+      await adminServiceRequest(
+        ADMIN_BASKETBALL_PERFORMANCE_URL,
+        {
+          action:"performance_delete",
+          fixture_id:id
+        }
+      );
+    }else{
+      await adminCenterRequest({
+        action:"performance_delete",
+        fixture_id:id
+      });
+    }
+
     await loadPerformanceAdmin(false);
     await loadAdminOverview();
     alert("公開戰績已刪除");
@@ -7528,7 +7703,6 @@ async function deletePerformanceSnapshot(fixtureId){
     alert("刪除失敗："+(e?.message||"未知錯誤"));
   }
 }
-
 async function clearExpiredLocks(button){if(!confirm("只會清除已過期或疑似殘留的分析鎖，不會清除正常執行中的分析。確定繼續？"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="清除中…";}try{const d=await adminCenterRequest({action:"clear_expired_locks"});alert(`已清除 ${d.cleared||0} 筆過期分析鎖`);await loadHealth(false);await loadAdminOverview();}catch(e){alert("清除失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"清除過期分析鎖";}}}
 
 function apiSourceName(source){return ({"tomorrow-fixtures":"賽事資料 API","match-analysis":"AI 分析 API","panda-odds":"Panda 賠率"})[String(source)]||String(source||"其他來源");}
