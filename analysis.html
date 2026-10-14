@@ -3693,6 +3693,14 @@ const isBasketballAnalysis =
 const basketballModel =
   data?.model || {};
 
+const basketballMarket =
+  data?.market_data
+    ?.market || {};
+
+const basketballInjuries =
+  data?.market_data
+    ?.injuries || {};
+
 const moneyline = rec.moneyline || {};
 const handicap = rec.handicap || {};
 const overUnder = rec.over_under || {};
@@ -3747,14 +3755,82 @@ const basketballAwayWin =
     ?.away ?? "-";
 
 const basketballMarketText =
-  Array.isArray(
-    data?.warnings
-  ) &&
-  data.warnings.length
-    ? String(
-        data.warnings[0]
+  basketballMarket
+    ?.available === true
+    ? (
+        "真實市場盤口｜主隊讓分 " +
+        (
+          basketballMarket
+            ?.consensus
+            ?.home_spread ?? "—"
+        ) +
+        "｜大小分 " +
+        (
+          basketballMarket
+            ?.consensus
+            ?.total ?? "—"
+        ) +
+        "｜樣本 " +
+        Math.max(
+          Number(
+            basketballMarket
+              ?.consensus
+              ?.spread_bookmakers || 0
+          ),
+          Number(
+            basketballMarket
+              ?.consensus
+              ?.total_bookmakers || 0
+          )
+        ) +
+        " 家"
       )
-    : "目前沒有真實市場讓分 / 大小分盤口，僅顯示模型公平線。";
+    : (
+        Array.isArray(
+          data?.warnings
+        ) &&
+        data.warnings.length
+          ? String(
+              data.warnings[0]
+            )
+          : "目前沒有真實市場讓分 / 大小分盤口，僅顯示模型公平線。"
+      );
+
+const basketballInjuryText =
+  basketballInjuries
+    ?.available === true
+    ? (
+        "傷病資訊｜主隊 " +
+        Number(
+          basketballInjuries
+            ?.home
+            ?.summary
+            ?.total || 0
+        ) +
+        " 人（Out " +
+        Number(
+          basketballInjuries
+            ?.home
+            ?.summary
+            ?.out || 0
+        ) +
+        "）｜客隊 " +
+        Number(
+          basketballInjuries
+            ?.away
+            ?.summary
+            ?.total || 0
+        ) +
+        " 人（Out " +
+        Number(
+          basketballInjuries
+            ?.away
+            ?.summary
+            ?.out || 0
+        ) +
+        "）"
+      )
+    : "傷病資訊目前尚未取得。";
 
     const gameDate = fixture.date
       ? new Date(fixture.date)
@@ -4008,7 +4084,16 @@ ${getAnalysisLeagueName(
           <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
 
           <div class="pick-value">
-            ${localizeAnalysisText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}
+            ${localizeAnalysisText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}${
+              overUnder.line !== null &&
+              overUnder.line !== undefined &&
+              String(overUnder.line).trim() !== "" &&
+              overUnder.pick !== "暫不推薦" &&
+              overUnder.pick !== "暂不推荐" &&
+              overUnder.pick !== "No Recommendation"
+                ? ` ${overUnder.line}`
+                : ""
+            }
           </div>
 
           <div class="confidence">
@@ -4180,8 +4265,14 @@ ${getAnalysisLeagueName(
             <p>
               ${
                 isBasketballAnalysis
-                  ? localizeAnalysisText(
-                      basketballMarketText
+                  ? (
+                      localizeAnalysisText(
+                        basketballMarketText
+                      ) +
+                      "｜" +
+                      localizeAnalysisText(
+                        basketballInjuryText
+                      )
                     )
                   : (
                       localizeAnalysisText(
