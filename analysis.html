@@ -1112,8 +1112,8 @@ h1{
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
   margin-bottom:22px;
 }
 
@@ -1122,9 +1122,12 @@ h1{
   overflow:hidden;
 
   min-width:0;
-  min-height:225px;
+  min-height:160px;
 
-  padding:19px 18px;
+  display:flex;
+  flex-direction:column;
+
+  padding:18px 17px 16px;
 
   border-radius:18px;
 
@@ -1171,9 +1174,9 @@ h1{
   align-items:center;
   gap:7px;
 
-  margin-bottom:12px;
+  margin-bottom:14px;
 
-  color:#9c7b34;
+  color:#b88a2c;
 
   font-size:9px;
   font-weight:950;
@@ -1259,6 +1262,71 @@ h1{
   line-height:1.7;
 }
 
+
+/* ===== 分析重點卡｜精簡版 ===== */
+.pick-card{
+  justify-content:flex-start;
+}
+
+.pick-card .pick-value{
+  min-height:34px;
+  margin-bottom:14px;
+  font-size:22px;
+  line-height:1.2;
+}
+
+.pick-card .confidence{
+  width:max-content;
+  max-width:100%;
+  margin-top:auto;
+  margin-bottom:10px;
+  padding:5px 8px;
+  border:1px solid rgba(245,196,81,.12);
+  border-radius:999px;
+  background:rgba(245,196,81,.055);
+  color:#aebbc3;
+}
+
+.pick-card .bar{
+  margin-bottom:0;
+}
+
+.pick-card .reason{
+  display:none !important;
+}
+
+@media(max-width:800px){
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+
+  .pick-card{
+    min-height:132px;
+    padding:14px 12px 13px;
+  }
+
+  .pick-card:nth-child(5){
+    grid-column:auto;
+  }
+
+  .pick-card .pick-value{
+    min-height:28px;
+    margin-bottom:11px;
+    font-size:19px;
+  }
+
+  .pick-card .confidence{
+    margin-bottom:8px;
+    padding:4px 7px;
+    font-size:9px;
+  }
+
+  .pick-card .bar{
+    height:4px;
+    margin-bottom:0;
+  }
+}
 
 /* ========================================
    HABAO V2 - ACTION BUTTONS
@@ -4035,9 +4103,6 @@ ${getAnalysisLeagueName(
             <div style="width:${confidenceBar(moneyline.confidence)}%"></div>
           </div>
 
-          <div class="reason">
-            ${localizeAnalysisText(moneyline.reason) || analysisT("insufficientData", "資料不足")}
-          </div>
         </div>
 
 
@@ -4073,9 +4138,6 @@ ${getAnalysisLeagueName(
             <div style="width:${confidenceBar(handicap.confidence)}%"></div>
           </div>
 
-          <div class="reason">
-            ${localizeAnalysisText(handicap.reason) || analysisT("insufficientData", "資料不足")}
-          </div>
         </div>
 
 
@@ -4105,9 +4167,6 @@ ${getAnalysisLeagueName(
             <div style="width:${confidenceBar(overUnder.confidence)}%"></div>
           </div>
 
-          <div class="reason">
-            ${localizeAnalysisText(overUnder.reason) || analysisT("insufficientData", "資料不足")}
-          </div>
         </div>
 
 
@@ -4130,9 +4189,6 @@ ${getAnalysisLeagueName(
             <div style="width:${confidenceBar(basketballModel?.confidence)}%"></div>
           </div>
 
-          <div class="reason">
-            模型公平總分 ${basketballFairTotal}｜主勝 ${basketballHomeWin}%・客勝 ${basketballAwayWin}%
-          </div>
         </div>
             `
             : `
@@ -4153,9 +4209,6 @@ ${getAnalysisLeagueName(
             <div style="width:${confidenceBar(btts.confidence)}%"></div>
           </div>
 
-          <div class="reason">
-            ${localizeAnalysisText(btts.reason) || analysisT("insufficientData", "資料不足")}
-          </div>
         </div>
             `
         }
