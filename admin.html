@@ -1922,8 +1922,8 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>比分</th>
                     <th>狀態</th>
                     <th>獨贏</th>
-                    <th>大小球 / 總分誤差</th>
-                    <th>BTTS / 勝分差誤差</th>
+                    <th>大小球 / 大小分</th>
+                    <th>BTTS / 讓分</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -5806,11 +5806,17 @@ function renderPerformanceAdmin() {
   body.innerHTML=filtered.map(row=>{
     const isNba=row?.sport==="basketball";
     const market2Title=isNba
-      ? "模型總分誤差 ≤ 8"
+      ? "大小分"
       : "大小球";
     const market3Title=isNba
-      ? "模型勝分差誤差 ≤ 6"
+      ? "讓分"
       : "BTTS";
+
+    const market3Key =
+      isNba &&
+      row?.settlement?.handicap
+        ? "handicap"
+        : "btts";
 
     return `<tr>
       <td>${formatDate(row?.kickoff_at)}</td>
@@ -5822,7 +5828,7 @@ function renderPerformanceAdmin() {
       <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
       <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
       <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-      <td title="${market3Title}">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+      <td title="${market3Title}">${resultBadge(settlementResult(row?.settlement,market3Key))}</td>
       <td><div class="row-actions">
         <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
         <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
@@ -7460,6 +7466,50 @@ const value =
   };
 
   /*
+   * 大小分新版 NBA 會將方向與真實市場線分開保存，
+   * 後台摘要需一併顯示；舊足球若 pick 已含數字則不重複。
+   */
+  const fmtOverUnder = (v) => {
+
+    if (v == null) {
+      return "—";
+    }
+
+    if (
+      typeof v !== "object"
+    ) {
+      return escapeHtml(
+        localizeSummaryPick(v)
+      );
+    }
+
+    const value =
+      localizeSummaryPick(
+        v.pick ||
+        v.selection ||
+        v.value ||
+        v.prediction ||
+        "—"
+      );
+
+    const hasNumber =
+      /\d/.test(
+        String(value)
+      );
+
+    const line =
+      !hasNumber &&
+      v.line != null &&
+      String(v.line).trim() !== ""
+        ? ` ${v.line}`
+        : "";
+
+    return escapeHtml(
+      `${value}${line}`
+    );
+  };
+
+  /*
    * 預測比分
    */
   const isBasketball =
@@ -7550,7 +7600,7 @@ const value =
       <br>
 
       大小分：
-      ${fmt(
+      ${fmtOverUnder(
         pick([
           "over_under",
           "totals",
