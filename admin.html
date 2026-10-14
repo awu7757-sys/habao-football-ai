@@ -1346,8 +1346,9 @@ Supabase FREE 最新用量快照。使用率達 70% 顯示黃色警示，90% 以
           </div>
 
           <div class="danger-note" style="margin-top:14px">
-⚠ 此區顯示 supabase_usage_snapshots 的最新快照。
-數值會隨最新快照更新，但目前不是直接即時讀取 Supabase 官方 Usage API。
+⚠ 此區每 6 小時自動更新用量快照。
+Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目前未能完整自動讀取的項目，沿用最近一次有效快照。
+每月依 Billing Cycle 自動切換統計週期，目前週期為每月 13 日更新。
           </div>
         </div>
         
