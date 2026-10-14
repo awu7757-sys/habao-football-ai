@@ -3769,6 +3769,69 @@ const supabaseAuth =
 let currentFixtureOffset = 1;
 let currentHabaoSport = "football";
 
+const HABAO_NBA_TEST_MODE =
+  new URLSearchParams(
+    window.location.search
+  ).get("nba_test") === "1";
+
+const HABAO_NBA_TEST_BASE_DATE =
+  "2026-10-21";
+
+function addHabaoDateDays(
+  yyyyMmDd,
+  days
+) {
+  const match =
+    String(yyyyMmDd || "")
+      .match(
+        /^(\d{4})-(\d{2})-(\d{2})$/
+      );
+
+  if (!match) {
+    return yyyyMmDd;
+  }
+
+  const date =
+    new Date(
+      Date.UTC(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        12,
+        0,
+        0
+      )
+    );
+
+  date.setUTCDate(
+    date.getUTCDate() +
+    Number(days || 0)
+  );
+
+  return [
+    date.getUTCFullYear(),
+    String(
+      date.getUTCMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      date.getUTCDate()
+    ).padStart(2, "0")
+  ].join("-");
+}
+
+function getBasketballRequestDate(
+  offset
+) {
+  if (!HABAO_NBA_TEST_MODE) {
+    return null;
+  }
+
+  return addHabaoDateDays(
+    HABAO_NBA_TEST_BASE_DATE,
+    Number(offset || 0)
+  );
+}
+
 let habaoSportToastTimer = null;
 
 function selectHabaoSport(
@@ -3780,6 +3843,26 @@ function selectHabaoSport(
     sport === "basketball"
   ) {
     currentHabaoSport = sport;
+
+    if (
+      sport === "basketball" &&
+      HABAO_NBA_TEST_MODE
+    ) {
+      currentFixtureOffset = 0;
+
+      document
+        .querySelectorAll(
+          ".date"
+        )
+        .forEach(
+          (item, index) => {
+            item.classList.toggle(
+              "active",
+              index === 0
+            );
+          }
+        );
+    }
 
     document
       .querySelectorAll(
@@ -5341,12 +5424,23 @@ function updateHabaoFixtureTitle(
     currentHabaoSport ===
     "basketball"
   ) {
-    sectionTitle.textContent =
-      offset === 0
-        ? "🏀 今日籃球賽事"
-        : offset === 1
-          ? "🏀 明日籃球賽事"
-          : "🏀 籃球賽事";
+    const testDate =
+      getBasketballRequestDate(
+        offset
+      );
+
+    if (testDate) {
+      sectionTitle.textContent =
+        `🏀 NBA 測試賽事｜${testDate}`;
+    } else {
+      sectionTitle.textContent =
+        offset === 0
+          ? "🏀 今日籃球賽事"
+          : offset === 1
+            ? "🏀 明日籃球賽事"
+            : "🏀 籃球賽事";
+    }
+
     return;
   }
 
@@ -5653,8 +5747,15 @@ async function loadBasketballFixtures(
 
   if (!container) return;
 
+  const requestDate =
+    getBasketballRequestDate(
+      offset
+    );
+
   const cacheKey =
-    `basketball_${offset}`;
+    requestDate
+      ? `basketball_test_${requestDate}`
+      : `basketball_${offset}`;
 
   const cached =
     basketballFixtureCache.get(
@@ -5677,9 +5778,13 @@ async function loadBasketballFixtures(
 
   container.innerHTML = `
     <div class="ai-note">
-      ${offset === 0
-        ? "正在取得今日 NBA 賽事..."
-        : "正在取得明日 NBA 賽事..."}
+      ${requestDate
+        ? `正在取得 NBA 測試賽事｜${requestDate}...`
+        : (
+            offset === 0
+              ? "正在取得今日 NBA 賽事..."
+              : "正在取得明日 NBA 賽事..."
+          )}
     </div>
   `;
 
@@ -5698,9 +5803,16 @@ async function loadBasketballFixtures(
               "Bearer " +
               FIXTURES_PUBLISHABLE_KEY
           },
-          body: JSON.stringify({
-            offset
-          })
+          body: JSON.stringify(
+            requestDate
+              ? {
+                  date:
+                    requestDate
+                }
+              : {
+                  offset
+                }
+          )
         }
       );
 
@@ -5763,10 +5875,19 @@ function renderBasketballFixtureData(
   if (
     fixtures.length === 0
   ) {
+    const requestDate =
+      getBasketballRequestDate(
+        offset
+      );
+
     const dateText =
-      offset === 0
-        ? "今天"
-        : "明天";
+      requestDate
+        ? requestDate
+        : (
+            offset === 0
+              ? "今天"
+              : "明天"
+          );
 
     container.innerHTML = `
       <div class="ai-note">
@@ -7264,9 +7385,16 @@ function rerenderCurrentFixturesForLanguage() {
     currentHabaoSport ===
     "basketball"
   ) {
+    const basketballRequestDate =
+      getBasketballRequestDate(
+        currentFixtureOffset
+      );
+
     const basketballCached =
       basketballFixtureCache.get(
-        `basketball_${currentFixtureOffset}`
+        basketballRequestDate
+          ? `basketball_test_${basketballRequestDate}`
+          : `basketball_${currentFixtureOffset}`
       );
 
     if (
