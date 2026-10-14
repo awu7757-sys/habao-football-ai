@@ -4548,12 +4548,18 @@ const livePushEnabled =
 <td>${analysisMemberCount} 人</td>
 <td>${pushMemberCount} 人</td>
 <td>
-  <button
-    class="action-btn ${livePushEnabled ? "red" : "green"}"
-    onclick="toggleFixtureLivePush(${fixtureId}, ${!livePushEnabled})"
-  >
-    ${livePushEnabled ? "關閉" : "開啟"}
-  </button>
+  <div class="row-actions" style="align-items:center">
+    <span class="status ${livePushEnabled ? "active" : "off"}">
+      <span class="dot"></span>
+      ${livePushEnabled ? "已開啟" : "已關閉"}
+    </span>
+    <button
+      class="action-btn ${livePushEnabled ? "red" : "green"}"
+      onclick="toggleFixtureLivePush(${fixtureId}, ${!livePushEnabled})"
+    >
+      ${livePushEnabled ? "關閉推播" : "開啟推播"}
+    </button>
+  </div>
 </td>
         </tr>
       `;
