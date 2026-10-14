@@ -348,6 +348,111 @@ async function authorizeAdmin(
   };
 }
 
+
+async function getBasketballGameAudience(
+  supabaseUrl: string,
+  backendHeaders: Record<string,string>,
+  gameId: number,
+) {
+  const historyRes = await fetch(
+    `${supabaseUrl}/rest/v1/member_basketball_analysis_history?game_id=eq.${encodeURIComponent(String(gameId))}&select=account`,
+    { headers: backendHeaders },
+  );
+
+  if (!historyRes.ok) {
+    throw new Error(
+      `讀取 NBA 分析會員失敗：${await historyRes.text()}`
+    );
+  }
+
+  const historyRows: any[] =
+    await historyRes.json().catch(() => []);
+
+  const analyzedAccounts =
+    new Set(
+      (historyRows || [])
+        .map(row =>
+          String(
+            row?.account || ""
+          ).trim()
+        )
+        .filter(Boolean)
+    );
+
+  if (!analyzedAccounts.size) {
+    return {
+      analyzed_accounts: [],
+      active_accounts: [],
+      subscriptions: [],
+    };
+  }
+
+  const membersRes = await fetch(
+    `${supabaseUrl}/rest/v1/members?select=account,is_active`,
+    { headers: backendHeaders },
+  );
+
+  if (!membersRes.ok) {
+    throw new Error(
+      `讀取會員狀態失敗：${await membersRes.text()}`
+    );
+  }
+
+  const members: any[] =
+    await membersRes.json().catch(() => []);
+
+  const activeAccounts =
+    new Set(
+      (members || [])
+        .filter(member =>
+          member?.is_active === true &&
+          analyzedAccounts.has(
+            String(
+              member?.account || ""
+            ).trim()
+          )
+        )
+        .map(member =>
+          String(
+            member?.account || ""
+          ).trim()
+        )
+        .filter(Boolean)
+    );
+
+  const subscriptionsRes = await fetch(
+    `${supabaseUrl}/rest/v1/push_subscriptions?select=id,endpoint,p256dh,auth,member_username`,
+    { headers: backendHeaders },
+  );
+
+  if (!subscriptionsRes.ok) {
+    throw new Error(
+      `讀取推播訂閱失敗：${await subscriptionsRes.text()}`
+    );
+  }
+
+  const allSubscriptions: any[] =
+    await subscriptionsRes.json().catch(() => []);
+
+  const subscriptions =
+    (allSubscriptions || [])
+      .filter(subscription =>
+        activeAccounts.has(
+          String(
+            subscription?.member_username || ""
+          ).trim()
+        )
+      );
+
+  return {
+    analyzed_accounts:
+      Array.from(analyzedAccounts),
+    active_accounts:
+      Array.from(activeAccounts),
+    subscriptions,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
@@ -561,6 +666,51 @@ Deno.serve(async (req) => {
       return json({ success:true,count:Array.isArray(rows)?rows.length:0,devices:rows||[] });
     }
 
+    if (action === "basketball_game_count") {
+      const gameId = Number(payload?.game_id || 0);
+
+      if (!gameId) {
+        return json({
+          success: false,
+          error: "game_id_required",
+          message: "請選擇 NBA 賽事",
+        }, 400);
+      }
+
+      const target =
+        await getBasketballGameAudience(
+          supabaseUrl,
+          backendHeaders,
+          gameId,
+        );
+
+      const pushableAccounts =
+        new Set(
+          target.subscriptions
+            .map((item:any) =>
+              String(
+                item?.member_username || ""
+              ).trim()
+            )
+            .filter(Boolean)
+        );
+
+      return json({
+        success: true,
+        audience: "basketball_game",
+        game_id: gameId,
+        analysis_member_count:
+          target.analyzed_accounts.length,
+        active_member_count:
+          target.active_accounts.length,
+        push_member_count:
+          pushableAccounts.size,
+        device_count:
+          target.subscriptions.length,
+      });
+    }
+
+
     if (action === "logs") {
       const r = await fetch(`${supabaseUrl}/rest/v1/push_send_logs?select=*&order=created_at.desc&limit=30`,{headers:backendHeaders});
       if (!r.ok) return json({success:true,logs:[]});
@@ -572,7 +722,20 @@ Deno.serve(async (req) => {
     const body = String(payload?.body || "").trim();
     const clickUrl = String(payload?.url || "https://awu7757-sys.github.io/habao-football-ai/home-v2.html");
     const memberUsername = String(payload?.member_username || "").trim();
-    const audience = memberUsername ? "member" : ["all","vip","normal","member"].includes(String(payload?.audience||"all")) ? String(payload?.audience||"all") : "all";
+    const audience = memberUsername
+      ? "member"
+      : ["all","vip","normal","member","basketball_game"].includes(String(payload?.audience||"all"))
+        ? String(payload?.audience||"all")
+        : "all";
+    const basketballGameId = Number(payload?.game_id || 0);
+
+    if (audience === "basketball_game" && !basketballGameId) {
+      return json({
+        success:false,
+        error:"game_id_required",
+        message:"請選擇 NBA 賽事",
+      },400);
+    }
     if (!title || !body) return json({success:false,error:"請輸入通知標題與內容"},400);
 
     webpush.setVapidDetails("mailto:admin@habao-football-ai.com", vapidPublicKey, vapidPrivateKey);
@@ -589,6 +752,28 @@ Deno.serve(async (req) => {
       const allowed = new Set(members.filter(m=>m?.is_active===true && String(m?.member_level||"normal").toLowerCase()===audience).map(m=>String(m?.account||"").trim()).filter(Boolean));
       subscriptions = subscriptions.filter(s=>allowed.has(String(s?.member_username||"").trim()));
     }
+
+    if (audience === "basketball_game") {
+      const target =
+        await getBasketballGameAudience(
+          supabaseUrl,
+          backendHeaders,
+          basketballGameId,
+        );
+
+      subscriptions =
+        target.subscriptions;
+
+      if (!target.analyzed_accounts.length) {
+        return json({
+          success:false,
+          error:"no_analysis_members",
+          message:"此場目前沒有會員分析紀錄",
+          total:0,
+          game_id:basketballGameId,
+        },404);
+      }
+    }
     if (!subscriptions.length) return json({success:false,error:"目前沒有符合條件的推播訂閱",total:0},404);
 
     const message = JSON.stringify({ title, body, icon:"https://awu7757-sys.github.io/habao-football-ai/habao-icon-192.png", badge:"https://awu7757-sys.github.io/habao-football-ai/habao-icon-192.png", url:clickUrl, tag:"habao-notification" });
@@ -601,7 +786,7 @@ Deno.serve(async (req) => {
 
     const logPayload={ audience, member_username:memberUsername||null, title, body, target_url:clickUrl, found_count:subscriptions.length, accepted_count:sent, failed_count:failed, expired_count:expiredIds.length, created_at:new Date().toISOString() };
     await fetch(`${supabaseUrl}/rest/v1/push_send_logs`,{method:"POST",headers:{...backendHeaders,Prefer:"return=minimal"},body:JSON.stringify(logPayload)}).catch(()=>null);
-    return json({success:true,audience,member_username:memberUsername||null,total:subscriptions.length,found:subscriptions.length,sent,accepted:sent,failed,removed_expired:expiredIds.length});
+    return json({success:true,audience,member_username:memberUsername||null,game_id:audience==="basketball_game"?basketballGameId:null,total:subscriptions.length,found:subscriptions.length,sent,accepted:sent,failed,removed_expired:expiredIds.length});
   } catch(error) {
     console.error("push-send error:",error);
     return json({success:false,error:error instanceof Error?error.message:"推播發送失敗"},500);
