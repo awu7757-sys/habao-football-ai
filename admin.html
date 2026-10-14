@@ -374,6 +374,142 @@ tr:last-child td{border-bottom:0}
 .mini-key{color:#7f8a98;font-size:10px}
 .mini-val{color:#fff;font-size:11px;font-weight:900}
 
+/* DASHBOARD API OVERVIEW */
+.dashboard-system-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:11px;
+  margin-top:11px;
+}
+.dashboard-api-panel{margin-top:15px}
+.dashboard-api-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.api-provider-card{
+  min-width:0;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+}
+.api-provider-card.football{
+  border-color:rgba(242,189,75,.20);
+  background:linear-gradient(145deg,rgba(242,189,75,.07),rgba(255,255,255,.012));
+}
+.api-provider-card.nba{
+  border-color:rgba(112,168,255,.20);
+  background:linear-gradient(145deg,rgba(112,168,255,.07),rgba(255,255,255,.012));
+}
+.api-provider-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.api-provider-name{
+  color:#fff;
+  font-size:15px;
+  font-weight:950;
+}
+.api-provider-sub{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.5;
+}
+.api-provider-main{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:18px;
+}
+.api-provider-label{
+  color:#7f8a98;
+  font-size:9px;
+  font-weight:850;
+}
+.api-provider-number{
+  margin-top:5px;
+  color:#fff;
+  font-size:30px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.7px;
+}
+.api-provider-badge{
+  padding:6px 9px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  color:#aeb8c4;
+  background:rgba(255,255,255,.025);
+  font-size:9px;
+  font-weight:850;
+  white-space:nowrap;
+}
+.api-provider-meta{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:14px;
+}
+.api-provider-card.nba .api-provider-meta{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.api-provider-meta>div{
+  min-width:0;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(0,0,0,.12);
+}
+.api-provider-meta span{
+  display:block;
+  color:#7f8a98;
+  font-size:8px;
+}
+.api-provider-meta strong{
+  display:block;
+  margin-top:5px;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  overflow-wrap:anywhere;
+}
+.api-provider-meta small{
+  display:block;
+  margin-top:4px;
+  color:#65717e;
+  font-size:8px;
+  line-height:1.4;
+}
+.api-provider-note{
+  margin-top:12px;
+  padding:9px 10px;
+  border:1px dashed rgba(112,168,255,.18);
+  border-radius:10px;
+  color:#7f8fa3;
+  background:rgba(112,168,255,.025);
+  font-size:8px;
+  line-height:1.55;
+}
+@media(max-width:1250px){
+  .dashboard-system-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .api-provider-card.nba .api-provider-meta{grid-template-columns:1fr 1fr}
+}
+@media(max-width:900px){
+  .dashboard-api-grid{grid-template-columns:1fr}
+  .dashboard-system-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .dashboard-system-grid{grid-template-columns:1fr 1fr}
+  .api-provider-meta,
+  .api-provider-card.nba .api-provider-meta{grid-template-columns:1fr}
+  .api-provider-number{font-size:25px}
+}
+
 /* MODAL */
 .modal{
   position:fixed;inset:0;z-index:1000;
@@ -812,7 +948,7 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">SYSTEM OVERVIEW</div>
             <div class="page-title">Dashboard</div>
-            <div class="page-desc">快速查看會員、分析與 API 使用狀況。</div>
+            <div class="page-desc">快速查看會員、分析、賽事與各項 API 使用狀況。</div>
           </div>
         </div>
 
@@ -840,34 +976,15 @@ tr:last-child td{border-bottom:0}
             <div id="dashTodayLogin" class="stat-value">0</div>
             <div class="stat-note">依最後登入時間統計</div>
           </div>
+        </div>
 
+        <div class="dashboard-system-grid">
           <div class="stat-card">
             <div class="stat-label">今日 AI 分析</div>
             <div id="dashTodayAnalysis" class="stat-value">0</div>
             <div class="stat-note">analysis_usage 今日筆數</div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-label">今日 API 使用量</div>
-            <div id="dashTodayApi" class="stat-value">0 / 7500</div>
-            <div class="stat-note">API-Football 使用紀錄</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">近 7 天平均 API</div>
-            <div id="dashAvgApi" class="stat-value">0</div>
-            <div id="dashAvgApiNote" class="stat-note">—</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">API-Football 續費日期</div>
-            <div id="dashRenewalDate" class="stat-value" style="font-size:20px">—</div>
-            <div id="dashRenewalDays" class="stat-note">—</div>
-            <div id="dashNbaRenewalNote" class="stat-note">API-NBA：—</div>
-          </div>
-        </div>
-
-        <div class="metric-row">
           <div class="stat-card">
             <div class="stat-label">今日 / 明日可分析賽事</div>
             <div id="dashFixtureCount" class="stat-value">0 / 0</div>
@@ -893,40 +1010,111 @@ tr:last-child td{border-bottom:0}
           </div>
         </div>
 
-        <div class="split-grid">
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">今日 API 配額</div>
-                <div class="panel-desc">依目前每日上限顯示使用比例</div>
+        <div class="panel dashboard-api-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">API 使用與續費</div>
+              <div class="panel-desc">API-Football 與 API-NBA 分開顯示，不混用配額與續費日期。</div>
+            </div>
+            <button class="ghost-btn" onclick="switchPageById('apiPage')">查看 API 配額</button>
+          </div>
+
+          <div class="dashboard-api-grid">
+            <div class="api-provider-card football">
+              <div class="api-provider-top">
+                <div>
+                  <div class="api-provider-name">API-Football PRO</div>
+                  <div class="api-provider-sub">足球賽事資料｜每日配額獨立計算</div>
+                </div>
+                <span class="status active"><span class="dot"></span>使用中</span>
               </div>
-              <button class="ghost-btn" onclick="switchPageById('apiPage')">查看 API</button>
+
+              <div class="api-provider-main">
+                <div>
+                  <div class="api-provider-label">今日使用量</div>
+                  <div id="dashTodayApi" class="api-provider-number">0 / 7500</div>
+                </div>
+                <div class="api-provider-badge">7,500 / 日</div>
+              </div>
+
+              <div class="progress-wrap">
+                <div class="progress-line">
+                  <div id="dashApiProgress" class="progress-fill"></div>
+                </div>
+                <div class="progress-meta">
+                  <span id="dashApiProgressText">0 / 7500</span>
+                  <span id="dashApiRemaining">剩餘 7500</span>
+                </div>
+              </div>
+
+              <div class="api-provider-meta">
+                <div>
+                  <span>近 7 天平均</span>
+                  <strong id="dashAvgApi">0</strong>
+                  <small id="dashAvgApiNote">—</small>
+                </div>
+                <div>
+                  <span>續費日期</span>
+                  <strong id="dashRenewalDate">—</strong>
+                  <small id="dashRenewalDays">—</small>
+                </div>
+              </div>
             </div>
 
-            <div class="progress-wrap">
-              <div class="progress-line">
-                <div id="dashApiProgress" class="progress-fill"></div>
+            <div class="api-provider-card nba">
+              <div class="api-provider-top">
+                <div>
+                  <div class="api-provider-name">API-NBA PRO</div>
+                  <div class="api-provider-sub">NBA 專用資料源｜2026/10/14 啟用</div>
+                </div>
+                <span class="status active"><span class="dot"></span>PRO 已啟用</span>
               </div>
-              <div class="progress-meta">
-                <span id="dashApiProgressText">0 / 7500</span>
-                <span id="dashApiRemaining">剩餘 7500</span>
+
+              <div class="api-provider-main">
+                <div>
+                  <div class="api-provider-label">每日配額</div>
+                  <div id="dashNbaDailyLimit" class="api-provider-number">7,500</div>
+                </div>
+                <div class="api-provider-badge">requests / day</div>
+              </div>
+
+              <div class="api-provider-meta">
+                <div>
+                  <span>方案</span>
+                  <strong id="dashNbaPlan">PRO</strong>
+                  <small>All Endpoints / Competitions</small>
+                </div>
+                <div>
+                  <span>開始日期</span>
+                  <strong id="dashNbaStartDate">2026/10/14</strong>
+                  <small>NBA 資料源正式啟用</small>
+                </div>
+                <div>
+                  <span>續費 / 到期</span>
+                  <strong id="dashNbaRenewalDate">2026/11/14</strong>
+                  <small id="dashNbaRenewalDays">—</small>
+                </div>
+              </div>
+
+              <div class="api-provider-note">
+                今日 NBA 實際用量尚未納入後台統計；正式接入賽事來源後再加入，不以 0 誤導顯示。
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">管理快速入口</div>
-                <div class="panel-desc">常用操作直接前往</div>
-              </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">管理快速入口</div>
+              <div class="panel-desc">常用操作直接前往</div>
             </div>
+          </div>
 
-            <div class="three-grid">
-              <button class="ghost-btn" onclick="switchPageById('membersPage')">會員管理</button>
-              <button class="ghost-btn" onclick="switchPageById('announcementPage')">公告管理</button>
-              <button class="ghost-btn" onclick="switchPageById('pushPage')">發送推播</button>
-            </div>
+          <div class="three-grid">
+            <button class="ghost-btn" onclick="switchPageById('membersPage')">會員管理</button>
+            <button class="ghost-btn" onclick="switchPageById('announcementPage')">公告管理</button>
+            <button class="ghost-btn" onclick="switchPageById('pushPage')">發送推播</button>
           </div>
         </div>
       </section>
@@ -2589,10 +2777,34 @@ function renderDashboard() {
     );
 
   setText(
-    "dashNbaRenewalNote",
+    "dashNbaPlan",
+    window.nbaApiPlan || "PRO"
+  );
+
+  setText(
+    "dashNbaDailyLimit",
+    Number(
+      window.nbaApiDailyLimit || 7500
+    ).toLocaleString("en-US")
+  );
+
+  setText(
+    "dashNbaStartDate",
+    window.nbaApiStartDate
+      ? String(window.nbaApiStartDate).replace(/-/g, "/")
+      : "—"
+  );
+
+  setText(
+    "dashNbaRenewalDate",
     window.nbaApiRenewalDate
-      ? `API-NBA：${String(window.nbaApiRenewalDate).replace(/-/g, "/")}｜${nbaRenewal.text}`
-      : "API-NBA：尚未設定"
+      ? String(window.nbaApiRenewalDate).replace(/-/g, "/")
+      : "—"
+  );
+
+  setText(
+    "dashNbaRenewalDays",
+    nbaRenewal.text
   );
 
   const percent =
