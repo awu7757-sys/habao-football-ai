@@ -5529,7 +5529,7 @@ function shadowRecText(prediction, market) {
   const lineText =
     line === undefined || line === null || line === ""
       ? ""
-      : `｜盤口 ${line}`;
+      : `｜盤口 ${shadowFormatAsianLine(line)}`;
 
   return `${pick}${lineText}｜信心 ${confidence}`;
 }
@@ -5691,6 +5691,20 @@ function shadowParseLine(value) {
   return m ? Number(m[0]) : null;
 }
 
+function shadowFormatAsianLine(value) {
+  const parsed=shadowParseLine(value);
+  if(parsed===null)return String(value??"");
+  const sign=parsed<0?"-":String(value??"").trim().startsWith("+")?"+":"";
+  const abs=Math.abs(Math.round(parsed*4)/4);
+  const base=Math.floor(abs);
+  const frac=Number((abs-base).toFixed(2));
+  let body="";
+  if(Math.abs(frac-.25)<.001)body=`${base}/${base+.5}`;
+  else if(Math.abs(frac-.75)<.001)body=`${base+.5}/${base+1}`;
+  else body=String(abs).replace(/\.0$/,"");
+  return sign+body;
+}
+
 function shadowOddsNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n.toFixed(2) : "—";
@@ -5742,8 +5756,8 @@ function shadowMarketOddsText(snapshot, market, baseline, shadow) {
     if (line === null) return "—";
     const over = shadowFindByLine(odds?.totals, line, "over");
     const under = shadowFindByLine(odds?.totals, line, "under");
-    if (!over && !under) return `盤 ${line}｜無配對`;
-    return `盤 ${line}｜大 ${shadowOddsNumber(over?.odds)}｜小 ${shadowOddsNumber(under?.odds)}`;
+    if (!over && !under) return `盤 ${shadowFormatAsianLine(line)}｜無配對`;
+    return `盤 ${shadowFormatAsianLine(line)}｜大 ${shadowOddsNumber(over?.odds)}｜小 ${shadowOddsNumber(under?.odds)}`;
   }
 
   if (market === "handicap") {
@@ -5755,10 +5769,10 @@ function shadowMarketOddsText(snapshot, market, baseline, shadow) {
       const rowLine = shadowParseLine(row?.line);
       return rowLine !== null && Math.abs(Math.abs(rowLine) - abs) <= 0.001;
     });
-    if (!matched.length) return `盤 ${line}｜無配對`;
+    if (!matched.length) return `盤 ${shadowFormatAsianLine(line)}｜無配對`;
     const home = shadowFindSide(matched, "home");
     const away = shadowFindSide(matched, "away");
-    return `盤 ${line}｜主 ${shadowOddsNumber(home?.odds)}｜客 ${shadowOddsNumber(away?.odds)}`;
+    return `盤 ${shadowFormatAsianLine(line)}｜主 ${shadowOddsNumber(home?.odds)}｜客 ${shadowOddsNumber(away?.odds)}`;
   }
 
   if (market === "btts") {
