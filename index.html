@@ -3563,6 +3563,21 @@ const PUBLIC_SETTINGS_URL =
 let habaoPublicSettings = null;
 let maintenanceModeActive = false;
 
+const HABAO_MAINTENANCE_BYPASS_ACCOUNT =
+  "google_2d3cef6b6e2d";
+
+function hasHabaoMaintenanceBypass() {
+  try {
+    const member = JSON.parse(
+      sessionStorage.getItem("habao_member") || "null"
+    );
+    return String(member?.account || "").trim() ===
+      HABAO_MAINTENANCE_BYPASS_ACCOUNT;
+  } catch {
+    return false;
+  }
+}
+
 function showHabaoMaintenanceScreen(messageText = "") {
   const screen = document.getElementById("habaoMaintenanceScreen");
   const message = document.getElementById("habaoMaintenanceMessage");
@@ -3638,7 +3653,8 @@ try {
 
     maintenanceModeActive =
       habaoPublicSettings
-        .maintenance_enabled === true;
+        .maintenance_enabled === true &&
+      !hasHabaoMaintenanceBypass();
 
     if (maintenanceModeActive) {
       const maintenanceText =
