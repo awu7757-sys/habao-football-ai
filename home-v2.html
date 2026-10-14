@@ -7726,6 +7726,21 @@ const PUBLISHABLE_KEY =
   const V2_PUBLIC_SETTINGS_URL =
   `${V2_SUPABASE_URL}/functions/v1/admin-benefits`;
 
+const HABAO_MAINTENANCE_BYPASS_ACCOUNT =
+  "google_2d3cef6b6e2d";
+
+function hasV2MaintenanceBypass() {
+  try {
+    const member = JSON.parse(
+      sessionStorage.getItem("habao_member") || "null"
+    );
+    return String(member?.account || "").trim() ===
+      HABAO_MAINTENANCE_BYPASS_ACCOUNT;
+  } catch {
+    return false;
+  }
+}
+
 async function loadV2Announcement() {
 
   try {
@@ -7876,7 +7891,8 @@ async function checkV2Maintenance() {
       data.settings || {};
 
     if (
-      settings.maintenance_enabled === true
+      settings.maintenance_enabled === true &&
+      !hasV2MaintenanceBypass()
     ) {
 
       window.location.replace(
