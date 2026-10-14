@@ -13424,6 +13424,52 @@ loadV2PartnerPlatforms();
       : "";
   }
 
+  function currentPushDeviceId() {
+    const key =
+      "habao_push_device_id_v1";
+
+    try {
+      let value =
+        localStorage.getItem(
+          key
+        );
+
+      if (value) {
+        return value;
+      }
+
+      value =
+        (
+          window.crypto?.randomUUID?.() ||
+          [
+            "habao",
+            Date.now(),
+            Math.random()
+              .toString(36)
+              .slice(2),
+          ].join("-")
+        );
+
+      localStorage.setItem(
+        key,
+        value
+      );
+
+      return value;
+    } catch {
+      return (
+        window.crypto?.randomUUID?.() ||
+        [
+          "habao",
+          Date.now(),
+          Math.random()
+            .toString(36)
+            .slice(2),
+        ].join("-")
+      );
+    }
+  }
+
   function base64UrlToUint8Array(
     base64String
   ) {
@@ -13671,6 +13717,8 @@ loadV2PartnerPlatforms();
         action: "subscribe",
         member_username:
           account,
+        device_id:
+          currentPushDeviceId(),
         subscription: {
           endpoint:
             subscription.endpoint,
