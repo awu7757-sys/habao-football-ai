@@ -8537,6 +8537,9 @@ if (habaoInitialView !== "history") {
 const ANALYSIS_HISTORY_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history";
 
+const BASKETBALL_ANALYSIS_HISTORY_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-member-analysis-history";
+
 async function openAnalysisHistory() {
   try {
     document
@@ -8564,30 +8567,131 @@ async function openAnalysisHistory() {
       return;
     }
 
-const response = await fetch(
-  ANALYSIS_HISTORY_URL +
+const historyHeaders = {
+  "apikey": FIXTURES_PUBLISHABLE_KEY,
+  "Authorization":
+    "Bearer " +
+    FIXTURES_PUBLISHABLE_KEY
+};
+
+const historyQuery =
   "?account=" +
-  encodeURIComponent(member.account),
-  {
-    method: "GET",
-    headers: {
-      "apikey": FIXTURES_PUBLISHABLE_KEY,
-      "Authorization": "Bearer " + FIXTURES_PUBLISHABLE_KEY
+  encodeURIComponent(
+    member.account
+  );
+
+const [
+  footballResponse,
+  basketballResponse
+] = await Promise.all([
+  fetch(
+    ANALYSIS_HISTORY_URL +
+      historyQuery,
+    {
+      method: "GET",
+      headers:
+        historyHeaders
     }
-  }
+  ),
+  fetch(
+    BASKETBALL_ANALYSIS_HISTORY_URL +
+      historyQuery,
+    {
+      method: "GET",
+      headers:
+        historyHeaders
+    }
+  )
+]);
+
+if (!footballResponse.ok) {
+  throw new Error(
+    "FOOTBALL HISTORY HTTP " +
+    footballResponse.status
+  );
+}
+
+if (!basketballResponse.ok) {
+  throw new Error(
+    "NBA HISTORY HTTP " +
+    basketballResponse.status
+  );
+}
+
+const footballData =
+  await footballResponse.json();
+
+const basketballData =
+  await basketballResponse.json();
+
+if (!footballData.success) {
+  throw new Error(
+    footballData.error ||
+    "足球分析紀錄讀取失敗"
+  );
+}
+
+if (!basketballData.success) {
+  throw new Error(
+    basketballData.error ||
+    "NBA 分析紀錄讀取失敗"
+  );
+}
+
+const footballMatches =
+  (
+    Array.isArray(
+      footballData.matches
+    )
+      ? footballData.matches
+      : []
+  ).map(match => ({
+    ...match,
+    sport: "football",
+    history_key:
+      "football:" +
+      String(match.id)
+  }));
+
+const basketballMatches =
+  (
+    Array.isArray(
+      basketballData.matches
+    )
+      ? basketballData.matches
+      : []
+  ).map(match => ({
+    ...match,
+    sport: "basketball",
+    history_key:
+      match.history_key ||
+      (
+        "basketball:" +
+        String(match.id)
+      )
+  }));
+
+const allMatches =
+  [
+    ...footballMatches,
+    ...basketballMatches
+  ].sort((a, b) => {
+    const aTime =
+      new Date(
+        a?.fixture_time || 0
+      ).getTime();
+
+    const bTime =
+      new Date(
+        b?.fixture_time || 0
+      ).getTime();
+
+    return aTime - bTime;
+  });
+
+renderAnalysisHistory(
+  allMatches
 );
-
-    if (!response.ok) {
-      throw new Error("HTTP " + response.status);
-    }
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || "讀取失敗");
-    }
-
-  renderAnalysisHistory(data.matches || []);
 
   } catch (error) {
     console.error(error);
@@ -8976,37 +9080,133 @@ if (!matches.length) {
               )
             : "--";
 
+        const isBasketballHistory =
+          String(
+            match?.sport || ""
+          ).toLowerCase() ===
+            "basketball";
+
         const leagueName =
-          getHistoryLeagueName(
-            match.league_name
-          );
+          isBasketballHistory
+            ? (
+                lang === "en"
+                  ? "NBA"
+                  : "🏀 NBA"
+              )
+            : getHistoryLeagueName(
+                match.league_name
+              );
 
 const historyFixture =
   match?.result_data?.fixture || {};
 
+const getBasketballHistoryTeamName =
+  item => {
+    if (lang === "en") {
+      return (
+        item?.name ||
+        item?.api_name ||
+        "--"
+      );
+    }
+
+    const traditional =
+      item?.name_zh ||
+      (
+        typeof getBasketballTeamName ===
+          "function"
+          ? getBasketballTeamName(
+              item?.name || ""
+            )
+          : ""
+      ) ||
+      item?.name ||
+      "--";
+
+    if (
+      lang === "zh-Hans" &&
+      window.HabaoI18n
+        ?.toSimplified
+    ) {
+      return window.HabaoI18n
+        .toSimplified(
+          traditional
+        );
+    }
+
+    return traditional;
+  };
+
 const homeTeam =
-  lang === "en"
-    ? (
-        historyFixture?.home?.api_name ||
-        getHistoryTeamName(
-          match.home_team
-        )
+  isBasketballHistory
+    ? getBasketballHistoryTeamName(
+        historyFixture?.home || {
+          name:
+            match.home_team
+        }
       )
-    : getHistoryTeamName(
-        match.home_team
+    : (
+        lang === "en"
+          ? (
+              historyFixture
+                ?.home
+                ?.api_name ||
+              getHistoryTeamName(
+                match.home_team
+              )
+            )
+          : getHistoryTeamName(
+              match.home_team
+            )
       );
 
 const awayTeam =
-  lang === "en"
-    ? (
-        historyFixture?.away?.api_name ||
-        getHistoryTeamName(
-          match.away_team
-        )
+  isBasketballHistory
+    ? getBasketballHistoryTeamName(
+        historyFixture?.away || {
+          name:
+            match.away_team
+        }
       )
-    : getHistoryTeamName(
-        match.away_team
+    : (
+        lang === "en"
+          ? (
+              historyFixture
+                ?.away
+                ?.api_name ||
+              getHistoryTeamName(
+                match.away_team
+              )
+            )
+          : getHistoryTeamName(
+              match.away_team
+            )
       );
+
+const homeLogo =
+  match.home_logo ||
+  historyFixture
+    ?.home
+    ?.logo ||
+  "";
+
+const awayLogo =
+  match.away_logo ||
+  historyFixture
+    ?.away
+    ?.logo ||
+  "";
+
+const historyKey =
+  String(
+    match.history_key ||
+    (
+      isBasketballHistory
+        ? "basketball:"
+        : "football:"
+    ) +
+    String(match.id)
+  );
 
         return `
           <div class="history-match-card">
@@ -9035,7 +9235,7 @@ const awayTeam =
                 </div>
 
                 <img
-                  src="${match.home_logo || ""}"
+                  src="${homeLogo}"
                   alt="${homeTeam}"
                 >
 
@@ -9062,7 +9262,7 @@ const awayTeam =
                 </div>
 
                 <img
-                  src="${match.away_logo || ""}"
+                  src="${awayLogo}"
                   alt="${awayTeam}"
                 >
 
@@ -9076,7 +9276,7 @@ const awayTeam =
 
             <button
               class="history-view-btn"
-              onclick="viewAnalysisHistory(${match.id})"
+              onclick='viewAnalysisHistory(${JSON.stringify(historyKey)})'
             >
               ${t(
                 "viewAnalysis",
@@ -9092,10 +9292,26 @@ const awayTeam =
   window.habaoAnalysisHistory =
     Object.fromEntries(
       matches.map(
-        match => [
-          String(match.id),
-          match
-        ]
+        match => {
+          const sport =
+            String(
+              match?.sport ||
+              "football"
+            ).toLowerCase();
+
+          const key =
+            String(
+              match.history_key ||
+              sport +
+              ":" +
+              String(match.id)
+            );
+
+          return [
+            key,
+            match
+          ];
+        }
       )
     );
 
@@ -9103,9 +9319,11 @@ const awayTeam =
     matches;
 }
 
-function viewAnalysisHistory(historyId) {
+function viewAnalysisHistory(historyKey) {
   const history =
-    window.habaoAnalysisHistory?.[String(historyId)];
+    window.habaoAnalysisHistory?.[
+      String(historyKey)
+    ];
 
 if (
   !history ||
@@ -9124,10 +9342,30 @@ if (
 
   sessionStorage.setItem(
     "matchAnalysis",
-    JSON.stringify(history.result_data)
+    JSON.stringify(
+      history.result_data
+    )
   );
 
-  window.location.href = "analysis.html";
+  const sport =
+    String(
+      history?.sport ||
+      history
+        ?.result_data
+        ?.fixture
+        ?.sport ||
+      "football"
+    ).toLowerCase();
+
+  sessionStorage.setItem(
+    "habao_analysis_sport",
+    sport
+  );
+
+  window.location.href =
+    sport === "basketball"
+      ? "analysis.html?sport=basketball"
+      : "analysis.html";
 }  
 
 // =========================================
