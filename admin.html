@@ -1344,12 +1344,23 @@ tr:last-child td{border-bottom:0}
               <option value="vip">僅 VIP 會員</option>
               <option value="normal">僅一般會員</option>
               <option value="member">指定會員</option>
+              <option value="basketball_game">🏀 指定 NBA 賽事分析會員</option>
             </select>
           </div>
 
           <div id="pushMemberField" class="field hidden">
             <label class="label">指定會員帳號</label>
             <input id="pushMemberUsername" class="input" placeholder="輸入 HABAO 會員帳號" oninput="debouncedLoadPushDeviceCount()"><div id="pushDeviceCount" class="panel-desc" style="margin-top:7px">訂閱裝置：—</div>
+          </div>
+
+          <div id="pushBasketballGameField" class="field hidden">
+            <label class="label">指定 NBA 賽事</label>
+            <select id="pushBasketballGameId" class="input" onchange="loadBasketballGamePushCount()">
+              <option value="">請先選擇 NBA 賽事</option>
+            </select>
+            <div id="pushBasketballGameCount" class="panel-desc" style="margin-top:7px">
+              分析會員：—｜可推播會員：—｜訂閱裝置：—
+            </div>
           </div>
 
           <div class="field">
@@ -4038,6 +4049,13 @@ sendPushBtn?.addEventListener(
           )?.value
           .trim() || "";
 
+      const basketballGameId =
+        Number(
+          document.getElementById(
+            "pushBasketballGameId"
+          )?.value || 0
+        );
+
       if (
         audience === "member" &&
         !memberUsername
@@ -4052,12 +4070,61 @@ sendPushBtn?.addEventListener(
         if (deviceCount <= 0) throw new Error("此會員目前沒有有效訂閱裝置，無法發送推播");
       }
 
+      if (
+        audience ===
+        "basketball_game"
+      ) {
+        if (!basketballGameId) {
+          throw new Error(
+            "請選擇 NBA 賽事"
+          );
+        }
+
+        const target =
+          await loadBasketballGamePushCount();
+
+        if (
+          !target ||
+          Number(
+            target
+              .analysis_member_count ||
+            0
+          ) <= 0
+        ) {
+          throw new Error(
+            "此場目前沒有會員分析紀錄"
+          );
+        }
+
+        if (
+          Number(
+            target
+              .device_count ||
+            0
+          ) <= 0
+        ) {
+          throw new Error(
+            "分析過此場的會員目前沒有有效推播裝置"
+          );
+        }
+      }
+
       const data = await adminServiceRequest(
         PUSH_SEND_URL,
         {
           action: "send",
-          title, body, url, audience,
-          member_username: audience === "member" ? memberUsername : null
+          title,
+          body,
+          url,
+          audience,
+          member_username:
+            audience === "member"
+              ? memberUsername
+              : null,
+          game_id:
+            audience === "basketball_game"
+              ? basketballGameId
+              : null
         }
       );
 
@@ -4344,8 +4411,36 @@ function togglePushMemberField() {
       "hidden",
       audience !== "member"
     );
-  if (audience === "member") loadPushDeviceCount();
-  else setText("pushDeviceCount", "訂閱裝置：—");
+
+  document
+    .getElementById(
+      "pushBasketballGameField"
+    )
+    ?.classList.toggle(
+      "hidden",
+      audience !== "basketball_game"
+    );
+
+  if (audience === "member") {
+    loadPushDeviceCount();
+  } else {
+    setText(
+      "pushDeviceCount",
+      "訂閱裝置：—"
+    );
+  }
+
+  if (
+    audience ===
+    "basketball_game"
+  ) {
+    loadBasketballPushFixtures();
+  } else {
+    setText(
+      "pushBasketballGameCount",
+      "分析會員：—｜可推播會員：—｜訂閱裝置：—"
+    );
+  }
 }
 
 async function loadAdminOverview() {
@@ -5335,6 +5430,8 @@ function renderNbaFixtures() {
         ?.member_views || 0
     )
   );
+
+  loadBasketballPushFixtures();
 }
 
 async function refreshNbaFixtureSource(button) {
@@ -7552,6 +7649,159 @@ let pushCountTimer=null;
 function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
 async function pushAdminRequest(payload){return adminServiceRequest(PUSH_SEND_URL,payload);}
 async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
+
+function loadBasketballPushFixtures() {
+  const select =
+    document.getElementById(
+      "pushBasketballGameId"
+    );
+
+  if (!select) return;
+
+  const current =
+    String(
+      select.value || ""
+    );
+
+  const rows =
+    Array.isArray(
+      nbaFixtureRows
+    )
+      ? nbaFixtureRows
+      : [];
+
+  select.innerHTML =
+    '<option value="">請先選擇 NBA 賽事</option>' +
+    rows.map(item => {
+      const id =
+        Number(
+          item?.fixture_id || 0
+        );
+
+      if (!id) return "";
+
+      const kickoff =
+        item?.kickoff_at
+          ? new Date(
+              item.kickoff_at
+            )
+          : null;
+
+      const time =
+        kickoff &&
+        !Number.isNaN(
+          kickoff.getTime()
+        )
+          ? kickoff.toLocaleString(
+              "zh-TW",
+              {
+                timeZone:
+                  "Asia/Taipei",
+                month:
+                  "2-digit",
+                day:
+                  "2-digit",
+                hour:
+                  "2-digit",
+                minute:
+                  "2-digit",
+                hour12:
+                  false
+              }
+            )
+          : "時間未定";
+
+      const home =
+        item?.home?.name || "主隊";
+
+      const away =
+        item?.away?.name || "客隊";
+
+      const memberCount =
+        Number(
+          item
+            ?.analysis_member_count ||
+          0
+        );
+
+      return (
+        '<option value="' +
+        id +
+        '">' +
+        time +
+        '｜' +
+        escapeHtml(home) +
+        ' vs ' +
+        escapeHtml(away) +
+        '｜已分析 ' +
+        memberCount +
+        ' 人</option>'
+      );
+    }).join("");
+
+  if (
+    current &&
+    rows.some(
+      item =>
+        String(
+          item?.fixture_id || ""
+        ) === current
+    )
+  ) {
+    select.value =
+      current;
+  }
+}
+
+async function loadBasketballGamePushCount() {
+  const gameId =
+    Number(
+      document.getElementById(
+        "pushBasketballGameId"
+      )?.value || 0
+    );
+
+  const el =
+    document.getElementById(
+      "pushBasketballGameCount"
+    );
+
+  if (!gameId) {
+    if (el) {
+      el.textContent =
+        "分析會員：—｜可推播會員：—｜訂閱裝置：—";
+    }
+    return null;
+  }
+
+  if (el) {
+    el.textContent =
+      "讀取推播名單中…";
+  }
+
+  try {
+    const d =
+      await pushAdminRequest({
+        action:
+          "basketball_game_count",
+        game_id:
+          gameId
+      });
+
+    if (el) {
+      el.textContent =
+        `分析會員：${Number(d.analysis_member_count||0)} 人｜可推播會員：${Number(d.push_member_count||0)} 人｜訂閱裝置：${Number(d.device_count||0)} 台`;
+    }
+
+    return d;
+  } catch (error) {
+    if (el) {
+      el.textContent =
+        "NBA 推播名單讀取失敗";
+    }
+    return null;
+  }
+}
 async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://awu7757-sys.github.io/habao-football-ai/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
 async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
 
