@@ -860,9 +860,10 @@ tr:last-child td{border-bottom:0}
           </div>
 
           <div class="stat-card">
-            <div class="stat-label">API 續費日期</div>
+            <div class="stat-label">API-Football 續費日期</div>
             <div id="dashRenewalDate" class="stat-value" style="font-size:20px">—</div>
             <div id="dashRenewalDays" class="stat-note">—</div>
+            <div id="dashNbaRenewalNote" class="stat-note">API-NBA：—</div>
           </div>
         </div>
 
@@ -1198,7 +1199,7 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">API QUOTA</div>
             <div class="page-title">API 配額</div>
-            <div class="page-desc">API-Football PRO｜月費 US$19｜每日上限 7,500 requests，每日重置。</div>
+            <div class="page-desc">API-Football PRO＋API-NBA PRO｜兩套 API 各自計算配額與續費日期。</div>
           </div>
           <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
         </div>
@@ -1221,7 +1222,7 @@ tr:last-child td{border-bottom:0}
 
           <div class="mini-list">
             <div class="mini-item">
-              <span class="mini-key">每日上限</span>
+              <span class="mini-key">API-Football 每日上限</span>
               <span id="apiDailyLimitText" class="mini-val">7500</span>
             </div>
             <div class="mini-item">
@@ -1233,14 +1234,48 @@ tr:last-child td{border-bottom:0}
               <span id="apiAvgRemainingText" class="mini-val">7500</span>
             </div>
             <div class="mini-item">
-              <span class="mini-key">API 續費日期</span>
+              <span class="mini-key">API-Football 續費日期</span>
               <span id="apiRenewalText" class="mini-val">—</span>
             </div>
             <div class="mini-item">
               <span class="mini-key">剩餘天數</span>
               <span id="apiRenewalDaysText" class="mini-val">—</span>
             </div>
-            <button class="save-btn" style="width:100%" onclick="confirmApiRenewal(this)">確認已續費</button>
+            <button class="save-btn" style="width:100%" onclick="confirmApiRenewal(this)">確認 Football 已續費</button>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:15px;border-color:rgba(112,168,255,.18)">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">API-NBA PRO</div>
+              <div class="panel-desc">NBA 專用資料源｜PRO Plan｜每日 7,500 requests｜獨立續費。</div>
+            </div>
+            <span class="status active"><span class="dot"></span>已啟用</span>
+          </div>
+
+          <div class="mini-list">
+            <div class="mini-item">
+              <span class="mini-key">方案</span>
+              <span id="nbaApiPlanText" class="mini-val">PRO</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">開始日期</span>
+              <span id="nbaApiStartText" class="mini-val">2026/10/14</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">每日上限</span>
+              <span id="nbaApiDailyLimitText" class="mini-val">7,500</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">續費 / 到期日期</span>
+              <span id="nbaApiRenewalText" class="mini-val">2026/11/14</span>
+            </div>
+            <div class="mini-item">
+              <span class="mini-key">剩餘天數</span>
+              <span id="nbaApiRenewalDaysText" class="mini-val">—</span>
+            </div>
+            <button class="save-btn" style="width:100%" onclick="confirmNbaApiRenewal(this)">確認 NBA 已續費</button>
           </div>
         </div>
 
@@ -2030,6 +2065,11 @@ const pageLoaded = new Set();
 window.apiDailyLimit = 7500;
 window.apiRenewalDate = null;
 
+window.nbaApiPlan = "PRO";
+window.nbaApiDailyLimit = 7500;
+window.nbaApiStartDate = null;
+window.nbaApiRenewalDate = null;
+
 /* =========================
    UI
 ========================= */
@@ -2541,6 +2581,18 @@ function renderDashboard() {
   setText(
     "dashRenewalDays",
     renewal.text
+  );
+
+  const nbaRenewal =
+    calculateRenewalDays(
+      window.nbaApiRenewalDate
+    );
+
+  setText(
+    "dashNbaRenewalNote",
+    window.nbaApiRenewalDate
+      ? `API-NBA：${String(window.nbaApiRenewalDate).replace(/-/g, "/")}｜${nbaRenewal.text}`
+      : "API-NBA：尚未設定"
   );
 
   const percent =
@@ -3876,6 +3928,40 @@ function renderApiPage() {
   setText(
     "apiRenewalDaysText",
     renewal.text
+  );
+
+  setText(
+    "nbaApiPlanText",
+    window.nbaApiPlan || "PRO"
+  );
+
+  setText(
+    "nbaApiStartText",
+    window.nbaApiStartDate
+      ? String(window.nbaApiStartDate).replace(/-/g,"/")
+      : "—"
+  );
+
+  setText(
+    "nbaApiDailyLimitText",
+    Number(window.nbaApiDailyLimit || 7500).toLocaleString("en-US")
+  );
+
+  setText(
+    "nbaApiRenewalText",
+    window.nbaApiRenewalDate
+      ? String(window.nbaApiRenewalDate).replace(/-/g,"/")
+      : "—"
+  );
+
+  const nbaRenewal =
+    calculateRenewalDays(
+      window.nbaApiRenewalDate
+    );
+
+  setText(
+    "nbaApiRenewalDaysText",
+    nbaRenewal.text
   );
 
   setText(
@@ -5869,6 +5955,12 @@ async function loadApiSettings() {
     const settings = data?.settings || {};
     window.apiDailyLimit = Number(settings.api_daily_limit || 7500);
     window.apiRenewalDate = settings.api_renewal_date || null;
+
+    window.nbaApiPlan = String(settings.nba_api_plan || "PRO");
+    window.nbaApiDailyLimit = Number(settings.nba_api_daily_limit || 7500);
+    window.nbaApiStartDate = settings.nba_api_start_date || null;
+    window.nbaApiRenewalDate = settings.nba_api_renewal_date || null;
+
     renderDashboard();
     renderApiPage();
   } catch (error) {
@@ -6612,16 +6704,56 @@ async function sendTestPush(){const member=String(document.getElementById("pushM
 async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
 
 async function confirmApiRenewal(button){
-  if(!confirm("確定 API 已完成續費？續費日期會自動更新為今天 + 1 個月。")) return;
+  if(!confirm("確定 API-Football 已完成續費？續費日期會自動更新為今天 + 1 個月。")) return;
   const old=button?.textContent;
   if(button){button.disabled=true;button.textContent="更新中…";}
   try{
     const d=await adminServiceRequest(BENEFITS_ADMIN_URL,{action:"confirm_api_renewal"});
     window.apiRenewalDate=d.settings?.api_renewal_date||null;
     renderDashboard(); renderApiPage();
-    alert(d.message||"續費日期已更新");
-  }catch(e){alert("續費更新失敗："+(e?.message||""));}
-  finally{if(button){button.disabled=false;button.textContent=old||"確認已續費";}}
+    alert(d.message||"Football 續費日期已更新");
+  }catch(e){alert("Football 續費更新失敗："+(e?.message||""));}
+  finally{if(button){button.disabled=false;button.textContent=old||"確認 Football 已續費";}}
+}
+
+async function confirmNbaApiRenewal(button){
+  if(!confirm("確定 API-NBA PRO 已完成續費？續費日期會自動更新為今天 + 1 個月。")) return;
+
+  const old=button?.textContent;
+
+  if(button){
+    button.disabled=true;
+    button.textContent="更新中…";
+  }
+
+  try{
+    const d=await adminServiceRequest(
+      BENEFITS_ADMIN_URL,
+      {action:"confirm_nba_api_renewal"}
+    );
+
+    window.nbaApiPlan=d.settings?.nba_api_plan||"PRO";
+    window.nbaApiDailyLimit=Number(d.settings?.nba_api_daily_limit||7500);
+    window.nbaApiStartDate=d.settings?.nba_api_start_date||window.nbaApiStartDate||null;
+    window.nbaApiRenewalDate=d.settings?.nba_api_renewal_date||null;
+
+    renderDashboard();
+    renderApiPage();
+
+    alert(
+      d.message||
+      "API-NBA PRO 續費日期已更新"
+    );
+  }catch(e){
+    alert(
+      "NBA 續費更新失敗："+(e?.message||"")
+    );
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.textContent=old||"確認 NBA 已續費";
+    }
+  }
 }
 
 async function validateOverduePerformance(button){if(!confirm("確定補驗證所有已超過合理完賽時間的待驗證戰績？系統只會處理 FT / AET / PEN 的賽事。"))return;const old=button?.textContent;if(button){button.disabled=true;button.textContent="補驗證中…";}try{const d=await adminCenterRequest({action:"validate_overdue_performance"});showJsonModal("補驗證結果",d.report||d);await loadPerformanceAdmin(false);await loadAdminOverview();}catch(e){alert("補驗證失敗："+(e?.message||""));}finally{if(button){button.disabled=false;button.textContent=old||"補驗證逾期戰績";}}}
