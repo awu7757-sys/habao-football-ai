@@ -3430,6 +3430,7 @@ function getAnalysisLocalizedName(
   }
 
   const traditionalName =
+    item?.name_zh ||
     item?.name ||
     item?.api_name ||
     (typeof item === "string" ? item : "") ||
@@ -3569,6 +3570,23 @@ function getAnalysisLeagueName(
   return traditional;
 }
 
+function isBasketballAnalysisData(
+  data
+) {
+  return (
+    String(
+      data?.fixture?.sport ||
+      data?.sport ||
+      ""
+    ).toLowerCase() ===
+      "basketball" ||
+    new URLSearchParams(
+      window.location.search
+    ).get("sport") ===
+      "basketball"
+  );
+}
+
 function getAnalysisVenueText(venue) {
   if (!venue) return "";
 
@@ -3667,11 +3685,76 @@ app.innerHTML = `
     const analysis = data.analysis || {};
     const rec = analysis.recommendations || {};
 
+const isBasketballAnalysis =
+  isBasketballAnalysisData(
+    data
+  );
+
+const basketballModel =
+  data?.model || {};
+
 const moneyline = rec.moneyline || {};
 const handicap = rec.handicap || {};
 const overUnder = rec.over_under || {};
 const btts = rec.btts || {};
-const scores = analysis.predicted_scores || [];
+
+const basketballPredictedScore =
+  basketballModel
+    ?.predicted_score || {};
+
+const scores =
+  isBasketballAnalysis
+    ? (
+        basketballPredictedScore
+          ?.home !== undefined &&
+        basketballPredictedScore
+          ?.away !== undefined
+          ? [
+              {
+                score:
+                  `${basketballPredictedScore.home}-${basketballPredictedScore.away}`,
+                confidence:
+                  basketballModel
+                    ?.confidence || 0
+              }
+            ]
+          : []
+      )
+    : (
+        analysis
+          .predicted_scores ||
+        []
+      );
+
+const basketballFairSpread =
+  basketballModel
+    ?.fair_spread
+    ?.display ||
+  "-";
+
+const basketballFairTotal =
+  basketballModel
+    ?.fair_total ?? "-";
+
+const basketballHomeWin =
+  basketballModel
+    ?.win_probability
+    ?.home ?? "-";
+
+const basketballAwayWin =
+  basketballModel
+    ?.win_probability
+    ?.away ?? "-";
+
+const basketballMarketText =
+  Array.isArray(
+    data?.warnings
+  ) &&
+  data.warnings.length
+    ? String(
+        data.warnings[0]
+      )
+    : "目前沒有真實市場讓分 / 大小分盤口，僅顯示模型公平線。";
 
     const gameDate = fixture.date
       ? new Date(fixture.date)
@@ -3786,13 +3869,24 @@ const timeText = gameDate
 
   <div class="eyebrow">AI MATCH ANALYSIS</div>
 
-  <h1>${analysisT("analysisTitle", "賽事深度分析")}</h1>
+  <h1>${
+    isBasketballAnalysis
+      ? "NBA 賽事深度分析"
+      : analysisT(
+          "analysisTitle",
+          "賽事深度分析"
+        )
+  }</h1>
 
   <div class="sub">
-    ${analysisT(
-  "analysisSubtitle",
-  "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析"
-)}
+    ${
+      isBasketballAnalysis
+        ? "整合近期攻守、主客場表現、歷史交手與球隊數據，提供 NBA 量化分析"
+        : analysisT(
+            "analysisSubtitle",
+            "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析"
+          )
+    }
   </div>
 
 </div>
@@ -3932,6 +4026,31 @@ ${getAnalysisLeagueName(
         </div>
 
 
+        ${
+          isBasketballAnalysis
+            ? `
+        <!-- NBA 模型公平線 -->
+        <div class="pick-card">
+          <div class="pick-label">MODEL FAIR LINE</div>
+
+          <div class="pick-value">
+            ${basketballFairSpread}
+          </div>
+
+          <div class="confidence">
+            ${analysisT("aiConfidence", "AI 信心")} ${basketballModel?.confidence || 0}%
+          </div>
+
+          <div class="bar">
+            <div style="width:${confidenceBar(basketballModel?.confidence)}%"></div>
+          </div>
+
+          <div class="reason">
+            模型公平總分 ${basketballFairTotal}｜主勝 ${basketballHomeWin}%・客勝 ${basketballAwayWin}%
+          </div>
+        </div>
+            `
+            : `
         <!-- BTTS -->
         <div class="pick-card">
           <div class="pick-label">BTTS</div>
@@ -3953,6 +4072,8 @@ ${getAnalysisLeagueName(
             ${localizeAnalysisText(btts.reason) || analysisT("insufficientData", "資料不足")}
           </div>
         </div>
+            `
+        }
 
 
 </div>
@@ -3971,7 +4092,7 @@ ${getAnalysisLeagueName(
           </div>
 
           <div class="v2-score-tag">
-            TOP 3
+            ${isBasketballAnalysis ? "MODEL SCORE" : "TOP 3"}
           </div>
         </div>
 
@@ -4057,7 +4178,21 @@ ${getAnalysisLeagueName(
             <div class="v2-insight-title">${analysisT("marketAnalysis", "市場與賠率分析")}</div>
 
             <p>
-              ${localizeAnalysisText(analysis.market_analysis) || analysisT("insufficientData", "資料不足")} 
+              ${
+                isBasketballAnalysis
+                  ? localizeAnalysisText(
+                      basketballMarketText
+                    )
+                  : (
+                      localizeAnalysisText(
+                        analysis.market_analysis
+                      ) ||
+                      analysisT(
+                        "insufficientData",
+                        "資料不足"
+                      )
+                    )
+              } 
             </p>
           </div>
         </div>
@@ -4211,6 +4346,14 @@ async function refreshAnalysisLanguage(
     if (
       !fixtureId ||
       !member?.account
+    ) {
+      return false;
+    }
+
+    if (
+      isBasketballAnalysisData(
+        current
+      )
     ) {
       return false;
     }
@@ -4409,6 +4552,14 @@ async function ensureAnalysisLanguageOnLoad() {
 
 
   if (!current) {
+    return;
+  }
+
+  if (
+    isBasketballAnalysisData(
+      current
+    )
+  ) {
     return;
   }
 
