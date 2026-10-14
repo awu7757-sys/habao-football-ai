@@ -349,6 +349,53 @@ async function authorizeAdmin(
 }
 
 
+function taipeiDate(
+  offsetDays = 0,
+) {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Taipei",
+        year:
+          "numeric",
+        month:
+          "2-digit",
+        day:
+          "2-digit",
+      },
+    )
+      .formatToParts(
+        new Date(
+          Date.now() +
+          offsetDays *
+            24 *
+            60 *
+            60 *
+            1000,
+        ),
+      );
+
+  const value =
+    Object.fromEntries(
+      parts.map(
+        part => [
+          part.type,
+          part.value,
+        ],
+      ),
+    );
+
+  return (
+    value.year +
+    "-" +
+    value.month +
+    "-" +
+    value.day
+  );
+}
+
 async function getBasketballGameAudience(
   supabaseUrl: string,
   backendHeaders: Record<string,string>,
@@ -656,6 +703,187 @@ Deno.serve(async (req) => {
     }
 
 
+    if (action === "basketball_game_fixtures") {
+      const today =
+        taipeiDate(0);
+
+      const tomorrow =
+        taipeiDate(1);
+
+      const fixtureRes =
+        await fetch(
+          `${supabaseUrl}/rest/v1/basketball_fixture_cache?fixture_date=in.(${today},${tomorrow})&select=fixture_date,fixtures,fetched_at&order=fixture_date.asc`,
+          {
+            headers:
+              backendHeaders,
+          },
+        );
+
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `讀取 NBA 賽程快取失敗：${await fixtureRes.text()}`
+        );
+      }
+
+      const cacheRows: any[] =
+        await fixtureRes
+          .json()
+          .catch(
+            () => [],
+          );
+
+      const fixtures =
+        (cacheRows || [])
+          .flatMap(
+            cache => {
+              const list =
+                Array.isArray(
+                  cache?.fixtures,
+                )
+                  ? cache.fixtures
+                  : [];
+
+              return list.map(
+                fixture => ({
+                  ...fixture,
+                  fixture_date:
+                    cache?.fixture_date ||
+                    null,
+                  fixture_fetched_at:
+                    cache?.fetched_at ||
+                    null,
+                }),
+              );
+            },
+          )
+          .filter(
+            fixture =>
+              String(
+                fixture
+                  ?.competition_key ||
+                "",
+              ) === "nba",
+          );
+
+      const gameIds =
+        fixtures
+          .map(
+            fixture =>
+              Number(
+                fixture
+                  ?.fixture_id ||
+                0,
+              ),
+          )
+          .filter(
+            value =>
+              Number.isFinite(
+                value,
+              ) &&
+              value > 0,
+          );
+
+      const historyCounts =
+        new Map<
+          number,
+          Set<string>
+        >();
+
+      if (gameIds.length) {
+        const historyRes =
+          await fetch(
+            `${supabaseUrl}/rest/v1/member_basketball_analysis_history?game_id=in.(${gameIds.join(",")})&result_data=not.is.null&select=game_id,account`,
+            {
+              headers:
+                backendHeaders,
+            },
+          );
+
+        if (!historyRes.ok) {
+          throw new Error(
+            `讀取 NBA 分析會員統計失敗：${await historyRes.text()}`
+          );
+        }
+
+        const histories: any[] =
+          await historyRes
+            .json()
+            .catch(
+              () => [],
+            );
+
+        for (
+          const row of
+          histories || []
+        ) {
+          const gameId =
+            Number(
+              row?.game_id ||
+              0,
+            );
+
+          const account =
+            String(
+              row?.account ||
+              "",
+            ).trim();
+
+          if (
+            !gameId ||
+            !account
+          ) {
+            continue;
+          }
+
+          if (
+            !historyCounts.has(
+              gameId,
+            )
+          ) {
+            historyCounts.set(
+              gameId,
+              new Set(),
+            );
+          }
+
+          historyCounts
+            .get(gameId)!
+            .add(account);
+        }
+      }
+
+      return json({
+        success:
+          true,
+        dates: {
+          today,
+          tomorrow,
+        },
+        fixtures:
+          fixtures.map(
+            fixture => {
+              const gameId =
+                Number(
+                  fixture
+                    ?.fixture_id ||
+                  0,
+                );
+
+              return {
+                ...fixture,
+                analysis_member_count:
+                  historyCounts
+                    .get(
+                      gameId,
+                    )
+                    ?.size ||
+                  0,
+              };
+            },
+          ),
+      });
+    }
+
     if (action === "count") {
       const member = String(payload?.member_username || "").trim();
       let url = `${supabaseUrl}/rest/v1/push_subscriptions?select=id,member_username,updated_at`;
@@ -720,7 +948,7 @@ Deno.serve(async (req) => {
     if (!vapidPrivateKey) throw new Error("VAPID_PRIVATE_KEY 尚未設定");
     const title = String(payload?.title || "").trim();
     const body = String(payload?.body || "").trim();
-    const clickUrl = String(payload?.url || "https://awu7757-sys.github.io/habao-football-ai/home-v2.html");
+    const requestedClickUrl = String(payload?.url || "https://awu7757-sys.github.io/habao-football-ai/home-v2.html");
     const memberUsername = String(payload?.member_username || "").trim();
     const audience = memberUsername
       ? "member"
@@ -728,6 +956,13 @@ Deno.serve(async (req) => {
         ? String(payload?.audience||"all")
         : "all";
     const basketballGameId = Number(payload?.game_id || 0);
+
+    const clickUrl =
+      audience ===
+        "basketball_game" &&
+      basketballGameId
+        ? `https://awu7757-sys.github.io/habao-football-ai/football.html?sport=basketball&game_id=${basketballGameId}`
+        : requestedClickUrl;
 
     if (audience === "basketball_game" && !basketballGameId) {
       return json({
