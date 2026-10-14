@@ -632,15 +632,15 @@ function localizedPick(value){
 
 
 function classifyStatus(key){const trend=(topData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
-function renderMarkets(){const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],["btts","bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
+function renderMarkets(){const thirdKey=currentSport==="basketball"?"handicap":"btts";const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],[thirdKey,"bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
 
 function renderRange(){const start=topData?.summary?.range_start,end=topData?.summary?.range_end;if(start&&end){document.getElementById("rangeText").textContent=`${ymd(start)} - ${ymd(end)}`;return}const rows=topData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
 function sportMetricLabel(key){
   if(currentSport==="basketball"){
     if(key==="moneyline")return tr("moneyline");
-    if(key==="over_under")return getLang()==="en"?"Total Error ≤ 8":"總分誤差 ≤ 8";
-    if(key==="btts")return getLang()==="en"?"Margin Error ≤ 6":"勝分差誤差 ≤ 6";
+    if(key==="over_under")return getLang()==="en"?"Over / Under":"大小分";
+    if(key==="handicap"||key==="btts")return getLang()==="en"?"Spread":"讓分";
     return tr("overall");
   }
   return key==="moneyline"?tr("moneyline"):key==="over_under"?tr("overUnder"):key==="btts"?"BTTS":tr("overall");
@@ -648,8 +648,8 @@ function sportMetricLabel(key){
 function marketLabel(key){return sportMetricLabel(key)}
 function applySportLabels(){
   const basketball=currentSport==="basketball";
-  const totalLabel=basketball?(getLang()==="en"?"Total Error ≤ 8":"總分誤差 ≤ 8"):tr("overUnder");
-  const marginLabel=basketball?(getLang()==="en"?"Margin Error ≤ 6":"勝分差誤差 ≤ 6"):"BTTS";
+  const totalLabel=basketball?(getLang()==="en"?"Over / Under":"大小分"):tr("overUnder");
+  const marginLabel=basketball?(getLang()==="en"?"Spread":"讓分"):"BTTS";
 
   const mlName=document.querySelector(".market-card.moneyline .market-name");
   const ouName=document.querySelector(".market-card.overunder .market-name");
@@ -666,9 +666,9 @@ function applySportLabels(){
   if(thirdTag)thirdTag.textContent=basketball?"±":"BTTS";
 
   const trendOU=document.querySelector('.trend-tab[data-trend="over_under"]');
-  const trendThird=document.querySelector('.trend-tab[data-trend="btts"]');
+  const trendThird=document.querySelector('.trend-tab[data-third-market="true"], .trend-tab[data-trend="btts"], .trend-tab[data-trend="handicap"]');
   if(trendOU)trendOU.textContent=totalLabel;
-  if(trendThird)trendThird.textContent=marginLabel;
+  if(trendThird){trendThird.textContent=marginLabel;trendThird.dataset.trend=basketball?"handicap":"btts";trendThird.dataset.thirdMarket="true";}
 
   const heads=document.querySelectorAll("#footballPerformance table thead th");
   if(heads.length>=9){
@@ -681,8 +681,8 @@ function applySportLabels(){
   if(note){
     note.textContent=basketball
       ? (getLang()==="en"
-          ? "NBA performance uses the first saved T-10 model snapshot and the official final score. Winner accuracy is reported directly; total projection is counted as a hit within 8 points, and margin projection within 6 points. These are model-error metrics, not sportsbook spread/total results."
-          : "NBA 戰績使用首次保存的 T-10 模型快照與正式完場比分驗證；獨贏直接計算命中，模型總分誤差 ≤ 8 分視為命中、勝分差誤差 ≤ 6 分視為命中。後兩項是模型誤差指標，不代表莊家讓分／大小分盤結果。")
+          ? "NBA performance uses the first saved T-10 snapshot, including the captured market spread/total, and settles Moneyline, Over/Under and Spread against the official final score."
+          : "NBA 戰績使用首次保存的 T-10 快照（含當時真實市場讓分與大小分）及正式完場比分，自動結算獨贏、大小分與讓分；不使用賽後補盤。")
       : tr("methodNote");
   }
 }
@@ -781,7 +781,7 @@ function renderTrend(){
 function renderLeagues(){let list=[...(lowerData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
-function overallResult(settlement){const vals=["moneyline","over_under","btts"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
+function overallResult(settlement){const vals=["moneyline","over_under","handicap"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
   const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
         shown=showAll?rows:rows.slice(0,5),
@@ -831,7 +831,7 @@ function renderRecords(){
         </div>
         <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(money)}｜${esc(getLang()==="en"?"Score":"比分")} ${esc(scorePrediction)}</div>
         <div class="record-results">
-          ${[["moneyline",sportMetricLabel("moneyline")],["over_under",sportMetricLabel("over_under")],["btts",sportMetricLabel("btts")]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
+          ${[["moneyline",sportMetricLabel("moneyline")],["over_under",sportMetricLabel("over_under")],["handicap",sportMetricLabel("handicap")]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
         </div>
       </article>`;
     }).join("");
@@ -903,6 +903,8 @@ async function switchSport(sport){
     showAll=false;
     currentRecent="overall";
     currentTrend="overall";
+    const thirdTrend=document.querySelector('.trend-tab[data-third-market="true"], .trend-tab[data-trend="btts"], .trend-tab[data-trend="handicap"]');
+    if(thirdTrend){thirdTrend.dataset.trend=sport==="basketball"?"handicap":"btts";thirdTrend.dataset.thirdMarket="true";}
 
     document.querySelectorAll(".sport-tab").forEach(btn=>{
       btn.classList.toggle("active",btn.dataset.sport===sport);
