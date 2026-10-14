@@ -598,8 +598,33 @@ function localizedTeamName(name,apiName="",prediction=null,side=""){
 
   return s;
 }
+function formatAsianLineDisplay(value){
+  const raw=String(value??"").trim().replace(/−/g,"-").replace(/＋/g,"+");
+  if(!raw)return "";
+  if(raw.includes("/"))return raw;
+  const n=Number(raw);
+  if(!Number.isFinite(n))return raw;
+  const sign=n<0?"-":raw.startsWith("+")?"+":"";
+  const abs=Math.abs(Math.round(n*4)/4);
+  const base=Math.floor(abs);
+  const frac=Number((abs-base).toFixed(2));
+  let body="";
+  if(Math.abs(frac-.25)<.001)body=`${base}/${base+.5}`;
+  else if(Math.abs(frac-.75)<.001)body=`${base+.5}/${base+1}`;
+  else body=String(abs).replace(/\.0$/,"");
+  return sign+body;
+}
+
+function formatAsianPickText(value){
+  const raw=String(value??"").trim();
+  return raw.replace(
+    /(大|小|Over|Under)\s*([+-]?\d+(?:\.\d+)?)/gi,
+    (_m,side,line)=>`${side}${/^Over|Under$/i.test(side)?" ":""}${formatAsianLineDisplay(line)}`
+  );
+}
+
 function localizedPick(value){
-  let s=String(value??"--").trim();
+  let s=formatAsianPickText(String(value??"--").trim());
   const lang=getLang();
 
   if(lang==="zh-Hans")return toSimplifiedText(s);
@@ -780,7 +805,29 @@ function renderTrend(){
 
 function renderLeagues(){let list=[...(lowerData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
-function predictionPick(p,key){const roots=[p?.recommendations,p,p?.predictions,p?.analysis];for(const r of roots){const v=r?.[key];if(v&&typeof v==="object")return v.pick??v.prediction??v.value??v.selection??"--";if(typeof v==="string"||typeof v==="number")return String(v)}return"--"}
+function predictionPick(p,key){
+  const roots=[p?.recommendations,p,p?.predictions,p?.analysis];
+  for(const r of roots){
+    const v=r?.[key];
+    if(v&&typeof v==="object"){
+      const pick=v.pick??v.prediction??v.value??v.selection??"--";
+      const line=v.line??v.point??v.handicap??null;
+      if(
+        currentSport==="football" &&
+        (key==="over_under"||key==="handicap") &&
+        line!==null && line!==undefined && String(line).trim()!=="" &&
+        !String(pick).includes("暫不推薦") &&
+        !String(pick).includes("暂不推荐")
+      ){
+        const pickText=String(pick).replace(/[+-]?\d+(?:\.\d+)?(?:\/[+-]?\d+(?:\.\d+)?)?/g,"").trim();
+        return `${pickText} ${formatAsianLineDisplay(line)}`.trim();
+      }
+      return pick;
+    }
+    if(typeof v==="string"||typeof v==="number")return String(v);
+  }
+  return"--";
+}
 function overallResult(settlement){const vals=["moneyline","over_under","handicap"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
   const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
