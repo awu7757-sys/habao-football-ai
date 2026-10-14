@@ -3970,6 +3970,106 @@ const localizeAnalysisText = value => {
   return text;
 };
 
+function formatAsianMarketLine(
+  value,
+  forcePlus = false
+) {
+  const raw =
+    String(
+      value ?? ""
+    )
+      .trim()
+      .replace(/−/g, "-")
+      .replace(/＋/g, "+");
+
+  if (!raw) {
+    return "";
+  }
+
+  if (raw.includes("/")) {
+    return raw;
+  }
+
+  const n =
+    Number(raw);
+
+  if (!Number.isFinite(n)) {
+    return raw;
+  }
+
+  const rounded =
+    Math.round(
+      Math.abs(n) * 4
+    ) / 4;
+
+  const base =
+    Math.floor(rounded);
+
+  const fraction =
+    Number(
+      (
+        rounded -
+        base
+      ).toFixed(2)
+    );
+
+  let body = "";
+
+  if (fraction === 0.25) {
+    body =
+      `${base}/${base + 0.5}`;
+  } else if (fraction === 0.75) {
+    body =
+      `${base + 0.5}/${base + 1}`;
+  } else {
+    body =
+      String(rounded)
+        .replace(/\.0$/, "");
+  }
+
+  const sign =
+    n < 0
+      ? "-"
+      : (
+          n > 0 &&
+          (
+            forcePlus ||
+            raw.startsWith("+")
+          )
+        )
+        ? "+"
+        : "";
+
+  return sign + body;
+}
+
+function formatAsianPickText(
+  value
+) {
+  const localized =
+    localizeAnalysisText(
+      value
+    );
+
+  return localized.replace(
+    /\b(Over|Under)\s*([+-]?\d+(?:\.\d+)?|[+-]?\d+(?:\.5)?\/\d+(?:\.5)?)/gi,
+    (
+      _match,
+      side,
+      line
+    ) =>
+      `${side} ${formatAsianMarketLine(line)}`
+  ).replace(
+    /(大|小)\s*([+-]?\d+(?:\.\d+)?|[+-]?\d+(?:\.5)?\/\d+(?:\.5)?)/g,
+    (
+      _match,
+      side,
+      line
+    ) =>
+      `${side}${formatAsianMarketLine(line)}`
+  );
+}
+
 const timeText = gameDate
   ? gameDate.toLocaleString(
       analysisLocale,
@@ -4118,13 +4218,10 @@ ${getAnalysisLeagueName(
               handicap.pick !== "暫不推薦" &&
               handicap.pick !== "暂不推荐" &&
               handicap.pick !== "No Recommendation"
-                ? ` ${
-                    String(handicap.line).trim().startsWith("-") ||
-                    String(handicap.line).trim().startsWith("+") ||
-                    Number(handicap.line) === 0
-                      ? ""
-                      : "+"
-                  }${handicap.line}`
+                ? ` ${formatAsianMarketLine(
+                    handicap.line,
+                    Number(handicap.line) > 0
+                  )}`
                 : ""
             }
           </div>
@@ -4146,14 +4243,14 @@ ${getAnalysisLeagueName(
           <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
 
           <div class="pick-value">
-            ${localizeAnalysisText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}${
+            ${formatAsianPickText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}${
               overUnder.line !== null &&
               overUnder.line !== undefined &&
               String(overUnder.line).trim() !== "" &&
               overUnder.pick !== "暫不推薦" &&
               overUnder.pick !== "暂不推荐" &&
               overUnder.pick !== "No Recommendation"
-                ? ` ${overUnder.line}`
+                ? ` ${formatAsianMarketLine(overUnder.line)}`
                 : ""
             }
           </div>
