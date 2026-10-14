@@ -9386,6 +9386,100 @@ if (
     openAnalysisHistory();
   }, 0);
 }
+
+async function openBasketballDeepLinkFromUrl() {
+  const sport =
+    String(
+      habaoViewParams.get("sport") ||
+      ""
+    ).toLowerCase();
+
+  const gameId =
+    Number(
+      habaoViewParams.get(
+        "game_id"
+      ) || 0
+    );
+
+  if (
+    sport !== "basketball" ||
+    !gameId
+  ) {
+    return;
+  }
+
+  const basketballTab =
+    document.querySelector(
+      '.v3-sport-tab[data-sport="basketball"]'
+    );
+
+  selectHabaoSport(
+    "basketball",
+    basketballTab
+  );
+
+  const tryFind =
+    async offset => {
+      currentFixtureOffset =
+        offset;
+
+      await loadBasketballFixtures(
+        offset
+      );
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            120
+          )
+      );
+
+      return document.querySelector(
+        `[data-basketball-fixture-id="${gameId}"]`
+      );
+    };
+
+  let card =
+    await tryFind(0);
+
+  if (!card) {
+    card =
+      await tryFind(1);
+  }
+
+  if (card) {
+    card.scrollIntoView({
+      behavior:
+        "smooth",
+      block:
+        "center"
+    });
+
+    card.style.outline =
+      "2px solid rgba(244,185,58,.9)";
+
+    card.style.boxShadow =
+      "0 0 0 4px rgba(244,185,58,.12)";
+
+    setTimeout(() => {
+      card.style.removeProperty(
+        "outline"
+      );
+
+      card.style.removeProperty(
+        "box-shadow"
+      );
+    }, 4500);
+  }
+}
+
+setTimeout(
+  () => {
+    openBasketballDeepLinkFromUrl();
+  },
+  0
+);
   
 window.addEventListener(
   "habao:languagechange",
