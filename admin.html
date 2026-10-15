@@ -1826,7 +1826,8 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>狀態</th>
                     <th>獨贏</th>
                     <th>大小球 / 大小分</th>
-                    <th>BTTS / 讓分</th>
+                    <th>BTTS</th>
+                    <th>讓分</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -5371,15 +5372,6 @@ function renderPerformanceAdmin() {
     const market2Title=isNba
       ? "大小分"
       : "大小球";
-    const market3Title=isNba
-      ? "讓分"
-      : "BTTS";
-
-    const market3Key =
-      isNba &&
-      row?.settlement?.handicap
-        ? "handicap"
-        : "btts";
 
     return `<tr>
       <td>${formatDate(row?.kickoff_at)}</td>
@@ -5391,7 +5383,8 @@ function renderPerformanceAdmin() {
       <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
       <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
       <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-      <td title="${market3Title}">${resultBadge(settlementResult(row?.settlement,market3Key))}</td>
+      <td title="BTTS">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
+      <td title="讓分">${resultBadge(settlementResult(row?.settlement,"handicap"))}</td>
       <td><div class="row-actions">
         <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
         <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
@@ -5401,7 +5394,7 @@ function renderPerformanceAdmin() {
   }).join("");
 
   if(!filtered.length){
-    body.innerHTML='<tr><td colspan="11" class="empty">目前沒有符合條件的公開戰績資料</td></tr>';
+    body.innerHTML='<tr><td colspan="12" class="empty">目前沒有符合條件的公開戰績資料</td></tr>';
   }
 
   const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
