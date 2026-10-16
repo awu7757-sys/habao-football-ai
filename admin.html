@@ -5344,6 +5344,72 @@ function performanceSportLabel(row) {
     : "⚽ 足球";
 }
 
+/* 後台專用：依首次 T-10 正式推薦與已驗證比分顯示足球讓分結果。
+ * 不寫回 settlement，不改會員公開戰績、模型、預測快照或賽後排程。 */
+function adminHandicapResult(row) {
+  const original = settlementResult(row?.settlement, "handicap");
+  if (original) return original;
+  if (row?.sport !== "football" || row?.status !== "verified" ||
+      row?.home_score == null || row?.away_score == null) return "";
+  const home = Number(row.home_score), away = Number(row.away_score);
+  if (!Number.isFinite(home) || !Number.isFinite(away)) return "";
+  const isRecommendation = value =>
+    value && typeof value === "object" && !Array.isArray(value) &&
+    value.line != null && value.pick != null;
+  function locate(value, depth = 0) {
+    if (!value || typeof value !== "object" || depth > 7) return null;
+    if (isRecommendation(value?.recommendations?.handicap))
+      return value.recommendations.handicap;
+    if (isRecommendation(value?.handicap)) return value.handicap;
+    for (const key of ["analysis", "prediction", "data", "result", "output", "recommendations"]) {
+      if (value[key] && typeof value[key] === "object") {
+        const found = locate(value[key], depth + 1);
+        if (found) return found;
+      }
+    }
+    for (const [key, nested] of Object.entries(value)) {
+      if (["analysis", "prediction", "data", "result", "output", "recommendations"].includes(key)) continue;
+      if (nested && typeof nested === "object") {
+        const found = locate(nested, depth + 1);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  const recommendation = locate(row?.prediction);
+  if (!recommendation) return "";
+  const pick = String(recommendation.pick).trim().toLowerCase().replace(/\s+/g, "");
+  const homeName = String(row.home_team || "").trim().toLowerCase().replace(/\s+/g, "");
+  const awayName = String(row.away_team || "").trim().toLowerCase().replace(/\s+/g, "");
+  const homePicks = ["home", "主隊", "主队", "主勝", "主胜", "主"];
+  const awayPicks = ["away", "客隊", "客队", "客勝", "客胜", "客"];
+  const side = homePicks.includes(pick) || (homeName && pick === homeName) ? "home" :
+    awayPicks.includes(pick) || (awayName && pick === awayName) ? "away" : null;
+  if (!side) return "";
+  const textLine = String(recommendation.line).trim().replace(/[−–－]/g, "-").replace(/＋/g, "+");
+  const numberPattern = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/;
+  let line;
+  if (numberPattern.test(textLine)) {
+    line = Number(textLine);
+  } else {
+    const parts = textLine.split("/").map(part => part.trim());
+    if (parts.length !== 2 || !parts.every(part => numberPattern.test(part))) return "";
+    const first = Number(parts[0]);
+    const second = Number(/^[+-]/.test(parts[1]) ? parts[1] : (first < 0 ? "-" : "") + parts[1]);
+    if (first * second < 0 || Math.abs(Math.abs(first - second) - .5) > 1e-6) return "";
+    line = (first + second) / 2;
+  }
+  if (!Number.isFinite(line) || Math.abs(line * 4 - Math.round(line * 4)) > 1e-6) return "";
+  const quarter = Math.round(line * 4);
+  const portions = Math.abs(quarter % 2) === 1 ? [line - .25, line + .25] : [line];
+  const margin = side === "home" ? home - away : away - home;
+  const outcomes = portions.map(part => margin + part > 1e-6 ? 1 : margin + part < -1e-6 ? -1 : 0);
+  const total = outcomes.reduce((sum, value) => sum + value, 0);
+  if (portions.length === 1) return total > 0 ? "win" : total < 0 ? "loss" : "push";
+  return total === 2 ? "win" : total === 1 ? "half_win" :
+    total === -1 ? "half_loss" : total === -2 ? "loss" : "push";
+}
+
 function renderPerformanceAdmin() {
   const body=document.getElementById("performanceBody"); if(!body)return;
   const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
@@ -5384,7 +5450,7 @@ function renderPerformanceAdmin() {
       <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
       <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
       <td title="BTTS">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-      <td title="讓分">${resultBadge(settlementResult(row?.settlement,"handicap"))}</td>
+      <td title="讓分（後台專用；缺少正式結算時依 T-10 推薦與比分計算）">${resultBadge(adminHandicapResult(row))}</td>
       <td><div class="row-actions">
         <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
         <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
