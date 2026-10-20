@@ -5758,6 +5758,85 @@ const NBA_TEAM_NAME_ZH = {
   "Washington Wizards": "華盛頓巫師"
 };
 
+// NBA 場館、城市只在卡片顯示時翻譯；不變更 API 原始資料。
+const NBA_ARENA_ZH = {
+    "state farm arena": "州立農業球館",
+    "td garden": "TD 花園球館",
+    "barclays center": "巴克萊中心",
+    "spectrum center": "光譜中心",
+    "united center": "聯合中心",
+    "rocket arena": "火箭球館",
+    "rocket mortgage fieldhouse": "火箭貸款球館",
+    "american airlines center": "美國航空中心",
+    "ball arena": "波爾體育館",
+    "little caesars arena": "小凱薩體育館",
+    "chase center": "大通中心",
+    "toyota center": "豐田中心",
+    "gainbridge fieldhouse": "蓋恩布里奇球館",
+    "intuit dome": "直覺巨蛋",
+    "crypto.com arena": "加密貨幣網體育館",
+    "fedexforum": "聯邦快遞球館",
+    "kaseya center": "卡西亞中心",
+    "fiserv forum": "費哲論壇球館",
+    "target center": "標靶中心",
+    "smoothie king center": "冰沙王中心",
+    "madison square garden": "麥迪遜廣場花園",
+    "paycom center": "派康中心",
+    "kia center": "起亞中心",
+    "wells fargo center": "富國銀行中心",
+    "xfinity mobile arena": "Xfinity 行動通訊體育館",
+    "footprint center": "足跡中心",
+    "mortgage matchup center": "房貸對決中心",
+    "moda center": "摩達中心",
+    "golden 1 center": "黃金一號中心",
+    "frost bank center": "佛羅斯特銀行中心",
+    "scotiabank arena": "加拿大豐業銀行體育館",
+    "delta center": "達美中心",
+    "capital one arena": "第一資本體育館"
+  };
+const NBA_CITY_ZH = {
+    "atlanta": "亞特蘭大",
+    "boston": "波士頓",
+    "brooklyn": "布魯克林",
+    "charlotte": "夏洛特",
+    "chicago": "芝加哥",
+    "cleveland": "克里夫蘭",
+    "dallas": "達拉斯",
+    "denver": "丹佛",
+    "detroit": "底特律",
+    "san francisco": "舊金山",
+    "houston": "休士頓",
+    "indianapolis": "印第安納波利斯",
+    "los angeles": "洛杉磯",
+    "inglewood": "英格爾伍德",
+    "memphis": "曼斐斯",
+    "miami": "邁阿密",
+    "milwaukee": "密爾瓦基",
+    "minneapolis": "明尼阿波利斯",
+    "new orleans": "紐奧良",
+    "new york": "紐約",
+    "oklahoma city": "奧克拉荷馬市",
+    "orlando": "奧蘭多",
+    "philadelphia": "費城",
+    "phoenix": "鳳凰城",
+    "portland": "波特蘭",
+    "sacramento": "沙加緬度",
+    "san antonio": "聖安東尼奧",
+    "toronto": "多倫多",
+    "salt lake city": "鹽湖城",
+    "washington": "華盛頓",
+    "washington, d.c.": "華盛頓特區"
+  };
+function localizeBasketballLocation(value, names) {
+  const raw = String(value || "").trim();
+  const lang = window.HabaoI18n?.getLanguage?.() || "zh-Hant";
+  if (!raw || lang === "en") return raw;
+  const traditional = names[raw.toLowerCase().replace(/\s+/g, " ")] || raw;
+  return lang === "zh-Hans" && window.HabaoI18n?.toSimplified
+    ? window.HabaoI18n.toSimplified(traditional)
+    : traditional;
+}
+
 const NBA_OFFICIAL_TEAM_ID = {
   "atlanta hawks": "1610612737",
   "boston celtics": "1610612738",
@@ -6458,14 +6537,12 @@ function renderBasketballFixtureData(
 
       const venue =
         escapeBasketballHTML(
-          match?.venue ||
-          ""
+          localizeBasketballLocation(match?.venue, NBA_ARENA_ZH)
         );
 
       const city =
         escapeBasketballHTML(
-          match?.city ||
-          ""
+          localizeBasketballLocation(match?.city, NBA_CITY_ZH)
         );
 
       const venueText =
@@ -6497,23 +6574,26 @@ function renderBasketballFixtureData(
           previewTest
         );
 
+      const nbaT = (key, fallback) =>
+        window.HabaoI18n?.t(key, fallback) || fallback;
+
       const analysisStatusText =
         previewTest &&
         !analysisWindow.isOpen &&
         !analysisWindow.isStarted
-          ? "NBA TEST PREVIEW"
+          ? nbaT("nbaTestPreview", "NBA 測試預覽")
           : analysisAvailable
-            ? "NBA AI READY"
-            : "T-10 LOCKED";
+            ? nbaT("nbaReady", "NBA AI 可分析")
+            : nbaT("nbaLocked", "尚未開放分析");
 
       const analysisButtonText =
         previewTest &&
         !analysisWindow.isOpen &&
         !analysisWindow.isStarted
-          ? "測試 NBA AI 分析"
+          ? nbaT("nbaTestButton", "測試 NBA AI 分析")
           : analysisAvailable
-            ? "開始分析"
-            : "賽前 10 小時開放";
+            ? nbaT("startAnalysis", "開始分析")
+            : nbaT("nbaLockedButton", "賽前 10 小時開放");
 
       return `
         <article
@@ -6552,7 +6632,7 @@ function renderBasketballFixtureData(
               </div>
 
               <div class="v2-team-side">
-                主隊
+                ${window.HabaoI18n?.t("homeTeam", "主隊") || "主隊"}
               </div>
             </div>
 
@@ -6579,7 +6659,7 @@ function renderBasketballFixtureData(
               </div>
 
               <div class="v2-team-side">
-                客隊
+                ${window.HabaoI18n?.t("awayTeam", "客隊") || "客隊"}
               </div>
             </div>
 
@@ -10228,6 +10308,11 @@ function closeQuotaLimitModal() {
       sportFootball: "足球",
       sportBasketball: "籃球",
       sportBaseball: "棒球",
+      nbaTestPreview: "NBA 測試預覽",
+      nbaReady: "NBA AI 可分析",
+      nbaLocked: "尚未開放分析",
+      nbaTestButton: "測試 NBA AI 分析",
+      nbaLockedButton: "賽前 10 小時開放",
       basketballComingSoon: "🏀 籃球賽事即將開放",
       baseballComingSoon: "⚾ 棒球賽事即將開放",
 
@@ -10361,6 +10446,11 @@ analysisResultNotFound: "找不到這場分析結果"
       sportFootball: "足球",
       sportBasketball: "篮球",
       sportBaseball: "棒球",
+      nbaTestPreview: "NBA 测试预览",
+      nbaReady: "NBA AI 可分析",
+      nbaLocked: "尚未开放分析",
+      nbaTestButton: "测试 NBA AI 分析",
+      nbaLockedButton: "赛前 10 小时开放",
       basketballComingSoon: "🏀 篮球赛事即将开放",
       baseballComingSoon: "⚾ 棒球赛事即将开放",
 
@@ -10494,6 +10584,11 @@ analysisResultNotFound: "找不到这场分析结果"
       sportFootball: "Football",
       sportBasketball: "Basketball",
       sportBaseball: "Baseball",
+      nbaTestPreview: "NBA Test Preview",
+      nbaReady: "NBA AI Ready",
+      nbaLocked: "T-10 Locked",
+      nbaTestButton: "Test NBA AI Analysis",
+      nbaLockedButton: "Available 10 Hours Before Tipoff",
       basketballComingSoon: "🏀 Basketball matches are coming soon",
       baseballComingSoon: "⚾ Baseball matches are coming soon",
 
