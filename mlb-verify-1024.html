@@ -1,0 +1,3614 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HABAO MLB 10/24 真實賽事測試</title>
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+  
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  color:#fff;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(20,255,170,.10),transparent 30%),
+    linear-gradient(135deg,#041116 0%,#071522 50%,#08162a 100%);
+}
+
+/* ===== 頂部 ===== */
+
+.header{
+  height:76px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:rgba(3,13,18,.75);
+  backdrop-filter:blur(12px);
+}
+
+.header-inner{
+  max-width:1180px;
+  height:100%;
+  margin:auto;
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  background:linear-gradient(135deg,#0b493b,#103025);
+  border:1px solid rgba(72,255,176,.25);
+}
+
+.brand-title{
+  font-size:16px;
+  font-weight:800;
+}
+
+.brand-sub{
+  margin-top:3px;
+  font-size:9px;
+  letter-spacing:2px;
+  color:#3ff5a5;
+}
+
+.member{
+  text-align:right;
+}
+
+.member-account{
+  font-size:12px;
+  font-weight:700;
+}
+.member-user-count{
+  margin-top:4px;
+  font-size:10px;
+  color:#94a3b8;
+  white-space:nowrap;
+}
+
+.member-user-count strong{
+  margin-left:4px;
+  color:#3ff5a5;
+  font-size:11px;
+  font-weight:800;
+}
+.member-expire{
+  margin-top:4px;
+  font-size:10px;
+  color:#607083;
+}
+
+/* ===== 主內容 ===== */
+
+.container{
+  max-width:1050px;
+  margin:0 auto;
+  padding:60px 24px 80px;
+}
+
+.back{
+  color:#42efa4;
+  font-size:12px;
+  text-decoration:none;
+}
+
+.tag{
+  margin-top:34px;
+  color:#3ff5a5;
+  letter-spacing:3px;
+  font-size:10px;
+  font-weight:800;
+}
+
+h1{
+  margin-top:10px;
+  font-size:38px;
+  letter-spacing:-1px;
+}
+
+.description{
+  margin-top:12px;
+  color:#718397;
+  font-size:13px;
+  line-height:1.8;
+}
+
+/* ===== 日期區 ===== */
+
+.date-bar{
+  margin-top:38px;
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding-bottom:5px;
+}
+
+.date{
+  min-width:115px;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.07);
+  background:#0c1b29;
+  color:#75869a;
+  cursor:pointer;
+  text-align:center;
+}
+
+.date.active{
+  border-color:rgba(56,242,161,.45);
+  background:rgba(24,102,76,.28);
+  color:#fff;
+}
+
+.date-day{
+  font-size:11px;
+}
+
+.date-num{
+  margin-top:5px;
+  font-size:14px;
+  font-weight:800;
+}
+
+/* ===== 聯賽 ===== */
+
+.section-title{
+  margin-top:42px;
+  margin-bottom:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.section-title h2{
+  font-size:17px;
+}
+
+.section-title span{
+  color:#5e7185;
+  font-size:10px;
+}
+
+/* ===== 比賽卡 ===== */
+
+.match-card{
+  margin-bottom:13px;
+  padding:20px 22px;
+  display:grid;
+  grid-template-columns:150px 1fr 180px;
+  align-items:center;
+  gap:20px;
+
+  background:linear-gradient(
+    135deg,
+    rgba(14,31,43,.96),
+    rgba(10,25,39,.96)
+  );
+
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  transition:.2s;
+}
+
+.match-card:hover{
+  border-color:rgba(57,244,166,.28);
+  transform:translateY(-1px);
+}
+
+.match-info{
+  color:#708397;
+  font-size:11px;
+}
+
+.time{
+  color:#fff;
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+
+.league{
+  color:#46e9a2;
+  font-size:10px;
+}
+
+/* ===== 球隊 ===== */
+
+.teams{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+}
+
+.team{
+  width:130px;
+  text-align:center;
+}
+
+.team-logo{
+  width:44px;
+  height:44px;
+  margin:0 auto 8px;
+  border-radius:50%;
+  background:#132637;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:21px;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.team-name{
+  font-size:14px;
+  font-weight:750;
+}
+
+.vs{
+  color:#536578;
+  font-size:11px;
+  font-weight:800;
+}
+
+/* ===== 分析按鈕 ===== */
+
+.analysis{
+  text-align:right;
+}
+
+.ai-status{
+  font-size:10px;
+  color:#43eca2;
+  margin-bottom:9px;
+}
+
+.analysis-btn{
+  border:0;
+  padding:11px 17px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:800;
+  color:#062118;
+  background:linear-gradient(90deg,#27e68d,#62f5b6);
+}
+
+.analysis-btn:hover{
+  filter:brightness(1.08);
+}
+
+ /* ===== AI 分析進度條 ===== */
+
+.analysis-btn.loading{
+    position:relative;
+    overflow:hidden;
+    min-width:130px;
+    cursor:wait;
+    background:#0d3b36;
+}
+
+.analysis-btn.loading::before{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:6px;
+    width:var(--progress, 0%);
+    background:#ffffff;
+    box-shadow:0 0 10px rgba(255,255,255,.8);
+    transition:width .35s ease;
+}
+
+.analysis-btn.loading::after{
+    content:"";
+}
+
+@keyframes aiLoadingShine{
+    0%{left:-60%;}
+    100%{left:120%;}
+}
+
+/* ===== AI 提示 ===== */
+
+.ai-note{
+  margin-top:28px;
+  padding:16px 18px;
+  border-radius:13px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(14,31,45,.75);
+  color:#64788d;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.line-group-card{
+  margin-top:28px;
+  padding:22px 20px;
+  border:1px solid rgba(63,245,165,.25);
+  border-radius:18px;
+  background:
+    linear-gradient(135deg, rgba(63,245,165,.08), rgba(10,24,38,.92));
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+
+.line-group-title{
+  color:#ffffff;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.4;
+}
+
+.line-group-text{
+  margin-top:8px;
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.7;
+}
+
+.line-group-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:16px;
+  padding:12px 18px;
+  border-radius:999px;
+  background:#3ff5a5;
+  color:#06141d;
+  font-size:14px;
+  font-weight:800;
+  text-decoration:none;
+  transition:.2s ease;
+}
+
+.line-group-btn:active{
+  transform:scale(.97);
+}
+
+/* ===== 手機 ===== */
+
+@media(max-width:760px){
+
+  .container{
+    padding:35px 16px 60px;
+  }
+
+  h1{
+    font-size:30px;
+  }
+
+  .match-card{
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+
+  .analysis{
+    text-align:center;
+  }
+
+  .teams{
+    gap:15px;
+  }
+
+  .member-expire{
+    display:none;
+  }
+}
+/* ===== 我的分析紀錄入口 ===== */
+.history-btn{
+  width:100%;
+  max-width:260px;
+  min-height:70px;
+  padding:14px 18px;
+
+  border-radius:16px;
+  border:1px solid rgba(139,92,246,.55);
+
+  background:
+    linear-gradient(135deg,rgba(99,102,241,.16),rgba(168,85,247,.10));
+
+  color:#e9e7ff;
+
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.5px;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 10px 28px rgba(91,33,182,.12),
+    inset 0 0 0 1px rgba(255,255,255,.025);
+
+  transition:.2s ease;
+}
+
+.history-btn:hover{
+  transform:translateY(-2px);
+  border-color:rgba(167,139,250,.85);
+  background:
+    linear-gradient(135deg,rgba(99,102,241,.24),rgba(168,85,247,.16));
+}
+
+.history-btn:active{
+  transform:scale(.98);
+}
+
+@media(max-width:600px){
+  .history-btn{
+    max-width:100%;
+    min-height:64px;
+    font-size:14px;
+  }
+}  
+
+/* ===== 我的分析｜運動分類 ===== */
+.history-sport-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 16px;
+  padding:6px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  background:rgba(4,14,23,.62);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.history-sport-tab{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:10px 8px;
+  border:1px solid transparent;
+  border-radius:11px;
+  background:transparent;
+  color:#748693;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.history-sport-tab.active{
+  color:#171208;
+  border-color:rgba(255,225,118,.42);
+  background:linear-gradient(135deg,#ffe076,#e4a92e);
+  box-shadow:
+    0 8px 20px rgba(216,155,36,.16),
+    inset 0 1px 0 rgba(255,255,255,.38);
+}
+
+.history-sport-tab:active{
+  transform:scale(.98);
+}
+
+.history-sport-empty{
+  padding:34px 18px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(245,196,81,.07),transparent 45%),
+    rgba(7,20,30,.84);
+}
+
+.history-sport-empty-icon{
+  margin-bottom:10px;
+  font-size:34px;
+}
+
+.history-sport-empty-title{
+  color:#fff;
+  font-size:16px;
+  font-weight:950;
+}
+
+.history-sport-empty-text{
+  margin-top:7px;
+  color:#748693;
+  font-size:11px;
+  line-height:1.65;
+}
+
+@media(max-width:600px){
+  .history-sport-tabs{
+    gap:6px;
+    padding:5px;
+  }
+
+  .history-sport-tab{
+    min-height:42px;
+    padding:9px 5px;
+    font-size:10px;
+  }
+}
+
+/* ========================================
+   HABAO V2 - ANALYSIS HISTORY EMPTY
+======================================== */
+
+.v2-history-empty{
+  position:relative;
+  overflow:hidden;
+
+  padding:38px 20px;
+  margin-bottom:16px;
+
+  text-align:center;
+
+  border-radius:20px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(245,196,81,.08),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,29,43,.98),
+      rgba(7,19,30,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-history-empty-icon{
+  width:64px;
+  height:64px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:0 auto 14px;
+
+  background:transparent;
+  border:none;
+  border-radius:0;
+
+  box-shadow:none;
+}
+
+.v2-history-empty-label{
+  color:#b88a2c;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.7px;
+}
+
+.v2-history-empty-title{
+  margin-top:7px;
+
+  color:#fff;
+  font-size:18px;
+  font-weight:950;
+}
+
+.v2-history-empty-text{
+  max-width:280px;
+
+  margin:8px auto 0;
+
+  color:#7f8c99;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.v2-history-empty-icon img{
+  width:58px;
+  height:58px;
+
+  display:block;
+  object-fit:contain;
+
+  filter:
+    drop-shadow(0 8px 14px rgba(0,0,0,.45))
+    drop-shadow(0 0 12px rgba(218,169,49,.18));
+} 
+  
+/* ========================================
+   HABAO V2 - ANALYSIS HISTORY CARD
+======================================== */
+
+.history-match-card{
+  position:relative;
+  overflow:hidden;
+
+  margin:0 0 16px;
+  padding:0;
+
+  border-radius:20px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.08),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,29,43,.98),
+      rgba(7,19,30,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.history-match-card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(245,196,81,.85),
+      transparent
+    );
+}
+
+
+/* ===== TOP ===== */
+
+.history-match-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  padding:16px 17px 10px;
+  margin:0;
+}
+
+.history-league{
+  min-width:0;
+
+  color:#f5c451;
+
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.4px;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.history-league::before{
+  content:"";
+  display:inline-block;
+
+  width:7px;
+  height:7px;
+
+  margin-right:7px;
+
+  border-radius:50%;
+
+  background:#f5c451;
+
+  box-shadow:
+    0 0 0 4px rgba(245,196,81,.08),
+    0 0 12px rgba(245,196,81,.45);
+}
+
+.history-time{
+  flex:0 0 auto;
+
+  padding:6px 9px;
+
+  border-radius:8px;
+
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.07);
+}
+
+
+/* ===== TEAMS ===== */
+
+.history-teams{
+  display:grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    46px
+    minmax(0,1fr);
+
+  align-items:center;
+  gap:8px;
+
+  min-height:145px;
+
+  margin:0;
+  padding:14px 14px 20px;
+}
+
+.history-team{
+  min-width:0;
+
+  color:#fff;
+
+  text-align:center;
+  font-size:14px;
+  font-weight:850;
+  line-height:1.35;
+
+  overflow-wrap:anywhere;
+}
+
+.history-team img{
+  display:block;
+
+  width:54px;
+  height:54px;
+
+  object-fit:contain;
+
+  margin:0 auto 11px;
+  padding:7px;
+
+  border-radius:16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.10),
+      rgba(255,255,255,.025)
+    );
+
+  border:1px solid rgba(255,255,255,.09);
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.22);
+}
+
+.history-vs{
+  width:36px;
+  height:36px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:auto;
+
+  border-radius:50%;
+
+  color:#f5c451;
+
+  font-size:9px;
+  font-weight:950;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(245,196,81,.14),
+      rgba(8,18,28,.98)
+    );
+
+  border:1px solid rgba(245,196,81,.30);
+}
+
+
+/* ===== BUTTON ===== */
+
+.history-view-btn{
+  display:block;
+
+  width:calc(100% - 28px);
+
+  margin:0 14px 15px;
+  padding:12px 16px;
+
+  border:0;
+  border-radius:11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5c451,
+      #d89b24
+    );
+
+  color:#171208;
+
+  font-size:12px;
+  font-weight:950;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 9px 22px rgba(216,155,36,.15),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.history-view-btn:active{
+  transform:scale(.98);
+}
+
+
+/* ===== MOBILE ===== */
+
+@media(max-width:600px){
+
+  .history-match-card{
+    border-radius:18px;
+  }
+
+  .history-match-top{
+    padding:14px 14px 8px;
+  }
+
+  .history-teams{
+    grid-template-columns:
+      minmax(0,1fr)
+      42px
+      minmax(0,1fr);
+
+    min-height:138px;
+
+    padding:12px 10px 18px;
+  }
+
+  .history-team{
+    font-size:13px;
+  }
+
+  .history-team img{
+    width:52px;
+    height:52px;
+  }
+}
+
+}
+
+ /* ===== 我的分析紀錄｜主客隊中文標示與名稱保護 ===== */
+
+.history-team-side{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  margin-bottom:8px;
+  padding:4px 9px;
+
+  border:1px solid rgba(244,185,66,.28);
+  border-radius:999px;
+
+  background:rgba(244,185,66,.08);
+  color:#f4c95d;
+
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.5px;
+  line-height:1;
+}
+
+.history-team-name{
+  width:100%;
+  max-width:135px;
+  margin:0 auto;
+
+  color:#ffffff;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.35;
+  text-align:center;
+
+  overflow-wrap:anywhere;
+  word-break:break-word;
+
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+}
+
+.history-vs{
+  min-width:42px;
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid rgba(244,185,66,.30);
+  border-radius:50%;
+
+  background:rgba(244,185,66,.06);
+  color:#f4c95d;
+
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.5px;
+}
+
+@media(max-width:520px){
+  .history-team-name{
+    max-width:110px;
+    font-size:13px;
+  }
+
+  .history-team-side{
+    font-size:8px;
+    padding:4px 8px;
+  }
+
+  .history-vs{
+    min-width:38px;
+    width:38px;
+    height:38px;
+    font-size:9px;
+  }
+}
+
+/* 加入主畫面｜浮動按鈕 */
+#addHomeFloatBtn {
+  position: fixed;
+
+  right: 14px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+
+  transform: translateY(-50%);
+
+  z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  width: 76px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 60px;
+  height: 60px;
+
+  display: block;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+#addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.75);
+}    
+
+/* 加入主畫面｜教學彈窗 */
+.add-home-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 27, 0.98),
+      rgba(3, 15, 14, 0.98)
+    );
+
+  border: 1px solid rgba(94, 255, 139, 0.35);
+border-radius: 22px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(60, 255, 126, 0.12);
+
+  color: #ffffff;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: #79ff98;
+}
+
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(95, 255, 139, 0.18);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background: linear-gradient(135deg, #28e97b, #65ff9b);
+  color: #04140b;
+
+  box-shadow:
+    0 4px 14px rgba(40, 233, 123, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}    
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #65ff8b;
+  color: #062016;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+  background: rgba(101, 255, 139, 0.08);
+  border: 1px solid rgba(101, 255, 139, 0.20);
+
+  color: #8cff9f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}    
+
+#addHomeFloatBtn {
+  position: fixed;
+
+  right: 14px;
+  top: 50%;
+  bottom: auto;
+  left: auto;
+
+  transform: translateY(-50%);
+
+  z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  width: 76px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#addHomeFloatBtn:active {
+  cursor: grabbing;
+}
+
+#addHomeFloatBtn img {
+  width: 60px;
+  height: 60px;
+
+  display: block;
+  object-fit: contain;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+#addHomeFloatBtn span {
+  display: block;
+  line-height: 1.2;
+  pointer-events: none;
+
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.75);
+}    
+
+/* 加入主畫面｜教學彈窗 */
+
+
+.add-home-modal.show {
+  display: flex;
+}
+
+.add-home-modal-card {
+  position: relative;
+
+  width: min(92vw, 420px);
+  max-height: 82vh;
+  overflow-y: auto;
+
+  padding: 24px 18px 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(8, 31, 27, 0.98),
+      rgba(3, 15, 14, 0.98)
+    );
+
+  border: 1px solid rgba(94, 255, 139, 0.35);
+  border-radius: 22px;
+
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(60, 255, 126, 0.12);
+
+  color: #ffffff;
+}
+
+.add-home-modal-card h2 {
+  margin: 0 42px 18px;
+  text-align: center;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: #79ff98;
+}
+
+.add-home-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.add-home-modal-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* iPhone / Android 教學切換 */
+.add-home-tabs {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 22px;
+  padding: 4px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(95, 255, 139, 0.18);
+  border-radius: 14px;
+}
+
+.add-home-tab {
+  flex: 1;
+  border: 0;
+  outline: none;
+  cursor: pointer;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  transition: all 0.2s ease;
+}
+
+.add-home-tab.active {
+  background: linear-gradient(135deg, #28e97b, #65ff9b);
+  color: #04140b;
+
+  box-shadow:
+    0 4px 14px rgba(40, 233, 123, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}    
+
+/* 加入主畫面｜教學步驟 */
+.add-home-step {
+  margin-bottom: 22px;
+}
+
+.add-home-step-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.add-home-step-title span {
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #65ff8b;
+  color: #062016;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.add-home-step-image {
+  display: block;
+
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+
+  margin: 0 auto;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.add-home-finish {
+  margin-top: 4px;
+  padding: 12px 10px;
+
+  border-radius: 12px;
+  background: rgba(101, 255, 139, 0.08);
+  border: 1px solid rgba(101, 255, 139, 0.20);
+
+  color: #8cff9f;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}    
+
+#addHomeFloatBtn,
+#addHomeModal {
+  display: none !important;
+}
+  
+
+
+
+/* =========================
+   HABAO｜AI 積分不足彈窗
+========================= */
+
+.quota-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+
+  background: rgba(0, 0, 0, 0.82);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.quota-modal.show {
+  display: flex;
+}
+
+.quota-modal-card {
+  position: relative;
+
+  width: 100%;
+  max-width: 390px;
+
+  padding: 30px 22px 22px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(212, 175, 55, 0.14),
+      transparent 42%
+    ),
+    linear-gradient(
+      160deg,
+      #161616 0%,
+      #0d0d0d 55%,
+      #090909 100%
+    );
+
+  border:
+    1px solid rgba(212, 175, 55, 0.42);
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.72),
+    0 0 35px rgba(212, 175, 55, 0.10);
+
+  text-align: center;
+
+  animation:
+    quotaModalIn 0.28s ease-out;
+}
+
+.quota-modal-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 15%;
+
+  width: 70%;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #d4af37,
+      transparent
+    );
+
+  box-shadow:
+    0 0 18px rgba(212, 175, 55, 0.7);
+}
+
+.quota-modal-close {
+  position: absolute;
+
+  top: 14px;
+  right: 15px;
+
+  width: 34px;
+  height: 34px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10);
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  color: #9ca3af;
+
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+.quota-modal-icon {
+  width: 72px;
+  height: 72px;
+
+  margin:
+    0 auto 16px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(212, 175, 55, 0.08);
+
+  border:
+    1px solid rgba(212, 175, 55, 0.35);
+
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.14);
+
+  font-size: 38px;
+}
+
+.quota-modal-title {
+  color: #f8fafc;
+
+  font-size: 21px;
+  font-weight: 800;
+
+  letter-spacing: 0.5px;
+}
+
+.quota-modal-subtitle {
+  margin-top: 8px;
+
+  color: #9ca3af;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quota-limit-box {
+  margin-top: 20px;
+
+  padding: 17px;
+
+  border-radius: 17px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(212, 175, 55, 0.16);
+}
+
+.quota-limit-label {
+  color: #9ca3af;
+
+  font-size: 13px;
+}
+
+.quota-limit-value {
+  margin-top: 3px;
+
+  color: #e5c45a;
+
+  font-size: 43px;
+  line-height: 1.1;
+  font-weight: 900;
+
+  text-shadow:
+    0 0 20px rgba(212, 175, 55, 0.20);
+}
+
+.quota-limit-value small {
+  margin-left: 5px;
+
+  color: #f1f5f9;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.quota-reset-text {
+  margin-top: 14px;
+
+  padding: 12px 10px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(212, 175, 55, 0.07);
+
+  color: #d1d5db;
+
+  font-size: 13px;
+}
+
+.quota-reset-text strong {
+  color: #e5c45a;
+}
+
+.quota-modal-confirm {
+  width: 100%;
+
+  margin-top: 18px;
+
+  padding: 14px;
+
+  border:
+    1px solid rgba(212, 175, 55, 0.55);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #b8902e,
+      #e2c45c
+    );
+
+  color: #0b0b0b;
+
+  font-size: 16px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 25px rgba(212, 175, 55, 0.16);
+}
+
+.quota-modal-confirm:active {
+  transform: scale(0.98);
+}
+
+@keyframes quotaModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== 賽事搜尋框 ===== */
+.fixture-search {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 22px;
+}
+
+.fixture-search input {
+  width: 100%;
+  height: 50px;
+  padding: 0 18px 0 48px;
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  border-radius: 14px;
+  outline: none;
+  background: rgba(8, 24, 36, 0.88);
+  color: #ffffff;
+  font-size: 16px;
+  transition: 0.2s ease;
+}
+
+.fixture-search input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.fixture-search input:focus {
+  border-color: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.10);
+}
+
+.fixture-search-icon {
+  position: absolute;
+  left: 17px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #34d399;
+  font-size: 22px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ===== 聯賽快捷篩選 ===== */
+.fixture-league-filter {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  margin: -6px 0 24px;
+  padding: 2px 1px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fixture-league-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.league-filter-btn {
+  flex: 0 0 auto;
+  min-width: 66px;
+  height: 38px;
+  padding: 0 15px;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+
+  background: #151719;
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  box-shadow: none;
+  transition: 0.18s ease;
+}
+
+.league-filter-btn:hover:not(.active) {
+  border-color: rgba(232, 184, 72, 0.35);
+  color: #f4d77d;
+  background: #191a1c;
+}
+
+.league-filter-btn.active {
+  border-color: #d9b54a;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(232, 184, 72, 0.26),
+      rgba(232, 184, 72, 0.10)
+    );
+
+  color: #f4d77d;
+
+  box-shadow:
+    0 0 0 1px rgba(232, 184, 72, 0.10),
+    0 8px 22px rgba(0, 0, 0, 0.20);
+}
+
+/* =========================================================
+   HABAO FOOTBALL V2 - HEADER / HERO / DATE CONTROL
+========================================================= */
+
+/* ---------- Header ---------- */
+
+.v2-header{
+  position:relative;
+  z-index:20;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,25,22,.98),
+      rgba(10,12,14,.96)
+    );
+  border-bottom:1px solid rgba(232,184,72,.18);
+  box-shadow:0 12px 35px rgba(0,0,0,.28);
+}
+
+.v2-header .header-inner{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.v2-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  text-decoration:none;
+  color:inherit;
+  min-width:0;
+}
+
+.v2-logo{
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+
+  background:
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
+
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,.38))
+    drop-shadow(0 0 10px rgba(214,181,111,.10));
+}
+
+.v2-brand-copy{
+  min-width:0;
+}
+
+.v2-brand .brand-title{
+  font-size:17px;
+  font-weight:950;
+  letter-spacing:.3px;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.v2-brand .brand-sub{
+  margin-top:3px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.15px;
+  color:#8e9aaa;
+  white-space:nowrap;
+}
+
+
+/* ---------- Member ---------- */
+
+.v2-member{
+  display:flex;
+  align-items:flex-end;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+
+.v2-member .member-account{
+  padding:6px 10px;
+  border-radius:999px;
+
+  font-size:11px;
+  font-weight:850;
+  color:#dce3ea;
+
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+.v2-member .member-user-count{
+  display:flex;
+  align-items:center;
+  gap:5px;
+
+  font-size:8px;
+  letter-spacing:.5px;
+  color:#7f8994;
+}
+
+.v2-online-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#38e99b;
+
+  box-shadow:
+    0 0 0 3px rgba(56,233,155,.10),
+    0 0 10px rgba(56,233,155,.65);
+}
+
+.v2-online-text strong{
+  color:#b9c3cd;
+}
+
+
+/* ---------- Main ---------- */
+
+.v2-match-center{
+  position:relative;
+}
+
+
+/* ---------- Match Hero ---------- */
+
+.v2-match-hero{
+  position:relative;
+  overflow:hidden;
+
+  margin-top:18px;
+  padding:18px 18px 22px;
+
+  border-radius:24px;
+
+  background:
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(234,181,61,.16),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(35,82,116,.18),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      #111820,
+      #080b0f 72%
+    );
+
+  border:1px solid rgba(225,179,65,.28);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-match-hero::before{
+  content:"";
+  position:absolute;
+  width:190px;
+  height:190px;
+  right:-70px;
+  top:-90px;
+
+  border:1px solid rgba(229,183,67,.10);
+  border-radius:50%;
+}
+
+.v2-match-hero::after{
+  content:"";
+  position:absolute;
+  width:110px;
+  height:110px;
+  right:-30px;
+  top:-48px;
+
+  border:1px solid rgba(229,183,67,.10);
+  border-radius:50%;
+}
+
+.v2-match-hero > *{
+  position:relative;
+  z-index:2;
+}
+
+.v2-match-hero-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:25px;
+}
+
+.v2-back{
+  color:#9ca8b4;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+}
+
+.v2-engine-badge{
+  padding:6px 9px;
+  border-radius:999px;
+
+  color:#e8bd55;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  border:1px solid rgba(229,181,61,.24);
+  background:rgba(229,181,61,.055);
+}
+
+.v2-match-kicker{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:8px;
+
+  color:#e9b943;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:1.6px;
+}
+.v2-match-kicker::before{
+  content:"";
+  width:22px;
+  height:2px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#ffd86b,#b67b12);
+}
+
+.v2-match-hero h1{
+  margin:0;
+
+  color:#fff;
+  font-size:30px;
+  line-height:1.08;
+  font-weight:1000;
+  letter-spacing:-1px;
+}
+
+.v2-match-hero .description{
+  margin-top:12px;
+
+  color:#9aa6b2;
+  font-size:12px;
+  line-height:1.8;
+  font-weight:600;
+}
+
+
+/* ---------- Control Panel ---------- */
+
+.v2-control-panel{
+  margin-top:14px;
+  padding:16px;
+
+  border-radius:21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,28,37,.98),
+      rgba(10,14,19,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 14px 35px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v2-control-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.v2-control-label{
+  color:#d9aa3c;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.v2-control-title{
+  margin-top:3px;
+  color:#f1f4f7;
+  font-size:14px;
+  font-weight:900;
+}
+
+.v2-history-btn{
+  width:auto;
+  margin:0;
+  padding:9px 11px;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  border-radius:11px;
+
+  color:#dce3e9;
+  font-size:10px;
+  font-weight:850;
+
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+
+  box-shadow:none;
+}
+
+.v2-history-icon{
+  color:#eab945;
+  font-size:14px;
+}
+
+
+/* ---------- Date Tabs ---------- */
+
+.v2-date-bar{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+
+  margin:0;
+  padding:5px;
+
+  border-radius:16px;
+
+  background:#080c10;
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.v2-date-bar .date{
+  position:relative;
+
+  margin:0;
+  padding:12px 8px;
+
+  border-radius:12px;
+  cursor:pointer;
+
+  text-align:center;
+
+  background:transparent;
+  border:1px solid transparent;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+}
+
+.v2-date-bar .date.active{
+  background:
+    linear-gradient(
+      145deg,
+      rgba(237,190,75,.19),
+      rgba(156,103,16,.10)
+    );
+
+  border-color:rgba(237,190,75,.38);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,238,174,.09),
+    0 7px 18px rgba(0,0,0,.18);
+}
+
+.v2-date-bar .date.active::before{
+  content:"";
+  position:absolute;
+
+  left:24%;
+  right:24%;
+  bottom:-1px;
+
+  height:2px;
+  border-radius:10px;
+
+  background:#f2bd45;
+  box-shadow:0 0 10px rgba(242,189,69,.65);
+}
+
+.v2-date-bar .date-day{
+  color:#d5dbe1;
+  font-size:13px;
+  font-weight:950;
+}
+
+.v2-date-bar .date-num{
+  margin-top:3px;
+
+  color:#697684;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.v2-date-bar .date.active .date-day{
+  color:#ffd86c;
+}
+
+.v2-date-bar .date.active .date-num{
+  color:#b9913d;
+}
+
+
+/* ---------- Fixture Section Title ---------- */
+
+.v2-fixture-title{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-top:27px;
+  margin-bottom:13px;
+}
+
+.v2-fixture-title::before{
+  content:"";
+  width:3px;
+  align-self:stretch;
+
+  border-radius:10px;
+  background:linear-gradient(#ffe078,#d49716);
+
+  box-shadow:0 0 10px rgba(235,181,55,.35);
+}
+
+.v2-fixture-title > div{
+  flex:1;
+}
+
+.v2-section-kicker{
+  display:block;
+
+  margin-bottom:4px;
+
+  color:#9b792f;
+  font-size:7px;
+  font-weight:950;
+  letter-spacing:1.5px;
+}
+
+.v2-fixture-title h2{
+  margin:0;
+
+  color:#f4f6f8;
+  font-size:19px;
+  font-weight:1000;
+  letter-spacing:-.3px;
+}
+
+.v2-section-engine{
+  color:#d5ad51 !important;
+  font-size:8px !important;
+  font-weight:900 !important;
+  letter-spacing:.8px;
+  white-space:nowrap;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width:600px){
+
+  .v2-header .header-inner{
+    min-height:70px;
+  }
+
+.v2-logo{
+  width:42px;
+  height:42px;
+  flex-basis:42px;
+}
+
+  .v2-brand .brand-title{
+    font-size:15px;
+  }
+
+  .v2-brand .brand-sub{
+    font-size:7px;
+  }
+
+  .v2-member .member-user-count{
+    display:none;
+  }
+
+  .v2-match-hero{
+    margin-top:12px;
+    padding:16px 16px 20px;
+    border-radius:21px;
+  }
+
+  .v2-match-hero h1{
+    font-size:27px;
+  }
+
+  .v2-match-hero .description{
+    font-size:11px;
+  }
+
+  .v2-control-panel{
+    padding:14px;
+    border-radius:18px;
+  }
+
+  .v2-fixture-title{
+    margin-top:24px;
+  }
+
+}
+
+/* ========================================
+   HABAO V2 - MATCH CARD
+======================================== */
+
+.v2-match-card {
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 16px;
+  padding: 0;
+
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245, 190, 65, 0.08),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13, 29, 43, 0.98),
+      rgba(7, 19, 30, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.v2-match-card::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 195, 65, 0.85),
+    transparent
+  );
+
+  opacity: 0.65;
+}
+
+.v2-match-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(255, 195, 65, 0.22);
+
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+
+/* ===== TOP ===== */
+
+.v2-match-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 17px 10px;
+}
+
+.v2-match-league {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 0;
+
+  color: #f5c451;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.v2-league-dot {
+  width: 7px;
+  height: 7px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: #f5c451;
+
+  box-shadow:
+    0 0 0 4px rgba(245, 196, 81, 0.08),
+    0 0 12px rgba(245, 196, 81, 0.45);
+}
+
+.v2-match-time {
+  flex: 0 0 auto;
+
+  padding: 6px 9px;
+
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ===== TEAMS ===== */
+
+.v2-match-teams {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 1fr 54px 1fr;
+  align-items: center;
+
+  min-height: 145px;
+
+  padding: 14px 18px 20px;
+}
+
+.v2-match-team {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.v2-team-logo-box {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 10px;
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.10),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.v2-team-logo-box .team-logo {
+  display: block;
+
+  width: 42px;
+  height: 42px;
+
+  object-fit: contain;
+
+  filter: drop-shadow(
+    0 5px 7px rgba(0, 0, 0, 0.28)
+  );
+}
+
+.v2-match-team .team-name {
+  width: 100%;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+
+  word-break: break-word;
+}
+
+.v2-team-side {
+  margin-top: 5px;
+
+  color: rgba(255, 255, 255, 0.32);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 1.4px;
+}
+
+
+/* ===== VS ===== */
+
+.v2-match-vs-center {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v2-match-line {
+  position: absolute;
+
+  width: 80px;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 196, 81, 0.25),
+    transparent
+  );
+
+  z-index: 0;
+}
+
+.v2-vs-ring {
+  position: relative;
+  z-index: 1;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(245, 196, 81, 0.14),
+      rgba(8, 18, 28, 0.98)
+    );
+
+  border: 1px solid rgba(245, 196, 81, 0.30);
+
+  color: #f5c451;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  box-shadow:
+    0 0 20px rgba(245, 196, 81, 0.08),
+    inset 0 0 15px rgba(245, 196, 81, 0.05);
+}
+
+/* ===== HABAO 批次分析 ===== */
+
+.v2-batch-select{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  margin-bottom:10px;
+  padding:8px 10px;
+
+  border-radius:10px;
+  border:1px solid rgba(245,196,81,.16);
+
+  background:rgba(245,196,81,.045);
+
+  color:#b9c5cb;
+  font-size:10px;
+  font-weight:850;
+
+  cursor:pointer;
+  user-select:none;
+}
+
+.v2-batch-select input{
+  width:16px;
+  height:16px;
+  accent-color:#f5c451;
+  cursor:pointer;
+}
+
+.v2-batch-select:has(input:checked){
+  color:#f5c451;
+  border-color:rgba(245,196,81,.42);
+  background:rgba(245,196,81,.09);
+}
+
+.v2-batch-bar{
+  position:fixed;
+  z-index:1500;
+
+  left:50%;
+  bottom:22px;
+  transform:translateX(-50%);
+
+  width:min(520px,calc(100% - 28px));
+
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  padding:11px 12px 11px 16px;
+
+  border:1px solid rgba(245,196,81,.30);
+  border-radius:16px;
+
+  background:rgba(6,20,29,.96);
+  backdrop-filter:blur(18px);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-batch-bar.show{
+  display:flex;
+}
+
+.v2-batch-info{
+  min-width:0;
+}
+
+.v2-batch-count{
+  color:#f5c451;
+  font-size:13px;
+  font-weight:950;
+}
+
+.v2-batch-sub{
+  margin-top:3px;
+  color:#7f929d;
+  font-size:9px;
+}
+
+.v2-batch-start{
+  flex:0 0 auto;
+
+  min-width:132px;
+  min-height:42px;
+
+  border:0;
+  border-radius:11px;
+
+  color:#171208;
+  font-size:11px;
+  font-weight:950;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe076,
+      #dfa126
+    );
+
+  cursor:pointer;
+}
+
+.v2-batch-start:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+@media(max-width:600px){
+  .v2-batch-bar{
+    bottom:14px;
+  }
+
+  .v2-batch-start{
+    min-width:118px;
+  }
+}
+  
+/* ===== BOTTOM ACTION ===== */
+
+.v2-match-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin: 0 16px;
+
+  padding: 13px 0 16px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.v2-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+.v2-status span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+}
+
+.v2-status.ready {
+  color: #37e6a1;
+}
+
+.v2-status.ready span {
+  background: #37e6a1;
+
+  box-shadow:
+    0 0 10px rgba(55, 230, 161, 0.70);
+}
+
+.v2-status.finished {
+  color: #7f91a0;
+}
+
+.v2-status.finished span {
+  background: #7f91a0;
+}
+
+.v2-status.locked {
+  color: #d1a94b;
+}
+
+.v2-status.locked span {
+  background: #d1a94b;
+
+  box-shadow:
+    0 0 9px rgba(209, 169, 75, 0.35);
+}
+
+
+/* ===== ANALYSIS BUTTON ===== */
+
+.v2-analysis-btn {
+  min-width: 112px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 11px 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #42edaa,
+      #2edc99
+    );
+
+  color: #04150f;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  box-shadow:
+    0 9px 22px rgba(46, 220, 153, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.v2-analysis-btn strong {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.v2-analysis-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 12px 26px rgba(46, 220, 153, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.v2-analysis-btn.finished {
+  background: rgba(111, 130, 145, 0.15);
+
+  color: #81909c;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+.v2-analysis-btn.locked {
+  background: rgba(209, 169, 75, 0.10);
+
+  border: 1px solid rgba(209, 169, 75, 0.16);
+
+  color: #9f8956;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 520px) {
+
+  .v2-match-card {
+    border-radius: 18px;
+  }
+
+  .v2-match-card-top {
+    padding:
+      14px
+      14px
+      8px;
+  }
+
+  .v2-match-teams {
+    grid-template-columns:
+      minmax(0, 1fr)
+      46px
+      minmax(0, 1fr);
+
+    min-height: 138px;
+
+    padding:
+      12px
+      10px
+      18px;
+  }
+
+  .v2-team-logo-box {
+    width: 54px;
+    height: 54px;
+
+    border-radius: 15px;
+  }
+
+  .v2-team-logo-box .team-logo {
+    width: 39px;
+    height: 39px;
+  }
+
+  .v2-match-team .team-name {
+    font-size: 13px;
+  }
+
+  .v2-vs-ring {
+    width: 34px;
+    height: 34px;
+  }
+
+  .v2-match-action {
+    margin:
+      0
+      14px;
+
+    padding:
+      12px
+      0
+      14px;
+  }
+
+  .v2-analysis-btn {
+    min-width: 105px;
+
+    padding:
+      10px
+      13px;
+
+    font-size: 11px;
+  }
+
+  .v2-status {
+    font-size: 8px;
+  }
+
+}
+
+/* ========================================
+   HABAO V2 - MATCH CARD LAYOUT FIX
+   Override legacy match-card styles
+======================================== */
+
+#matchesContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+
+  transform: none;
+}
+
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}
+  
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}  
+
+#matchesContainer .v2-match-card:hover {
+  transform: translateY(-2px);
+}
+
+#matchesContainer .v2-match-card .v2-match-card-top {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-teams {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    54px
+    minmax(0, 1fr) !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+#matchesContainer .v2-match-card[hidden] {
+  display: none !important;
+}  
+
+#matchesContainer .v2-match-card .v2-match-team {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#matchesContainer .v2-match-card .team-name {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  text-align: center !important;
+
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-vs-center {
+  width: 54px !important;
+  min-width: 54px !important;
+}
+
+#matchesContainer .v2-match-card .v2-match-action {
+  width: auto !important;
+margin-left: 16px !important;
+  margin-right: 16px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* MOBILE HARD FIX */
+
+@media (max-width: 520px) {
+
+  #matchesContainer {
+    overflow: hidden !important;
+  }
+
+  #matchesContainer .v2-match-card {
+    left: auto !important;
+    right: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin:
+      0
+      0
+      14px
+      0 !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-teams {
+    grid-template-columns:
+      minmax(0, 1fr)
+      44px
+      minmax(0, 1fr) !important;
+
+    padding:
+      14px
+      10px
+      18px !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-vs-center {
+    width: 44px !important;
+    min-width: 44px !important;
+  }
+
+  #matchesContainer .v2-match-card .v2-match-action {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+
+}
+
+/* ===============================
+   HABAO｜品牌統一補強
+================================ */
+
+.v2-back {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px !important;
+
+  border: 1px solid rgba(233, 198, 111, 0.35) !important;
+  border-radius: 11px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(233, 198, 111, 0.13),
+      rgba(233, 198, 111, 0.04)
+    ) !important;
+
+  color: #f0d48b !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+}
+
+.v2-back:active {
+  transform: scale(0.97);
+}
+
+
+/* 開始分析改為 HABAO 主金色 */
+
+.v2-analysis-btn:not(.finished):not(.locked) {
+  border-color: rgba(233, 198, 111, 0.55) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f3d47d,
+      #d99d27
+    ) !important;
+
+  color: #111111 !important;
+
+  box-shadow:
+    0 8px 22px rgba(217, 157, 39, 0.15) !important;
+}
+
+
+/* 綠色只保留為可分析狀態 */
+
+.v2-status.ready {
+  color: #35e6a1 !important;
+}
+
+.v2-status.ready span {
+  background: #35e6a1 !important;
+
+  box-shadow:
+    0 0 10px rgba(53, 230, 161, 0.55) !important;
+}
+
+
+/* Header 登入帳號 */
+
+.v2-member .member-account {
+  max-width: 145px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding: 8px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
+  
+
+
+
+/* =========================================================
+   HABAO MATCH CENTER V3
+   Sport switcher / smarter search / two-level league filter
+========================================================= */
+
+.v3-sport-switcher{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:14px;
+  padding:7px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:19px;
+  background:
+    linear-gradient(145deg,rgba(16,23,31,.98),rgba(8,12,17,.98));
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-sport-tab{
+  min-width:0;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 9px;
+  border:1px solid transparent;
+  border-radius:14px;
+  background:transparent;
+  color:#7f8b98;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.2px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.v3-sport-tab:hover{
+  color:#d7dee5;
+  background:rgba(255,255,255,.035);
+}
+
+.v3-sport-tab.active{
+  color:#ffe083;
+  border-color:rgba(237,190,75,.42);
+  background:
+    linear-gradient(145deg,rgba(237,190,75,.18),rgba(154,102,17,.08));
+  box-shadow:
+    inset 0 1px 0 rgba(255,242,190,.08),
+    0 8px 18px rgba(0,0,0,.18);
+}
+
+.v3-sport-icon{
+  font-size:19px;
+  line-height:1;
+}
+
+.v3-sport-label{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.v3-sport-toast{
+  position:fixed;
+  left:50%;
+  bottom:28px;
+  z-index:10020;
+  transform:translate(-50%,18px);
+  width:max-content;
+  max-width:calc(100vw - 34px);
+  padding:11px 16px;
+  border:1px solid rgba(237,190,75,.36);
+  border-radius:999px;
+  background:rgba(8,13,18,.96);
+  color:#f1d585;
+  font-size:12px;
+  font-weight:850;
+  box-shadow:0 14px 38px rgba(0,0,0,.45);
+  opacity:0;
+  pointer-events:none;
+  transition:.2s ease;
+}
+
+.v3-sport-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+.v3-fixture-tools{
+  margin:0 0 24px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:19px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(231,180,59,.06),transparent 34%),
+    linear-gradient(145deg,rgba(15,23,31,.97),rgba(8,13,18,.97));
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools.is-hidden{
+  display:none !important;
+}
+
+.v3-fixture-tools .fixture-search{
+  max-width:none;
+  margin:0 0 13px;
+}
+
+.v3-fixture-tools .fixture-search input{
+  height:52px;
+  padding:0 48px 0 47px;
+  border:1px solid rgba(237,190,75,.24);
+  border-radius:14px;
+  background:#080d12;
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools .fixture-search input::placeholder{
+  color:#5f6d7b;
+  font-weight:650;
+}
+
+.v3-fixture-tools .fixture-search input:focus{
+  border-color:rgba(237,190,75,.56);
+  box-shadow:
+    0 0 0 3px rgba(237,190,75,.08),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.v3-fixture-tools .fixture-search-icon{
+  left:16px;
+  color:#dfb445;
+  font-size:21px;
+}
+
+.v3-search-clear{
+  position:absolute;
+  right:9px;
+  top:50%;
+  transform:translateY(-50%);
+  width:32px;
+  height:32px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  color:#a8b2bc;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.v3-search-clear.show{
+  display:flex;
+}
+
+.v3-filter-caption{
+  margin:2px 2px 8px;
+  color:#8c7650;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.fixture-league-groups,
+.v3-fixture-tools .fixture-league-filter{
+  display:flex;
+  gap:8px;
+  width:100%;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+.fixture-league-groups::-webkit-scrollbar,
+.v3-fixture-tools .fixture-league-filter::-webkit-scrollbar{
+  display:none;
+}
+
+.fixture-league-groups{
+  margin:0;
+  padding:1px 1px 9px;
+}
+
+.v3-league-group-btn{
+  flex:0 0 auto;
+  min-width:74px;
+  height:37px;
+  padding:0 14px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:#11171d;
+  color:#788592;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.v3-league-group-btn:hover:not(.active){
+  color:#d2dae1;
+  border-color:rgba(255,255,255,.15);
+}
+
+.v3-league-group-btn.active{
+  color:#0f120b;
+  border-color:#e2b446;
+  background:linear-gradient(135deg,#f3d47d,#d99d27);
+  box-shadow:0 8px 18px rgba(217,157,39,.14);
+}
+
+.v3-fixture-tools .fixture-league-filter{
+  margin:0;
+  padding:9px 1px 1px;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+
+.v3-fixture-tools .league-filter-btn{
+  min-width:64px;
+  height:34px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  background:rgba(255,255,255,.025);
+  color:#788592;
+  font-size:10px;
+  font-weight:850;
+}
+
+.v3-fixture-tools .league-filter-btn:hover:not(.active){
+  color:#e4c975;
+  border-color:rgba(232,184,72,.26);
+  background:rgba(232,184,72,.04);
+}
+
+.v3-fixture-tools .league-filter-btn.active{
+  color:#f3d579;
+  border-color:rgba(232,184,72,.42);
+  background:rgba(232,184,72,.10);
+  box-shadow:none;
+}
+
+@media(max-width:600px){
+  .v3-sport-switcher{
+    gap:6px;
+    padding:6px;
+    border-radius:17px;
+  }
+
+  .v3-sport-tab{
+    min-height:50px;
+    gap:6px;
+    padding:9px 6px;
+    font-size:12px;
+  }
+
+  .v3-sport-icon{
+    font-size:17px;
+  }
+
+  .v3-fixture-tools{
+    padding:12px;
+    border-radius:17px;
+  }
+
+  .v3-fixture-tools .fixture-search input{
+    height:49px;
+    font-size:13px;
+  }
+
+  .v3-league-group-btn{
+    min-width:68px;
+    height:36px;
+    padding:0 12px;
+    font-size:10px;
+  }
+
+  .v3-fixture-tools .league-filter-btn{
+    height:33px;
+    padding:0 12px;
+  }
+}
+  
+
+.test-shell{max-width:980px;margin:50px auto;padding:0 20px 90px}
+.test-tag{font-weight:800;color:#f5c451;letter-spacing:2px;font-size:11px;margin-bottom:12px}
+.test-head{border:1px solid rgba(245,196,81,.3);border-radius:22px;background:linear-gradient(110deg,#101d2a,#191c20);padding:26px;margin-bottom:25px}
+.test-head h1{font-size:27px;margin:0 0 12px;color:white}
+.test-desc{font-size:13px;color:#a6b6c7;line-height:1.8;margin:0}
+.test-status{border:1px solid rgba(255,255,255,.12);border-radius:13px;background:#0d1d2b;padding:16px;color:#cbd5e1;margin:16px 0;font-size:13px}
+.test-btn{border:1px solid rgba(255,204,83,.5);border-radius:10px;background:linear-gradient(125deg,#ebc15a,#dfac34);padding:12px 18px;color:#182334;font-weight:900}
+.test-btn[disabled]{opacity:.55;cursor:not-allowed}
+.test-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.test-links a{color:#f3cd69;font-size:13px}
+@media(max-width:600px){.test-shell{margin:20px auto;padding:0 14px}.test-head{padding:20px}.test-head h1{font-size:23px}}
+</style></head>
+<body>
+<main class="test-shell">
+  <header class="test-head">
+    <div class="test-tag">HABAO ENGINE · MLB REAL DATA TEST</div>
+    <h1>⚾ MLB 真實賽事卡片測試</h1>
+    <p class="test-desc">固定查詢 2026/10/24（台灣時間），無需登入、網址參數或切換日期。賽事來自 MLB 官方資料代理；直接沿用目前 APP 的賽事卡片 CSS。<strong>這是只讀測試，不會產生分析、扣點數或正式快照。</strong></p>
+    <div class="test-links"><a href="football.html">← 返回正式賽事中心</a><a href="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures?date=2026-10-24" target="_blank" rel="noopener">檢視原始 MLB JSON</a></div>
+  </header>
+  <div class="test-status" id="status" aria-live="polite">正在從 MLB API 取得 10/24 真實賽程…</div>
+  <section id="cards" aria-label="真實 MLB 賽事卡片"></section>
+</main>
+<script>
+(()=>{"use strict";
+const DATE="2026-10-24",API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
+const status=document.getElementById("status"),cards=document.getElementById("cards");
+const zh={"Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒"};
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+const name=n=>zh[n]||n||"未知球隊";
+const team=g=>'<div class="v2-match-team"><div class="v2-team-logo-box"><img class="team-logo" src="https://www.mlbstatic.com/team-logos/'+Number(g?.id||0)+'.svg" alt="" onerror="this.replaceWith(document.createTextNode(\'⚾\'))"></div><div class="team-name">'+esc(name(g?.name))+'</div><div class="v2-team-side">'+(g?.side==="home"?"主隊":"客隊")+'</div></div>';
+function render(g){
+ const diff=Date.parse(g.kickoff_at)-Date.now(),started=diff<=0,open=diff>0&&diff<=36000000;
+ const finished=/final|completed|game over/i.test(g.status?.long||"");
+ const state=finished?"finished":started?"finished":open?"ready":"locked";
+ const label=finished?"MATCH FINISHED":started?"MATCH LIVE":open?"T-10 開放時間內（分析測試鎖定）":"AI ANALYSIS LOCKED";
+ const time=new Date(g.kickoff_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false});
+ const home={...g.home,side:"home"},away={...g.away,side:"away"};
+ return '<article class="match-card v2-match-card"><div class="v2-match-card-top"><div class="v2-match-league"><span class="v2-league-dot"></span>⚾ 美國職棒大聯盟 · MLB</div><div class="v2-match-time">'+esc(time)+'</div></div><div class="v2-match-teams">'+team(home)+'<div class="v2-match-vs-center"><div class="v2-vs-ring">VS</div><div class="v2-match-line"></div></div>'+team(away)+'</div><div class="analysis v2-match-action"><div class="ai-status v2-status '+state+'"><span></span>'+label+'</div><button type="button" class="test-btn" disabled>MLB 分析測試未開放</button></div></article>';
+}
+(async()=>{try{
+ const response=await fetch(API+"?date="+DATE+"&nocache="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(16000)});
+ const data=await response.json();
+ if(!response.ok||data.success!==true)throw new Error("API HTTP "+response.status+" : "+String(data.error||"invalid_response"));
+ const games=Array.isArray(data.fixtures)?data.fixtures:[];
+ status.textContent="✅ API 連線成功｜日期 "+esc(data.date)+"｜賽事 "+games.length+" 場｜台灣時間｜真實 MLB 資料";
+ cards.innerHTML=games.length?games.map(render).join(""):'<div class="test-status">此日期無 MLB 賽事。API 已正常回應。</div>';
+}catch(e){status.textContent="❌ MLB API 測試失敗："+String(e.message||e);cards.innerHTML='<p class="test-status">請檢查 baseball-public-fixtures 是否部署；此測試頁不會使用假資料。</p>';}
+})();
+})();
+</script></body></html>
