@@ -4378,7 +4378,8 @@ function renderAnalysisHistory() {
   const filtered=analysisHistoryRecords.filter(item=>{
     const rowSport=String(item?.sport||"football");
     const sportOk=sport==="all"||rowSport===sport;
-    const dateOk=isWithinAdminDays(item?.updated_at,days);
+    const isSystemAuto = String(item?.account || "").includes("SYSTEM_AUTO") || item?.record_source === "system_auto";
+    const dateOk=isWithinAdminDays(isSystemAuto ? (item?.fixture_time || item?.updated_at) : item?.updated_at,days);
     const haystack=[item?.account,item?.fixture_id,item?.game_id,item?.league_name,item?.home_team,item?.away_team].join(" ").toLowerCase();
     return sportOk&&dateOk&&(!search||haystack.includes(search));
   });
