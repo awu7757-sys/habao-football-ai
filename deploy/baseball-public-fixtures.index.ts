@@ -1,4 +1,4 @@
-// HABAO MLB public schedule proxy v0.1 — fixtures only, no membership or secrets exposed.
+// HABAO MLB public schedule proxy v0.2 — fixtures only, no membership or secrets exposed.
 // Deploy as Edge Function "baseball-public-fixtures" with Verify JWT OFF.
 // This endpoint returns publicly available MLB schedule information, never analyses.
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, OPTIONS","Access-Control-Allow-Headers":"apikey, authorization, content-type","Cache-Control":"public, max-age=120"};
@@ -9,8 +9,11 @@ const team=(obj:any)=>({id:obj?.team?.id??null,name:String(obj?.team?.name||""),
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
  if(req.method!=="GET")return json({success:false,error:"GET_only"},405);
- const url=new URL(req.url),now=new Date(),today=localDate(now),tomorrow=plus(today,1),date=url.searchParams.get("date")||today;
- if(date!==today&&date!==tomorrow)return json({success:false,error:"only_today_tomorrow",today,tomorrow},400);
+ const url=new URL(req.url),now=new Date(),today=localDate(now),date=url.searchParams.get("date")||today;
+ // Read-only diagnostic support: valid future dates within the next seven days.
+ // The client match center still requests ONLY today/tomorrow.
+ const allowed=Array.from({length:8},(_,i)=>plus(today,i));
+ if(!allowed.includes(date))return json({success:false,error:"date_out_of_range",today,max_date:plus(today,7)},400);
  const api=new URL("https://statsapi.mlb.com/api/v1/schedule");
  api.searchParams.set("sportId","1");api.searchParams.set("startDate",plus(date,-1));api.searchParams.set("endDate",plus(date,1));api.searchParams.set("hydrate","probablePitcher");
  try{
