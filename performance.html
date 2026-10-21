@@ -828,7 +828,7 @@ function predictionPick(p,key){
   }
   return"--";
 }
-function overallResult(settlement){const vals=["moneyline","over_under","handicap"].map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
+function overallResult(settlement){const keys=currentSport==="basketball"?["moneyline","over_under","handicap"]:["moneyline","over_under","btts"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
   const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
         shown=showAll?rows:rows.slice(0,5),
@@ -856,7 +856,7 @@ function renderRecords(){
         <td class="score">${esc(x.final_score||"-")}</td>
         <td><div class="pred-main">${esc(money)}</div><div class="pred-sub">${esc(getLang()==="en"?"Projected score":"預測比分")} ${esc(scorePrediction)}</div></td>
         <td><div class="verify-dot">${resultMark(ov)}</div></td>
-        ${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
+        ${["moneyline","over_under","handicap"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
         <td class="row-arrow">›</td>
       </tr>`;
     }).join("");
