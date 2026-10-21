@@ -8690,6 +8690,12 @@ function resetAnalysisButtons() {
           ".v2-match-card"
         );
 
+      // NBA 按鈕的狀態已由賽事時間與後端 status 判定；
+      // 通用足球按鈕重設流程不可將其重新啟用。
+      if (card?.hasAttribute("data-basketball-fixture-id")) {
+        return;
+      }
+
       const fixtureId =
         card?.dataset
           ?.fixtureId || "";
