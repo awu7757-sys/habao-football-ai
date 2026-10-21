@@ -1286,6 +1286,7 @@ tr:last-child td{border-bottom:0}
               <option value="normal">僅一般會員</option>
               <option value="member">指定會員</option>
               <option value="basketball_game">🏀 指定 NBA 賽事分析會員</option>
+              <option value="baseball_game" disabled>⚾ 指定 MLB 賽事分析會員（推播尚未開放）</option>
             </select>
           </div>
 
@@ -1303,6 +1304,8 @@ tr:last-child td{border-bottom:0}
               分析會員：—｜可推播會員：—｜訂閱裝置：—
             </div>
           </div>
+
+          <div class="field"><div class="mini-item"><span class="mini-key">⚾ MLB 推播管理</span><span class="status off">已關閉｜尚未串接推播名單與發送後端</span></div><div class="panel-desc" style="margin-top:7px">MLB 將沿用足球與 NBA 的指定賽事分析會員推播模式，待權限、訂閱名單與發送測試完成才會開放。</div></div>
 
           <div class="field">
             <label class="label">通知標題</label>
@@ -1344,6 +1347,15 @@ tr:last-child td{border-bottom:0}
           <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
         </div>
 
+        <div class="panel" id="mlbStatsMonitorPanel" style="margin:0 0 15px">
+          <div class="panel-head"><div><div class="panel-title">⚾ MLB Stats API｜免費資料來源</div><div class="panel-desc">提供 MLB 賽程、球隊及投手資料；不是 API-Sports 付費額度。這裡僅檢查賽程代理接口，不能代表全部統計端點健康。</div></div><button class="ghost-btn" onclick="probeMlbStatsApi(true)">↻ 檢查賽程資料</button></div>
+          <div class="three-grid">
+            <div class="mini-item"><span class="mini-key">賽程接口狀態</span><strong id="mlbStatsApiStatus">尚未檢查</strong></div>
+            <div class="mini-item"><span class="mini-key">最後成功檢查</span><strong id="mlbStatsApiLastSuccess">—</strong></div>
+            <div class="mini-item"><span class="mini-key">當日賽事數</span><strong id="mlbStatsApiGameCount">—</strong></div>
+          </div>
+          <div class="panel-desc" style="margin-top:10px" id="mlbStatsApiNote">目前未配置 MLB Stats API 的服務端呼叫次數日誌及整季統計快取監控；不顯示虛構配額或成功率。</div>
+        </div>
         <div class="dashboard-api-grid" style="margin-bottom:15px">
           <div class="api-provider-card football">
             <div class="api-provider-top"><div><div class="api-provider-name">API-Football PRO</div><div class="api-provider-sub">足球資料｜每日額度與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
@@ -4016,6 +4028,28 @@ function calculateRenewalDays(
     text:
       `剩餘 ${days} 天`
   };
+}
+
+
+let mlbStatsLastSuccess=null;
+async function probeMlbStatsApi(showAlert=false){
+ const status=document.getElementById("mlbStatsApiStatus");
+ if(status)status.textContent="檢查中…";
+ const date=typeof mlbAdminDate==="function"?mlbAdminDate(0):new Date().toISOString().slice(0,10);
+ try{
+   const r=await fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures?date="+date,{cache:"no-store",signal:AbortSignal.timeout(14000)});
+   const data=await r.json();
+   if(!r.ok||data?.success!==true||!Array.isArray(data.fixtures))throw Error(data.error||"賽程 API 回應失敗");
+   mlbStatsLastSuccess=new Date().toISOString();
+   setText("mlbStatsApiStatus","賽程 API 正常");
+   setText("mlbStatsApiLastSuccess",formatDate(mlbStatsLastSuccess));
+   setText("mlbStatsApiGameCount",data.fixtures.length);
+   setText("mlbStatsApiNote","已成功讀取當日賽程。這不代表球隊／投手統計完整，也不是 MLB Stats API 供應商配額；仍需部署統計快取與呼叫紀錄。");
+ }catch(e){
+   setText("mlbStatsApiStatus","賽程 API 異常");
+   setText("mlbStatsApiNote","失敗："+String(e.message||e)+"｜最後成功："+(mlbStatsLastSuccess?formatDate(mlbStatsLastSuccess):"無紀錄")+"。此狀態不代表整個 MLB 資料服務中斷。");
+   if(showAlert)alert("MLB 賽程 API 檢查失敗："+String(e.message||e));
+ }
 }
 
 function renderApiPage() {
