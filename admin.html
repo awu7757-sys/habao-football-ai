@@ -986,7 +986,7 @@ tr:last-child td{border-bottom:0}
           <div class="stat-card">
             <div class="stat-label">今日 AI 分析</div>
             <div id="dashTodayAnalysis" class="stat-value">0</div>
-            <div class="stat-note">足球＋NBA＋MLB 今日首次分析使用量</div>
+            <div class="stat-note" id="dashTodayAnalysisNote">足球＋NBA＋MLB 今日首次分析使用量</div>
           </div>
 
           <div class="stat-card">
@@ -2256,6 +2256,8 @@ let dashboardData = {
 
 let adminOverview = {};
 let nbaAdminOverview = {};
+let mlbTodayMemberFirstClaims = 0;
+let mlbAdminLogsAvailable = false;
 let analysisHistoryRecords = [];
 let analysisJobs = [];
 let fixtureCacheRows = [];
@@ -2725,7 +2727,7 @@ function renderDashboard() {
 
   const footballTodayAnalysis=Number.isFinite(Number(adminOverview?.today_analysis_count))?Number(adminOverview.today_analysis_count):dashboardData.todayAnalysisCount;
   const nbaTodayAnalysis=Number(nbaAdminOverview?.today_analysis_usage||0);
-  setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis);
+  setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis+(mlbAdminLogsAvailable?mlbTodayMemberFirstClaims:0));
 
   const apiLimit=Number(window.apiDailyLimit||7500);
   const apiUsed=Number.isFinite(Number(adminOverview?.today_api_count))?Number(adminOverview.today_api_count):dashboardData.todayApiCount;
@@ -4084,14 +4086,11 @@ function togglePushMemberField() {
 
 async function loadAdminOverview() {
   try {
-    const [footballResult, nbaResult] =
+    const [footballResult, nbaResult, mlbResult] =
       await Promise.allSettled([
-        adminCenterRequest({
-          action: "overview"
-        }),
-        adminBasketballRequest({
-          action: "overview"
-        })
+        adminCenterRequest({action:"overview"}),
+        adminBasketballRequest({action:"overview"}),
+        adminBaseballRequest({action:"analysis_history",limit:400})
       ]);
 
     if (footballResult.status !== "fulfilled") {
@@ -4106,6 +4105,10 @@ async function loadAdminOverview() {
         ? (nbaResult.value?.overview || {})
         : {};
 
+    mlbAdminLogsAvailable=mlbResult.status==="fulfilled";
+    mlbTodayMemberFirstClaims=mlbAdminLogsAvailable?(mlbResult.value.records||[]).filter(x=>x.record_source==="member"&&isTodayTaipei(x.created_at)).length:0;
+    const todayAnalysisNote=document.getElementById("dashTodayAnalysisNote");
+    if(todayAnalysisNote)todayAnalysisNote.textContent=mlbAdminLogsAvailable?"足球＋NBA＋MLB 今日首次分析使用量":"足球＋NBA 今日首次分析（MLB 統計暫不可用）";
     const footballToday =
       Number(adminOverview.today_fixtures || 0);
 
