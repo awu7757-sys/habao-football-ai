@@ -8,6 +8,8 @@ const lang=()=>window.HabaoI18n?.getLanguage?.()||"zh-Hant";
 const t=(v)=>lang()==="en"?String(v||""):lang()==="zh-Hans"&&window.HabaoI18n?.toSimplified?window.HabaoI18n.toSimplified(names[v]||v||""):names[v]||v||"";
 const taiwanDate=(offset)=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());const d=new Date(p+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
 const getWindow=(kickoff)=>{const diff=Date.parse(kickoff)-Date.now();return{started:!Number.isFinite(diff)||diff<=0,open:diff>0&&diff<=36000000};};
+// Internal MLB UI preview: only the existing test account and explicit query value.
+const mlbPreviewDate=(()=>{try{const member=JSON.parse(sessionStorage.getItem("habao_member")||"null");const requested=new URLSearchParams(location.search).get("mlb_test_date");return member?.account==="google_2d3cef6b6e2d"&&requested==="2026-10-24"?requested:null;}catch{return null;}})();
 const badge=(id)=>Number.isInteger(Number(id))&&Number(id)>0?"https://www.mlbstatic.com/team-logos/"+Number(id)+".svg":"";
 let filter="all", cache=new Map(), saved=null;
 function setup(){
@@ -40,8 +42,8 @@ function card(g){
 async function load(offset=0){
  if(currentHabaoSport!=="baseball")return;
  const title=document.getElementById("fixtureSectionTitle"),c=document.getElementById("matchesContainer");if(!c)return;
- if(title)title.textContent=offset===0?"⚾ 今日 MLB 賽事":"⚾ 明日 MLB 賽事";
- const date=taiwanDate(offset);c.innerHTML='<div class="ai-note">正在取得 MLB 賽事…</div>';setup();
+ if(title)title.textContent=mlbPreviewDate?"⚾ MLB 測試賽事｜"+mlbPreviewDate:(offset===0?"⚾ 今日 MLB 賽事":"⚾ 明日 MLB 賽事");
+ const date=mlbPreviewDate||taiwanDate(offset);c.innerHTML='<div class="ai-note">正在取得 MLB 賽事…</div>';setup();
  let data=cache.get(date);
  try{
   if(!data||Date.now()-data.at>120000){
@@ -49,7 +51,7 @@ async function load(offset=0){
     const body=await res.json();if(!res.ok||body.success!==true)throw new Error(body.error||"MLB 賽程讀取失敗");
     data={at:Date.now(),fixtures:Array.isArray(body.fixtures)?body.fixtures:[]};cache.set(date,data);
   }
-  if(currentHabaoSport!=="baseball"||taiwanDate(offset)!==date)return;
+  if(currentHabaoSport!=="baseball"||(mlbPreviewDate||taiwanDate(offset))!==date)return;
   c.innerHTML=data.fixtures.length?data.fixtures.map(card).join(""):'<div class="ai-note">當日沒有 MLB 賽事。</div>';apply();
  }catch(e){if(currentHabaoSport==="baseball")c.innerHTML='<div class="ai-note">MLB 賽程資料尚未開放，請稍後再試。<small style="display:block">'+esc(e?.message||"")+'</small></div>';}
 }
