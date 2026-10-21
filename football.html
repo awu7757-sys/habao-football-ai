@@ -8966,10 +8966,22 @@ const basketballMatches =
       )
   }));
 
+const baseballMatches = await (async () => {
+  try {
+    const session = (await supabaseAuth.auth.getSession()).data?.session;
+    if(!session?.access_token) return [];
+    const r = await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis-history",{
+      headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
+    });
+    const j = await r.json();
+    return r.ok && j.success && Array.isArray(j.matches) ? j.matches.map(m=>({...m,sport:"baseball"})) : [];
+  }catch{return [];}
+})();
 const allMatches =
   [
     ...footballMatches,
-    ...basketballMatches
+    ...basketballMatches,
+    ...baseballMatches
   ].sort((a, b) => {
     const aTime =
       new Date(
@@ -8987,10 +8999,7 @@ const allMatches =
 window.habaoHistoryAllMatches =
   allMatches;
 
-window.habaoHistorySport =
-  currentHabaoSport === "basketball"
-    ? "basketball"
-    : "football";
+window.habaoHistorySport = ["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football";
 
 renderAnalysisHistory(
   allMatches,
@@ -11246,7 +11255,7 @@ analysisResultNotFound: "Analysis result not found"
 
 </script>
 
-<script src="mlb-match-center.js?v=3"></script>
+<script src="mlb-match-center.js?v=10"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 </body>
 </html>
