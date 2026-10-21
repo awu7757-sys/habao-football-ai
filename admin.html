@@ -986,13 +986,13 @@ tr:last-child td{border-bottom:0}
           <div class="stat-card">
             <div class="stat-label">今日 AI 分析</div>
             <div id="dashTodayAnalysis" class="stat-value">0</div>
-            <div class="stat-note">足球＋NBA 今日首次分析使用量</div>
+            <div class="stat-note" id="dashTodayAnalysisNote">足球＋NBA＋MLB 今日首次分析使用量</div>
           </div>
 
           <div class="stat-card">
             <div class="stat-label">今日 / 明日賽事</div>
             <div id="dashFixtureCount" class="stat-value" style="font-size:18px">0 / 0</div>
-            <div class="stat-note">足球與 NBA 賽事快取</div>
+            <div class="stat-note">足球、NBA、MLB 賽事快取</div>
           </div>
 
           <div class="stat-card">
@@ -1036,7 +1036,7 @@ tr:last-child td{border-bottom:0}
               <div class="api-provider-meta"><div><span>近 7 天平均</span><strong id="dashNbaAvgApi">—</strong><small id="dashNbaAvgApiNote">依供應商配額快照</small></div><div><span>續費日期</span><strong id="dashNbaRenewalDate">—</strong><small id="dashNbaRenewalDays">—</small></div></div>
             </div>
             <div class="api-provider-card odds">
-              <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">NBA 真實讓分＋大小分｜每月 20,000 credits</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+              <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">足球／NBA／MLB 共用盤口｜每月 20,000 credits</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
               <div class="api-provider-main"><div><div class="api-provider-label">本期使用量</div><div id="dashOddsUsage" class="api-provider-number">— / 20,000</div></div><div class="api-provider-badge">20K / 月</div></div>
               <div class="progress-wrap"><div class="progress-line"><div id="dashOddsProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="dashOddsProgressText">等待市場快照</span><span id="dashOddsRemaining">—</span></div></div>
               <div class="api-provider-meta"><div><span>最近一次成本</span><strong id="dashOddsLastCost">—</strong><small id="dashOddsEvents">—</small></div><div><span>續費日期</span><strong id="dashOddsRenewalDate">—</strong><small id="dashOddsRenewalDays">—</small></div></div>
@@ -1339,7 +1339,7 @@ tr:last-child td{border-bottom:0}
           <div>
             <div class="page-kicker">API QUOTA</div>
             <div class="page-title">API 配額</div>
-            <div class="page-desc">API-Football PRO＋API-NBA PRO｜兩套 API 各自計算配額與續費日期。</div>
+            <div class="page-desc">API-Football PRO、API-NBA PRO 各自計算；The Odds API 20K 供三項運動共用。</div>
           </div>
           <button class="ghost-btn" onclick="refreshAdminSection(this,'api')">↻ 更新</button>
         </div>
@@ -1360,7 +1360,7 @@ tr:last-child td{border-bottom:0}
             <button class="save-btn" style="width:100%;margin-top:12px" onclick="confirmNbaApiRenewal(this)">確認 NBA 已續費</button>
           </div>
           <div class="api-provider-card odds">
-            <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">NBA 真實讓分＋大小分｜每月 credits 與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+            <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">足球／NBA／MLB 共用盤口｜每月 credits 與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
             <div class="api-provider-main"><div><div class="api-provider-label">本期使用量</div><div id="oddsApiTodayBig" class="api-provider-number">— / 20,000</div></div><div class="api-provider-badge">20K / 月</div></div>
             <div class="progress-wrap"><div class="progress-line"><div id="oddsApiPageProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="oddsApiPagePercent">—</span><span id="oddsApiPageRemaining">—</span></div></div>
             <div class="api-provider-meta"><div><span>最近一次成本</span><strong id="oddsApiLastCostText">—</strong><small id="oddsApiEventsText">—</small></div><div><span>續費日期</span><strong id="oddsApiRenewalText">—</strong><small id="oddsApiRenewalDaysText">—</small></div></div>
@@ -1726,7 +1726,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
 
           <div class="toolbar">
             <div class="filters">
-              <input id="nbaFixtureSearch" class="input search" placeholder="搜尋 NBA 隊伍、Game ID..." oninput="renderNbaFixtures()">
+              <input id="nbaFixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、賽事 ID..." oninput="renderNbaFixtures()">
               <select id="nbaFixtureDateFilter" class="input" onchange="renderNbaFixtures()">
                 <option value="all">今日＋明日</option>
                 <option value="today">今日</option>
@@ -1742,13 +1742,17 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                   <tr>
                     <th>日期</th>
                     <th>時間</th>
-                    <th>Game ID</th>
+                    <th>賽事 ID</th>
+                    <th>聯賽</th>
                     <th>主隊</th>
                     <th>客隊</th>
                     <th>狀態</th>
+                    <th>比分</th>
+                    <th>分析會員</th>
+                    <th>可推播</th>
+                    <th>比分推播</th>
                     <th>T-10 快取</th>
                     <th>固定快照</th>
-                    <th>分析會員</th>
                     <th>模型版本</th>
                   </tr>
                 </thead>
@@ -1756,6 +1760,18 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
               </table>
             </div>
           </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px">
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。會員推播功能未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
+          <div class="stats-grid" style="margin-bottom:15px">
+            <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
+            <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
+            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="mlbFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
+            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="mlbFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
+          </div>
+          <div class="toolbar"><div class="filters"><input id="mlbFixtureSearch" class="input search" placeholder="搜尋聯盟、隊伍、賽事 ID..." oninput="renderMlbAdminFixtures()"><select id="mlbFixtureDateFilter" class="input" onchange="renderMlbAdminFixtures()"><option value="all">今日＋明日</option><option value="today">今日</option><option value="tomorrow">明日</option></select></div></div>
+          <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>日期</th><th>時間</th><th>賽事 ID</th><th>聯賽</th><th>主隊</th><th>客隊</th><th>狀態</th><th>比分</th><th>分析會員</th><th>可推播</th><th>比分推播</th></tr></thead><tbody id="mlbFixturesBody"><tr><td colspan="11" class="empty">載入 MLB 賽程中…</td></tr></tbody></table></div></div>
         </div>
       </section>
 
@@ -1801,6 +1817,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                 <option value="all">全部運動</option>
                 <option value="football">⚽ 足球</option>
                 <option value="basketball">🏀 NBA</option>
+                <option value="baseball">⚾ MLB</option>
               </select>
               <select id="performanceStatusFilter" class="input" onchange="renderPerformanceAdmin()">
                 <option value="all">全部</option>
@@ -1827,7 +1844,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>狀態</th>
                     <th>獨贏</th>
                     <th>大小球 / 大小分</th>
-                    <th>BTTS</th>
+                    <th id="performanceThirdMarketHeading">BTTS</th>
                     <th>讓分</th>
                     <th>操作</th>
                   </tr>
@@ -2239,6 +2256,8 @@ let dashboardData = {
 
 let adminOverview = {};
 let nbaAdminOverview = {};
+let mlbTodayMemberFirstClaims = 0;
+let mlbAdminLogsAvailable = false;
 let analysisHistoryRecords = [];
 let analysisJobs = [];
 let fixtureCacheRows = [];
@@ -2708,7 +2727,7 @@ function renderDashboard() {
 
   const footballTodayAnalysis=Number.isFinite(Number(adminOverview?.today_analysis_count))?Number(adminOverview.today_analysis_count):dashboardData.todayAnalysisCount;
   const nbaTodayAnalysis=Number(nbaAdminOverview?.today_analysis_usage||0);
-  setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis);
+  setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis+(mlbAdminLogsAvailable?mlbTodayMemberFirstClaims:0));
 
   const apiLimit=Number(window.apiDailyLimit||7500);
   const apiUsed=Number.isFinite(Number(adminOverview?.today_api_count))?Number(adminOverview.today_api_count):dashboardData.todayApiCount;
@@ -4067,14 +4086,11 @@ function togglePushMemberField() {
 
 async function loadAdminOverview() {
   try {
-    const [footballResult, nbaResult] =
+    const [footballResult, nbaResult, mlbResult] =
       await Promise.allSettled([
-        adminCenterRequest({
-          action: "overview"
-        }),
-        adminBasketballRequest({
-          action: "overview"
-        })
+        adminCenterRequest({action:"overview"}),
+        adminBasketballRequest({action:"overview"}),
+        adminBaseballRequest({action:"analysis_history",limit:400})
       ]);
 
     if (footballResult.status !== "fulfilled") {
@@ -4089,6 +4105,10 @@ async function loadAdminOverview() {
         ? (nbaResult.value?.overview || {})
         : {};
 
+    mlbAdminLogsAvailable=mlbResult.status==="fulfilled";
+    mlbTodayMemberFirstClaims=mlbAdminLogsAvailable?(mlbResult.value.records||[]).filter(x=>x.record_source==="member"&&isTodayTaipei(x.created_at)).length:0;
+    const todayAnalysisNote=document.getElementById("dashTodayAnalysisNote");
+    if(todayAnalysisNote)todayAnalysisNote.textContent=mlbAdminLogsAvailable?"足球＋NBA＋MLB 今日首次分析使用量":"足球＋NBA 今日首次分析（MLB 統計暫不可用）";
     const footballToday =
       Number(adminOverview.today_fixtures || 0);
 
@@ -4103,7 +4123,7 @@ async function loadAdminOverview() {
 
     setText(
       "dashFixtureCount",
-      `⚽ ${footballToday}/${footballTomorrow}｜🏀 ${nbaToday}/${nbaTomorrow}`
+      `⚽ ${footballToday}/${footballTomorrow}｜🏀 ${nbaToday}/${nbaTomorrow}｜⚾ ${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length}/${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length}`
     );
 
     setText(
@@ -4407,7 +4427,7 @@ function renderAnalysisHistory() {
       <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':String(item?.sport)==="baseball"?'<span class="status active"><span class="dot"></span>⚾ MLB</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
       <td class="mono">${escapeHtml(item?.fixture_id??item?.game_id??"—")}</td>
       <td>${escapeHtml(["basketball","baseball"].includes(String(item?.sport||""))?(item.sport==="baseball"?"MLB":"NBA"):normalizeLeagueDisplay(item?.league_name))}</td>
-      <td><strong>${escapeHtml(item?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(item?.away_team||"—")}</div></td>
+      <td><strong>${escapeHtml(item?.sport==="football"?item?.home_team||"—":zhTeam(item?.home_team))}</strong><div class="subline">vs ${escapeHtml(item?.sport==="football"?item?.away_team||"—":zhTeam(item?.away_team))}</div></td>
       <td>${formatDate(item?.fixture_time)}</td>
       <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
       <td><button class="action-btn gold" onclick='showAnalysisSummaryById("${String(item?.admin_key||item?.id)}")'>查看摘要</button></td>
@@ -4511,6 +4531,57 @@ async function retryAnalysisJob(jobId) {
   }
 }
 
+
+/* MLB + NBA shared Chinese display layer: presentation only, no writes. */
+const habaoTeamZh={
+"Orlando Magic":"奧蘭多魔術","Atlanta Hawks":"亞特蘭大老鷹","Washington Wizards":"華盛頓巫師","Milwaukee Bucks":"密爾瓦基公鹿","Miami Heat":"邁阿密熱火","Minnesota Timberwolves":"明尼蘇達灰狼","Brooklyn Nets":"布魯克林籃網","Charlotte Hornets":"夏洛特黃蜂","Toronto Raptors":"多倫多暴龍","Chicago Bulls":"芝加哥公牛","Memphis Grizzlies":"曼菲斯灰熊","Utah Jazz":"猶他爵士","New Orleans Pelicans":"紐奧良鵜鶘","Indiana Pacers":"印第安納溜馬","Houston Rockets":"休士頓火箭","Dallas Mavericks":"達拉斯獨行俠","Los Angeles Lakers":"洛杉磯湖人","Golden State Warriors":"金州勇士","San Antonio Spurs":"聖安東尼奧馬刺","Oklahoma City Thunder":"奧克拉荷馬雷霆","Boston Celtics":"波士頓塞爾提克","New York Knicks":"紐約尼克","Philadelphia 76ers":"費城七六人","Cleveland Cavaliers":"克里夫蘭騎士","Detroit Pistons":"底特律活塞","Denver Nuggets":"丹佛金塊","Phoenix Suns":"鳳凰城太陽","Sacramento Kings":"沙加緬度國王","Los Angeles Clippers":"洛杉磯快艇","Portland Trail Blazers":"波特蘭拓荒者",
+"Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒","Los Angeles Dodgers":"洛杉磯道奇","New York Mets":"紐約大都會","New York Yankees":"紐約洋基","Boston Red Sox":"波士頓紅襪","Chicago Cubs":"芝加哥小熊","St. Louis Cardinals":"聖路易紅雀","Cleveland Guardians":"克里夫蘭守護者","Toronto Blue Jays":"多倫多藍鳥","Seattle Mariners":"西雅圖水手","San Diego Padres":"聖地牙哥教士","Philadelphia Phillies":"費城費城人","Houston Astros":"休士頓太空人","Detroit Tigers":"底特律老虎","Atlanta Braves":"亞特蘭大勇士","Texas Rangers":"德州遊騎兵","Baltimore Orioles":"巴爾的摩金鶯","Kansas City Royals":"堪薩斯市皇家","Arizona Diamondbacks":"亞利桑那響尾蛇","San Francisco Giants":"舊金山巨人","Minnesota Twins":"明尼蘇達雙城","Los Angeles Angels":"洛杉磯天使","Pittsburgh Pirates":"匹茲堡海盜","Cincinnati Reds":"辛辛那提紅人","Washington Nationals":"華盛頓國民","Miami Marlins":"邁阿密馬林魚","Colorado Rockies":"科羅拉多落磯","Chicago White Sox":"芝加哥白襪","Athletics":"運動家"};
+const zhTeam=name=>habaoTeamZh[String(name||"").trim()]||String(name||"—");
+const adminStateZh=v=>({"Scheduled":"未開賽","Not Started":"未開賽","In Progress":"進行中","Live":"進行中","Final":"已完賽","Finished":"已完賽","Postponed":"延期","Cancelled":"取消","Delayed":"延遲","Suspended":"暫停","Completed":"已完賽"})[String(v||"")]||String(v||"未開賽");
+const mlbAdminDate=(off=0)=>{const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));const d=new Date(Date.UTC(+o.year,+o.month-1,+o.day+off));return d.toISOString().slice(0,10)};
+let mlbAdminFixtures=[],mlbAdminToday="",mlbAdminTomorrow="",mlbAdminUpdatedAt="";
+async function loadMlbAdminFixtures(force=false){
+  const base="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
+  mlbAdminToday=mlbAdminDate(0);mlbAdminTomorrow=mlbAdminDate(1);
+  const results=await Promise.allSettled([mlbAdminToday,mlbAdminTomorrow].map(async date=>{
+    const res=await fetch(base+"?date="+date,{cache:"no-store"});
+    if(!res.ok)throw Error("MLB 賽程 HTTP "+res.status);
+    const j=await res.json();
+    if(!j.success)throw Error(j.error||"MLB 賽程失敗");
+    return {date,fixtures:Array.isArray(j.fixtures)?j.fixtures:[]};
+  }));
+  mlbAdminFixtures=results.flatMap((r,i)=>r.status==="fulfilled"?r.value.fixtures.map(x=>({...x,__adminDate:[mlbAdminToday,mlbAdminTomorrow][i]})):[]);
+  mlbAdminUpdatedAt=new Date().toISOString();
+  setText("mlbFixtureTodayFetched",formatDate(mlbAdminUpdatedAt));
+  setText("mlbFixtureTomorrowFetched",formatDate(mlbAdminUpdatedAt));
+  renderMlbAdminFixtures();
+  if(typeof loadAdminOverview==="function"){
+    const footballCount=Number(adminOverview?.today_fixtures||0),footballNext=Number(adminOverview?.tomorrow_fixtures||0);
+    const nbaCount=Number(nbaAdminOverview?.today_fixtures||0),nbaNext=Number(nbaAdminOverview?.tomorrow_fixtures||0);
+    setText("dashFixtureCount",`⚽ ${footballCount}/${footballNext}｜🏀 ${nbaCount}/${nbaNext}｜⚾ ${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length}/${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length}`);
+  }
+  if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
+}
+function renderMlbAdminFixtures(){
+  const body=document.getElementById("mlbFixturesBody");if(!body)return;
+  const q=String(document.getElementById("mlbFixtureSearch")?.value||"").trim().toLowerCase();
+  const filter=document.getElementById("mlbFixtureDateFilter")?.value||"all";
+  const rows=mlbAdminFixtures.filter(x=>{
+    const home=String(x.home?.name||x.home_team||"");const away=String(x.away?.name||x.away_team||"");
+    return (filter==="all"||(filter==="today"&&x.__adminDate===mlbAdminToday)||(filter==="tomorrow"&&x.__adminDate===mlbAdminTomorrow))&&(!q||[x.game_id,x.id,home,away,zhTeam(home),zhTeam(away),"MLB"].join(" ").toLowerCase().includes(q));
+  });
+  setText("mlbFixtureTodayCount",mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length);
+  setText("mlbFixtureTomorrowCount",mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length);
+  body.innerHTML=rows.length?rows.map(x=>{
+    const kick=x.kickoff_at||x.scheduled_at||x.gameDate||"";
+    const dt=new Date(kick);const time=Number.isNaN(dt.getTime())?"—":dt.toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false});
+    const home=zhTeam(x.home?.name||x.home_team),away=zhTeam(x.away?.name||x.away_team);
+    const st=adminStateZh(x.status?.detailedState||x.status?.long||x.status||"Scheduled");
+    const score=x.score?String(x.score.home??"—")+" - "+String(x.score.away??"—"):"—";
+    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>—</td><td>—</td><td><span class="table-chip">尚未開放</span></td></tr>';
+  }).join(""):'<tr><td colspan="11" class="empty">目前沒有符合條件的 MLB 賽事</td></tr>';
+}
+
 /* ---------- Fixtures ---------- */
 
 async function loadFixtures(force = false) {
@@ -4577,6 +4648,7 @@ async function loadFixtures(force = false) {
 
     renderFixtures();
     renderNbaFixtures();
+    loadMlbAdminFixtures(false);
 
   } catch (error) {
     console.error(
@@ -4941,9 +5013,14 @@ function renderNbaFixtures() {
               )}</td>
               <td>${time}</td>
               <td class="mono">${escapeHtml(item?.fixture_id ?? "—")}</td>
-              <td>${escapeHtml(item?.home?.name || "—")}</td>
-              <td>${escapeHtml(item?.away?.name || "—")}</td>
-              <td>${statusBadge(item?.status?.long || item?.status?.short || "Scheduled")}</td>
+              <td>NBA</td>
+              <td>${escapeHtml(zhTeam(item?.home?.name))}</td>
+              <td>${escapeHtml(zhTeam(item?.away?.name))}</td>
+              <td>${statusBadge(adminStateZh(item?.status?.long || item?.status?.short || "Scheduled"))}</td>
+              <td>${item?.home_score!=null&&item?.away_score!=null?escapeHtml(item.home_score+" - "+item.away_score):"—"}</td>
+              <td>${Number(item?.analysis_member_count || 0)} 人</td>
+              <td>${Number(item?.push_member_count || 0)} 人</td>
+              <td><span class="table-chip">後台推播管理</span></td>
               <td>
                 ${cacheLabel}
                 ${cache?.generated_at ? `<div class="subline">${formatDate(cache.generated_at)}</div>` : ""}
@@ -4952,14 +5029,13 @@ function renderNbaFixtures() {
                 ${snapshotLabel}
                 ${snapshot?.generated_at ? `<div class="subline">${formatDate(snapshot.generated_at)}</div>` : ""}
               </td>
-              <td>${Number(item?.analysis_member_count || 0)} 人</td>
               <td class="mono">${escapeHtml(cache?.model_version || snapshot?.model_version || "—")}</td>
             </tr>
           `;
         }).join("")
       : `
         <tr>
-          <td colspan="10" style="text-align:center;color:#8fa4b5;padding:24px">
+          <td colspan="13" style="text-align:center;color:#8fa4b5;padding:24px">
             尚無 NBA 賽事快取資料
           </td>
         </tr>
@@ -5194,7 +5270,7 @@ async function refreshFixtureSource(offset) {
 
 async function loadPerformanceAdmin(force = false) {
   try {
-    const [footballResult, basketballResult] =
+    const [footballResult, basketballResult, baseballResult] =
       await Promise.allSettled([
         adminCenterRequest({
           action: "performance",
@@ -5206,7 +5282,8 @@ async function loadPerformanceAdmin(force = false) {
             action: "performance",
             limit: 400
           }
-        )
+        ),
+        fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api",{cache:"no-store"}).then(async r=>{const v=await r.json();if(!r.ok||!v.success)throw Error(v.error||"MLB performance failed");return v})
       ]);
 
     const footballSnapshots =
@@ -5227,9 +5304,19 @@ async function loadPerformanceAdmin(force = false) {
           }))
         : [];
 
+    const baseballSnapshots = baseballResult.status==="fulfilled"
+      ? (baseballResult.value.matches||[]).map(row=>({
+          sport:"baseball",fixture_id:Number(row.game_id||0),league_name:"MLB",
+          kickoff_at:row.kickoff_at,home_team:row.home,away_team:row.away,
+          home_score:Number(String(row.final_score||"").split("-")[0]),away_score:Number(String(row.final_score||"").split("-")[1]),
+          status:"verified",excluded_from_public:false,
+          settlement:{moneyline:row.moneyline_result,handicap:row.handicap_result,over_under:row.over_under_result}
+        })) : [];
+
     performanceSnapshots = [
       ...footballSnapshots,
-      ...basketballSnapshots
+      ...basketballSnapshots,
+      ...baseballSnapshots
     ].sort((a,b)=>
       new Date(b?.kickoff_at || 0).getTime() -
       new Date(a?.kickoff_at || 0).getTime()
@@ -5241,6 +5328,7 @@ async function loadPerformanceAdmin(force = false) {
       const failed = [];
       if (footballResult.status === "rejected") failed.push("足球");
       if (basketballResult.status === "rejected") failed.push("NBA");
+      if (baseballResult.status === "rejected") failed.push("MLB");
       if (failed.length) {
         alert(`${failed.join("、")}公開戰績讀取失敗，其餘資料已正常顯示。`);
       }
@@ -5356,9 +5444,7 @@ function marketWinRate(market) {
 }
 
 function performanceSportLabel(row) {
-  return row?.sport === "basketball"
-    ? "🏀 NBA"
-    : "⚽ 足球";
+  return row?.sport === "basketball"?"🏀 NBA":row?.sport === "baseball"?"⚾ MLB":"⚽ 足球";
 }
 
 /* 後台專用：依首次 T-10 正式推薦與已驗證比分顯示足球讓分結果。
@@ -5450,9 +5536,12 @@ function renderPerformanceAdmin() {
     return ok&&sportOk&&(!search||h.includes(search));
   });
 
+  const head=document.getElementById("performanceThirdMarketHeading");
+  if(head)head.textContent=sportFilter==="football"?"BTTS":sportFilter==="all"?"BTTS（僅足球）":"不適用";
   body.innerHTML=filtered.map(row=>{
     const isNba=row?.sport==="basketball";
-    const market2Title=isNba
+    const isMlb=row?.sport==="baseball";
+    const market2Title=isNba||isMlb
       ? "大小分"
       : "大小球";
 
@@ -5460,21 +5549,26 @@ function renderPerformanceAdmin() {
       <td>${formatDate(row?.kickoff_at)}</td>
       <td><span class="table-chip">${performanceSportLabel(row)}</span></td>
       <td class="mono">${escapeHtml(row?.fixture_id??"—")}</td>
-      <td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
-      <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
+      <td>${escapeHtml(row?.sport==="baseball"?"MLB":row?.sport==="basketball"?"NBA":normalizeLeagueDisplay(row?.league_name))}</td>
+      <td><strong>${escapeHtml(row?.sport==="football"?row?.home_team||"—":zhTeam(row?.home_team))}</strong><div class="subline">vs ${escapeHtml(row?.sport==="football"?row?.away_team||"—":zhTeam(row?.away_team))}</div></td>
       <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
       <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
       <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
       <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-      <td title="BTTS">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-      <td title="讓分（後台專用；缺少正式結算時依 T-10 推薦與比分計算）">${resultBadge(adminHandicapResult(row))}</td>
+      <td class="btts-only" title="BTTS 僅足球">${row?.sport==="football"?resultBadge(settlementResult(row?.settlement,"btts")):"—"}</td>
+      <td title="讓分">${resultBadge(row?.sport==="football"?adminHandicapResult(row):settlementResult(row?.settlement,"handicap"))}</td>
       <td><div class="row-actions">
-        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
-        <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
-        <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>
+        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":isMlb?"MLB":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
+        ${isMlb?'<span class="table-chip">MLB 唯讀｜尚未開放排除／刪除</span>':`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
+        <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>`}
       </div></td>
     </tr>`;
   }).join("");
+
+  const showBtts=sportFilter==="all"||sportFilter==="football";
+  const bttsHeader=document.getElementById("performanceThirdMarketHeading");
+  if(bttsHeader)bttsHeader.style.display=showBtts?"":"none";
+  body.querySelectorAll(".btts-only").forEach(cell=>{cell.style.display=showBtts?"":"none"});
 
   if(!filtered.length){
     body.innerHTML='<tr><td colspan="12" class="empty">目前沒有符合條件的公開戰績資料</td></tr>';
