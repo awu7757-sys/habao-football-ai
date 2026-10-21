@@ -1360,7 +1360,7 @@ tr:last-child td{border-bottom:0}
             <button class="save-btn" style="width:100%;margin-top:12px" onclick="confirmNbaApiRenewal(this)">確認 NBA 已續費</button>
           </div>
           <div class="api-provider-card odds">
-            <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">NBA 真實讓分＋大小分｜每月 credits 與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
+            <div class="api-provider-top"><div><div class="api-provider-name">The Odds API 20K</div><div class="api-provider-sub">足球／NBA／MLB 共用盤口｜每月 credits 與續費</div></div><span class="status active"><span class="dot"></span>使用中</span></div>
             <div class="api-provider-main"><div><div class="api-provider-label">本期使用量</div><div id="oddsApiTodayBig" class="api-provider-number">— / 20,000</div></div><div class="api-provider-badge">20K / 月</div></div>
             <div class="progress-wrap"><div class="progress-line"><div id="oddsApiPageProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="oddsApiPagePercent">—</span><span id="oddsApiPageRemaining">—</span></div></div>
             <div class="api-provider-meta"><div><span>最近一次成本</span><strong id="oddsApiLastCostText">—</strong><small id="oddsApiEventsText">—</small></div><div><span>續費日期</span><strong id="oddsApiRenewalText">—</strong><small id="oddsApiRenewalDaysText">—</small></div></div>
@@ -4427,7 +4427,7 @@ function renderAnalysisHistory() {
       <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':String(item?.sport)==="baseball"?'<span class="status active"><span class="dot"></span>⚾ MLB</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
       <td class="mono">${escapeHtml(item?.fixture_id??item?.game_id??"—")}</td>
       <td>${escapeHtml(["basketball","baseball"].includes(String(item?.sport||""))?(item.sport==="baseball"?"MLB":"NBA"):normalizeLeagueDisplay(item?.league_name))}</td>
-      <td><strong>${escapeHtml(item?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(item?.away_team||"—")}</div></td>
+      <td><strong>${escapeHtml(item?.sport==="football"?item?.home_team||"—":zhTeam(item?.home_team))}</strong><div class="subline">vs ${escapeHtml(item?.sport==="football"?item?.away_team||"—":zhTeam(item?.away_team))}</div></td>
       <td>${formatDate(item?.fixture_time)}</td>
       <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>
       <td><button class="action-btn gold" onclick='showAnalysisSummaryById("${String(item?.admin_key||item?.id)}")'>查看摘要</button></td>
