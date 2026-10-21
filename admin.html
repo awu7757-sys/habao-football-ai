@@ -5568,15 +5568,20 @@ function renderPerformanceAdmin() {
     body.innerHTML='<tr><td colspan="12" class="empty">目前沒有符合條件的公開戰績資料</td></tr>';
   }
 
-  const normalPending=performanceSnapshots.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
-  const overdue=performanceSnapshots.filter(x=>x?.is_overdue===true).length;
-  const verified=performanceSnapshots.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
+  const scoped=performanceSnapshots.filter(x=>sportFilter==="all"||x?.sport===sportFilter);
+  const normalPending=scoped.filter(x=>x?.status==="pending"&&x?.is_overdue!==true).length;
+  const overdue=scoped.filter(x=>x?.is_overdue===true).length;
+  const verified=scoped.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).length;
   setText("performancePendingCount",normalPending);
   setText("performanceOverdueCount",overdue);
   setText("performanceVerifiedCount",verified);
-  setText("performanceOuRate",marketWinRate("over_under"));
+  const results=scoped.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).map(x=>settlementResult(x?.settlement,"over_under")).filter(x=>["win","loss","half_win","half_loss"].includes(x));
+  const points=results.reduce((v,x)=>v+(x==="win"?1:x==="half_win"?.5:0),0);
+  setText("performanceOuRate",results.length?(points/results.length*100).toFixed(1)+"%":"—");
 }
 async function runPublicRunner() {
+  const sport=document.getElementById("performanceSportFilter")?.value||"all";
+  if(sport==="basketball"||sport==="baseball"){alert("手動賽前預測只支援足球。NBA、MLB 依各自 T-10 排程自動執行。");return;}
   if (
     !confirm(
       "確定執行賽前預測排程？"
