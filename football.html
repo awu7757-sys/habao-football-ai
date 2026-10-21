@@ -3970,9 +3970,9 @@ function selectHabaoSport(
     if (tools) {
       tools.classList.remove("is-hidden");
       if (sport === "football") {
-        document.getElementById("fixtureLeagueGroups")?.style.removeProperty("display");
-        const caption = document.getElementById("leagueFilterCaption");
-        if (caption) caption.textContent = "QUICK FILTER";
+        habaoRestoreFootballFixtureTools();
+      } else {
+        habaoSetupNbaFixtureTools();
       }
     }
 
@@ -6432,6 +6432,22 @@ async function openBasketballMatch(
 
 /* HABAO NBA: 與足球共用搜尋面板，使用獨立的比賽狀態篩選。 */
 let habaoNbaStatusFilter = "all";
+let habaoFootballToolHandlers = null;
+
+function habaoRestoreFootballFixtureTools() {
+  if (!habaoFootballToolHandlers) return;
+  const input = document.getElementById("fixtureSearchInput");
+  const clear = document.getElementById("fixtureSearchClear");
+  const filter = document.getElementById("fixtureLeagueFilter");
+  const caption = document.getElementById("leagueFilterCaption");
+  document.getElementById("fixtureLeagueGroups")?.style.removeProperty("display");
+  if (caption) caption.textContent = "QUICK FILTER";
+  if (input) input.oninput = habaoFootballToolHandlers.oninput;
+  if (clear) clear.onclick = habaoFootballToolHandlers.onclick;
+  if (filter) filter.onclick = habaoFootballToolHandlers.filterClick;
+  window.habaoRenderLeagueQuickFilters?.();
+  window.habaoApplyFixtureFilters?.();
+}
 
 function habaoApplyNbaFixtureFilters() {
   if (currentHabaoSport !== "basketball") return;
@@ -6464,6 +6480,13 @@ function habaoApplyNbaFixtureFilters() {
 
 function habaoSetupNbaFixtureTools() {
   if (currentHabaoSport !== "basketball") return;
+  if (!habaoFootballToolHandlers) {
+    habaoFootballToolHandlers = {
+      oninput: document.getElementById("fixtureSearchInput")?.oninput || null,
+      onclick: document.getElementById("fixtureSearchClear")?.onclick || null,
+      filterClick: document.getElementById("fixtureLeagueFilter")?.onclick || null
+    };
+  }
   const groups = document.getElementById("fixtureLeagueGroups");
   if (groups) groups.style.display = "none";
   const caption = document.getElementById("leagueFilterCaption");
