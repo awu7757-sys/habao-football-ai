@@ -5505,8 +5505,8 @@ function renderPerformanceAdmin() {
   const selectedSport=document.getElementById("performanceSportFilter")?.value||"all";
   const manualBtn=document.getElementById("performanceManualRunner"),overdueBtn=document.getElementById("performanceOverdueRunner"),note=document.getElementById("performanceRunnerNote");
   if(manualBtn){manualBtn.classList.toggle("hidden",selectedSport==="basketball"||selectedSport==="baseball");manualBtn.textContent=selectedSport==="all"?"執行足球賽前預測（僅足球）":"執行足球賽前預測";}
-  if(overdueBtn){overdueBtn.classList.toggle("hidden",selectedSport==="baseball");overdueBtn.textContent=selectedSport==="football"?"補驗證足球逾期戰績":selectedSport==="basketball"?"補驗證 NBA 逾期戰績":"補驗證足球／NBA 逾期戰績";}
-  if(note){note.textContent=selectedSport==="basketball"?"NBA 採 T-10 自動排程":selectedSport==="baseball"?"MLB 採 T-10／賽後排程；賽後寫入尚未開放":selectedSport==="all"?"手動預測僅執行足球；NBA／MLB 由排程處理":"";note.classList.toggle("hidden",selectedSport==="football");}
+  if(overdueBtn){overdueBtn.classList.remove("hidden");overdueBtn.textContent=selectedSport==="football"?"補驗證足球逾期戰績":selectedSport==="basketball"?"補驗證 NBA 逾期戰績":selectedSport==="baseball"?"補驗證 MLB 逾期戰績":"補驗證足球／NBA 逾期戰績";}
+  if(note){note.textContent=selectedSport==="basketball"?"NBA 採 T-10 自動排程":selectedSport==="baseball"?"MLB 支援管理員單場／批次補驗證；賽後寫入須待驗收開放":selectedSport==="all"?"手動預測僅執行足球；NBA／MLB 由排程處理":"";note.classList.toggle("hidden",selectedSport==="football");}
 
   const body=document.getElementById("performanceBody"); if(!body)return;
   const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
@@ -7724,7 +7724,22 @@ async function confirmOddsApiRenewal(button){
 
 async function validateOverduePerformance(button){
   const selectedSport=document.getElementById("performanceSportFilter")?.value||"all";
-  if(selectedSport==="baseball"){alert("MLB 由獨立賽後排程處理，未開放手動補驗證。");return;}
+  if(selectedSport==="baseball"){
+    const raw=prompt("MLB 補驗證：填入 Game ID 可單場處理；留空則批次檢查最近 7 天的正式快照。","") ;
+    if(raw===null)return;
+    const value=String(raw).trim();
+    if(value&&!/^[1-9]\\d{0,14}$/.test(value)){alert("請輸入有效 MLB Game ID");return;}
+    if(!confirm(value?"確認補驗證 MLB 賽事 "+value+"？（不重新分析、不修改 T-10 快照）":"確認批次檢查 MLB 最近 7 天待驗證賽事？"))return;
+    const old=button?.textContent;
+    if(button){button.disabled=true;button.textContent="MLB 補驗證中…";}
+    try{
+      const response=await adminBaseballRequest({action:"verify_results",...(value?{game_id:Number(value)}:{})});
+      showJsonModal("MLB 補驗證結果",response.runner||response);
+      await loadPerformanceAdmin(false);await loadAdminOverview();
+    }catch(error){alert("MLB 補驗證失敗："+(error?.message||"未知錯誤"));}
+    finally{if(button){button.disabled=false;button.textContent=old||"補驗證 MLB 逾期戰績";}}
+    return;
+  }
   const runFootball=selectedSport!=="basketball",runNba=selectedSport!=="football";
   if(!confirm("確定補驗證"+(selectedSport==="football"?"足球":selectedSport==="basketball"?"NBA":"足球＋NBA")+"逾期待驗證戰績？"))return;
   const old=button?.textContent;
