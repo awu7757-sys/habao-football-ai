@@ -1549,7 +1549,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>更新時間</th>
                     <th>會員</th>
                     <th>運動</th>
-                    <th>Fixture / Game ID</th>
+                    <th>賽事 ID</th>
                     <th>聯賽</th>
                     <th>賽事</th>
                     <th>開賽時間</th>
@@ -1669,7 +1669,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
 
           <div class="toolbar">
             <div class="filters">
-              <input id="fixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、Fixture ID..." oninput="renderFixtures()">
+              <input id="fixtureSearch" class="input search" placeholder="搜尋聯賽、隊伍、賽事 ID..." oninput="renderFixtures()">
               <select id="fixtureDateFilter" class="input" onchange="renderFixtures()">
                 <option value="all">今日＋明日</option>
                 <option value="today">今日</option>
@@ -1685,7 +1685,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                   <tr>
                     <th>日期</th>
                     <th>時間</th>
-                    <th>Fixture ID</th>
+                    <th>賽事 ID</th>
                     <th>聯賽</th>
                     <th>主隊</th>
                     <th>客隊</th>
@@ -1708,7 +1708,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
               <div class="panel-title">🏀 NBA 賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、T-10 快取、固定快照與會員取用。</div>
             </div>
-            <button class="ghost-btn" onclick="refreshNbaFixtureSource(this)">同步 NBA 賽程 / T-10</button>
+            <button class="ghost-btn" onclick="refreshNbaFixtureSource(this)">更新 NBA 賽程／T-10</button>
           </div>
 
           <div class="stats-grid" style="margin-bottom:15px">
@@ -1784,8 +1784,8 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div class="page-desc">管理公開預測快照、驗證狀態與市場結果。</div>
           </div>
           <div class="table-tools">
-            <button class="save-btn" onclick="runPublicRunner()">執行足球賽前預測排程</button>
-            <button class="ghost-btn" onclick="validateOverduePerformance(this)">補驗證逾期戰績</button>
+            <button id="performanceManualRunner" class="save-btn" onclick="runPublicRunner()">執行足球賽前預測</button><span id="performanceRunnerNote" class="table-chip"></span>
+            <button id="performanceOverdueRunner" class="ghost-btn" onclick="validateOverduePerformance(this)">補驗證逾期戰績</button>
             <button class="ghost-btn" onclick="refreshAdminSection(this,'performance')">↻ 更新</button>
           </div>
         </div>
@@ -1900,7 +1900,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
 
         <div class="panel">
           <div class="panel-head"><div><div class="panel-title">測試賽事明細</div><div class="panel-desc">可查看三段賠率快照、正式答案、影子答案、校正原因與完賽結果。</div></div></div>
-          <div class="table-shell"><div class="table-scroll"><table style="min-width:1080px"><thead><tr><th>開賽時間</th><th>Fixture ID</th><th>聯賽</th><th>賽事</th><th>快照</th><th>狀態</th><th>比分</th><th>操作</th></tr></thead><tbody id="shadowTestBody"></tbody></table></div></div>
+          <div class="table-shell"><div class="table-scroll"><table style="min-width:1080px"><thead><tr><th>開賽時間</th><th>賽事 ID</th><th>聯賽</th><th>賽事</th><th>快照</th><th>狀態</th><th>比分</th><th>操作</th></tr></thead><tbody id="shadowTestBody"></tbody></table></div></div>
         </div>
       </section>
 
@@ -2027,7 +2027,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
 
         <div class="panel">
           <div class="panel-head"><div><div class="panel-title">分析鎖列表</div><div class="panel-desc">只允許清除已過期或疑似殘留的分析鎖。</div></div><button class="ghost-btn" onclick="clearExpiredLocks(this)">清除過期分析鎖</button></div>
-          <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>Fixture ID</th><th>建立時間</th><th>最後更新</th><th>expires_at</th><th>狀態</th></tr></thead><tbody id="healthLocksBody"></tbody></table></div></div>
+          <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>賽事 ID</th><th>建立時間</th><th>最後更新</th><th>expires_at</th><th>狀態</th></tr></thead><tbody id="healthLocksBody"></tbody></table></div></div>
         </div>
         <div class="panel">
           <div class="panel-title">近期失敗 / 部分失敗任務</div>
@@ -4536,7 +4536,7 @@ async function retryAnalysisJob(jobId) {
 const habaoTeamZh={
 "Orlando Magic":"奧蘭多魔術","Atlanta Hawks":"亞特蘭大老鷹","Washington Wizards":"華盛頓巫師","Milwaukee Bucks":"密爾瓦基公鹿","Miami Heat":"邁阿密熱火","Minnesota Timberwolves":"明尼蘇達灰狼","Brooklyn Nets":"布魯克林籃網","Charlotte Hornets":"夏洛特黃蜂","Toronto Raptors":"多倫多暴龍","Chicago Bulls":"芝加哥公牛","Memphis Grizzlies":"曼菲斯灰熊","Utah Jazz":"猶他爵士","New Orleans Pelicans":"紐奧良鵜鶘","Indiana Pacers":"印第安納溜馬","Houston Rockets":"休士頓火箭","Dallas Mavericks":"達拉斯獨行俠","Los Angeles Lakers":"洛杉磯湖人","Golden State Warriors":"金州勇士","San Antonio Spurs":"聖安東尼奧馬刺","Oklahoma City Thunder":"奧克拉荷馬雷霆","Boston Celtics":"波士頓塞爾提克","New York Knicks":"紐約尼克","Philadelphia 76ers":"費城七六人","Cleveland Cavaliers":"克里夫蘭騎士","Detroit Pistons":"底特律活塞","Denver Nuggets":"丹佛金塊","Phoenix Suns":"鳳凰城太陽","Sacramento Kings":"沙加緬度國王","Los Angeles Clippers":"洛杉磯快艇","Portland Trail Blazers":"波特蘭拓荒者",
 "Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒","Los Angeles Dodgers":"洛杉磯道奇","New York Mets":"紐約大都會","New York Yankees":"紐約洋基","Boston Red Sox":"波士頓紅襪","Chicago Cubs":"芝加哥小熊","St. Louis Cardinals":"聖路易紅雀","Cleveland Guardians":"克里夫蘭守護者","Toronto Blue Jays":"多倫多藍鳥","Seattle Mariners":"西雅圖水手","San Diego Padres":"聖地牙哥教士","Philadelphia Phillies":"費城費城人","Houston Astros":"休士頓太空人","Detroit Tigers":"底特律老虎","Atlanta Braves":"亞特蘭大勇士","Texas Rangers":"德州遊騎兵","Baltimore Orioles":"巴爾的摩金鶯","Kansas City Royals":"堪薩斯市皇家","Arizona Diamondbacks":"亞利桑那響尾蛇","San Francisco Giants":"舊金山巨人","Minnesota Twins":"明尼蘇達雙城","Los Angeles Angels":"洛杉磯天使","Pittsburgh Pirates":"匹茲堡海盜","Cincinnati Reds":"辛辛那提紅人","Washington Nationals":"華盛頓國民","Miami Marlins":"邁阿密馬林魚","Colorado Rockies":"科羅拉多落磯","Chicago White Sox":"芝加哥白襪","Athletics":"運動家"};
-const zhTeam=name=>habaoTeamZh[String(name||"").trim()]||String(name||"—");
+const zhTeam=name=>{const x=String(name||"").trim();return habaoTeamZh[x]||({"LA Clippers":"洛杉磯快艇","LA Lakers":"洛杉磯湖人","NY Knicks":"紐約尼克","GS Warriors":"金州勇士","Portland Trailblazers":"波特蘭拓荒者","Oakland Athletics":"奧克蘭運動家"})[x]||x||"—"};
 const adminStateZh=v=>({"Scheduled":"未開賽","Not Started":"未開賽","In Progress":"進行中","Live":"進行中","Final":"已完賽","Finished":"已完賽","Postponed":"延期","Cancelled":"取消","Delayed":"延遲","Suspended":"暫停","Completed":"已完賽"})[String(v||"")]||String(v||"未開賽");
 const mlbAdminDate=(off=0)=>{const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));const d=new Date(Date.UTC(+o.year,+o.month-1,+o.day+off));return d.toISOString().slice(0,10)};
 let mlbAdminFixtures=[],mlbAdminToday="",mlbAdminTomorrow="",mlbAdminUpdatedAt="";
@@ -5514,6 +5514,12 @@ function adminHandicapResult(row) {
 }
 
 function renderPerformanceAdmin() {
+  const selectedSport=document.getElementById("performanceSportFilter")?.value||"all";
+  const manualBtn=document.getElementById("performanceManualRunner"),overdueBtn=document.getElementById("performanceOverdueRunner"),note=document.getElementById("performanceRunnerNote");
+  if(manualBtn){manualBtn.classList.toggle("hidden",selectedSport==="basketball"||selectedSport==="baseball");manualBtn.textContent=selectedSport==="all"?"執行足球賽前預測（僅足球）":"執行足球賽前預測";}
+  if(overdueBtn){overdueBtn.classList.toggle("hidden",selectedSport==="baseball");overdueBtn.textContent=selectedSport==="football"?"補驗證足球逾期戰績":selectedSport==="basketball"?"補驗證 NBA 逾期戰績":"補驗證足球／NBA 逾期戰績";}
+  if(note){note.textContent=selectedSport==="basketball"?"NBA 採 T-10 自動排程":selectedSport==="baseball"?"MLB 採 T-10／賽後排程；賽後寫入尚未開放":selectedSport==="all"?"手動預測僅執行足球；NBA／MLB 由排程處理":"";note.classList.toggle("hidden",selectedSport==="football");}
+
   const body=document.getElementById("performanceBody"); if(!body)return;
   const search=String(document.getElementById("performanceSearch")?.value||"").trim().toLowerCase();
   const filter=document.getElementById("performanceStatusFilter")?.value||"all";
@@ -7724,16 +7730,19 @@ async function confirmOddsApiRenewal(button){
 }
 
 async function validateOverduePerformance(button){
-  if(!confirm("確定補驗證足球＋NBA所有逾期待驗證戰績？"))return;
+  const selectedSport=document.getElementById("performanceSportFilter")?.value||"all";
+  if(selectedSport==="baseball"){alert("MLB 由獨立賽後排程處理，未開放手動補驗證。");return;}
+  const runFootball=selectedSport!=="basketball",runNba=selectedSport!=="football";
+  if(!confirm("確定補驗證"+(selectedSport==="football"?"足球":selectedSport==="basketball"?"NBA":"足球＋NBA")+"逾期待驗證戰績？"))return;
   const old=button?.textContent;
   if(button){button.disabled=true;button.textContent="補驗證中…";}
   try{
     const [footballResult,basketballResult]=await Promise.allSettled([
-      adminCenterRequest({action:"validate_overdue_performance"}),
-      adminServiceRequest(
+      runFootball?adminCenterRequest({action:"validate_overdue_performance"}):Promise.resolve({skipped:true}),
+      runNba?adminServiceRequest(
         ADMIN_BASKETBALL_PERFORMANCE_URL,
         {action:"validate_overdue_performance"}
-      )
+      ):Promise.resolve({skipped:true})
     ]);
 
     showJsonModal(
