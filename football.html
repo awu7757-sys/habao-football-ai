@@ -3968,10 +3968,12 @@ function selectHabaoSport(
       );
 
     if (tools) {
-      tools.classList.toggle(
-        "is-hidden",
-        sport !== "football"
-      );
+      tools.classList.remove("is-hidden");
+      if (sport === "football") {
+        document.getElementById("fixtureLeagueGroups")?.style.removeProperty("display");
+        const caption = document.getElementById("leagueFilterCaption");
+        if (caption) caption.textContent = "QUICK FILTER";
+      }
     }
 
     updateHabaoFixtureTitle(
@@ -6200,6 +6202,11 @@ async function openBasketballMatch(
 
   const previewTest =
     isHabaoNbaPreviewTester();
+  const card = button?.closest("[data-basketball-fixture-id]");
+  if (card && card.dataset.nbaStatus !== "upcoming") {
+    alert("比賽已經開賽，不能建立新的分析。既有結果請至「我的分析」查看。");
+    return;
+  }
 
   if (button) {
     button.disabled = true;
@@ -6422,11 +6429,83 @@ async function openBasketballMatch(
   }
 }
 
+
+/* HABAO NBA: 與足球共用搜尋面板，使用獨立的比賽狀態篩選。 */
+let habaoNbaStatusFilter = "all";
+
+function habaoApplyNbaFixtureFilters() {
+  if (currentHabaoSport !== "basketball") return;
+  const container = document.getElementById("matchesContainer");
+  if (!container) return;
+  const input = document.getElementById("fixtureSearchInput");
+  const keyword = String(input?.value || "").trim().toLowerCase();
+  let shown = 0;
+  container.querySelectorAll("[data-basketball-fixture-id]").forEach(card => {
+    const search = String(card.dataset.nbaSearch || card.textContent || "").toLowerCase();
+    const status = card.dataset.nbaStatus || "upcoming";
+    const visible = (!keyword || search.includes(keyword)) &&
+      (habaoNbaStatusFilter === "all" || habaoNbaStatusFilter === status);
+    card.hidden = !visible;
+    card.style.display = visible ? "" : "none";
+    if (visible) shown++;
+  });
+  let empty = container.querySelector(".fixture-search-empty");
+  if (!shown && container.querySelector("[data-basketball-fixture-id]")) {
+    if (!empty) {
+      empty = document.createElement("div");
+      empty.className = "ai-note fixture-search-empty";
+      container.appendChild(empty);
+    }
+    empty.textContent = keyword ? "找不到符合搜尋的籃球賽事。" : "目前沒有符合此狀態的籃球賽事。";
+  } else {
+    empty?.remove();
+  }
+}
+
+function habaoSetupNbaFixtureTools() {
+  if (currentHabaoSport !== "basketball") return;
+  const groups = document.getElementById("fixtureLeagueGroups");
+  if (groups) groups.style.display = "none";
+  const caption = document.getElementById("leagueFilterCaption");
+  if (caption) caption.textContent = "MATCH STATUS";
+  const filters = document.getElementById("fixtureLeagueFilter");
+  if (filters) {
+    const labels = [
+      ["all", "全部"], ["upcoming", "未開賽"],
+      ["live", "進行中"], ["finished", "已完賽"]
+    ];
+    filters.innerHTML = labels.map(([key, label]) =>
+      `<button type="button" class="league-filter-btn ${habaoNbaStatusFilter === key ? "active" : ""}" data-nba-filter="${key}">${label}</button>`
+    ).join("");
+    filters.onclick = (event) => {
+      const target = event.target.closest("[data-nba-filter]");
+      if (!target) return;
+      habaoNbaStatusFilter = target.dataset.nbaFilter;
+      filters.querySelectorAll("[data-nba-filter]").forEach(btn =>
+        btn.classList.toggle("active", btn === target));
+      habaoApplyNbaFixtureFilters();
+    };
+  }
+  const input = document.getElementById("fixtureSearchInput");
+  const clear = document.getElementById("fixtureSearchClear");
+  if (input) input.oninput = () => {
+    clear?.classList.toggle("show", Boolean(input.value.trim()));
+    habaoApplyNbaFixtureFilters();
+  };
+  if (clear) clear.onclick = () => {
+    if (input) { input.value = ""; input.focus(); }
+    clear.classList.remove("show");
+    habaoApplyNbaFixtureFilters();
+  };
+  habaoApplyNbaFixtureFilters();
+}
+
 function renderBasketballFixtureData(
   data,
   offset,
   container
 ) {
+  habaoSetupNbaFixtureTools();
   currentFixtureOffset =
     offset;
 
@@ -6566,30 +6645,36 @@ function renderBasketballFixtureData(
       const previewTest =
         isHabaoNbaPreviewTester();
 
+      const nbaStatus = String(match?.status?.short ?? "").toUpperCase();
+      const nbaStatusLong = String(match?.status?.long || "").toLowerCase();
+      const elapsedMs = analysisWindow.isStarted
+        ? Math.max(0, -analysisWindow.msUntilKickoff) : 0;
+      const isFinished = analysisWindow.isStarted &&
+        (nbaStatus === "3" || ["FT", "AET", "FINAL", "FINISHED"].includes(nbaStatus) ||
+         /finished|final|game over/.test(nbaStatusLong) || elapsedMs >= 5 * 60 * 60 * 1000);
+      const isLive = analysisWindow.isStarted && !isFinished;
+      const nbaStatusKey = isFinished ? "finished" : isLive ? "live" : "upcoming";
       const analysisAvailable =
         Boolean(gameId) &&
-        (
-          analysisWindow.isOpen ||
-          analysisWindow.isStarted ||
-          previewTest
-        );
+        !analysisWindow.isStarted &&
+        (analysisWindow.isOpen || previewTest);
 
       const nbaT = (key, fallback) =>
         window.HabaoI18n?.t(key, fallback) || fallback;
 
       const analysisStatusText =
-        previewTest &&
-        !analysisWindow.isOpen &&
-        !analysisWindow.isStarted
+        isFinished ? "MATCH FINISHED" :
+        isLive ? "MATCH LIVE" :
+        previewTest && !analysisWindow.isOpen
           ? nbaT("nbaTestPreview", "NBA 測試預覽")
           : analysisAvailable
             ? nbaT("nbaReady", "NBA AI 可分析")
             : nbaT("nbaLocked", "尚未開放分析");
 
       const analysisButtonText =
-        previewTest &&
-        !analysisWindow.isOpen &&
-        !analysisWindow.isStarted
+        isFinished ? nbaT("matchFinished", "✓ 已完賽") :
+        isLive ? "比賽進行中" :
+        previewTest && !analysisWindow.isOpen
           ? nbaT("nbaTestButton", "測試 NBA AI 分析")
           : analysisAvailable
             ? nbaT("startAnalysis", "開始分析")
@@ -6599,6 +6684,8 @@ function renderBasketballFixtureData(
         <article
           class="match-card v2-match-card"
           data-basketball-fixture-id="${escapeBasketballHTML(match?.fixture_id)}"
+          data-nba-status="${nbaStatusKey}"
+          data-nba-search="${escapeBasketballHTML([match?.home?.name,match?.away?.name,homeName,awayName,leagueText,venueText].join(" "))}"
         >
 
           <div class="v2-match-card-top">
@@ -6667,7 +6754,7 @@ function renderBasketballFixtureData(
 
           <div class="analysis v2-match-action">
 
-            <div class="ai-status v2-status ${analysisAvailable ? "" : "locked"}">
+            <div class="ai-status v2-status ${isFinished || isLive ? "finished" : analysisAvailable ? "ready" : "locked"}">
               <span></span>
               ${analysisStatusText}
             </div>
@@ -6681,7 +6768,7 @@ function renderBasketballFixtureData(
               : ""}
 
             <button
-              class="analysis-btn v2-analysis-btn ${analysisAvailable ? "" : "locked"}"
+              class="analysis-btn v2-analysis-btn ${isFinished || isLive ? "finished" : analysisAvailable ? "" : "locked"}"
               ${analysisAvailable
                 ? `onclick="openBasketballMatch(${gameId}, this)"`
                 : "disabled"
@@ -6695,6 +6782,7 @@ function renderBasketballFixtureData(
         </article>
       `;
     }).join("");
+  habaoApplyNbaFixtureFilters();
 }
 
 function renderFixtureData(
