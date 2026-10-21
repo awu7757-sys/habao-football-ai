@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HABAO MLB 賽事中心｜開發預覽</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,"Noto Sans TC",sans-serif}*{box-sizing:border-box}body{margin:0;background:#081521;color:#f5f7f9}main{max-width:980px;margin:0 auto;padding:30px 18px}h1{font-size:28px;margin:8px 0 14px}.note{color:#b7cbd5;font-size:14px;line-height:1.7}.tag{background:#243747;border:1px solid #3c5361;border-radius:10px;padding:9px 13px;display:inline-block}nav{display:flex;gap:8px;margin:24px 0}.day{cursor:pointer;border:1px solid #415366;border-radius:10px;padding:12px 24px;background:#132635;color:white}.day[aria-pressed=true]{background:#e8b852;color:#122131;font-weight:700}.search{width:100%;padding:14px;border:1px solid #425669;border-radius:12px;background:#101f2e;color:#fff;margin:0 0 20px}.card{border:1px solid #314657;background:#112333;border-radius:16px;padding:20px;margin:15px 0}.line{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}.muted{color:#b3c4d0}.disabled{opacity:.6;cursor:not-allowed;padding:12px;border-radius:9px;border:1px solid #527085;background:#263c4b;color:white}a{color:#f4cf77}
+</style></head><body><main>
+<a href="football.html">← 返回賽事中心</a><p class="tag">MLB 開發預覽｜尚未開放會員分析</p>
+<h1>⚾ MLB 賽事中心</h1><p class="note">此頁僅預覽 MLB 前端版面，展示賽程資料格式。尚未連線正式賽程 API、未產生 AI 推薦，也不會扣會員次數。正式版本只顯示當日賽事。</p>
+<nav><button class="day" id="today" aria-pressed="true">今天</button><button class="day" id="tomorrow" aria-pressed="false">明天</button></nav>
+<input id="search" class="search" placeholder="搜尋 MLB 球隊或聯賽" aria-label="搜尋 MLB 球隊或聯賽">
+<section id="games" aria-live="polite"></section>
+<p class="note">後端待驗收：baseball-fixtures（目前使用測試密碼）、baseball-member-analysis（會員寫入預設關閉）、T-10 正式快照。為避免將測試密碼暴露於網頁，這個預覽頁沒有直接呼叫測試 Function。</p>
+</main><script>
+const demo=[{date:"2026-10-24",home:"Milwaukee Brewers",away:"Tampa Bay Rays",id:849805,time:"08:00"},{date:"2026-10-25",home:"Milwaukee Brewers",away:"Tampa Bay Rays",id:849802,time:"08:00"}];
+let offset=0;const el=document.getElementById("games"),input=document.getElementById("search");
+function render(){const d=demo[offset];const q=input.value.trim().toLowerCase();const matches=[d].filter(g=>("MLB "+g.home+" "+g.away).toLowerCase().includes(q));el.innerHTML=matches.map(g=>'<article class="card"><div class="line"><strong>MLB · 範例賽事</strong><span class="muted">'+g.date+' '+g.time+' 台灣時間</span></div><h2>'+g.away+'　VS　'+g.home+'</h2><div class="line"><span class="muted">Game ID：'+g.id+'</span><button class="disabled" disabled>AI 分析尚未開放</button></div></article>').join("")||'<p class="note">沒有符合的範例賽事。</p>';}
+for(const [id,n] of [["today",0],["tomorrow",1]])document.getElementById(id).addEventListener("click",()=>{offset=n;for(const [name,v] of [["today",0],["tomorrow",1]])document.getElementById(name).setAttribute("aria-pressed",String(n===v));render()});input.addEventListener("input",render);render();
+</script></body></html>
