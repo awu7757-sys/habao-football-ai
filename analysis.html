@@ -3769,9 +3769,22 @@ const basketballInjuries =
   data?.market_data
     ?.injuries || {};
 
-const moneyline = rec.moneyline || {};
-const handicap = rec.handicap || {};
-const overUnder = rec.over_under || {};
+const habaoDisplayMarket = (market) => {
+  const r = market || {};
+  if (!r.display_pick) return r;
+  return {
+    ...r,
+    pick: r.display_pick,
+    line: Object.prototype.hasOwnProperty.call(r, "display_line")
+      ? r.display_line : (r.line ?? null),
+    confidence: r.display_confidence ?? r.confidence,
+    reason: r.signal_level === "low_advantage"
+      ? `模型方向（低優勢）：${r.reason || ""}` : r.reason
+  };
+};
+const moneyline = habaoDisplayMarket(rec.moneyline);
+const handicap = habaoDisplayMarket(rec.handicap);
+const overUnder = habaoDisplayMarket(rec.over_under);
 const btts = rec.btts || {};
 
 const basketballPredictedScore =
