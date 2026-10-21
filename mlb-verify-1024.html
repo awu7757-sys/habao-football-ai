@@ -3582,12 +3582,12 @@ margin-left: 16px !important;
     <div class="test-links"><a href="football.html">← 返回正式賽事中心</a><a href="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures?date=2026-10-24" target="_blank" rel="noopener">檢視原始 MLB JSON</a></div>
   </header>
   <div class="test-status" id="status" aria-live="polite">正在從 MLB API 取得 10/24 真實賽程…</div>
-  <section id="cards" aria-label="真實 MLB 賽事卡片"></section>
+  <section id="matchesContainer" aria-label="真實 MLB 賽事卡片"></section>
 </main>
 <script>
 (()=>{"use strict";
 const DATE="2026-10-24",API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
-const status=document.getElementById("status"),cards=document.getElementById("cards");
+const status=document.getElementById("status"),cards=document.getElementById("matchesContainer");
 const zh={"Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒"};
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 const name=n=>zh[n]||n||"未知球隊";
