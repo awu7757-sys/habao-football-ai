@@ -4192,6 +4192,7 @@ function ensurePageData(pageId) {
   else if (pageId === "analysisLogPage") loadAnalysisHistory(false);
   else if (pageId === "jobsPage") loadJobs(false);
   else if (pageId === "fixturesPage") loadFixtures(false);
+  else if (pageId === "apiPage") probeMlbStatsApi(false);
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
   else if (pageId === "shadowTestPage") loadShadowTests(false);
   else if (pageId === "partnersPage") loadPartners(false);
@@ -6631,6 +6632,8 @@ async function loadApiStats(force = false) {
   try {
 
     await loadApiSettings();
+    // Separate read-only check, not a paid provider quota.
+    probeMlbStatsApi(false);
 
     const [footballStats,providerStats]=await Promise.allSettled([
       adminCenterRequest({action:"api_stats"}),
