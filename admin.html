@@ -1531,6 +1531,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                 <option value="all">全部運動</option>
                 <option value="football">⚽ 足球</option>
                 <option value="basketball">🏀 NBA</option>
+                <option value="baseball">⚾ MLB</option>
               </select>
               <select id="analysisDaysFilter" class="input" onchange="renderAnalysisHistory()">
                 <option value="1" selected>今日</option>
@@ -2215,6 +2216,9 @@ const ADMIN_CENTER_URL =
 const ADMIN_BASKETBALL_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball";
 
+const ADMIN_BASEBALL_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-baseball";
+
 const ADMIN_BASKETBALL_PERFORMANCE_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball-performance";
 
@@ -2398,6 +2402,10 @@ async function adminBasketballRequest(payload) {
     ADMIN_BASKETBALL_URL,
     payload
   );
+}
+
+async function adminBaseballRequest(payload) {
+  return adminServiceRequest(ADMIN_BASEBALL_URL,payload);
 }
 
 /* =========================
@@ -4158,7 +4166,7 @@ function refreshPageData(pageId) {
 
 async function loadAnalysisHistory(force = false) {
   try {
-    const [footballResult, nbaResult] =
+    const [footballResult, nbaResult, baseballResult] =
       await Promise.allSettled([
         adminCenterRequest({
           action:
@@ -4169,7 +4177,8 @@ async function loadAnalysisHistory(force = false) {
           action:
             "analysis_history",
           limit: 400
-        })
+        }),
+        adminBaseballRequest({action:"analysis_history",limit:400})
       ]);
 
     if (
@@ -4202,10 +4211,17 @@ async function loadAnalysisHistory(force = false) {
           )
         : [];
 
+    const baseballRecords = baseballResult.status==="fulfilled"
+      ? (baseballResult.value?.records||[]).map(item=>({...item,sport:"baseball",admin_key:"baseball:"+String(item.id)}))
+      : [];
+
+    if(baseballResult.status!=="fulfilled")console.warn("MLB admin history unavailable; football/NBA unchanged");
+
     analysisHistoryRecords =
       [
         ...footballRecords,
-        ...nbaRecords
+        ...nbaRecords,
+        ...baseballRecords
       ].sort((a, b) => {
         const aTime =
           new Date(
@@ -4388,9 +4404,9 @@ function renderAnalysisHistory() {
     <tr>
       <td>${formatDate(item?.updated_at)}</td>
       <td class="account-name">${escapeHtml(item?.account||"—")}</td>
-      <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
+      <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':String(item?.sport)==="baseball"?'<span class="status active"><span class="dot"></span>⚾ MLB</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
       <td class="mono">${escapeHtml(item?.fixture_id??item?.game_id??"—")}</td>
-      <td>${escapeHtml(String(item?.sport||"")==="basketball"?"NBA":normalizeLeagueDisplay(item?.league_name))}</td>
+      <td>${escapeHtml(["basketball","baseball"].includes(String(item?.sport||""))?(item.sport==="baseball"?"MLB":"NBA"):normalizeLeagueDisplay(item?.league_name))}</td>
       <td><strong>${escapeHtml(item?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(item?.away_team||"—")}</div></td>
       <td>${formatDate(item?.fixture_time)}</td>
       <td>${statusBadge(getAnalysisMatchStatusLabel(item))}</td>

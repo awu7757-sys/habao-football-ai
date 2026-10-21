@@ -11,7 +11,11 @@ const getWindow=(kickoff)=>{const diff=Date.parse(kickoff)-Date.now();return{sta
 // Internal MLB UI preview: only the existing test account and explicit query value.
 const mlbPreviewDate=(()=>{try{const member=JSON.parse(sessionStorage.getItem("habao_member")||"null");const requested=new URLSearchParams(location.search).get("mlb_test_date");return member?.account==="google_2d3cef6b6e2d"&&requested==="2026-10-24"?requested:null;}catch{return null;}})();
 const badge=(id)=>Number.isInteger(Number(id))&&Number(id)>0?"https://www.mlbstatic.com/team-logos/"+Number(id)+".svg":"";
-let filter="all", cache=new Map(), saved=null;
+let filter="all", cache=new Map(), saved=null, memberEnabled=false;
+const CONFIG="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-feature-config";
+async function syncMlbGate(){try{const r=await fetch(CONFIG,{cache:"no-store"});const j=await r.json();memberEnabled=r.ok&&j.success===true&&j.member_analysis_enabled===true;}catch{memberEnabled=false;}}
+async function runMlbMember(gameId,button){if(!memberEnabled)return;const session=(await supabaseAuth.auth.getSession()).data?.session;if(!session?.access_token){alert("請先使用會員登入");return;}button.disabled=true;button.textContent="讀取正式分析中…";try{const r=await fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-member-analysis",{method:"POST",headers:{"Content-Type":"application/json",apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token},body:JSON.stringify({game_id:gameId,action:"view"})});const j=await r.json();if(!r.ok||j.success!==true)throw Error(j.error||"mlb_analysis_failed");sessionStorage.setItem("matchAnalysis",JSON.stringify(j));location.href="mlb-analysis.html";}catch(e){alert("MLB 分析尚未完成："+String(e.message||e));}finally{button.disabled=false;button.textContent="開始分析";}}
+window.runMlbMember=runMlbMember;
 function setup(){
  if(currentHabaoSport!=="baseball")return;
  const input=document.getElementById("fixtureSearchInput"),clear=document.getElementById("fixtureSearchClear"),filters=document.getElementById("fixtureLeagueFilter"),groups=document.getElementById("fixtureLeagueGroups"),caption=document.getElementById("leagueFilterCaption");
@@ -37,7 +41,7 @@ function card(g){
  return '<article class="match-card v2-match-card" data-mlb-game-id="'+esc(g.fixture_id)+'" data-search="'+esc([g.home?.name,g.away?.name,home,away,"MLB"].join(" "))+'">'+
  '<div class="v2-match-card-top"><div class="v2-match-league"><span class="v2-league-dot"></span>⚾ MLB 美國職棒大聯盟</div><div class="v2-match-time">'+esc(time)+'</div></div>'+
  '<div class="v2-match-teams"><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.home)+'</div><div class="team-name">'+esc(home)+'</div><div class="v2-team-side">主隊</div></div><div class="v2-match-vs-center"><div class="v2-vs-ring">VS</div><div class="v2-match-line"></div></div><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.away)+'</div><div class="team-name">'+esc(away)+'</div><div class="v2-team-side">客隊</div></div></div>'+
- '<div class="analysis v2-match-action"><div class="ai-status v2-status '+(live||finished?"finished":ready?"ready":"locked")+'"><span></span>'+(finished?"MATCH FINISHED":live?"MATCH LIVE":ready?"T-10 已開放 · MLB 測試中":"AI ANALYSIS LOCKED")+'</div><button type="button" class="analyze-btn" disabled title="MLB 會員功能驗收中">'+(finished?"✓ 已完賽":live?"比賽進行中":ready?"分析功能驗收中":"賽前 10 小時開放分析")+'</button></div></article>';
+ '<div class="analysis v2-match-action"><div class="ai-status v2-status '+(live||finished?"finished":ready?"ready":"locked")+'"><span></span>'+(finished?"MATCH FINISHED":live?"MATCH LIVE":ready?"T-10 已開放 · MLB 測試中":"AI ANALYSIS LOCKED")+'</div><button type="button" class="analyze-btn" ' +(ready&&memberEnabled?'onclick="runMlbMember('+Number(g.fixture_id)+',this)"':'disabled')+'>'+(finished?"✓ 已完賽":live?"比賽進行中":ready&&memberEnabled?"開始分析":ready?"分析功能驗收中":"賽前 10 小時開放分析")+'</button></div></article>';
 }
 async function load(offset=0){
  if(currentHabaoSport!=="baseball")return;
@@ -63,7 +67,7 @@ window.selectHabaoSport=function(sport,button){
  document.querySelectorAll(".date").forEach((b,i)=>b.classList.toggle("active",i===0));
  document.getElementById("fixtureTools")?.classList.remove("is-hidden");
  if(typeof resetBatchAnalysisUI==="function")resetBatchAnalysisUI();
- setup();load(0);
+ setup();syncMlbGate().then(()=>load(0));
 };
 // Preserve normal production behavior; only an explicitly authorized preview opens automatically.
 if(mlbPreviewDate){

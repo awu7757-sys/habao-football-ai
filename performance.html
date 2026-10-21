@@ -945,6 +945,7 @@ function renderSportSkeleton(){
 let performanceSportToastTimer=null;
 
 async function switchSport(sport){
+  if(sport==="baseball"){window.location.href="mlb-performance.html";return;}
   if(sport==="football"||sport==="basketball"){
     currentSport=sport;
     showAll=false;
