@@ -1779,6 +1779,17 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="mlbFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
             <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="mlbFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
           </div>
+          <div class="panel" style="margin:12px 0;border-color:rgba(112,168,255,.18)">
+            <div class="panel-head"><div><div class="panel-title">MLB 正式運作檢查</div><div class="panel-desc">唯讀檢查快取、T-10 正式快照、賽後結算與會員紀錄；不觸發分析或扣次。</div></div>
+            <button class="ghost-btn" onclick="loadMlbReadiness(true)">↻ 更新檢查</button></div>
+            <div class="stats-grid">
+              <div class="stat-card"><div class="stat-label">24 小時內整季球隊快取</div><div id="mlbReadyCache" class="stat-value">—</div></div>
+              <div class="stat-card"><div class="stat-label">正式 T-10 快照</div><div id="mlbReadyT10" class="stat-value">—</div></div>
+              <div class="stat-card"><div class="stat-label">已結算結果</div><div id="mlbReadyVerified" class="stat-value">—</div></div>
+              <div class="stat-card"><div class="stat-label">會員分析紀錄</div><div id="mlbReadyMember" class="stat-value">—</div></div>
+            </div>
+            <div class="panel-desc" id="mlbReadyStatus" style="margin-top:10px">尚未讀取；開啟賽事管理時會自動檢查。</div>
+          </div>
           <div class="toolbar"><div class="filters"><input id="mlbFixtureSearch" class="input search" placeholder="搜尋聯盟、隊伍、賽事 ID..." oninput="renderMlbAdminFixtures()"><select id="mlbFixtureDateFilter" class="input" onchange="renderMlbAdminFixtures()"><option value="all">今日＋明日</option><option value="today">今日</option><option value="tomorrow">明日</option></select></div></div>
           <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>日期</th><th>時間</th><th>賽事 ID</th><th>聯賽</th><th>主隊</th><th>客隊</th><th>狀態</th><th>比分</th><th>分析會員</th><th>可推播</th><th>比分推播</th></tr></thead><tbody id="mlbFixturesBody"><tr><td colspan="11" class="empty">載入 MLB 賽程中…</td></tr></tbody></table></div></div>
         </div>
@@ -4594,6 +4605,25 @@ async function loadMlbAdminFixtures(force=false){
   }
   if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
 }
+async function loadMlbReadiness(showAlert=false){
+  const info=document.getElementById("mlbReadyStatus");if(info)info.textContent="檢查中…";
+  try{
+    const data=await adminBaseballRequest({action:"readiness"});
+    const stats=data.team_stats_cache||{},snap=data.t10_snapshots||{},results=data.verified_results||{},member=data.member_analysis||{};
+    const count=(obj,key)=>obj.available===true?String(obj[key]??0):"不可用";
+    setText("mlbReadyCache",count(stats,"recent_24h_count"));
+    setText("mlbReadyT10",count(snap,"checked_rows"));
+    setText("mlbReadyVerified",count(results,"checked_rows"));
+    setText("mlbReadyMember",count(member,"history_count"));
+    const gate=data.write_gates||{};
+    const status="讀取："+formatDate(data.generated_at)+"｜T-10："+(gate.t10?"開啟":"關閉")+"｜會員扣次："+(gate.member?"開啟":"關閉")+"｜賽後寫入："+(gate.result?"開啟":"關閉")+"｜MLB 推播：關閉。快照／結果筆數只是最近載入筆數，不代表排程執行成功。";
+    if(info)info.textContent=status;
+  }catch(e){
+    if(info)info.textContent="就緒檢查未連線："+String(e?.message||e)+"。請先部署本次 admin-baseball 修正版。";
+    ["mlbReadyCache","mlbReadyT10","mlbReadyVerified","mlbReadyMember"].forEach(id=>setText(id,"—"));
+    if(showAlert)alert("MLB 正式運作檢查失敗："+String(e?.message||e));
+  }
+}
 function renderMlbAdminFixtures(){
   const body=document.getElementById("mlbFixturesBody");if(!body)return;
   const q=String(document.getElementById("mlbFixtureSearch")?.value||"").trim().toLowerCase();
@@ -4681,6 +4711,7 @@ async function loadFixtures(force = false) {
     renderFixtures();
     renderNbaFixtures();
     loadMlbAdminFixtures(false);
+    loadMlbReadiness(false);
 
   } catch (error) {
     console.error(
