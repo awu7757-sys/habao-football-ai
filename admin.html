@@ -5267,7 +5267,7 @@ async function refreshFixtureSource(offset) {
 
 async function loadPerformanceAdmin(force = false) {
   try {
-    const [footballResult, basketballResult] =
+    const [footballResult, basketballResult, baseballResult] =
       await Promise.allSettled([
         adminCenterRequest({
           action: "performance",
@@ -5279,7 +5279,8 @@ async function loadPerformanceAdmin(force = false) {
             action: "performance",
             limit: 400
           }
-        )
+        ),
+        fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api",{cache:"no-store"}).then(async r=>{const v=await r.json();if(!r.ok||!v.success)throw Error(v.error||"MLB performance failed");return v})
       ]);
 
     const footballSnapshots =
@@ -5300,9 +5301,19 @@ async function loadPerformanceAdmin(force = false) {
           }))
         : [];
 
+    const baseballSnapshots = baseballResult.status==="fulfilled"
+      ? (baseballResult.value.matches||[]).map(row=>({
+          sport:"baseball",fixture_id:Number(row.game_id||0),league_name:"MLB",
+          kickoff_at:row.kickoff_at,home_team:row.home,away_team:row.away,
+          home_score:Number(String(row.final_score||"").split("-")[0]),away_score:Number(String(row.final_score||"").split("-")[1]),
+          status:"verified",excluded_from_public:false,
+          settlement:{moneyline:row.moneyline_result,handicap:row.handicap_result,over_under:row.over_under_result}
+        })) : [];
+
     performanceSnapshots = [
       ...footballSnapshots,
-      ...basketballSnapshots
+      ...basketballSnapshots,
+      ...baseballSnapshots
     ].sort((a,b)=>
       new Date(b?.kickoff_at || 0).getTime() -
       new Date(a?.kickoff_at || 0).getTime()
@@ -5314,6 +5325,7 @@ async function loadPerformanceAdmin(force = false) {
       const failed = [];
       if (footballResult.status === "rejected") failed.push("足球");
       if (basketballResult.status === "rejected") failed.push("NBA");
+      if (baseballResult.status === "rejected") failed.push("MLB");
       if (failed.length) {
         alert(`${failed.join("、")}公開戰績讀取失敗，其餘資料已正常顯示。`);
       }
@@ -5429,9 +5441,7 @@ function marketWinRate(market) {
 }
 
 function performanceSportLabel(row) {
-  return row?.sport === "basketball"
-    ? "🏀 NBA"
-    : "⚽ 足球";
+  return row?.sport === "basketball"?"🏀 NBA":row?.sport === "baseball"?"⚾ MLB":"⚽ 足球";
 }
 
 /* 後台專用：依首次 T-10 正式推薦與已驗證比分顯示足球讓分結果。
@@ -5523,9 +5533,12 @@ function renderPerformanceAdmin() {
     return ok&&sportOk&&(!search||h.includes(search));
   });
 
+  const head=document.getElementById("performanceThirdMarketHeading");
+  if(head)head.textContent=sportFilter==="football"?"BTTS":sportFilter==="all"?"BTTS（僅足球）":"不適用";
   body.innerHTML=filtered.map(row=>{
     const isNba=row?.sport==="basketball";
-    const market2Title=isNba
+    const isMlb=row?.sport==="baseball";
+    const market2Title=isNba||isMlb
       ? "大小分"
       : "大小球";
 
@@ -5533,18 +5546,18 @@ function renderPerformanceAdmin() {
       <td>${formatDate(row?.kickoff_at)}</td>
       <td><span class="table-chip">${performanceSportLabel(row)}</span></td>
       <td class="mono">${escapeHtml(row?.fixture_id??"—")}</td>
-      <td>${escapeHtml(normalizeLeagueDisplay(row?.league_name))}</td>
-      <td><strong>${escapeHtml(row?.home_team||"—")}</strong><div class="subline">vs ${escapeHtml(row?.away_team||"—")}</div></td>
+      <td>${escapeHtml(row?.sport==="baseball"?"MLB":row?.sport==="basketball"?"NBA":normalizeLeagueDisplay(row?.league_name))}</td>
+      <td><strong>${escapeHtml(row?.sport==="football"?row?.home_team||"—":zhTeam(row?.home_team))}</strong><div class="subline">vs ${escapeHtml(row?.sport==="football"?row?.away_team||"—":zhTeam(row?.away_team))}</div></td>
       <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
       <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
       <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
       <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-      <td title="BTTS">${resultBadge(settlementResult(row?.settlement,"btts"))}</td>
-      <td title="讓分（後台專用；缺少正式結算時依 T-10 推薦與比分計算）">${resultBadge(adminHandicapResult(row))}</td>
+      <td title="BTTS 僅足球">${row?.sport==="football"?resultBadge(settlementResult(row?.settlement,"btts")):"—"}</td>
+      <td title="讓分">${resultBadge(row?.sport==="football"?adminHandicapResult(row):settlementResult(row?.settlement,"handicap"))}</td>
       <td><div class="row-actions">
-        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
-        <button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
-        <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>
+        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":isMlb?"MLB":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
+        ${isMlb?'<span class="table-chip">MLB 唯讀｜尚未開放排除／刪除</span>':`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
+        <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>`}
       </div></td>
     </tr>`;
   }).join("");
