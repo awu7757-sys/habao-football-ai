@@ -9759,6 +9759,23 @@ const historyKey =
 }
 
 function viewAnalysisHistory(historyKey) {
+  if(String(historyKey).startsWith("baseball:")){
+    (async()=>{
+      const history=window.habaoAnalysisHistory?.[String(historyKey)];
+      if(!history?.game_id)return alert("MLB 歷史賽事資料不足");
+      const session=(await supabaseAuth.auth.getSession()).data?.session;
+      if(!session?.access_token)return alert("請重新登入會員");
+      const r=await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis",{
+        method:"POST",headers:{apikey:FIXTURES_PUBLISHABLE_KEY,"Content-Type":"application/json",
+        Authorization:"Bearer "+session.access_token},
+        body:JSON.stringify({game_id:history.game_id,action:"view"})});
+      const j=await r.json();
+      if(!r.ok||!j.success)return alert("MLB 歷史讀取失敗："+String(j.error||r.status));
+      sessionStorage.setItem("matchAnalysis",JSON.stringify(j));
+      window.location.href="mlb-analysis.html";
+    })().catch(e=>alert("MLB 歷史讀取失敗："+String(e.message||e)));
+    return;
+  }
   const history =
     window.habaoAnalysisHistory?.[
       String(historyKey)
