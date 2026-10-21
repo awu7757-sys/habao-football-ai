@@ -65,6 +65,11 @@ window.selectHabaoSport=function(sport,button){
  if(typeof resetBatchAnalysisUI==="function")resetBatchAnalysisUI();
  setup();load(0);
 };
+// Preserve normal production behavior; only an explicitly authorized preview opens automatically.
+if(mlbPreviewDate){
+ const start=()=>window.selectHabaoSport("baseball",document.querySelector('.v3-sport-tab[data-sport="baseball"]'));
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+}
 window.switchDate=function(element,offset){
  if(currentHabaoSport!=="baseball")return originalSwitch(element,offset);
  document.querySelectorAll(".date").forEach(b=>b.classList.remove("active"));element.classList.add("active");currentFixtureOffset=offset;load(offset);
