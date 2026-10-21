@@ -1751,9 +1751,6 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>分析會員</th>
                     <th>可推播</th>
                     <th>比分推播</th>
-                    <th>T-10 快取</th>
-                    <th>固定快照</th>
-                    <th>模型版本</th>
                   </tr>
                 </thead>
                 <tbody id="nbaFixturesBody"></tbody>
@@ -5020,22 +5017,13 @@ function renderNbaFixtures() {
               <td>${item?.home_score!=null&&item?.away_score!=null?escapeHtml(item.home_score+" - "+item.away_score):"—"}</td>
               <td>${Number(item?.analysis_member_count || 0)} 人</td>
               <td>${Number(item?.push_member_count || 0)} 人</td>
-              <td><span class="table-chip">後台推播管理</span></td>
-              <td>
-                ${cacheLabel}
-                ${cache?.generated_at ? `<div class="subline">${formatDate(cache.generated_at)}</div>` : ""}
-              </td>
-              <td>
-                ${snapshotLabel}
-                ${snapshot?.generated_at ? `<div class="subline">${formatDate(snapshot.generated_at)}</div>` : ""}
-              </td>
-              <td class="mono">${escapeHtml(cache?.model_version || snapshot?.model_version || "—")}</td>
+              <td><span class="table-chip">請至推播通知頁操作</span><div class="subline">T-10：${cacheLabel}｜固定快照：${snapshotLabel}</div><div class="subline">模型：${escapeHtml(cache?.model_version || snapshot?.model_version || "—")}</div></td>
             </tr>
           `;
         }).join("")
       : `
         <tr>
-          <td colspan="13" style="text-align:center;color:#8fa4b5;padding:24px">
+          <td colspan="11" style="text-align:center;color:#8fa4b5;padding:24px">
             尚無 NBA 賽事快取資料
           </td>
         </tr>
