@@ -4659,6 +4659,38 @@ async function loadMlbReadiness(showAlert=false){
     if(showAlert)alert("MLB 正式運作檢查失敗："+String(e?.message||e));
   }
 }
+async function habaoToggleSportPush(sport,gameId,enabled){
+  if(!["basketball","baseball"].includes(sport))return;
+  const item=sport==="basketball"
+    ?(nbaFixtureRows||[]).find(x=>Number(x.fixture_id)===Number(gameId))
+    :(mlbAdminFixtures||[]).find(x=>Number(x.game_id||x.fixture_id||x.game_pk)===Number(gameId));
+  if(!item){alert("賽事不在今日／明日列表");return;}
+  const date=String(item.fixture_date||item.__adminDate||"");
+  const home=String(item.home?.name||"主隊"),away=String(item.away?.name||"客隊");
+  if(!confirm((enabled?"開啟":"關閉")+"這場比分推播？\n"+home+" vs "+away+
+      "\n分析會員："+(item.analysis_member_count??"—")+
+      "\n目前可推播："+(item.push_member_count??"—")))return;
+  try{
+    const payload={action:"toggle_live_push",game_id:Number(gameId),fixture_date:date,enabled};
+    const result=sport==="basketball"
+      ?await adminBasketballRequest(payload):await adminBaseballRequest(payload);
+    if(!result?.success)throw new Error(result?.message||result?.error||"推播更新失敗");
+    await loadFixtures(true);
+    alert(enabled?"比分推播已開啟（首次同步只建立基準）":"比分推播已關閉");
+  }catch(e){alert("操作失敗："+(e?.message||String(e)));}
+}
+function habaoSportPushCell(sport,gameId,ready,enabled){
+  const safeId=Number(gameId);
+  const active=ready===true&&enabled===true;
+  const label=active?"已開啟":"已關閉";
+  const canToggle=ready===true&&Number.isSafeInteger(safeId)&&safeId>0;
+  return '<div class="row-actions" style="align-items:center">'+
+    '<span class="status '+(active?"active":"off")+'"><span class="dot"></span>'+label+'</span>'+
+    '<button type="button" class="action-btn '+(active?"red":"green")+'"'+
+    (canToggle?' onclick="habaoToggleSportPush(\''+sport+'\','+safeId+','+(!active)+')"':' disabled title="尚未啟用 NBA／MLB 比分推播排程"')+'>'+
+    (active?"關閉推播":"開啟推播")+'</button></div>';
+}
+
 function renderMlbAdminFixtures(){
   const body=document.getElementById("mlbFixturesBody");if(!body)return;
   const q=String(document.getElementById("mlbFixtureSearch")?.value||"").trim().toLowerCase();
@@ -4678,7 +4710,8 @@ function renderMlbAdminFixtures(){
     const meta=mlbAdminFixtureMeta[String(x.fixture_id||x.game_id||x.game_pk||x.id||"")]||null;
     const analysisCount=meta?.analysis_member_count==null?"—":String(Number(meta.analysis_member_count))+" 人";
     const pushCount=meta?.push_member_count==null?"—":String(Number(meta.push_member_count))+" 人";
-    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>'+escapeHtml(analysisCount)+'</td><td>'+escapeHtml(pushCount)+'</td><td><span class="table-chip" title="MLB 單場自動比分推播尚未接通">尚未開放</span></td></tr>';
+    const livePush=habaoSportPushCell("baseball",Number(x.game_id||x.fixture_id||x.game_pk),meta?.live_push_ready,meta?.live_push_enabled);
+    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>'+escapeHtml(analysisCount)+'</td><td>'+escapeHtml(pushCount)+'</td><td>'+livePush+'</td></tr>';
   }).join(""):'<tr><td colspan="11" class="empty">目前沒有符合條件的 MLB 賽事</td></tr>';
 }
 
@@ -5121,7 +5154,7 @@ function renderNbaFixtures() {
               <td>${escapeHtml(habaoAdminFixtureScore(item?.home_score,item?.away_score))}</td>
               <td>${Number(item?.analysis_member_count || 0)} 人</td>
               <td>${item?.push_member_count == null ? "—" : Number(item.push_member_count)+" 人"}</td>
-              <td><div class="row-actions" style="align-items:center"><span class="status off"><span class="dot"></span>已關閉</span><button class="action-btn green" disabled title="NBA 單場比分推播後端尚未接入，暫不可開啟">開啟推播</button></div></td>
+              <td>${habaoSportPushCell("basketball",item?.fixture_id,item?.live_push_ready,item?.live_push_enabled)}</td>
             </tr>
           `;
         }).join("")
