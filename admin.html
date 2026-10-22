@@ -1565,7 +1565,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div>
             <div class="page-kicker">AI ANALYSIS HISTORY</div>
             <div class="page-title">AI 分析紀錄</div>
-            <div class="page-desc">最多顯示近 7 天會員分析，可依運動與時間篩選；預設顯示今日。</div>
+            <div class="page-desc">顯示近 7 天會員分析與 SYSTEM_AUTO 正式 T-10 快照；依分析建立／更新時間篩選，預設顯示今日（即使賽事明天開打）。</div>
           </div>
           <button class="ghost-btn" onclick="refreshAdminSection(this,'analysis')">↻ 更新</button>
         </div>
@@ -4307,12 +4307,12 @@ async function loadAnalysisHistory(force = false) {
       ].sort((a, b) => {
         const aTime =
           new Date(
-            a?.updated_at || 0
+            a?.updated_at || a?.created_at || a?.generated_at || 0
           ).getTime();
 
         const bTime =
           new Date(
-            b?.updated_at || 0
+            b?.updated_at || b?.created_at || b?.generated_at || 0
           ).getTime();
 
         return bTime - aTime;
@@ -4476,8 +4476,9 @@ function renderAnalysisHistory() {
   const filtered=analysisHistoryRecords.filter(item=>{
     const rowSport=String(item?.sport||"football");
     const sportOk=sport==="all"||rowSport===sport;
-    const isSystemAuto = String(item?.account || "").includes("SYSTEM_AUTO") || item?.record_source === "system_auto";
-    const dateOk=isWithinAdminDays(isSystemAuto ? (item?.fixture_time || item?.updated_at) : item?.updated_at,days);
+    // 以紀錄建立／更新時間判斷「今日」，不能用開賽時間排除今晚 T-10、明日開賽的正式快照。
+    const recordTime = item?.updated_at || item?.created_at || item?.generated_at || null;
+    const dateOk = isWithinAdminDays(recordTime, days);
     const haystack=[item?.account,item?.fixture_id,item?.game_id,item?.league_name,item?.home_team,item?.away_team].join(" ").toLowerCase();
     return sportOk&&dateOk&&(!search||haystack.includes(search));
   });
@@ -4496,9 +4497,10 @@ function renderAnalysisHistory() {
     </tr>
   `).join(""):'<tr><td colspan="9" class="empty">此篩選條件目前沒有分析紀錄</td></tr>';
 
-  const memberCount=new Set(filtered.map(x=>String(x?.account||"")).filter(Boolean)).size;
+  // SYSTEM_AUTO 是系統執行者，不應被統計為不同會員。
+  const memberCount=new Set(filtered.filter(x=>x?.record_source!=="system_auto"&&!String(x?.account||"").includes("SYSTEM_AUTO")).map(x=>String(x?.account||"")).filter(Boolean)).size;
   const payloadCount=filtered.filter(x=>x?.result_data!=null).length;
-  const todayCount=filtered.filter(x=>isTodayTaipei(x?.updated_at)).length;
+  const todayCount=filtered.filter(x=>isTodayTaipei(x?.updated_at||x?.created_at||x?.generated_at)).length;
 
   setText("analysisRecordCount",filtered.length);
   setText("analysisTodayCount",todayCount);
