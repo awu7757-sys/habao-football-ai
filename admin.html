@@ -1714,9 +1714,9 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div class="panel-head" style="margin-bottom:12px">
             <div>
               <div class="panel-title">🏀 NBA 賽事管理</div>
-              <div class="panel-desc">今日／明日賽程、會員人數與推播狀態；T-10 與快照資訊顯示於上方統計。</div>
+              <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
-            <button class="ghost-btn" onclick="refreshNbaFixtureSource(this)">更新 NBA 賽程／T-10</button>
+            <div class="table-tools"><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
           </div>
 
           <div class="stats-grid" style="margin-bottom:15px">
@@ -1724,12 +1724,6 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
             <div class="stat-card"><div class="stat-label">明日 NBA</div><div id="nbaFixtureTomorrowCount" class="stat-value">0</div></div>
             <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="nbaFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
             <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="nbaFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
-          </div>
-
-          <div class="three-grid" style="margin-bottom:15px">
-            <div class="mini-item"><span class="mini-key">T-10 快取完成</span><span id="nbaFixtureReadyCacheCount" class="mini-val">0</span></div>
-            <div class="mini-item"><span class="mini-key">固定快照</span><span id="nbaFixtureSnapshotCount" class="mini-val">0</span></div>
-            <div class="mini-item"><span class="mini-key">會員取用總人次</span><span id="nbaFixtureMemberViews" class="mini-val">0</span></div>
           </div>
 
           <div class="toolbar">
@@ -1768,23 +1762,12 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。可查看會員與訂閱統計；MLB 單場自動比分推播尚未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
             <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="mlbFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
             <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="mlbFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
-          </div>
-          <div class="panel" style="margin:12px 0;border-color:rgba(112,168,255,.18)">
-            <div class="panel-head"><div><div class="panel-title">MLB 正式運作檢查</div><div class="panel-desc">唯讀檢查快取、T-10 正式快照、賽後結算與會員紀錄；不觸發分析或扣次。</div></div>
-            <button class="ghost-btn" onclick="loadMlbReadiness(true)">↻ 更新檢查</button></div>
-            <div class="stats-grid">
-              <div class="stat-card"><div class="stat-label">24 小時內整季球隊快取</div><div id="mlbReadyCache" class="stat-value">—</div></div>
-              <div class="stat-card"><div class="stat-label">正式 T-10 快照</div><div id="mlbReadyT10" class="stat-value">—</div></div>
-              <div class="stat-card"><div class="stat-label">已結算結果</div><div id="mlbReadyVerified" class="stat-value">—</div></div>
-              <div class="stat-card"><div class="stat-label">會員分析紀錄</div><div id="mlbReadyMember" class="stat-value">—</div></div>
-            </div>
-            <div class="panel-desc" id="mlbReadyStatus" style="margin-top:10px">尚未讀取；開啟賽事管理時會自動檢查。</div>
           </div>
           <div class="toolbar"><div class="filters"><input id="mlbFixtureSearch" class="input search" placeholder="搜尋聯盟、隊伍、賽事 ID..." oninput="renderMlbAdminFixtures()"><select id="mlbFixtureDateFilter" class="input" onchange="renderMlbAdminFixtures()"><option value="all">今日＋明日</option><option value="today">今日</option><option value="tomorrow">明日</option></select></div></div>
           <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>日期</th><th>時間</th><th>賽事 ID</th><th>聯賽</th><th>主隊</th><th>客隊</th><th>狀態</th><th>比分</th><th>分析會員</th><th>可推播</th><th>比分推播</th></tr></thead><tbody id="mlbFixturesBody"><tr><td colspan="11" class="empty">載入 MLB 賽程中…</td></tr></tbody></table></div></div>
@@ -4621,10 +4604,11 @@ function habaoMlbScorePair(item){
 const mlbAdminDate=(off=0)=>{const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));const d=new Date(Date.UTC(+o.year,+o.month-1,+o.day+off));return d.toISOString().slice(0,10)};
 let mlbAdminFixtures=[],mlbAdminToday="",mlbAdminTomorrow="",mlbAdminUpdatedAt="";
 let mlbAdminFixtureMeta={};
-async function loadMlbAdminFixtures(force=false){
+async function loadMlbAdminFixtures(force=false,onlyOffset=null){
   const base="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
   mlbAdminToday=mlbAdminDate(0);mlbAdminTomorrow=mlbAdminDate(1);
-  const results=await Promise.allSettled([mlbAdminToday,mlbAdminTomorrow].map(async date=>{
+  const results=await Promise.allSettled([mlbAdminToday,mlbAdminTomorrow].map(async (date,i)=>{
+    if(onlyOffset!==null&&onlyOffset!==i){const cached=mlbAdminFixtures.filter(x=>x.__adminDate===date);return {date,fixtures:cached};}
     const res=await fetch(base+"?date="+date,{cache:"no-store"});
     if(!res.ok)throw Error("MLB 賽程 HTTP "+res.status);
     const j=await res.json();
@@ -4765,7 +4749,7 @@ async function loadFixtures(force = false) {
     renderFixtures();
     renderNbaFixtures();
     loadMlbAdminFixtures(false);
-    loadMlbReadiness(false);
+    // MLB 進階診斷不在賽事管理呈現，減少額外背景查詢。
 
   } catch (error) {
     console.error(
@@ -5197,6 +5181,21 @@ function renderNbaFixtures() {
   setText("nbaFixtureTomorrowFetched",nbaTomorrowCache?.fetched_at?`${formatDate(nbaTomorrowCache.fetched_at)}｜${nbaTomorrowFresh.text}`:"資料待更新");
 
   loadBasketballPushFixtures();
+}
+
+async function refreshNbaScoreSource(button,offset){
+  if(![0,1].includes(offset))return;
+  const old=button?.textContent||"更新賽事";
+  if(button){button.disabled=true;button.textContent="更新中…";}
+  try{
+    const data=await adminBasketballRequest({action:"sync_fixture_scores",offset});
+    if(data?.success!==true)throw new Error(data?.message||data?.error||"同步失敗");
+    await loadFixtures(true);
+    if(Number(data?.finished_missing_scores||0)>0)
+      alert("賽事已更新，但還有 "+data.finished_missing_scores+" 場已完賽資料來源未提供比分。");
+  }catch(error){
+    alert("NBA 比分更新失敗："+(error?.message||error));
+  }finally{if(button){button.disabled=false;button.textContent=old;}}
 }
 
 async function refreshNbaFixtureSource(button) {
