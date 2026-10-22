@@ -5393,7 +5393,8 @@ async function loadPerformanceAdmin(force = false) {
       ? (baseballResult.value.matches||[]).map(row=>({
           sport:"baseball",fixture_id:Number(row.game_id||0),league_name:"MLB",
           kickoff_at:row.kickoff_at,home_team:row.home,away_team:row.away,
-          home_score:Number(String(row.final_score||"").split("-")[0]),away_score:Number(String(row.final_score||"").split("-")[1]),
+          home_score:/^\d+\s*-\s*\d+$/.test(String(row.final_score||""))?Number(String(row.final_score).split("-")[0]):null,
+          away_score:/^\d+\s*-\s*\d+$/.test(String(row.final_score||""))?Number(String(row.final_score).split("-")[1]):null,
           status:"verified",excluded_from_public:false,
           settlement:{moneyline:row.moneyline_result,handicap:row.handicap_result,over_under:row.over_under_result}
         })) : [];
@@ -6935,9 +6936,21 @@ async function verifySportPerformance(sport,button){
     if(sport==="football"){
       data=await adminCenterRequest({action:"validate_overdue_performance"});
     }else if(sport==="basketball"){
-      // NBA 走自己的結果結算器，不與足球的流程混用。
-      data=await adminServiceRequest(ADMIN_BASKETBALL_PERFORMANCE_URL,
-        {action:"validate_overdue_performance"});
+      // 保留 API 的 HTTP 狀態與下游 runner 原始錯誤，避免只顯示「操作失敗」。
+      const res=await fetch(ADMIN_BASKETBALL_PERFORMANCE_URL,{
+        method:"POST",
+        headers:adminAuthHeaders(),
+        body:JSON.stringify({action:"validate_overdue_performance"}),
+        signal:AbortSignal.timeout(95000)
+      });
+      const payload=await res.json().catch(()=>null);
+      if(!res.ok||payload?.success===false){
+        const detail=payload?.report?.message||payload?.report?.error||
+          payload?.message||payload?.error||"回應不是成功的 JSON";
+        throw new Error("HTTP "+res.status+"："+String(detail));
+      }
+      if(payload==null)throw new Error("NBA 補驗證服務沒有傳回有效 JSON");
+      data=payload;
     }else{
       data=await adminBaseballRequest({action:"verify_results",...(gameId?{game_id:gameId}:{})});
     }
