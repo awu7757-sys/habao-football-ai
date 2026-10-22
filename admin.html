@@ -1768,7 +1768,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。會員推播功能未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。可查看會員與訂閱統計；MLB 單場自動比分推播尚未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -4606,6 +4606,7 @@ function habaoMlbScorePair(item){
   const pairs=[
     [item?.score?.home,item?.score?.away],
     [item?.scores?.home?.total,item?.scores?.away?.total],
+    [item?.home?.score,item?.away?.score],
     [item?.scores?.home,item?.scores?.away],
     [item?.teams?.home?.score,item?.teams?.away?.score],
     [item?.linescore?.teams?.home?.runs,item?.linescore?.teams?.away?.runs],
@@ -4619,6 +4620,7 @@ function habaoMlbScorePair(item){
 }
 const mlbAdminDate=(off=0)=>{const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));const d=new Date(Date.UTC(+o.year,+o.month-1,+o.day+off));return d.toISOString().slice(0,10)};
 let mlbAdminFixtures=[],mlbAdminToday="",mlbAdminTomorrow="",mlbAdminUpdatedAt="";
+let mlbAdminFixtureMeta={};
 async function loadMlbAdminFixtures(force=false){
   const base="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
   mlbAdminToday=mlbAdminDate(0);mlbAdminTomorrow=mlbAdminDate(1);
@@ -4630,6 +4632,19 @@ async function loadMlbAdminFixtures(force=false){
     return {date,fixtures:Array.isArray(j.fixtures)?j.fixtures:[]};
   }));
   mlbAdminFixtures=results.flatMap((r,i)=>r.status==="fulfilled"?r.value.fixtures.map(x=>({...x,__adminDate:[mlbAdminToday,mlbAdminTomorrow][i]})):[]);
+  mlbAdminFixtureMeta={};
+  // 僅已登入且擁有 fixtures 權限的後台管理員可取得每場會員數量。
+  const ids=Array.from(new Set(mlbAdminFixtures.map(x=>Number(x.fixture_id||x.game_id||x.game_pk||x.id||0)).filter(x=>Number.isSafeInteger(x)&&x>0)));
+  if(ids.length){
+    try{
+      const meta=await adminBaseballRequest({action:"fixture_meta",game_ids:ids});
+      if(meta?.success!==true)throw new Error("MLB fixture meta unavailable");
+      mlbAdminFixtureMeta=meta.fixture_meta||{};
+    }catch(err){
+      console.warn("MLB FIXTURE META NOT AVAILABLE",err);
+      // 讀取失敗顯示 —，不可捏造為 0 人。
+    }
+  }
   mlbAdminUpdatedAt=new Date().toISOString();
   setText("mlbFixtureTodayFetched",formatDate(mlbAdminUpdatedAt));
   setText("mlbFixtureTomorrowFetched",formatDate(mlbAdminUpdatedAt));
@@ -4676,7 +4691,10 @@ function renderMlbAdminFixtures(){
     const home=zhTeam(x.home?.name||x.home_team),away=zhTeam(x.away?.name||x.away_team);
     const st=adminStateZh(x.status?.detailedState||x.status?.long||x.status||"Scheduled");
     const score=habaoMlbScorePair(x);
-    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>—</td><td>—</td><td><span class="table-chip">尚未開放</span></td></tr>';
+    const meta=mlbAdminFixtureMeta[String(x.fixture_id||x.game_id||x.game_pk||x.id||"")]||null;
+    const analysisCount=meta?.analysis_member_count==null?"—":String(Number(meta.analysis_member_count))+" 人";
+    const pushCount=meta?.push_member_count==null?"—":String(Number(meta.push_member_count))+" 人";
+    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>'+escapeHtml(analysisCount)+'</td><td>'+escapeHtml(pushCount)+'</td><td><span class="table-chip" title="MLB 單場自動比分推播尚未接通">尚未開放</span></td></tr>';
   }).join(""):'<tr><td colspan="11" class="empty">目前沒有符合條件的 MLB 賽事</td></tr>';
 }
 
@@ -7601,12 +7619,8 @@ async async function loadBasketballPushFixtures() {
         ? data.fixtures
         : [];
 
-    if (
-      rows.length
-    ) {
-      nbaFixtureRows =
-        rows;
-    }
+    // 僅更新推播下拉選單；不得覆蓋從 admin-basketball 取得的
+    // NBA 賽事管理資料（比分、快照、會員統計）。
   } catch (error) {
     console.warn(
       "NBA PUSH FIXTURE LOAD ERROR:",
