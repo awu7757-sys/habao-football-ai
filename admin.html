@@ -4656,7 +4656,7 @@ async function loadMlbAdminFixtures(force=false){
   }
   if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
 }
-async async function loadMlbReadiness(showAlert=false){
+async function loadMlbReadiness(showAlert=false){
   const info=document.getElementById("mlbReadyStatus");if(info)info.textContent="檢查中…";
   try{
     const data=await adminBaseballRequest({action:"readiness"});
@@ -5243,7 +5243,7 @@ async function refreshNbaFixtureSource(button) {
   }
 }
 
-async async function toggleFixtureLivePush(
+async function toggleFixtureLivePush(
   fixtureId,
   enabled
 ) {
@@ -7587,7 +7587,7 @@ function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTi
 async function pushAdminRequest(payload){return adminServiceRequest(PUSH_SEND_URL,payload);}
 async function loadPushDeviceCount(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();const el=document.getElementById("pushDeviceCount");if(!member){if(el)el.textContent="訂閱裝置：—";return 0;}try{const d=await pushAdminRequest({action:"count",member_username:member});if(el)el.textContent=`訂閱裝置：${d.count||0} 台`;return Number(d.count||0);}catch(e){if(el)el.textContent="訂閱裝置：讀取失敗";return 0;}}
 
-async async function loadBasketballPushFixtures() {
+async function loadBasketballPushFixtures() {
   const select =
     document.getElementById(
       "pushBasketballGameId"
@@ -7720,7 +7720,7 @@ async async function loadBasketballPushFixtures() {
   }
 }
 
-async async function loadBasketballGamePushCount() {
+async function loadBasketballGamePushCount() {
   const gameId =
     Number(
       document.getElementById(
