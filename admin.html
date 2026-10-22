@@ -811,6 +811,35 @@ tr:last-child td{border-bottom:0}
   #jsonModal .shadow-compare-table td{padding:7px 5px}
 }
 
+/* 三種運動彩色圖示／標籤：後台視覺統一 */
+.sport-heading{display:inline-flex;align-items:center;gap:7px}
+.sport-ball{
+  display:inline-grid;place-items:center;vertical-align:middle;
+  width:23px;height:23px;flex:0 0 23px;border-radius:50%;
+  font-size:15px;line-height:1;
+  border:1px solid rgba(255,255,255,.13);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.12),0 3px 8px rgba(0,0,0,.2)
+}
+.sport-ball--football{background:linear-gradient(135deg,rgba(52,211,153,.42),rgba(5,150,105,.22))}
+.sport-ball--basketball{background:linear-gradient(135deg,rgba(251,146,60,.32),rgba(154,52,18,.20))}
+.sport-ball--baseball{background:linear-gradient(135deg,rgba(96,165,250,.42),rgba(29,78,216,.22))}
+.sport-ball--small{width:19px;height:19px;flex-basis:19px;font-size:13px}
+.sport-fixture-summary{
+  display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;
+  font-size:16px!important;line-height:1.4
+}
+.sport-fixture-count{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.sport-fixture-divider{font-size:12px;color:#627080;font-weight:500}
+.sport-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 9px;border-radius:999px;
+  font-size:9px;font-weight:900;white-space:nowrap
+}
+.sport-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.sport-badge--basketball{color:#3cdd82;background:rgba(60,221,130,.12)}
+.sport-badge--football{color:#67d5e9;background:rgba(34,181,204,.12)}
+.sport-badge--baseball{color:#b8a1ff;background:rgba(137,104,248,.13)}
+
 </style>
 </head>
 
@@ -988,7 +1017,7 @@ tr:last-child td{border-bottom:0}
 
           <div class="stat-card">
             <div class="stat-label">今日 / 明日賽事</div>
-            <div id="dashFixtureCount" class="stat-value" style="font-size:18px">0 / 0</div>
+            <div id="dashFixtureCount" class="stat-value sport-fixture-summary"><span class="sport-fixture-count"><span class="sport-ball sport-ball--football sport-ball--small" aria-hidden="true">⚽</span>0/0</span><span class="sport-fixture-divider" aria-hidden="true">｜</span><span class="sport-fixture-count"><span class="sport-ball sport-ball--basketball sport-ball--small" aria-hidden="true">🏀</span>0/0</span><span class="sport-fixture-divider" aria-hidden="true">｜</span><span class="sport-fixture-count"><span class="sport-ball sport-ball--baseball sport-ball--small" aria-hidden="true">⚾</span>0/0</span></div>
             <div class="stat-note">足球、NBA、MLB 賽事快取</div>
           </div>
 
@@ -1656,7 +1685,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel">
           <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title">⚽ 足球賽事管理</div>
+              <div class="panel-title sport-heading"><span class="sport-ball sport-ball--football" aria-hidden="true">⚽</span>足球賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools">
@@ -1710,7 +1739,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel" style="margin-top:16px;border-color:rgba(112,168,255,.18)">
           <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title">🏀 NBA 賽事管理</div>
+              <div class="panel-title sport-heading"><span class="sport-ball sport-ball--basketball" aria-hidden="true">🏀</span>NBA 賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools"><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
@@ -1759,7 +1788,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><span class="sport-ball sport-ball--baseball" aria-hidden="true">⚾</span>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -2188,6 +2217,34 @@ const ADMIN_BASEBALL_URL =
 const ADMIN_BASKETBALL_PERFORMANCE_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-basketball-performance";
 
+
+/* 運動名稱僅由白名單輸出；不影響賽事資料及後端 */
+function sportBadgeMarkup(sport) {
+  const type = String(sport || "football").toLowerCase();
+  if (type === "basketball" || type === "nba")
+    return '<span class="sport-badge sport-badge--basketball"><span class="dot"></span>🏀 NBA</span>';
+  if (type === "baseball" || type === "mlb")
+    return '<span class="sport-badge sport-badge--baseball"><span class="dot"></span>⚾ MLB</span>';
+  return '<span class="sport-badge sport-badge--football"><span class="dot"></span>⚽ 足球</span>';
+}
+
+function renderSportFixtureSummary(footballToday, footballTomorrow, nbaToday, nbaTomorrow, mlbToday, mlbTomorrow) {
+  const el = document.getElementById("dashFixtureCount");
+  if (!el) return;
+  const safeCount = value => {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
+  };
+  const segments = [
+    ["football", "⚽", footballToday, footballTomorrow],
+    ["basketball", "🏀", nbaToday, nbaTomorrow],
+    ["baseball", "⚾", mlbToday, mlbTomorrow]
+  ];
+  el.innerHTML = segments.map(([type, icon, today, tomorrow]) =>
+    '<span class="sport-fixture-count"><span class="sport-ball sport-ball--' + type +
+    ' sport-ball--small" aria-hidden="true">' + icon + '</span>' + safeCount(today) + '/' + safeCount(tomorrow) + '</span>'
+  ).join('<span class="sport-fixture-divider" aria-hidden="true">｜</span>');
+}
 
 let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
 let adminSessionToken = sessionStorage.getItem("habao_admin_session_v2") || "";
@@ -4085,9 +4142,10 @@ async function loadAdminOverview() {
     const nbaTomorrow =
       Number(nbaAdminOverview.tomorrow_fixtures || 0);
 
-    setText(
-      "dashFixtureCount",
-      `⚽ ${footballToday}/${footballTomorrow}｜🏀 ${nbaToday}/${nbaTomorrow}｜⚾ ${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length}/${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length}`
+    renderSportFixtureSummary(
+      footballToday, footballTomorrow, nbaToday, nbaTomorrow,
+      mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length,
+      mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length
     );
 
     setText(
@@ -4387,7 +4445,7 @@ function renderAnalysisHistory() {
     <tr>
       <td>${formatDate(item?.updated_at)}</td>
       <td class="account-name">${escapeHtml(item?.account||"—")}</td>
-      <td>${String(item?.sport||"football")==="basketball"?'<span class="status active"><span class="dot"></span>🏀 NBA</span>':String(item?.sport)==="baseball"?'<span class="status active"><span class="dot"></span>⚾ MLB</span>':'<span class="status"><span class="dot"></span>⚽ 足球</span>'}</td>
+      <td>${sportBadgeMarkup(item?.sport)}</td>
       <td class="mono">${escapeHtml(item?.fixture_id??item?.game_id??"—")}</td>
       <td>${escapeHtml(["basketball","baseball"].includes(String(item?.sport||""))?(item.sport==="baseball"?"MLB":"NBA"):normalizeLeagueDisplay(item?.league_name))}</td>
       <td><strong>${escapeHtml(item?.sport==="football"?item?.home_team||"—":zhTeam(item?.home_team))}</strong><div class="subline">vs ${escapeHtml(item?.sport==="football"?item?.away_team||"—":zhTeam(item?.away_team))}</div></td>
@@ -4577,7 +4635,9 @@ async function loadMlbAdminFixtures(force=false,onlyOffset=null){
   if(typeof loadAdminOverview==="function"){
     const footballCount=Number(adminOverview?.today_fixtures||0),footballNext=Number(adminOverview?.tomorrow_fixtures||0);
     const nbaCount=Number(nbaAdminOverview?.today_fixtures||0),nbaNext=Number(nbaAdminOverview?.tomorrow_fixtures||0);
-    setText("dashFixtureCount",`⚽ ${footballCount}/${footballNext}｜🏀 ${nbaCount}/${nbaNext}｜⚾ ${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length}/${mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length}`);
+    renderSportFixtureSummary(footballCount, footballNext, nbaCount, nbaNext,
+      mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminToday).length,
+      mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length);
   }
   if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
 }
@@ -5633,7 +5693,7 @@ function renderPerformanceAdmin() {
 
     return `<tr>
       <td>${formatDate(row?.kickoff_at)}</td>
-      <td><span class="table-chip">${performanceSportLabel(row)}</span></td>
+      <td>${sportBadgeMarkup(row?.sport)}</td>
       <td class="mono">${escapeHtml(row?.fixture_id??"—")}</td>
       <td>${escapeHtml(row?.sport==="baseball"?"MLB":row?.sport==="basketball"?"NBA":normalizeLeagueDisplay(row?.league_name))}</td>
       <td><strong>${escapeHtml(row?.sport==="football"?row?.home_team||"—":zhTeam(row?.home_team))}</strong><div class="subline">vs ${escapeHtml(row?.sport==="football"?row?.away_team||"—":zhTeam(row?.away_team))}</div></td>
