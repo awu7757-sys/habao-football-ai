@@ -4682,15 +4682,16 @@ async function habaoToggleSportPush(sport,gameId,enabled){
     alert(enabled?"比分推播已開啟（首次同步只建立基準）":"比分推播已關閉");
   }catch(e){alert("操作失敗："+(e?.message||String(e)));}
 }
-function habaoSportPushCell(sport,gameId,ready,enabled){
+function habaoSportPushCell(sport,gameId,ready,enabled,matchStatus){
   const safeId=Number(gameId);
   const active=ready===true&&enabled===true;
   const label=active?"已開啟":"已關閉";
-  const canToggle=ready===true&&Number.isSafeInteger(safeId)&&safeId>0;
+  const completed=/(已完賽|已取消|final|finished|cancelled|postponed)/i.test(String(matchStatus||""));
+  const canToggle=ready===true&&Number.isSafeInteger(safeId)&&safeId>0&&(!completed||active);
   return '<div class="row-actions" style="align-items:center">'+
     '<span class="status '+(active?"active":"off")+'"><span class="dot"></span>'+label+'</span>'+
     '<button type="button" class="action-btn '+(active?"red":"green")+'"'+
-    (canToggle?' onclick="habaoToggleSportPush(\''+sport+'\','+safeId+','+(!active)+')"':' disabled title="尚未啟用 NBA／MLB 比分推播排程"')+'>'+
+    (canToggle?' onclick="habaoToggleSportPush(\''+sport+'\','+safeId+','+(!active)+')"':' disabled title="推播尚未可用，或賽事已結束"')+'>'+
     (active?"關閉推播":"開啟推播")+'</button></div>';
 }
 
@@ -4713,7 +4714,7 @@ function renderMlbAdminFixtures(){
     const meta=mlbAdminFixtureMeta[String(x.fixture_id||x.game_id||x.game_pk||x.id||"")]||null;
     const analysisCount=meta?.analysis_member_count==null?"—":String(Number(meta.analysis_member_count))+" 人";
     const pushCount=meta?.push_member_count==null?"—":String(Number(meta.push_member_count))+" 人";
-    const livePush=habaoSportPushCell("baseball",Number(x.game_id||x.fixture_id||x.game_pk),meta?.live_push_ready,meta?.live_push_enabled);
+    const livePush=habaoSportPushCell("baseball",Number(x.game_id||x.fixture_id||x.game_pk),meta?.live_push_ready,meta?.live_push_enabled,st);
     return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>'+escapeHtml(analysisCount)+'</td><td>'+escapeHtml(pushCount)+'</td><td>'+livePush+'</td></tr>';
   }).join(""):'<tr><td colspan="11" class="empty">目前沒有符合條件的 MLB 賽事</td></tr>';
 }
@@ -5157,7 +5158,7 @@ function renderNbaFixtures() {
               <td>${escapeHtml(habaoAdminFixtureScore(item?.home_score,item?.away_score))}</td>
               <td>${Number(item?.analysis_member_count || 0)} 人</td>
               <td>${item?.push_member_count == null ? "—" : Number(item.push_member_count)+" 人"}</td>
-              <td>${habaoSportPushCell("basketball",item?.fixture_id,item?.live_push_ready,item?.live_push_enabled)}</td>
+              <td>${habaoSportPushCell("basketball",item?.fixture_id,item?.live_push_ready,item?.live_push_enabled,adminStateZh(item?.status?.long || item?.status?.short || "Scheduled"))}</td>
             </tr>
           `;
         }).join("")
