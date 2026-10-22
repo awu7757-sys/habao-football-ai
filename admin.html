@@ -7229,392 +7229,85 @@ function normalizeLeagueDisplay(value){
 }
 
 function analysisSummaryHtml(item){
-  const d =
-    item?.result_data || {};
-
-  /*
-   * 正式分析資料通常在：
-   * result_data.analysis
-   */
-  const analysis =
-    d?.analysis &&
-    typeof d.analysis === "object"
-      ? d.analysis
-      : d;
-
-  /*
-   * AI 推薦主要位於：
-   * analysis.recommendations
-   */
-  const recommendations =
-    analysis?.recommendations &&
-    typeof analysis.recommendations === "object"
-      ? analysis.recommendations
-      : (
-          d?.recommendations &&
-          typeof d.recommendations === "object"
-            ? d.recommendations
-            : {}
-        );
-
-  /*
-   * 相容舊資料與新版資料。
-   */
-  const pick = (keys) => {
-    for (const k of keys) {
-
-      if (
-        recommendations?.[k] != null
-      ) {
-        return recommendations[k];
-      }
-
-      if (
-        analysis?.[k] != null
-      ) {
-        return analysis[k];
-      }
-
-      if (
-        d?.[k] != null
-      ) {
-        return d[k];
+  const d=item?.result_data&&typeof item.result_data==="object"?item.result_data:{};
+  const analysis=d?.analysis&&typeof d.analysis==="object"?d.analysis:d;
+  const recommendations=analysis?.recommendations&&typeof analysis.recommendations==="object"
+    ?analysis.recommendations
+    :d?.recommendations&&typeof d.recommendations==="object"?d.recommendations:{};
+  const sport=String(item?.sport||d?.sport||d?.fixture?.sport||"football").toLowerCase();
+  const isFootball=sport==="football";
+  const isBasketball=sport==="basketball";
+  const isBaseball=sport==="baseball";
+  const first=(...values)=>values.find(v=>v!==undefined&&v!==null&&v!=="");
+  const pick=(keys)=>{
+    for(const k of keys){
+      for(const source of [recommendations,analysis,d]){
+        if(source?.[k]!==undefined&&source[k]!==null)return source[k];
       }
     }
-
     return null;
   };
-
-    /*
-   * 後台分析摘要固定使用繁體中文顯示
-   */
-  const localizeSummaryPick = value => {
-    let text =
-      value == null
-        ? ""
-        : String(value).trim();
-
-    if (!text) {
-      return "—";
-    }
-
-    const exact = {
-      "Home Team": "主隊",
-      "Away Team": "客隊",
-      "Draw": "和局",
-      "No Recommendation": "暫不推薦",
-      "Yes": "是",
-      "No": "否",
-      "Home or Draw": "主隊或和局",
-      "Home or Away": "主隊或客隊",
-      "Draw or Away": "和局或客隊"
+  const localizePick=(value)=>{
+    const raw=String(value??"").trim();
+    if(!raw)return "—";
+    const translations={
+      "Home Team":"主隊","Away Team":"客隊","Draw":"和局",
+      "No Recommendation":"暫不推薦","Yes":"是","No":"否",
+      "home":"主隊","away":"客隊","draw":"和局",
+      "HOME":"主隊","AWAY":"客隊",
+      "over":"大分","under":"小分","Over":"大分","Under":"小分",
+      "Home or Draw":"主隊或和局",
+      "Home or Away":"主隊或客隊",
+      "Draw or Away":"和局或客隊"
     };
-
-    if (exact[text]) {
-      return exact[text];
-    }
-
-    text = text
-      .replace(
-        /^Over\s*([0-9.]+)$/i,
-        "大$1"
-      )
-      .replace(
-        /^Under\s*([0-9.]+)$/i,
-        "小$1"
-      );
-
-    return text;
+    return translations[raw]||raw.replace(/^Over\s*([0-9.]+)$/i,"大$1").replace(/^Under\s*([0-9.]+)$/i,"小$1");
   };
-  
-  const fmt = (v) => {
-
-    if (v == null) {
-      return "—";
-    }
-
-    if (
-      typeof v === "object"
-    ) {
-return escapeHtml(
-  localizeSummaryPick(
-    v.pick ||
-    v.selection ||
-    v.value ||
-    v.prediction ||
-    "—"
-  )
-);
-    }
-
-    return escapeHtml(
-  localizeSummaryPick(v)
-);
+  const formatPick=(v,withLine=false)=>{
+    if(v==null)return "—";
+    if(typeof v!=="object")return escapeHtml(localizePick(v));
+    const direction=localizePick(first(v.pick,v.selection,v.value,v.prediction));
+    const line=first(v.line,v.point,v.handicap);
+    const hasLine=/\d/.test(direction);
+    const suffix=withLine&&!hasLine&&line!==undefined&&line!==null&&String(line).trim()!==""?" "+line:"";
+    return escapeHtml(direction+suffix);
   };
-
-  /*
-   * 讓分除了推薦方向，
-   * 一併顯示實際盤口。
-   */
-  const fmtHandicap = (v) => {
-
-    if (v == null) {
-      return "—";
+  const textValue=(v)=>v===undefined||v===null||v===""?"—":escapeHtml(String(v));
+  const homeName=first(item?.home_team,d?.fixture?.home?.name,d?.fixture?.home_team);
+  const awayName=first(item?.away_team,d?.fixture?.away?.name,d?.fixture?.away_team);
+  const home=isFootball?String(homeName||"—"):zhTeam(String(homeName||"—"));
+  const away=isFootball?String(awayName||"—"):zhTeam(String(awayName||"—"));
+  const league=isBasketball?"NBA":isBaseball?"MLB":normalizeLeagueDisplay(item?.league_name);
+  let predictedScores="—";
+  if(isBasketball){
+    const score=first(d?.model?.predicted_score,analysis?.predicted_score,d?.predicted_score);
+    if(score?.home!=null&&score?.away!=null)
+      predictedScores=escapeHtml(String(score.home)+"-"+String(score.away));
+  }else if(isBaseball){
+    const score=first(d?.model?.projection,d?.model?.predicted_score,analysis?.predicted_score,d?.predicted_score);
+    const h=first(score?.home_runs,score?.home,score?.home_score);
+    const a=first(score?.away_runs,score?.away,score?.away_score);
+    if(h!=null&&a!=null)predictedScores=escapeHtml(String(h)+"-"+String(a));
+  }else{
+    const possible=first(analysis?.predicted_scores,d?.predicted_scores);
+    if(Array.isArray(possible)){
+      const list=possible.map(x=>typeof x==="string"?x:x?.score).filter(Boolean);
+      if(list.length)predictedScores=list.map(escapeHtml).join("、");
+    }else if(typeof possible==="string"&&possible.trim()){
+      predictedScores=escapeHtml(possible);
     }
-
-    if (
-      typeof v !== "object"
-    ) {
-      return escapeHtml(v);
-    }
-
-const value =
-  localizeSummaryPick(
-    v.pick ||
-    v.selection ||
-    v.value ||
-    v.prediction ||
-    "—"
-  );
-
-    const line =
-      v.line != null &&
-      String(v.line).trim() !== ""
-        ? ` ${v.line}`
-        : "";
-
-    return escapeHtml(
-      `${value}${line}`
-    );
-  };
-
-  /*
-   * 大小分新版 NBA 會將方向與真實市場線分開保存，
-   * 後台摘要需一併顯示；舊足球若 pick 已含數字則不重複。
-   */
-  const fmtOverUnder = (v) => {
-
-    if (v == null) {
-      return "—";
-    }
-
-    if (
-      typeof v !== "object"
-    ) {
-      return escapeHtml(
-        localizeSummaryPick(v)
-      );
-    }
-
-    const value =
-      localizeSummaryPick(
-        v.pick ||
-        v.selection ||
-        v.value ||
-        v.prediction ||
-        "—"
-      );
-
-    const hasNumber =
-      /\d/.test(
-        String(value)
-      );
-
-    const line =
-      !hasNumber &&
-      v.line != null &&
-      String(v.line).trim() !== ""
-        ? ` ${v.line}`
-        : "";
-
-    return escapeHtml(
-      `${value}${line}`
-    );
-  };
-
-  /*
-   * 預測比分
-   */
-  const isBasketball =
-    String(
-      item?.sport ||
-      d?.fixture?.sport ||
-      ""
-    ).toLowerCase() ===
-    "basketball";
-
-  const scores =
-    isBasketball
-      ? (
-          d?.model
-            ?.predicted_score
-            ?.home != null &&
-          d?.model
-            ?.predicted_score
-            ?.away != null
-            ? escapeHtml(
-                String(
-                  d.model
-                    .predicted_score
-                    .home
-                ) +
-                "-" +
-                String(
-                  d.model
-                    .predicted_score
-                    .away
-                )
-              )
-            : "—"
-        )
-      : (
-          Array.isArray(
-            analysis?.predicted_scores
-          )
-            ? analysis.predicted_scores
-                .map(row =>
-                  row?.score || ""
-                )
-                .filter(Boolean)
-                .map(score =>
-                  escapeHtml(score)
-                )
-                .join("、")
-            : "—"
-        );
-
-  return `
-    <div style="line-height:1.9">
-
-      <strong>
-        ${escapeHtml(item?.home_team || "—")}
-        vs
-        ${escapeHtml(item?.away_team || "—")}
-      </strong>
-
-      <br>
-
-      聯賽：
-      ${escapeHtml(
-        normalizeLeagueDisplay(
-          item?.league_name
-        )
-      )}
-
-      <br>
-
-      開賽：
-      ${formatDate(
-        item?.fixture_time
-      )}
-
-      <hr style="border-color:rgba(255,255,255,.08)">
-
-      獨贏：
-      ${fmt(
-        pick([
-          "moneyline",
-          "oneXtwo",
-          "one_x_two",
-          "1x2"
-        ])
-      )}
-
-      <br>
-
-      大小分：
-      ${fmtOverUnder(
-        pick([
-          "over_under",
-          "totals",
-          "total"
-        ])
-      )}
-
-      <br>
-
-      讓分：
-      ${fmtHandicap(
-        pick([
-          "handicap",
-          "asian_handicap"
-        ])
-      )}
-
-      <br>
-
-      ${isBasketball
-        ? `
-          模型公平讓分：
-          ${escapeHtml(
-            d?.model
-              ?.fair_spread
-              ?.display ||
-            "—"
-          )}
-
-          <br>
-
-          模型公平總分：
-          ${escapeHtml(
-            d?.model
-              ?.fair_total ??
-            "—"
-          )}
-
-          <br>
-
-          模型勝率：
-          主 ${escapeHtml(
-            d?.model
-              ?.win_probability
-              ?.home ??
-            "—"
-          )}% /
-          客 ${escapeHtml(
-            d?.model
-              ?.win_probability
-              ?.away ??
-            "—"
-          )}%
-
-          <br>
-        `
-        : `
-          BTTS：
-          ${fmt(
-            pick([
-              "btts",
-              "both_teams_to_score"
-            ])
-          )}
-
-          <br>
-
-          雙重機會：
-          ${fmt(
-            pick([
-              "double_chance",
-              "doubleChance"
-            ])
-          )}
-
-          <br>
-        `
-      }
-
-      預測比分：
-      ${scores || "—"}
-
-      <br>
-
-      分析時間：
-      ${formatDate(
-        item?.updated_at
-      )}
-
-    </div>
-  `;
+  }
+  const homeAwayLabel=escapeHtml(home)+" vs "+escapeHtml(away);
+  return '<div style="line-height:1.9">'+
+    '<strong>'+homeAwayLabel+'</strong><br>'+
+    '聯賽：'+escapeHtml(String(league||"—"))+'<br>'+
+    '開賽：'+formatDate(item?.fixture_time)+'<hr style="border-color:rgba(255,255,255,.08)">'+
+    '獨贏：'+formatPick(pick(["moneyline","oneXtwo","one_x_two","1x2"]))+'<br>'+
+    '大小分：'+formatPick(pick(["over_under","totals","total"]),true)+'<br>'+
+    '讓分：'+formatPick(pick(["handicap","asian_handicap","spread"]),true)+'<br>'+
+    (isFootball?'BTTS：'+formatPick(pick(["btts","both_teams_to_score"]))+'<br>':'')+
+    '預測比分：'+predictedScores+'<br>'+
+    '分析時間：'+formatDate(item?.updated_at)+
+    '</div>';
 }
 function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.admin_key||x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
 
