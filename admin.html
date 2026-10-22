@@ -5515,6 +5515,33 @@ function settlementResult(
   ).toLowerCase();
 }
 
+/* 公開戰績市場狀態：正式推薦和模型顯示方向必須分開。
+ * decided=false 的 push 並非真走盤，不能算進命中率。
+ */
+function officialMarketFromSnapshot(row, key) {
+  const data = row?.prediction_data || row?.prediction || {};
+  const rec = data?.analysis?.recommendations ||
+    data?.recommendations ||
+    data?.prediction?.analysis?.recommendations ||
+    data?.prediction?.recommendations || {};
+  return rec?.[key] || null;
+}
+function marketResultBadge(row, key) {
+  const settled = settlementResult(row?.settlement, key);
+  if (settled) return resultBadge(settled);
+  if (row?.status !== "verified") return "—";
+  const market = officialMarketFromSnapshot(row, key);
+  const pick = String(market?.pick || "").trim().toLowerCase();
+  const noPick = !pick ||
+    /暫不推薦|暂不推荐|不推薦|不推荐|no pick|no recommendation/.test(pick);
+  if (noPick) return '<span class="table-chip" title="正式快照沒有投注推薦；模型顯示方向不計入戰績">暫不推薦</span>';
+  const line = market?.display_line ?? market?.line;
+  if (key !== "moneyline" && (line == null || String(line).trim() === "")) {
+    return '<span class="table-chip" title="正式推薦缺少可結算盤口">缺盤口</span>';
+  }
+  return '<span class="status vip" title="已完賽，但正式市場結算尚未完成">待結算</span>';
+}
+
 function resultBadge(value) {
   const v =
     String(value || "")
@@ -5692,10 +5719,10 @@ function renderPerformanceAdmin() {
       <td><strong>${escapeHtml(row?.sport==="football"?row?.home_team||"—":zhTeam(row?.home_team))}</strong><div class="subline">vs ${escapeHtml(row?.sport==="football"?row?.away_team||"—":zhTeam(row?.away_team))}</div></td>
       <td>${row?.home_score!=null&&row?.away_score!=null?`${row.home_score} - ${row.away_score}`:"—"}</td>
       <td>${row?.is_overdue?'<span class="status off">逾期待驗證</span>':statusBadge(row?.status)}${row?.excluded_from_public?'<div class="subline stale">已排除公開</div>':''}</td>
-      <td>${resultBadge(settlementResult(row?.settlement,"moneyline"))}</td>
-      <td title="${market2Title}">${resultBadge(settlementResult(row?.settlement,"over_under"))}</td>
-      <td class="btts-only" title="BTTS 僅足球">${row?.sport==="football"?resultBadge(settlementResult(row?.settlement,"btts")):"—"}</td>
-      <td title="讓分">${resultBadge(row?.sport==="football"?adminHandicapResult(row):settlementResult(row?.settlement,"handicap"))}</td>
+      <td>${marketResultBadge(row,"moneyline")}</td>
+      <td title="${market2Title}">${marketResultBadge(row,"over_under")}</td>
+      <td class="btts-only" title="BTTS 僅足球">${row?.sport==="football"?marketResultBadge(row,"btts"):"—"}</td>
+      <td title="讓分">${row?.sport==="football"&&adminHandicapResult(row)?resultBadge(adminHandicapResult(row)):marketResultBadge(row,"handicap")}</td>
       <td><div class="row-actions">
         <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":isMlb?"MLB":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
         ${isMlb?'<span class="table-chip">MLB 唯讀｜尚未開放排除／刪除</span>':`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
