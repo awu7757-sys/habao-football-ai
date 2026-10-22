@@ -4248,7 +4248,7 @@ function refreshPageData(pageId) {
 
 async function loadAnalysisHistory(force = false) {
   try {
-    const [footballResult, nbaResult, baseballResult] =
+    const [footballResult, nbaResult, baseballResult, nbaSettledResult, baseballSettledResult] =
       await Promise.allSettled([
         adminCenterRequest({
           action:
@@ -4260,7 +4260,18 @@ async function loadAnalysisHistory(force = false) {
             "analysis_history",
           limit: 400
         }),
-        adminBaseballRequest({action:"analysis_history",limit:400})
+        adminBaseballRequest({action:"analysis_history",limit:400}),
+        // 已驗證快照只供顯示賽況；不觸發模型或寫回資料。
+        adminServiceRequest(ADMIN_BASKETBALL_PERFORMANCE_URL,{
+          action:"performance",
+          limit:400
+        }),
+        fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api",{cache:"no-store"})
+          .then(async response=>{
+            const data=await response.json();
+            if(!response.ok||data?.success!==true)throw new Error(data?.error||"MLB 驗證資料暫不可用");
+            return data;
+          })
       ]);
 
     if (
@@ -4283,21 +4294,45 @@ async function loadAnalysisHistory(force = false) {
           String(item?.id)
       }));
 
+    const verifiedNbaGames = new Set(
+      (nbaSettledResult.status==="fulfilled"
+        ? (nbaSettledResult.value?.snapshots||[])
+        : [])
+        .filter(row=>String(row?.status||"").toLowerCase()==="verified")
+        .map(row=>String(row?.fixture_id??row?.game_id??""))
+        .filter(Boolean)
+    );
+    const verifiedMlbGames = new Set(
+      (baseballSettledResult.status==="fulfilled"
+        ? (baseballSettledResult.value?.matches||[])
+        : [])
+        .map(row=>String(row?.game_id??row?.fixture_id??""))
+        .filter(Boolean)
+    );
+
     const nbaRecords =
-      nbaResult.status ===
-        "fulfilled"
-        ? (
-            nbaResult
-              .value
-              ?.records || []
-          )
+      nbaResult.status === "fulfilled"
+        ? (nbaResult.value?.records||[]).map(item=>({
+            ...item,
+            sport:"basketball",
+            _adminMatchVerified:
+              verifiedNbaGames.has(String(item?.fixture_id??item?.game_id??""))
+          }))
         : [];
 
     const baseballRecords = baseballResult.status==="fulfilled"
-      ? (baseballResult.value?.records||[]).map(item=>({...item,sport:"baseball",admin_key:"baseball:"+String(item.id)}))
+      ? (baseballResult.value?.records||[]).map(item=>({
+          ...item,
+          sport:"baseball",
+          admin_key:"baseball:"+String(item.id),
+          _adminMatchVerified:
+            verifiedMlbGames.has(String(item?.game_id??item?.fixture_id??""))
+        }))
       : [];
 
     if(baseballResult.status!=="fulfilled")console.warn("MLB admin history unavailable; football/NBA unchanged");
+    if(nbaSettledResult.status!=="fulfilled")console.warn("NBA result verification unavailable; showing only known match states");
+    if(baseballSettledResult.status!=="fulfilled")console.warn("MLB result verification unavailable; showing only known match states");
 
     analysisHistoryRecords =
       [
@@ -4336,119 +4371,34 @@ async function loadAnalysisHistory(force = false) {
 }
 
 function getAnalysisMatchStatusLabel(item) {
-
-  const rawStatus =
-    String(
-      item?.match_status || ""
-    )
-      .trim()
-      .toUpperCase();
-
-  const kickoffTime =
-    item?.fixture_time
-      ? new Date(
-          item.fixture_time
-        ).getTime()
-      : NaN;
-
-  const now =
-    Date.now();
-
-  /*
-   * 已完賽
-   */
-  if (
-    [
-      "FT",
-      "AET",
-      "PEN",
-      "AWD",
-      "WO",
-      "已完賽",
-      "完賽"
-    ].includes(rawStatus)
-  ) {
+  // 以官方已驗證結算狀態優先，不能把 AI 模型分析完成誤認成賽事完賽。
+  if (item?._adminMatchVerified === true ||
+      item?.verified_at != null ||
+      String(item?.settlement_status || "").toLowerCase() === "verified") {
     return "已完賽";
   }
 
-  /*
-   * 進行中
-   */
-  if (
-    [
-      "1H",
-      "HT",
-      "2H",
-      "ET",
-      "BT",
-      "P",
-      "INT",
-      "LIVE"
-    ].includes(rawStatus)
-  ) {
-    return "進行中";
-  }
+  const rawStatus = String(
+    item?.match_status || item?.game_status || item?.fixture_status || ""
+  ).trim().toUpperCase();
 
-  /*
-   * 特殊狀態
-   */
-  if (
-    [
-      "PST",
-      "POSTPONED"
-    ].includes(rawStatus)
-  ) {
-    return "延期";
-  }
+  if (["FT","AET","PEN","FINAL","FINISHED","ENDED","GAME_OVER",
+       "AFTER_OT","AFTER_PENALTIES","已完賽","完賽","已結束"].includes(rawStatus)) return "已完賽";
+  if (["PST","POSTPONED","延期"].includes(rawStatus)) return "延期";
+  if (["CANC","CANCELLED","取消"].includes(rawStatus)) return "取消";
+  if (["ABD","ABANDONED","中止"].includes(rawStatus)) return "中止";
+  if (["LIVE","1H","HT","2H","ET","BT","P","INT",
+       "IN_PROGRESS","INPROGRESS","HALFTIME","Q1","Q2","Q3","Q4",
+       "OT","TOP","BOTTOM","MID","進行中"].includes(rawStatus)) return "進行中";
 
-  if (
-    [
-      "CANC",
-      "CANCELLED"
-    ].includes(rawStatus)
-  ) {
-    return "取消";
+  const kickoffTime = item?.fixture_time ? new Date(item.fixture_time).getTime() : NaN;
+  if (Number.isFinite(kickoffTime)) {
+    if (kickoffTime > Date.now()) return "未開賽";
+    // NS 或缺值可能是舊快取，不能只因開賽時間已過就斷言比賽持續進行。
+    return "賽況待更新";
   }
-
-  if (
-    [
-      "ABD",
-      "ABANDONED"
-    ].includes(rawStatus)
-  ) {
-    return "中止";
-  }
-
-  /*
-   * 開賽時間尚未到
-   */
-  if (
-    Number.isFinite(
-      kickoffTime
-    ) &&
-    kickoffTime > now
-  ) {
-    return "未開賽";
-  }
-
-  /*
-   * 原始資料仍寫未開賽，
-   * 但實際開賽時間已經過了。
-   * 不亂判斷成已完賽，只標示已開賽。
-   */
-  if (
-    Number.isFinite(
-      kickoffTime
-    ) &&
-    kickoffTime <= now
-  ) {
-    return "已開賽";
-  }
-
-  return (
-    item?.match_status ||
-    "已分析"
-  );
+  return ["NS","NOT_STARTED","SCHEDULED","未開賽"].includes(rawStatus)
+    ? "未開賽" : "賽況待更新";
 }
   
 function isWithinAdminDays(value, days) {
