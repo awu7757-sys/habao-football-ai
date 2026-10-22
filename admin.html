@@ -811,39 +811,71 @@ tr:last-child td{border-bottom:0}
   #jsonModal .shadow-compare-table td{padding:7px 5px}
 }
 
-/* 三種運動彩色圖示／標籤：後台視覺統一 */
+/* 三種運動彩色 SVG 真球圖：沒有額外彩色圓框 */
+.sport-icon-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
 .sport-heading{display:inline-flex;align-items:center;gap:7px}
-.sport-ball{
-  display:inline-grid;place-items:center;vertical-align:middle;
-  width:23px;height:23px;flex:0 0 23px;border-radius:50%;
-  font-size:15px;line-height:1;
-  border:1px solid rgba(255,255,255,.13);
-  box-shadow:inset 0 1px 2px rgba(255,255,255,.12),0 3px 8px rgba(0,0,0,.2)
-}
-.sport-ball--football{background:linear-gradient(135deg,rgba(52,211,153,.42),rgba(5,150,105,.22))}
-.sport-ball--basketball{background:linear-gradient(135deg,rgba(251,146,60,.32),rgba(154,52,18,.20))}
-.sport-ball--baseball{background:linear-gradient(135deg,rgba(96,165,250,.42),rgba(29,78,216,.22))}
-.sport-ball--small{width:19px;height:19px;flex-basis:19px;font-size:13px}
+.sport-icon{display:inline-block;vertical-align:middle;width:20px;height:20px;flex:none;overflow:visible;filter:drop-shadow(0 2px 3px rgba(0,0,0,.33))}
+.sport-icon--small{width:17px;height:17px}
+.sport-icon--heading{width:23px;height:23px}
 .sport-fixture-summary{
-  display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;
-  font-size:16px!important;line-height:1.4
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:3px;align-items:start;font-size:14px!important;line-height:1.25
 }
-.sport-fixture-count{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.sport-fixture-divider{font-size:12px;color:#627080;font-weight:500}
-.sport-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:5px 9px;border-radius:999px;
-  font-size:9px;font-weight:900;white-space:nowrap
+.sport-fixture-count{
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:4px;min-width:0;white-space:nowrap;font-size:14px
 }
-.sport-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.sport-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-size:9px;font-weight:900;white-space:nowrap;line-height:1.2}
+.sport-badge .dot{width:6px;height:6px;flex:none;border-radius:50%;background:currentColor}
 .sport-badge--basketball{color:#3cdd82;background:rgba(60,221,130,.12)}
 .sport-badge--football{color:#67d5e9;background:rgba(34,181,204,.12)}
 .sport-badge--baseball{color:#b8a1ff;background:rgba(137,104,248,.13)}
+/* 保持「待驗證」及其他狀態標籤橫向顯示，防止窄欄折行 */
+.status{white-space:nowrap;flex-wrap:nowrap;min-width:max-content;line-height:1.25}
+.status .dot{flex:none}
+#performanceBody td:nth-child(7){min-width:108px;white-space:nowrap}
+#performanceBody td:nth-child(7) .status{display:inline-flex;align-items:center;justify-content:center}
 
 </style>
 </head>
 
 <body>
+
+<!-- 彩色球體 SVG 原生向量圖：站內繪製，無外部圖片依賴 -->
+<svg xmlns="http://www.w3.org/2000/svg" class="sport-icon-sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="habao-soccer-grad" cx="31%" cy="22%" r="82%">
+      <stop offset="0%" stop-color="#fff"/><stop offset="65%" stop-color="#f3f6fa"/><stop offset="100%" stop-color="#9ba9b5"/>
+    </radialGradient>
+    <radialGradient id="habao-nba-grad" cx="27%" cy="18%" r="83%">
+      <stop offset="0%" stop-color="#ffbd68"/><stop offset="50%" stop-color="#f77d20"/><stop offset="100%" stop-color="#a54008"/>
+    </radialGradient>
+    <radialGradient id="habao-mlb-grad" cx="30%" cy="20%" r="83%">
+      <stop offset="0%" stop-color="#fff"/><stop offset="65%" stop-color="#f5f4ee"/><stop offset="100%" stop-color="#aab5c2"/>
+    </radialGradient>
+  </defs>
+  <symbol id="habao-sport-football" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="29" fill="url(#habao-soccer-grad)" stroke="#344655" stroke-width="1.6"/>
+    <path d="M32 15 L44 24 L40 38 L25 41 L19 26 Z" fill="#192734" stroke="#1d2930" stroke-width="1.2"/>
+    <path d="M32 15 L27 4 M44 24 L57 20 M40 38 L47 53 M25 41 L17 57 M19 26 L6 22" fill="none" stroke="#384751" stroke-width="2"/>
+    <path d="M25 5 L12 12 L6 23 L15 25 L22 15 Z M47 8 L58 20 L45 25 L41 15 Z M48 51 L43 60 L26 59 L25 42 L40 39 Z" fill="#26343e" opacity=".92"/>
+    <path d="M15 25 L8 42 L17 55 M47 53 L58 41 L58 22" fill="none" stroke="#485864" stroke-width="1.7"/>
+    <ellipse cx="21" cy="13" rx="9" ry="4" fill="#fff" opacity=".42" transform="rotate(-25 21 13)"/>
+  </symbol>
+  <symbol id="habao-sport-basketball" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="29" fill="url(#habao-nba-grad)" stroke="#8b350c" stroke-width="1.8"/>
+    <path d="M3 32 H61 M32 3 V61" stroke="#3a231c" stroke-width="3.2" fill="none"/>
+    <path d="M10 13 C36 17 43 46 53 51 M53 13 C28 18 21 44 10 51" stroke="#47251b" stroke-width="3" fill="none"/>
+    <path d="M8 21 C23 11 42 9 52 20" stroke="#ffd08a" stroke-width="2" fill="none" opacity=".5"/>
+    <ellipse cx="19" cy="11" rx="10" ry="4" fill="#fff0ce" opacity=".28" transform="rotate(-31 19 11)"/>
+  </symbol>
+  <symbol id="habao-sport-baseball" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="29" fill="url(#habao-mlb-grad)" stroke="#9ca5ae" stroke-width="1.5"/>
+    <path d="M17 7 C39 16 43 47 17 57 M47 7 C25 16 21 47 47 57" stroke="#c62842" stroke-width="2.4" fill="none"/>
+    <path d="M20 11 l-5 4 M25 15 l-6 5 M30 20 l-6 5 M34 27 l-7 4 M36 34 l-7 3 M34 42 l-6 1 M29 49 l-6 0 M44 11 l5 4 M39 15 l6 5 M34 20 l6 5 M30 27 l7 4 M28 34 l7 3 M30 42 l6 1 M35 49 l6 0" fill="none" stroke="#dc3150" stroke-linecap="round" stroke-width="2"/>
+    <ellipse cx="21" cy="12" rx="9" ry="4" fill="#fff" opacity=".5" transform="rotate(-28 21 12)"/>
+  </symbol>
+</svg>
 
 <!-- LOGIN -->
 <section id="loginPage" class="login-page">
@@ -923,7 +955,7 @@ tr:last-child td{border-bottom:0}
       </button>
 
       <button class="nav-btn" data-page="fixturesPage" onclick="switchPage('fixturesPage',this)">
-        <span class="nav-icon">⚽</span> 賽事管理
+        <span class="nav-icon"><svg class="sport-icon sport-icon--small" aria-hidden="true"><use href="#habao-sport-football"></use></svg></span> 賽事管理
       </button>
 
       <button class="nav-btn" data-page="performanceAdminPage" onclick="switchPage('performanceAdminPage',this)">
@@ -1017,7 +1049,7 @@ tr:last-child td{border-bottom:0}
 
           <div class="stat-card">
             <div class="stat-label">今日 / 明日賽事</div>
-            <div id="dashFixtureCount" class="stat-value sport-fixture-summary"><span class="sport-fixture-count"><span class="sport-ball sport-ball--football sport-ball--small" aria-hidden="true">⚽</span>0/0</span><span class="sport-fixture-divider" aria-hidden="true">｜</span><span class="sport-fixture-count"><span class="sport-ball sport-ball--basketball sport-ball--small" aria-hidden="true">🏀</span>0/0</span><span class="sport-fixture-divider" aria-hidden="true">｜</span><span class="sport-fixture-count"><span class="sport-ball sport-ball--baseball sport-ball--small" aria-hidden="true">⚾</span>0/0</span></div>
+            <div id="dashFixtureCount" class="stat-value sport-fixture-summary"><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-football"></use></svg><span>0/0</span></span><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-basketball"></use></svg><span>0/0</span></span><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg><span>0/0</span></span></div>
             <div class="stat-note">足球、NBA、MLB 賽事快取</div>
           </div>
 
@@ -1370,7 +1402,7 @@ tr:last-child td{border-bottom:0}
         </div>
 
         <div class="panel" id="mlbStatsMonitorPanel" style="margin:0 0 15px">
-          <div class="panel-head"><div><div class="panel-title">⚾ MLB Stats API｜免費資料來源</div><div class="panel-desc">提供 MLB 賽程、球隊及投手資料；不是 API-Sports 付費額度。這裡僅檢查賽程代理接口，不能代表全部統計端點健康。</div></div><button class="ghost-btn" onclick="probeMlbStatsApi(true)">↻ 檢查賽程資料</button></div>
+          <div class="panel-head"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB Stats API｜免費資料來源</div><div class="panel-desc">提供 MLB 賽程、球隊及投手資料；不是 API-Sports 付費額度。這裡僅檢查賽程代理接口，不能代表全部統計端點健康。</div></div><button class="ghost-btn" onclick="probeMlbStatsApi(true)">↻ 檢查賽程資料</button></div>
           <div class="three-grid">
             <div class="mini-item"><span class="mini-key">賽程接口狀態</span><strong id="mlbStatsApiStatus">尚未檢查</strong></div>
             <div class="mini-item"><span class="mini-key">最後成功檢查</span><strong id="mlbStatsApiLastSuccess">—</strong></div>
@@ -1685,7 +1717,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel">
           <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title sport-heading"><span class="sport-ball sport-ball--football" aria-hidden="true">⚽</span>足球賽事管理</div>
+              <div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-football"></use></svg>足球賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools">
@@ -1739,7 +1771,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel" style="margin-top:16px;border-color:rgba(112,168,255,.18)">
           <div class="panel-head" style="margin-bottom:12px">
             <div>
-              <div class="panel-title sport-heading"><span class="sport-ball sport-ball--basketball" aria-hidden="true">🏀</span>NBA 賽事管理</div>
+              <div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-basketball"></use></svg>NBA 賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools"><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
@@ -1788,7 +1820,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><span class="sport-ball sport-ball--baseball" aria-hidden="true">⚾</span>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -2219,13 +2251,22 @@ const ADMIN_BASKETBALL_PERFORMANCE_URL =
 
 
 /* 運動名稱僅由白名單輸出；不影響賽事資料及後端 */
+function sportIconMarkup(sport, extraClass = "") {
+  const type = String(sport || "football").toLowerCase();
+  const key = type === "basketball" || type === "nba" ? "basketball"
+    : type === "baseball" || type === "mlb" ? "baseball" : "football";
+  const extra = extraClass === "small" ? " sport-icon--small"
+    : extraClass === "heading" ? " sport-icon--heading" : "";
+  return '<svg class="sport-icon' + extra + '" aria-hidden="true" focusable="false"><use href="#habao-sport-' + key + '"></use></svg>';
+}
+
 function sportBadgeMarkup(sport) {
   const type = String(sport || "football").toLowerCase();
   if (type === "basketball" || type === "nba")
-    return '<span class="sport-badge sport-badge--basketball"><span class="dot"></span>🏀 NBA</span>';
+    return '<span class="sport-badge sport-badge--basketball"><span class="dot"></span>' + sportIconMarkup("basketball", "small") + 'NBA</span>';
   if (type === "baseball" || type === "mlb")
-    return '<span class="sport-badge sport-badge--baseball"><span class="dot"></span>⚾ MLB</span>';
-  return '<span class="sport-badge sport-badge--football"><span class="dot"></span>⚽ 足球</span>';
+    return '<span class="sport-badge sport-badge--baseball"><span class="dot"></span>' + sportIconMarkup("baseball", "small") + 'MLB</span>';
+  return '<span class="sport-badge sport-badge--football"><span class="dot"></span>' + sportIconMarkup("football", "small") + '足球</span>';
 }
 
 function renderSportFixtureSummary(footballToday, footballTomorrow, nbaToday, nbaTomorrow, mlbToday, mlbTomorrow) {
@@ -2235,15 +2276,15 @@ function renderSportFixtureSummary(footballToday, footballTomorrow, nbaToday, nb
     const n = Number(value);
     return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
   };
-  const segments = [
-    ["football", "⚽", footballToday, footballTomorrow],
-    ["basketball", "🏀", nbaToday, nbaTomorrow],
-    ["baseball", "⚾", mlbToday, mlbTomorrow]
+  const items = [
+    ["football", footballToday, footballTomorrow],
+    ["basketball", nbaToday, nbaTomorrow],
+    ["baseball", mlbToday, mlbTomorrow]
   ];
-  el.innerHTML = segments.map(([type, icon, today, tomorrow]) =>
-    '<span class="sport-fixture-count"><span class="sport-ball sport-ball--' + type +
-    ' sport-ball--small" aria-hidden="true">' + icon + '</span>' + safeCount(today) + '/' + safeCount(tomorrow) + '</span>'
-  ).join('<span class="sport-fixture-divider" aria-hidden="true">｜</span>');
+  el.innerHTML = items.map(([type, today, tomorrow]) =>
+    '<span class="sport-fixture-count">' + sportIconMarkup(type) + '<span>' +
+    safeCount(today) + '/' + safeCount(tomorrow) + '</span></span>'
+  ).join('');
 }
 
 let adminPassword = ""; // Legacy fallback only; Session 登入後不保存真正密碼
