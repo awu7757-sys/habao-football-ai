@@ -4667,15 +4667,18 @@ async function habaoToggleSportPush(sport,gameId,enabled){
   if(!item){alert("賽事不在今日／明日列表");return;}
   const date=String(item.fixture_date||item.__adminDate||"");
   const home=String(item.home?.name||"主隊"),away=String(item.away?.name||"客隊");
+  const meta=sport==="baseball"
+    ?(mlbAdminFixtureMeta?.[String(gameId)]||{}):item;
   if(!confirm((enabled?"開啟":"關閉")+"這場比分推播？\n"+home+" vs "+away+
-      "\n分析會員："+(item.analysis_member_count??"—")+
-      "\n目前可推播："+(item.push_member_count??"—")))return;
+      "\n分析會員："+(meta.analysis_member_count??"—")+
+      "\n目前可推播："+(meta.push_member_count??"—")))return;
   try{
     const payload={action:"toggle_live_push",game_id:Number(gameId),fixture_date:date,enabled};
     const result=sport==="basketball"
       ?await adminBasketballRequest(payload):await adminBaseballRequest(payload);
     if(!result?.success)throw new Error(result?.message||result?.error||"推播更新失敗");
-    await loadFixtures(true);
+    if(sport==="baseball")await loadMlbAdminFixtures(true);
+    else await loadFixtures(true);
     alert(enabled?"比分推播已開啟（首次同步只建立基準）":"比分推播已關閉");
   }catch(e){alert("操作失敗："+(e?.message||String(e)));}
 }
