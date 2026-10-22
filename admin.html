@@ -1768,7 +1768,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。會員推播功能未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title">⚾ MLB 賽事管理</div><div class="panel-desc">與足球／NBA 相同版型；目前僅供查看正式賽程、T-10 狀態。可查看會員與訂閱統計；MLB 單場自動比分推播尚未開放。</div></div><button class="ghost-btn" onclick="loadMlbAdminFixtures(true)">↻ 更新 MLB 賽程</button></div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -4576,9 +4576,51 @@ const habaoTeamZh={
 "Orlando Magic":"奧蘭多魔術","Atlanta Hawks":"亞特蘭大老鷹","Washington Wizards":"華盛頓巫師","Milwaukee Bucks":"密爾瓦基公鹿","Miami Heat":"邁阿密熱火","Minnesota Timberwolves":"明尼蘇達灰狼","Brooklyn Nets":"布魯克林籃網","Charlotte Hornets":"夏洛特黃蜂","Toronto Raptors":"多倫多暴龍","Chicago Bulls":"芝加哥公牛","Memphis Grizzlies":"曼菲斯灰熊","Utah Jazz":"猶他爵士","New Orleans Pelicans":"紐奧良鵜鶘","Indiana Pacers":"印第安納溜馬","Houston Rockets":"休士頓火箭","Dallas Mavericks":"達拉斯獨行俠","Los Angeles Lakers":"洛杉磯湖人","Golden State Warriors":"金州勇士","San Antonio Spurs":"聖安東尼奧馬刺","Oklahoma City Thunder":"奧克拉荷馬雷霆","Boston Celtics":"波士頓塞爾提克","New York Knicks":"紐約尼克","Philadelphia 76ers":"費城七六人","Cleveland Cavaliers":"克里夫蘭騎士","Detroit Pistons":"底特律活塞","Denver Nuggets":"丹佛金塊","Phoenix Suns":"鳳凰城太陽","Sacramento Kings":"沙加緬度國王","Los Angeles Clippers":"洛杉磯快艇","Portland Trail Blazers":"波特蘭拓荒者",
 "Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒","Los Angeles Dodgers":"洛杉磯道奇","New York Mets":"紐約大都會","New York Yankees":"紐約洋基","Boston Red Sox":"波士頓紅襪","Chicago Cubs":"芝加哥小熊","St. Louis Cardinals":"聖路易紅雀","Cleveland Guardians":"克里夫蘭守護者","Toronto Blue Jays":"多倫多藍鳥","Seattle Mariners":"西雅圖水手","San Diego Padres":"聖地牙哥教士","Philadelphia Phillies":"費城費城人","Houston Astros":"休士頓太空人","Detroit Tigers":"底特律老虎","Atlanta Braves":"亞特蘭大勇士","Texas Rangers":"德州遊騎兵","Baltimore Orioles":"巴爾的摩金鶯","Kansas City Royals":"堪薩斯市皇家","Arizona Diamondbacks":"亞利桑那響尾蛇","San Francisco Giants":"舊金山巨人","Minnesota Twins":"明尼蘇達雙城","Los Angeles Angels":"洛杉磯天使","Pittsburgh Pirates":"匹茲堡海盜","Cincinnati Reds":"辛辛那提紅人","Washington Nationals":"華盛頓國民","Miami Marlins":"邁阿密馬林魚","Colorado Rockies":"科羅拉多落磯","Chicago White Sox":"芝加哥白襪","Athletics":"運動家"};
 const zhTeam=name=>{const x=String(name||"").trim();return habaoTeamZh[x]||({"LA Clippers":"洛杉磯快艇","LA Lakers":"洛杉磯湖人","NY Knicks":"紐約尼克","GS Warriors":"金州勇士","Portland Trailblazers":"波特蘭拓荒者","Oakland Athletics":"奧克蘭運動家"})[x]||x||"—"};
-const adminStateZh=v=>({"Scheduled":"未開賽","Not Started":"未開賽","In Progress":"進行中","Live":"進行中","Final":"已完賽","Finished":"已完賽","Postponed":"延期","Cancelled":"取消","Delayed":"延遲","Suspended":"暫停","Completed":"已完賽"})[String(v||"")]||String(v||"未開賽");
+// 足球、NBA、MLB 統一狀態名稱；未知狀態保留原文字，避免誤判為完賽。
+const adminStateZh=v=>{
+  const raw=String(v??"").trim();
+  const key=raw.toLowerCase();
+  const map={
+    "scheduled":"未開賽","not started":"未開賽","ns":"未開賽","1":"未開賽",
+    "in progress":"進行中","live":"進行中","playing":"進行中","2":"進行中",
+    "q1":"進行中","q2":"進行中","q3":"進行中","q4":"進行中",
+    "halftime":"中場","half time":"中場","ht":"中場",
+    "final":"已完賽","finished":"已完賽","completed":"已完賽","ft":"已完賽","3":"已完賽",
+    "postponed":"延期","pst":"延期","delayed":"延遲",
+    "cancelled":"取消","canceled":"取消","canc":"取消",
+    "suspended":"暫停","interrupted":"暫停","overtime":"延長賽","ot":"延長賽"
+  };
+  return map[key]||raw||"未開賽";
+};
+// 分數只接受實際有回傳的值；「—」代表來源尚無比分。
+function habaoAdminScoreValue(value){
+  if(value===null||value===undefined||String(value).trim()==="")return null;
+  const n=Number(value);return Number.isFinite(n)&&n>=0?String(n):null;
+}
+function habaoAdminFixtureScore(home,away){
+  const h=habaoAdminScoreValue(home),a=habaoAdminScoreValue(away);
+  return h!==null&&a!==null ? h+" - "+a : "—";
+}
+function habaoMlbScorePair(item){
+  // 兼容 MLB provider 常見 score、scores、teams 與 linescore 欄位。
+  const pairs=[
+    [item?.score?.home,item?.score?.away],
+    [item?.scores?.home?.total,item?.scores?.away?.total],
+    [item?.home?.score,item?.away?.score],
+    [item?.scores?.home,item?.scores?.away],
+    [item?.teams?.home?.score,item?.teams?.away?.score],
+    [item?.linescore?.teams?.home?.runs,item?.linescore?.teams?.away?.runs],
+    [item?.home_score,item?.away_score]
+  ];
+  for(const [home,away] of pairs){
+    if(habaoAdminScoreValue(home)!==null&&habaoAdminScoreValue(away)!==null)
+      return habaoAdminFixtureScore(home,away);
+  }
+  return "—";
+}
 const mlbAdminDate=(off=0)=>{const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const o=Object.fromEntries(parts.map(p=>[p.type,p.value]));const d=new Date(Date.UTC(+o.year,+o.month-1,+o.day+off));return d.toISOString().slice(0,10)};
 let mlbAdminFixtures=[],mlbAdminToday="",mlbAdminTomorrow="",mlbAdminUpdatedAt="";
+let mlbAdminFixtureMeta={};
 async function loadMlbAdminFixtures(force=false){
   const base="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-fixtures";
   mlbAdminToday=mlbAdminDate(0);mlbAdminTomorrow=mlbAdminDate(1);
@@ -4590,6 +4632,19 @@ async function loadMlbAdminFixtures(force=false){
     return {date,fixtures:Array.isArray(j.fixtures)?j.fixtures:[]};
   }));
   mlbAdminFixtures=results.flatMap((r,i)=>r.status==="fulfilled"?r.value.fixtures.map(x=>({...x,__adminDate:[mlbAdminToday,mlbAdminTomorrow][i]})):[]);
+  mlbAdminFixtureMeta={};
+  // 僅已登入且擁有 fixtures 權限的後台管理員可取得每場會員數量。
+  const ids=Array.from(new Set(mlbAdminFixtures.map(x=>Number(x.fixture_id||x.game_id||x.game_pk||x.id||0)).filter(x=>Number.isSafeInteger(x)&&x>0)));
+  if(ids.length){
+    try{
+      const meta=await adminBaseballRequest({action:"fixture_meta",game_ids:ids});
+      if(meta?.success!==true)throw new Error("MLB fixture meta unavailable");
+      mlbAdminFixtureMeta=meta.fixture_meta||{};
+    }catch(err){
+      console.warn("MLB FIXTURE META NOT AVAILABLE",err);
+      // 讀取失敗顯示 —，不可捏造為 0 人。
+    }
+  }
   mlbAdminUpdatedAt=new Date().toISOString();
   setText("mlbFixtureTodayFetched",formatDate(mlbAdminUpdatedAt));
   setText("mlbFixtureTomorrowFetched",formatDate(mlbAdminUpdatedAt));
@@ -4635,8 +4690,11 @@ function renderMlbAdminFixtures(){
     const dt=new Date(kick);const time=Number.isNaN(dt.getTime())?"—":dt.toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false});
     const home=zhTeam(x.home?.name||x.home_team),away=zhTeam(x.away?.name||x.away_team);
     const st=adminStateZh(x.status?.detailedState||x.status?.long||x.status||"Scheduled");
-    const score=x.score?String(x.score.home??"—")+" - "+String(x.score.away??"—"):"—";
-    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>—</td><td>—</td><td><span class="table-chip">尚未開放</span></td></tr>';
+    const score=habaoMlbScorePair(x);
+    const meta=mlbAdminFixtureMeta[String(x.fixture_id||x.game_id||x.game_pk||x.id||"")]||null;
+    const analysisCount=meta?.analysis_member_count==null?"—":String(Number(meta.analysis_member_count))+" 人";
+    const pushCount=meta?.push_member_count==null?"—":String(Number(meta.push_member_count))+" 人";
+    return '<tr><td>'+escapeHtml(x.__adminDate)+'</td><td>'+escapeHtml(time)+'</td><td class="mono">'+escapeHtml(x.game_id||x.id||"—")+'</td><td>MLB</td><td>'+escapeHtml(home)+'</td><td>'+escapeHtml(away)+'</td><td>'+statusBadge(st)+'</td><td>'+escapeHtml(score)+'</td><td>'+escapeHtml(analysisCount)+'</td><td>'+escapeHtml(pushCount)+'</td><td><span class="table-chip" title="MLB 單場自動比分推播尚未接通">尚未開放</span></td></tr>';
   }).join(""):'<tr><td colspan="11" class="empty">目前沒有符合條件的 MLB 賽事</td></tr>';
 }
 
@@ -5076,9 +5134,9 @@ function renderNbaFixtures() {
               <td>${escapeHtml(zhTeam(item?.home?.name))}</td>
               <td>${escapeHtml(zhTeam(item?.away?.name))}</td>
               <td>${statusBadge(adminStateZh(item?.status?.long || item?.status?.short || "Scheduled"))}</td>
-              <td>${item?.home_score!=null&&item?.away_score!=null?escapeHtml(item.home_score+" - "+item.away_score):"—"}</td>
+              <td>${escapeHtml(habaoAdminFixtureScore(item?.home_score,item?.away_score))}</td>
               <td>${Number(item?.analysis_member_count || 0)} 人</td>
-              <td>${Number(item?.push_member_count || 0)} 人</td>
+              <td>${item?.push_member_count == null ? "—" : Number(item.push_member_count)+" 人"}</td>
               <td><div class="row-actions" style="align-items:center"><span class="status off"><span class="dot"></span>已關閉</span><button class="action-btn green" disabled title="NBA 單場比分推播後端尚未接入，暫不可開啟">開啟推播</button></div></td>
             </tr>
           `;
@@ -7561,12 +7619,8 @@ async function loadBasketballPushFixtures() {
         ? data.fixtures
         : [];
 
-    if (
-      rows.length
-    ) {
-      nbaFixtureRows =
-        rows;
-    }
+    // 僅更新推播下拉選單；不得覆蓋從 admin-basketball 取得的
+    // NBA 賽事管理資料（比分、快照、會員統計）。
   } catch (error) {
     console.warn(
       "NBA PUSH FIXTURE LOAD ERROR:",
@@ -7948,11 +8002,12 @@ function closeJsonModal() {
 
 function statusBadge(value) {
   const raw=String(value||"—"), lower=raw.toLowerCase();
-  const labels={active:"正常",completed:"已完成",verified:"已驗證",ready:"就緒",ft:"已完賽",failed:"失敗",inactive:"停用",cancelled:"已取消",processing:"執行中",queued:"排隊中",pending:"待驗證",partial:"部分失敗",aet:"延長賽完賽",pen:"點球完賽",ns:"未開賽",live:"進行中",ht:"中場",pst:"延期",canc:"取消",abd:"中止",awd:"判定",wo:"棄權"};
+  const labels={active:"正常",completed:"已完成",verified:"已驗證",ready:"就緒",ft:"已完賽",finished:"已完賽",final:"已完賽","已完賽":"已完賽",failed:"失敗",inactive:"停用",cancelled:"已取消",processing:"執行中",queued:"排隊中",pending:"待驗證",partial:"部分失敗",aet:"延長賽完賽",pen:"點球完賽",ns:"未開賽","未開賽":"未開賽","scheduled":"未開賽",live:"進行中","進行中":"進行中",ht:"中場",pst:"延期",canc:"取消",abd:"中止",awd:"判定",wo:"棄權"};
   const label=labels[lower]||raw;
-  if (["active","completed","verified","ready","ft","aet","pen"].includes(lower)) return `<span class="status active"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["active","completed","verified","ready","ft","finished","final","已完賽","aet","pen"].includes(lower)) return `<span class="status active"><span class="dot"></span>${escapeHtml(label)}</span>`;
   if (["failed","inactive","cancelled","canc","abd","wo"].includes(lower)) return `<span class="status off"><span class="dot"></span>${escapeHtml(label)}</span>`;
-  if (["processing","queued","pending","partial","pst"].includes(lower)) return `<span class="status vip">${escapeHtml(label)}</span>`;
+  if (["processing","queued","pending","partial","pst","進行中","live","ht"].includes(lower)) return `<span class="status vip"><span class="dot"></span>${escapeHtml(label)}</span>`;
+  if (["未開賽","scheduled","ns"].includes(lower)) return `<span class="status"><span class="dot"></span>${escapeHtml(label)}</span>`;
   return `<span class="table-chip">${escapeHtml(label)}</span>`;
 }
 
