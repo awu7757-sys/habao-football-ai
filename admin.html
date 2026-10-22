@@ -830,6 +830,10 @@ tr:last-child td{border-bottom:0}
 .sport-badge--basketball{color:#3cdd82;background:rgba(60,221,130,.12)}
 .sport-badge--football{color:#67d5e9;background:rgba(34,181,204,.12)}
 .sport-badge--baseball{color:#b8a1ff;background:rgba(137,104,248,.13)}
+/* 避免「暫不推薦」被狹窄市場欄位拆成三行 */
+#performanceBody .table-chip,#performanceBody .status{white-space:nowrap;word-break:keep-all;display:inline-flex;align-items:center;justify-content:center}
+#performanceBody td:nth-child(8),#performanceBody td:nth-child(9),#performanceBody td:nth-child(10),#performanceBody td:nth-child(11){min-width:76px}
+
 /* 保持「待驗證」及其他狀態標籤橫向顯示，防止窄欄折行 */
 .status{white-space:nowrap;flex-wrap:nowrap;min-width:max-content;line-height:1.25}
 .status .dot{flex:none}
@@ -5528,7 +5532,11 @@ function officialMarketFromSnapshot(row, key) {
 }
 function marketResultBadge(row, key) {
   const settled = settlementResult(row?.settlement, key);
-  if (settled) return resultBadge(settled);
+  // 只有真正可判定的結果才直接渲染；pending/skipped/no_pick 等
+  // 非判定字串不應被 resultBadge 轉成「—」而隱藏正式推薦狀態。
+  if (["win", "loss", "push", "half_win", "half_loss"].includes(settled)) {
+    return resultBadge(settled);
+  }
   if (row?.status !== "verified") return "—";
   const market = officialMarketFromSnapshot(row, key);
   const pick = String(market?.pick || "").trim().toLowerCase();
