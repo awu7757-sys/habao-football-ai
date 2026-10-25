@@ -3562,6 +3562,24 @@ margin-left: 16px !important;
   }
 }
   
+
+/* HABAO all-sport fixture UI */
+#matchesContainer .v2-match-card .v2-match-action.habao-unified-action{
+display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px 12px;align-items:center;min-height:64px}
+#matchesContainer .habao-unified-action>.ai-status{min-width:0;line-height:1.5}
+#matchesContainer .habao-unified-action>.v2-batch-select,
+#matchesContainer .habao-unified-action>.habao-card-meta{grid-column:2;justify-self:center;max-width:100%}
+#matchesContainer .habao-unified-action>.habao-card-meta{color:#8798a7;font-size:11px;line-height:1.5;text-align:center;overflow-wrap:anywhere}
+#matchesContainer .habao-unified-action>.v2-analysis-btn{grid-column:3;justify-self:end;max-width:100%;white-space:normal;text-align:center}
+#matchesContainer .v2-status.live{color:#5bc8ef}
+#matchesContainer .v2-status.live span{background:#5bc8ef;box-shadow:0 0 9px rgba(91,200,239,.38)}
+@media(max-width:600px){
+#matchesContainer .v2-match-card .v2-match-action.habao-unified-action{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+#matchesContainer .habao-unified-action>.ai-status{grid-column:1;grid-row:1}
+#matchesContainer .habao-unified-action>.v2-analysis-btn{grid-column:2;grid-row:1;min-width:0;max-width:175px}
+#matchesContainer .habao-unified-action>.v2-batch-select,
+#matchesContainer .habao-unified-action>.habao-card-meta{grid-column:1/-1;grid-row:2;justify-self:start;text-align:left}
+}
 </style>
 
 </head>
@@ -5531,9 +5549,9 @@ function updateHabaoFixtureTitle(
     } else {
       sectionTitle.textContent =
         offset === 0
-          ? "🏀 今日籃球賽事"
+          ? "🏀 今日焦點賽事"
           : offset === 1
-            ? "🏀 明日籃球賽事"
+            ? "🏀 明日焦點賽事"
             : "🏀 籃球賽事";
     }
 
@@ -6509,7 +6527,7 @@ function habaoSetupNbaFixtureTools() {
       if (event.target.closest("[data-category='popular']")) habaoApplyNbaFixtureFilters();
     };
   }
-  if (caption) caption.textContent = "QUICK FILTER";
+  if (caption) caption.textContent = window.HabaoI18n?.t("quickFilter", "快捷篩選") || "快捷篩選";
   if (filters) {
     const leagues = [["all","全部"],["NBA","NBA"]];
     filters.innerHTML = leagues.map(([key,label]) =>
@@ -6698,17 +6716,17 @@ function renderBasketballFixtureData(
         window.HabaoI18n?.t(key, fallback) || fallback;
 
       const analysisStatusText =
-        isFinished ? "MATCH FINISHED" :
-        isLive ? "MATCH LIVE" :
+        isFinished ? "已完賽" :
+        isLive ? "比賽已開賽" :
         previewTest && !analysisWindow.isOpen
           ? nbaT("nbaTestPreview", "NBA 測試預覽")
           : analysisAvailable
-            ? nbaT("nbaReady", "NBA AI 可分析")
+            ? nbaT("analysisAvailable", "可分析")
             : nbaT("nbaLocked", "尚未開放分析");
 
       const analysisButtonText =
         isFinished ? nbaT("matchFinished", "✓ 已完賽") :
-        isLive ? "比賽進行中" :
+        isLive ? "分析已截止" :
         previewTest && !analysisWindow.isOpen
           ? nbaT("nbaTestButton", "測試 NBA AI 分析")
           : analysisAvailable
@@ -6717,11 +6735,11 @@ function renderBasketballFixtureData(
 
       return `
         <article
-          class="match-card v2-match-card"
+          class="match-card v2-match-card" data-sport="basketball"
           data-basketball-fixture-id="${escapeBasketballHTML(match?.fixture_id)}"
           data-nba-status="${nbaStatusKey}"
           data-nba-league="NBA"
-          data-nba-search="${escapeBasketballHTML([match?.home?.name,match?.away?.name,homeName,awayName,leagueText,venueText].join(" "))}"
+          data-nba-search="${escapeBasketballHTML([gameId,match?.home?.name,match?.away?.name,homeName,awayName,leagueText,venueText].join(" "))}"
         >
 
           <div class="v2-match-card-top">
@@ -6788,16 +6806,16 @@ function renderBasketballFixtureData(
 
           </div>
 
-          <div class="analysis v2-match-action">
+          <div class="analysis v2-match-action habao-unified-action">
 
-            <div class="ai-status v2-status ${isFinished || isLive ? "finished" : analysisAvailable ? "ready" : "locked"}">
+            <div class="ai-status v2-status ${isFinished ? "finished" : isLive ? "live" : analysisAvailable ? "ready" : "locked"}">
               <span></span>
               ${analysisStatusText}
             </div>
 
             ${venueText
               ? `
-                <div class="stat-note" style="margin:0 0 10px;text-align:center">
+                <div class="habao-card-meta">
                   ${venueText}
                 </div>
               `
@@ -7311,15 +7329,7 @@ container.innerHTML =
       );
 
 
-    const isFinished =
-      currentFixtureOffset === 0 &&
-      [
-        "FT",
-        "AET",
-        "PEN",
-        "AWD",
-        "WO"
-      ].includes(match.status);
+    const isFinished = ["FT","AET","PEN","AWD","WO"].includes(String(match?.status||"").toUpperCase());
 
 
     const analysisWindow =
@@ -7327,9 +7337,8 @@ container.innerHTML =
         match
       );
 
-    const isLocked =
-      !isFinished &&
-      !analysisWindow.isOpen;
+    const isStarted = !isFinished && analysisWindow.isStarted;
+    const isLocked = !isFinished && !isStarted && !analysisWindow.isOpen;
 
     const lockedText =
       getHabaoAnalysisLockedText(
@@ -7338,7 +7347,7 @@ container.innerHTML =
 
     return `
       <article
-        class="match-card v2-match-card"
+        class="match-card v2-match-card" data-sport="football"
         data-fixture-id="${safeFixtureId}"
         data-league-key="${safeLeagueKey}"
       >
@@ -7347,7 +7356,7 @@ container.innerHTML =
 
           <div class="v2-match-league">
             <span class="v2-league-dot"></span>
-            ${leagueText}
+            ⚽ ${leagueText}
           </div>
 
           <div class="v2-match-time">
@@ -7414,7 +7423,7 @@ container.innerHTML =
         </div>
 
 
-        <div class="analysis v2-match-action">
+        <div class="analysis v2-match-action habao-unified-action">
 
           ${
             isFinished
@@ -7422,7 +7431,7 @@ container.innerHTML =
               ? `
                 <div class="ai-status v2-status finished">
                   <span></span>
-                  MATCH FINISHED
+                  已完賽
                 </div>
 
                 <button
@@ -7433,12 +7442,14 @@ container.innerHTML =
                 </button>
               `
 
+              : isStarted
+              ? `<div class="ai-status v2-status live"><span></span>比賽已開賽</div><button class="analysis-btn v2-analysis-btn finished" disabled>分析已截止</button>`
               : isLocked
 
               ? `
                 <div class="ai-status v2-status locked">
                   <span></span>
-                  AI ANALYSIS LOCKED
+                  尚未開放分析
                 </div>
 
                 <button
@@ -7877,6 +7888,7 @@ function applyFixtureFilters() {
     const searchText =
       normalizeSearchText(
         [
+          fixtureId,
           homeOriginal,
           awayOriginal,
           homeApi,
@@ -11029,23 +11041,7 @@ analysisResultNotFound: "Analysis result not found"
         "fixtureSectionTitle"
       );
 
-    if (sectionTitle) {
-      sectionTitle.textContent =
-        currentFixtureOffset === 0
-          ? I18N.t(
-              "todayFocus",
-              "⚽️ 今日焦點賽事"
-            )
-          : currentFixtureOffset === 1
-            ? I18N.t(
-                "tomorrowFocus",
-                "⚽️ 明日焦點賽事"
-              )
-            : I18N.t(
-                "focusMatches",
-                "⚽️ 焦點賽事"
-              );
-    }
+    if (sectionTitle) updateHabaoFixtureTitle(currentFixtureOffset);
 
     const search =
       document.getElementById(
@@ -11272,7 +11268,7 @@ analysisResultNotFound: "Analysis result not found"
 
 </script>
 
-<script src="mlb-match-center.js?v=10"></script>
+<script src="mlb-match-center.js?v=11"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 </body>
 </html>
