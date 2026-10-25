@@ -2932,13 +2932,16 @@ function renderBetPartnerPlatforms() {
           platform.logo_url ||
           "habao-hb-logo.png";
 
+        const available=platform.enabled!==false;
+        const waiting=!available&&platform.show_when_disabled===true;
+        if(!available&&!waiting)return "";
         const url =
           platform.bet_url ||
           platform.register_url ||
           "#";
 
         return `
-          <div class="bet-platform-card is-live">
+          <div class="bet-platform-card ${available?"is-live":"is-pending"}">
             <img
               src="${escapePartnerHtml(logo)}"
               alt="${escapePartnerHtml(displayName)}"
@@ -2950,24 +2953,12 @@ function renderBetPartnerPlatforms() {
                 ${escapePartnerHtml(displayName)}
               </strong>
               <span>
-                ${analysisT(
-                  "betPlatformPartner",
-                  "合作平台"
-                )}
+                ${waiting?"待開放":analysisT("betPlatformPartner","合作平台")}
               </span>
             </div>
 
-            <a
-              href="${escapePartnerHtml(url)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="bet-platform-go"
-            >
-              ${analysisT(
-                "betPlatformGo",
-                "前往投注 ↗"
-              )}
-            </a>
+            ${available?`<a href="${escapePartnerHtml(url)}" target="_blank" rel="noopener noreferrer" class="bet-platform-go">${analysisT("betPlatformGo","前往投注 ↗")}</a>`:
+            '<span class="bet-platform-go" style="opacity:.58;cursor:not-allowed" aria-disabled="true">待開放</span>'}
           </div>
         `;
       })
