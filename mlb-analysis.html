@@ -1,5 +1,35 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><meta name="viewport" content="width=device-width,initial-scale=1"><title>MLB AI 分析｜HABAO</title><style>
-:root{font-family:system-ui,"Noto Sans TC",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#07332c,transparent 40%),linear-gradient(#071421,#081626);color:#f4f7fc}main{max-width:940px;margin:auto;padding:36px 20px}.panel{border:1px solid #3e4750;border-radius:19px;background:linear-gradient(125deg,#102637,#0d1a25);padding:25px;margin:15px 0}.k{color:#ffd36a;font-size:13px;letter-spacing:1.2px;font-weight:800}.team{display:flex;justify-content:space-between;gap:14px;text-align:center;align-items:center}.team>div{flex:1}.vs{color:#ffd36a;font-weight:900}.name{font-size:23px;font-weight:800;margin-top:14px}.market{border:1px solid #3b4d5e;border-radius:13px;padding:20px;background:#0b2030}.markets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.value{font-size:25px;font-weight:850;color:#ffd16a;margin-top:12px}.muted{color:#98acba;font-size:13px}a{color:#ffd16a}.warn{color:#9cafbc;font-size:13px}@media(max-width:650px){.markets{grid-template-columns:1fr}.name{font-size:17px}}</style></head><body><main><a href="football.html">← 返回賽事中心</a><section class="panel"><div class="k">⚾ MLB · T-10 OFFICIAL SNAPSHOT</div><h1>AI 賽事分析</h1><p class="muted">獨贏、讓分、大小分皆讀取同場唯一正式快照；重新查看不重新產生模型結果。</p></section><section id="result" aria-live="polite" class="panel">正在載入已保存的 MLB 分析…</section><script>
+:root{font-family:system-ui,"Noto Sans TC",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,#07332c,transparent 40%),linear-gradient(#071421,#081626);color:#f4f7fc}main{max-width:940px;margin:auto;padding:36px 20px}.panel{border:1px solid #3e4750;border-radius:19px;background:linear-gradient(125deg,#102637,#0d1a25);padding:25px;margin:15px 0}.k{color:#ffd36a;font-size:13px;letter-spacing:1.2px;font-weight:800}.team{display:flex;justify-content:space-between;gap:14px;text-align:center;align-items:center}.team>div{flex:1}.vs{color:#ffd36a;font-weight:900}.name{font-size:23px;font-weight:800;margin-top:14px}.market{border:1px solid #3b4d5e;border-radius:13px;padding:20px;background:#0b2030}.markets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.value{font-size:25px;font-weight:850;color:#ffd16a;margin-top:12px}.muted{color:#98acba;font-size:13px}a{color:#ffd16a}.warn{color:#9cafbc;font-size:13px}@media(max-width:650px){.markets{grid-template-columns:1fr}.name{font-size:17px}}</style></head><body><main><a href="football.html">← 返回賽事中心</a><section class="panel"><div class="k">⚾ MLB · T-10 OFFICIAL SNAPSHOT</div><h1>AI 賽事分析</h1><p class="muted">獨贏、讓分、大小分皆讀取同場唯一正式快照；重新查看不重新產生模型結果。</p></section><section id="mlbBatchNav" class="panel" style="display:none" aria-label="批次賽事切換">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <button id="mlbBatchPrev" type="button" class="batch-control">← 上一場</button>
+    <div style="text-align:center"><strong id="mlbBatchCount"></strong><div class="muted" id="mlbBatchTeams"></div></div>
+    <button id="mlbBatchNext" type="button" class="batch-control">下一場 →</button>
+  </div>
+</section>
+<style>.batch-control{border:1px solid #846b2e;background:#152534;color:#ffd36a;border-radius:10px;padding:12px 13px;font-weight:700;cursor:pointer}.batch-control:disabled{opacity:.35;cursor:default}</style>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  if(params.get("batch")!=="1")return;
+  let packet;
+  try{packet=JSON.parse(sessionStorage.getItem("matchAnalysisBatch")||"null")}catch{}
+  const items=Array.isArray(packet?.results)?packet.results.filter(v=>v?.sport==="baseball"&&v?.snapshot?.id):[];
+  if(!items.length)return;
+  const rawIndex=Number(params.get("item")||"0");
+  const index=Number.isInteger(rawIndex)&&rawIndex>=0&&rawIndex<items.length?rawIndex:0;
+  const current=items[index];
+  sessionStorage.setItem("matchAnalysis",JSON.stringify(current));
+  const nav=document.getElementById("mlbBatchNav");
+  nav.style.display="block";
+  document.getElementById("mlbBatchCount").textContent="第 "+(index+1)+" / "+items.length+" 場";
+  const name=(v)=>typeof v==="object"?String(v?.name||""):String(v||"");
+  document.getElementById("mlbBatchTeams").textContent=name(current.fixture?.home)+" vs "+name(current.fixture?.away);
+  const prev=document.getElementById("mlbBatchPrev"),next=document.getElementById("mlbBatchNext");
+  prev.disabled=index===0;next.disabled=index===items.length-1;
+  prev.onclick=()=>{if(index>0)location.href="mlb-analysis.html?batch=1&item="+(index-1);};
+  next.onclick=()=>{if(index<items.length-1)location.href="mlb-analysis.html?batch=1&item="+(index+1);};
+})();
+</script><section id="result" aria-live="polite" class="panel">正在載入已保存的 MLB 分析…</section><script>
 (()=>{const el=document.getElementById('result'),e=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');let x=null;try{x=JSON.parse(sessionStorage.getItem('matchAnalysis')||'null')}catch{}if(x?.sport!=='baseball'||!x?.snapshot?.id){el.textContent='找不到有效的 MLB 正式分析資料。請從賽事中心進入。';return;}const r=x.analysis?.recommendations||{},fixture=x.fixture||{},m=x.model?.projection||{},pick=(o)=>o?.pick==='home'?'主隊':o?.pick==='away'?'客隊':o?.pick==='over'?'大分':o?.pick==='under'?'小分':'暫無方向';const market=(title,v)=>'<div class="market"><div class="k">'+title+'</div><div class="value">'+e(pick(v))+'</div><p class="muted">'+(v?.line===null||v?.line===undefined?'盤口未取得':'快照盤口：'+e(v.line))+'</p></div>';el.innerHTML='<div class="team"><div class="name">'+e(fixture.home?.name||'主隊')+'</div><div class="vs">VS</div><div class="name">'+e(fixture.away?.name||'客隊')+'</div></div><p class="muted">模型預測 '+e(m.home_runs??'-')+' : '+e(m.away_runs??'-')+'　｜　合計 '+e(m.total_runs??'-')+'</p><div class="markets">'+market('獨贏',r.moneyline)+market('讓分',r.handicap)+market('大小分',r.over_under)+'</div><p class="warn">正式快照：'+e(x.snapshot.id)+'　模型：'+e(x.snapshot.model_version||'-')+'。只使用當時已保存的盤口資料。</p>';})();
 </script><section class="panel">
   <div class="k">會員個人重跑</div>
