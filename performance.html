@@ -593,7 +593,12 @@ function habaoMlbPredictionPart(pred,key){
     raw==="away"?(lang==="en"?"Away":simple?"客队":"客隊"):
     raw==="over"?(lang==="en"?"Over":"大"):
     raw==="under"?(lang==="en"?"Under":"小"):localizedPick(rec.pick);
-  return (key==="over_under"||key==="handicap")&&rec.line!=null&&String(rec.line).trim()!==""?label+" "+rec.line:label;
+  if((key==="over_under"||key==="handicap")&&rec.line!=null&&String(rec.line).trim()!==""){
+    const rawLine=String(rec.line).trim();
+    const line=key==="handicap"&&Number.isFinite(Number(rawLine))&&Number(rawLine)>0&&!rawLine.startsWith("+")?"+"+rawLine:rawLine;
+    return label+" "+line;
+  }
+  return label;
 }
 function habaoMlbPredictionText(pred){
   if(!pred||typeof pred!=="object")return"—";
