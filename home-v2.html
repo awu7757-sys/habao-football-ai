@@ -8650,6 +8650,7 @@ function updateV2VipPlatformInputState() {
   const selected =
     v2PartnerPlatforms.find(
       platform =>
+        platform.enabled!==false &&
         String(platform?.slug || "") ===
         selectedV2PartnerSlug
     );
@@ -8708,7 +8709,7 @@ function renderV2PartnerAccountPlatforms() {
   }
 
   choices.innerHTML =
-    v2PartnerPlatforms
+    v2PartnerPlatforms.filter(platform=>platform.enabled!==false)
       .map(platform => {
         const displayName =
           platform.display_name ||
@@ -8808,8 +8809,9 @@ function renderV2PartnerPlatforms() {
   }
 
   section.innerHTML =
-    v2PartnerPlatforms
+    v2PartnerPlatforms.filter(platform=>platform.enabled!==false||platform.show_when_disabled===true)
       .map(platform => {
+        const available=platform.enabled!==false;
         const displayName =
           platform.display_name ||
           platform.name ||
@@ -8847,17 +8849,8 @@ function renderV2PartnerPlatforms() {
             </div>
 
             <div class="v2-vip-platform-actions">
-              <a
-                href="${escapeV2PartnerHtml(registerUrl)}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="v2-vip-register-button"
-              >
-                ${window.HabaoI18n?.t(
-                  "freeRegister",
-                  "免費註冊 ↗"
-                ) || "免費註冊 ↗"}
-              </a>
+              ${available?`<a href="${escapeV2PartnerHtml(registerUrl)}" target="_blank" rel="noopener noreferrer" class="v2-vip-register-button">${window.HabaoI18n?.t("freeRegister","免費註冊 ↗")||"免費註冊 ↗"}</a>`:
+              '<span class="v2-vip-register-button" aria-disabled="true" style="opacity:.55;cursor:not-allowed">待開放</span>'}
             </div>
           </div>
         `;
