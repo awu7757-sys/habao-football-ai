@@ -31,6 +31,42 @@
 })();
 </script><section id="result" aria-live="polite" class="panel">正在載入已保存的 MLB 分析…</section><script>
 (()=>{const el=document.getElementById('result'),e=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');let x=null;try{x=JSON.parse(sessionStorage.getItem('matchAnalysis')||'null')}catch{}if(x?.sport!=='baseball'||!x?.snapshot?.id){el.textContent='找不到有效的 MLB 正式分析資料。請從賽事中心進入。';return;}const r=x.analysis?.recommendations||{},fixture=x.fixture||{},m=x.model?.projection||{},pick=(o)=>o?.pick==='home'?'主隊':o?.pick==='away'?'客隊':o?.pick==='over'?'大分':o?.pick==='under'?'小分':'暫無方向';const market=(title,v)=>'<div class="market"><div class="k">'+title+'</div><div class="value">'+e(pick(v))+'</div><p class="muted">'+(v?.line===null||v?.line===undefined?'盤口未取得':'快照盤口：'+e(v.line))+'</p></div>';el.innerHTML='<div class="team"><div class="name">'+e(fixture.home?.name||'主隊')+'</div><div class="vs">VS</div><div class="name">'+e(fixture.away?.name||'客隊')+'</div></div><p class="muted">模型預測 '+e(m.home_runs??'-')+' : '+e(m.away_runs??'-')+'　｜　合計 '+e(m.total_runs??'-')+'</p><div class="markets">'+market('獨贏',r.moneyline)+market('讓分',r.handicap)+market('大小分',r.over_under)+'</div><p class="warn">正式快照：'+e(x.snapshot.id)+'　模型：'+e(x.snapshot.model_version||'-')+'。只使用當時已保存的盤口資料。</p>';})();
+</script>
+<section class="panel" aria-label="深度賽事情報">
+  <div class="k">HABAO MATCH INTELLIGENCE</div><h2>深度賽事情報</h2>
+  <article class="market" style="margin:16px 0"><div class="k">01 · MATCH INSIGHT</div><h3>AI 分析重點</h3><p class="muted" id="mlbInsightFocus">讀取正式快照中…</p></article>
+  <article class="market"><div class="k">02 · MARKET INTELLIGENCE</div><h3>市場與賠率分析</h3><p class="muted" id="mlbInsightMarket">讀取正式快照中…</p></article>
+</section>
+<script>
+(function(){
+ const el=document.getElementById("mlbInsightFocus"),market=document.getElementById("mlbInsightMarket");
+ let r;try{r=JSON.parse(sessionStorage.getItem("matchAnalysis")||"null")}catch{}
+ if(r?.sport!=="baseball"){el.textContent="目前沒有摘要資料。";market.textContent="目前沒有市場資料。";return;}
+ const m=r.model||{},proj=m.projection||{},rec=r.analysis?.recommendations||{},odds=r.odds||{};
+ const valid=x=>x!==null&&x!==undefined&&x!==""&&Number.isFinite(Number(x));
+ const h=r.fixture?.home?.name||"主隊",a=r.fixture?.away?.name||"客隊";
+ const focus=[];
+ const ph=proj.home_runs,pa=proj.away_runs,total=proj.total_runs;
+ if(valid(ph)&&valid(pa)){
+   const diff=Number(ph)-Number(pa);
+   focus.push("模型預估"+h+" "+ph+" 分、"+a+" "+pa+" 分；"+
+     (diff>0?"主隊預估領先 "+diff+" 分。":diff<0?"客隊預估領先 "+Math.abs(diff)+" 分。":"兩隊預估得分相同。"));
+ }
+ if(valid(total))focus.push("模型預估全場總分 "+total+" 分。");
+ const pick=v=>v==="home"?"主隊":v==="away"?"客隊":v==="over"?"大":v==="under"?"小":"暫不推薦";
+ const label=(x)=>pick(x?.pick)+(x?.line==null?"":" "+x.line);
+ focus.push("獨贏方向："+label(rec.moneyline)+"；讓分方向："+label(rec.handicap)+"；大小分方向："+label(rec.over_under)+"。");
+ el.textContent=focus.join(" ");
+ const notes=[];
+ if(valid(rec.over_under?.line)&&valid(total)){
+   const d=Number(total)-Number(rec.over_under.line);
+   notes.push("正式快照大小分盤口 "+rec.over_under.line+"，模型總分 "+total+"，"+
+     (d>0?"模型高於盤口 "+d.toFixed(1)+" 分。":d<0?"模型低於盤口 "+Math.abs(d).toFixed(1)+" 分。":"模型與盤口相同。"));
+ }else notes.push("市場大小分或模型總分資料不足，暫無法比較差距。");
+ if(rec.handicap?.line!=null)notes.push("正式快照讓分方向："+label(rec.handicap)+"。");
+ notes.push("僅解讀正式 T-10 快照保存的盤口及模型資料，不重新產生推薦。");
+ market.textContent=notes.join(" ");
+})();
 </script><section class="panel">
   <div class="k">會員個人重跑</div>
   <p class="muted">6 小時後可以再次操作，但永遠使用同一份正式 T-10 快照，不重新抓盤口、不重新預測，也不再扣次。</p>
