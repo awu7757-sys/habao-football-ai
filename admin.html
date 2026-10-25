@@ -5741,7 +5741,9 @@ function renderPerformanceAdmin() {
       <td title="讓分">${row?.sport==="football"&&adminHandicapResult(row)?resultBadge(adminHandicapResult(row)):marketResultBadge(row,"handicap")}</td>
       <td><div class="row-actions">
         <button class="action-btn gold" onclick='showPerformanceAnalysisSummary("${row?.sport}",${Number(row?.fixture_id)})'>查看摘要</button>
-        ${isMlb?'<span class="table-chip">MLB 唯讀｜尚未開放排除／刪除</span>':`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
+        ${isMlb?
+          '<button type="button" class="action-btn red" disabled title="MLB 排除需要專用後端支援，尚未啟用" style="opacity:.44;cursor:not-allowed">排除</button><button type="button" class="action-btn red" disabled title="避免誤刪 MLB 正式驗證資料，尚未啟用" style="opacity:.44;cursor:not-allowed">刪除</button>'
+          :`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
         <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>`}
       </div></td>
     </tr>`;
