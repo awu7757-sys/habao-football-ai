@@ -176,6 +176,8 @@
     .record-pred{margin-top:8px;padding:8px 9px;border-radius:9px;background:rgba(0,0,0,.19);color:#9fb3be;font-size:8px;line-height:1.5}.record-pred b{color:#eef4f7}
     .record-results{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
     .record-result{display:flex;align-items:center;justify-content:space-between;gap:5px;border:1px solid rgba(255,255,255,.055);border-radius:8px;padding:6px 7px;background:rgba(2,15,23,.36);font-size:8px;color:#9fb3bd;font-weight:850}.record-result .mark{width:20px;height:20px;flex:0 0 20px}
+    .mark.no-pick{width:auto;min-width:43px;height:20px;padding:0 5px;white-space:nowrap;font-size:8px;background:rgba(97,121,135,.25);color:#b5c8d2;border:1px solid rgba(151,172,185,.24)}
+    .record-result .mark.no-pick{width:auto;flex:0 0 auto}
     .method-note{padding:8px 12px 0;color:#6f8998;font-size:8px;line-height:1.5;text-align:center}
     .empty{display:grid;place-items:center;min-height:80px;color:#718a98;font-size:10px}
 
@@ -859,6 +861,19 @@ function predictionPick(p,key){
   }
   return"--";
 }
+/* Only a qualified original T-10 pick can produce a scored settlement. */
+function habaoRecordMarketMark(row,key){
+  const result=normalizeResult(marketResult(row?.settlement,key));
+  if(result)return `<span class="mark ${result}">${resultMark(result)}</span>`;
+  const pick=String(predictionPick(row?.prediction,key)??"").trim();
+  if(/暫不推薦|暂不推荐|不推薦|不推荐|no[ _-]?(?:pick|recommendation)|not recommended/i.test(pick)){
+    const label=getLang()==="en"?"No pick":getLang()==="zh-Hans"?"暂不推荐":"暫不推薦";
+    const note=getLang()==="en"?"No T-10 recommendation; not counted in market hit rate":
+      getLang()==="zh-Hans"?"T-10 正式快照未推荐，不计入命中率":"T-10 正式快照未推薦，不計入命中率";
+    return `<span class="mark no-pick" title="${esc(note)}">${esc(label)}</span>`;
+  }
+  return `<span class="mark" title="${esc(getLang()==="en"?"No official settlement available":"沒有可顯示的正式結算結果")}">−</span>`;
+}
 function overallResult(settlement){const keys=currentSport==="football"?["moneyline","over_under","btts"]:["moneyline","over_under","handicap"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);if(!vals.length)return"";let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
   const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
@@ -877,26 +892,20 @@ function renderRecords(){
       const s=x.settlement||{};
       const ov=overallResult(s);
       const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
-      const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
-      const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
-      const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
       return`<tr>
         <td>${esc(dateFmt(x.kickoff_at))}</td>
         <td><b>${currentSport==="baseball"?"MLB":"NBA"}</b></td>
         <td>${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</td>
         <td class="score">${esc(x.final_score||"-")}</td>
-        <td><div class="pred-main">${esc(money)}</div><div class="pred-sub">${esc(getLang()==="en"?"Projected score":"預測比分")} ${esc(scorePrediction)}</div></td>
+        <td><div class="pred-main">${esc(money)}</div></td>
         <td><div class="verify-dot">${resultMark(ov)}</div></td>
-        ${["moneyline","over_under","handicap"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
+        ${["moneyline","over_under","handicap"].map(k=>`<td>${habaoRecordMarketMark(x,k)}</td>`).join("")}
         <td class="row-arrow">›</td>
       </tr>`;
     }).join("");
 
     mobile.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
-      const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
-      const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
-      const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
       const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
       return`<article class="record-card">
         <div class="record-top">
@@ -907,9 +916,9 @@ function renderRecords(){
           <div class="record-teams">${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</div>
           <div class="record-score">${esc(x.final_score||"-")}</div>
         </div>
-        <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(money)}｜${esc(getLang()==="en"?"Score":"比分")} ${esc(scorePrediction)}</div>
+        <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(money)}</div>
         <div class="record-results">
-          ${[["moneyline",sportMetricLabel("moneyline")],["over_under",sportMetricLabel("over_under")],["handicap",sportMetricLabel("handicap")]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
+          ${[["moneyline",sportMetricLabel("moneyline")],["over_under",sportMetricLabel("over_under")],["handicap",sportMetricLabel("handicap")]].map(([k,label])=>`<div class="record-result"><span>${esc(label)}</span>${habaoRecordMarketMark(x,k)}</div>`).join("")}
         </div>
       </article>`;
     }).join("");
