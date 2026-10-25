@@ -1969,6 +1969,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
                     <th>投注網址</th>
                     <th>註冊網址</th>
                     <th>狀態</th>
+                    <th>前台展示</th>
                     <th>已綁定會員</th>
                     <th>操作</th>
                   </tr>
@@ -2183,6 +2184,13 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <select id="partnerEnabled" class="input">
           <option value="true">啟用</option>
           <option value="false">停用</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label">停用時前台是否顯示</label>
+        <select id="partnerShowWhenDisabled" class="input">
+          <option value="false">不顯示</option>
+          <option value="true">顯示「待開放」</option>
         </select>
       </div>
     </div>
@@ -5931,6 +5939,7 @@ function renderPartners() {
                 : `<span class="status off"><span class="dot"></span>停用</span>`
             }
           </td>
+          <td>${platform?.enabled?"正常顯示":platform?.show_when_disabled===true?"待開放":"隱藏"}</td>
           <td><strong>${Number(platform?.bound_member_count || 0)}</strong></td>
           <td>
             <div class="row-actions">
@@ -6020,9 +6029,9 @@ function openPartnerModal(platform = null) {
     );
 
   document.getElementById("partnerEnabled").value =
-    platform?.enabled === false
-      ? "false"
-      : "true";
+    platform?.enabled === false ? "false" : "true";
+  document.getElementById("partnerShowWhenDisabled").value =
+    platform?.show_when_disabled === true ? "true" : "false";
 
   document
     .getElementById(
@@ -6078,7 +6087,9 @@ async function savePartner() {
         document.getElementById("partnerSortOrder")?.value || 0
       ),
     enabled:
-      document.getElementById("partnerEnabled")?.value === "true"
+      document.getElementById("partnerEnabled")?.value === "true",
+    show_when_disabled:
+      document.getElementById("partnerShowWhenDisabled")?.value === "true"
   };
 
   try {
