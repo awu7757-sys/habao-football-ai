@@ -3760,17 +3760,17 @@ const basketballInjuries =
   data?.market_data
     ?.injuries || {};
 
+/* Canonical member selection: the T-10 snapshot's original three
+   market picks and lines always win. display_* is derivative metadata,
+   never an alternate recommendation or a substitute betting line. */
 const habaoDisplayMarket = (market) => {
   const r = market || {};
-  if (!r.display_pick) return r;
   return {
     ...r,
-    pick: r.display_pick,
-    line: Object.prototype.hasOwnProperty.call(r, "display_line")
-      ? r.display_line : (r.line ?? null),
-    confidence: r.display_confidence ?? r.confidence,
-    reason: r.signal_level === "low_advantage"
-      ? `模型方向（低優勢）：${r.reason || ""}` : r.reason
+    pick: r.pick ?? "暫不推薦",
+    line: r.line ?? null,
+    confidence: r.confidence ?? 0,
+    reason: r.reason ?? ""
   };
 };
 const moneyline = habaoDisplayMarket(rec.moneyline);
