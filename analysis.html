@@ -3868,6 +3868,34 @@ const basketballMarketText =
           : "目前沒有真實市場讓分 / 大小分盤口，僅顯示模型公平線。"
       );
 
+/* NBA analysis copy is derived from saved T-10 predictions, not new picks. */
+const nbaDescription=(()=>{
+  const valid=x=>x!==null&&x!==undefined&&x!==""&&Number.isFinite(Number(x));
+  const home=getAnalysisLocalizedName(fixture.home,"主隊"),away=getAnalysisLocalizedName(fixture.away,"客隊");
+  const ph=basketballPredictedScore?.home,pa=basketballPredictedScore?.away;
+  const format=r=>String(r?.pick||"暫不推薦")+(r?.line==null?"":"，原始盤口 "+r.line);
+  const focus=[];
+  if(valid(ph)&&valid(pa)){
+    const diff=Number(ph)-Number(pa);
+    focus.push("模型預估"+home+" "+ph+" 分、"+away+" "+pa+" 分。"+
+      (diff>0?"主隊預估領先 "+diff+" 分。":diff<0?"客隊預估領先 "+Math.abs(diff)+" 分。":"兩隊預估得分相同。"));
+  }
+  if(valid(basketballHomeWin)&&valid(basketballAwayWin))
+    focus.push("主隊模型勝率 "+basketballHomeWin+"%、客隊 "+basketballAwayWin+"%；勝率僅是模型估計。");
+  focus.push("獨贏方向："+format(moneyline)+"；讓分方向："+format(handicap)+"；大小分方向："+format(overUnder)+"。");
+  const mt=basketballMarket?.consensus?.total;
+  const market=[];
+  if(valid(mt)&&valid(basketballFairTotal)){
+    const d=Number(basketballFairTotal)-Number(mt);
+    market.push("市場總分盤口 "+mt+" 分，模型預估總分 "+basketballFairTotal+" 分。"+
+      (d>0?"模型比市場高 "+d.toFixed(1)+" 分。":d<0?"模型比市場低 "+Math.abs(d).toFixed(1)+" 分。":"模型與市場總分一致。"));
+  }else if(valid(basketballFairTotal))market.push("模型預估總分 "+basketballFairTotal+" 分，但市場大小分盤口未取得。");
+  if(basketballMarket?.consensus?.home_spread!=null)
+    market.push("市場主隊讓分 "+basketballMarket.consensus.home_spread+"，此為市場盤口而非模型公平線。");
+  market.push("正式推薦：獨贏 "+format(moneyline)+"；讓分 "+format(handicap)+"；大小分 "+format(overUnder)+"。");
+  if(basketballInjuries?.available!==true)market.push("目前沒有完整傷病資料，因此不對缺陣影響作推斷。");
+  return {focus:focus.join(" "),market:market.join(" ")};
+})();
 const basketballInjuryText =
   basketballInjuries
     ?.available === true
@@ -4106,6 +4134,12 @@ const timeText = gameDate
   return "";
 };
     
+    const resultTeamLogo=team=>{
+      const key=String(team?.api_name||team?.name||"").toLowerCase();
+      if(isBasketballAnalysis&&/sacramento|沙加緬度/.test(key))
+        return "https://a.espncdn.com/i/teamlogos/nba/500/sac.png";
+      return String(team?.logo||"");
+    };
     app.innerHTML = `
 
 <div class="analysis-hero">
@@ -4145,7 +4179,7 @@ const timeText = gameDate
     <div class="team-side">${analysisT("homeTeam", "主隊")}</div>
 
     <div class="team-logo-box">
-      <img src="${fixture.home?.logo || ""}" alt="">
+      <img src="${resultTeamLogo(fixture.home)}" alt="" onerror="this.onerror=null;this.style.display='none'">
     </div>
 
     <div class="team-name">
@@ -4166,7 +4200,7 @@ const timeText = gameDate
     <div class="team-side">${analysisT("awayTeam", "客隊")}</div>
 
     <div class="team-logo-box">
-      <img src="${fixture.away?.logo || ""}" alt="">
+      <img src="${resultTeamLogo(fixture.away)}" alt="" onerror="this.onerror=null;this.style.display='none'">
     </div>
 
     <div class="team-name">
@@ -4403,7 +4437,7 @@ ${getAnalysisLeagueName(
             <div class="v2-insight-title">${analysisT("analysisFocus", "AI 分析重點")}</div>
 
             <p>
-              ${localizeAnalysisText(analysis.summary) || analysisT("noSummary", "目前沒有摘要資料。")} 
+              ${isBasketballAnalysis ? localizeAnalysisText(nbaDescription.focus) : (localizeAnalysisText(analysis.summary) || analysisT("noSummary", "目前沒有摘要資料。"))} 
             </p>
           </div>
         </div>
@@ -4418,16 +4452,7 @@ ${getAnalysisLeagueName(
 
             <p>
               ${
-                isBasketballAnalysis
-                  ? (
-                      localizeAnalysisText(
-                        basketballMarketText
-                      ) +
-                      "｜" +
-                      localizeAnalysisText(
-                        basketballInjuryText
-                      )
-                    )
+                isBasketballAnalysis ? localizeAnalysisText(nbaDescription.market)
                   : (
                       localizeAnalysisText(
                         analysis.market_analysis
