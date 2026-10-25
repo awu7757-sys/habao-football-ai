@@ -6813,14 +6813,6 @@ function renderBasketballFixtureData(
               ${analysisStatusText}
             </div>
 
-            ${venueText
-              ? `
-                <div class="habao-card-meta">
-                  ${venueText}
-                </div>
-              `
-              : ""}
-
             <button
               class="analysis-btn v2-analysis-btn ${isFinished || isLive ? "finished" : analysisAvailable ? "" : "locked"}"
               ${analysisAvailable
