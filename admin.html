@@ -5732,7 +5732,7 @@ function renderPerformanceAdmin() {
       <td class="btts-only" title="BTTS 僅足球">${row?.sport==="football"?marketResultBadge(row,"btts"):"—"}</td>
       <td title="讓分">${row?.sport==="football"&&adminHandicapResult(row)?resultBadge(adminHandicapResult(row)):marketResultBadge(row,"handicap")}</td>
       <td><div class="row-actions">
-        <button class="action-btn" onclick='showJsonModal("${isNba?"NBA":isMlb?"MLB":"足球"}公開戰績詳細", performanceSnapshots.find(x=>x.sport==="${row?.sport}"&&String(x.fixture_id)==="${String(row?.fixture_id)}")||{})'>查看</button>
+        <button class="action-btn gold" onclick='showPerformanceAnalysisSummary("${row?.sport}",${Number(row?.fixture_id)})'>查看摘要</button>
         ${isMlb?'<span class="table-chip">MLB 唯讀｜尚未開放排除／刪除</span>':`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
         <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>`}
       </div></td>
@@ -6656,9 +6656,23 @@ function normalizeLeagueDisplay(value){
 function analysisSummaryHtml(item){
   const d=item?.result_data&&typeof item.result_data==="object"?item.result_data:{};
   const analysis=d?.analysis&&typeof d.analysis==="object"?d.analysis:d;
-  const recommendations=analysis?.recommendations&&typeof analysis.recommendations==="object"
+  const primaryRecommendations=analysis?.recommendations&&typeof analysis.recommendations==="object"
     ?analysis.recommendations
     :d?.recommendations&&typeof d.recommendations==="object"?d.recommendations:{};
+  // MLB 的正式快照將推薦存放在 model.markets；轉為與 AI 分析紀錄相同的摘要欄位。
+  const modelMarkets=d?.model?.markets||analysis?.model?.markets||{};
+  const homeSpread=adminNullableNumber(modelMarkets?.spread?.market_home_spread);
+  const recommendations={
+    moneyline:modelMarkets?.moneyline||null,
+    handicap:modelMarkets?.spread
+      ?{...modelMarkets.spread,line:homeSpread==null?null:
+        String(modelMarkets.spread.pick||"").toLowerCase()==="away"?-homeSpread:homeSpread}
+      :null,
+    over_under:modelMarkets?.totals
+      ?{...modelMarkets.totals,line:modelMarkets.totals.market_line}
+      :null,
+    ...primaryRecommendations
+  };
   const sport=String(item?.sport||d?.sport||d?.fixture?.sport||"football").toLowerCase();
   const isFootball=sport==="football";
   const isBasketball=sport==="basketball";
@@ -6735,6 +6749,81 @@ function analysisSummaryHtml(item){
     '</div>';
 }
 function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.admin_key||x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
+function findOfficialRecordForPerformance(records,sport,fixtureId){
+  const matched=(Array.isArray(records)?records:[]).filter(item=>
+    String(item?.sport||sport)===String(sport)&&
+    String(item?.fixture_id??item?.game_id??"")===String(fixtureId)&&
+    item?.result_data!=null
+  );
+  const priority=item=>(
+    String(item?.record_source||"").toLowerCase()==="system_auto"||
+    String(item?.account||"").toUpperCase()==="SYSTEM_AUTO"
+  )?1:0;
+  matched.sort((a,b)=>priority(b)-priority(a));
+  return matched[0]||null;
+}
+const performanceSummaryCache=new Map();
+let performanceSummaryClickId=0;
+async function showPerformanceAnalysisSummary(sport,fixtureId){
+  const id=String(fixtureId||"");
+  const row=performanceSnapshots.find(item=>item?.sport===sport&&String(item?.fixture_id)===id);
+  if(!row)return alert("找不到這場公開戰績資料，請先更新頁面。");
+  const clickId=++performanceSummaryClickId;
+  setText("jsonModalTitle","正式 AI 分析摘要");
+  const pre=document.getElementById("jsonModalContent");
+  if(pre){pre.style.whiteSpace="normal";pre.textContent="正在讀取正式分析紀錄…";}
+  document.getElementById("jsonModal")?.classList.remove("hidden");
+  const cacheKey=sport+":"+id;
+  let record=findOfficialRecordForPerformance(analysisHistoryRecords,sport,id)
+    ||performanceSummaryCache.get(cacheKey)||null;
+  if(!record){
+    try{
+      let response;
+      if(sport==="basketball"){
+        response=await adminBasketballRequest({action:"analysis_history",limit:400});
+      }else if(sport==="baseball"){
+        response=await adminBaseballRequest({action:"analysis_history",limit:400});
+      }else{
+        response=await adminCenterRequest({action:"analysis_history",limit:400});
+      }
+      const records=(response?.records||[]).map(item=>({...item,sport}));
+      record=findOfficialRecordForPerformance(records,sport,id);
+      if(record)performanceSummaryCache.set(cacheKey,record);
+    }catch(error){
+      console.warn("PUBLIC PERFORMANCE SUMMARY HISTORY UNAVAILABLE",sport,id,error);
+    }
+  }
+  if(clickId!==performanceSummaryClickId)return;
+  let details=null;
+  if(record){
+    let payload=record.result_data;
+    if(typeof payload==="string"){try{payload=JSON.parse(payload);}catch{payload=null;}}
+    if(payload&&typeof payload==="object"){
+      details={...record,sport,result_data:payload,
+        home_team:record.home_team||row.home_team,
+        away_team:record.away_team||row.away_team,
+        fixture_time:record.fixture_time||row.kickoff_at};
+    }
+  }
+  if(!details){
+    // Football/NBA performance may contain the original immutable prediction.
+    // MLB performance generally contains settlement only: never invent picks.
+    let payload=row?.prediction_data??row?.prediction??row?.analysis??null;
+    if(typeof payload==="string"){try{payload=JSON.parse(payload);}catch{payload=null;}}
+    if(payload&&typeof payload==="object"){
+      details={...row,sport,fixture_time:row.kickoff_at,
+        updated_at:row.generated_at||row.analyzed_at||row.created_at,
+        result_data:payload};
+    }
+  }
+  if(!pre)return;
+  if(details){
+    pre.innerHTML=analysisSummaryHtml(details);
+  }else{
+    pre.textContent="此場尚未讀取到正式分析的推薦細項。請至「AI 分析紀錄」確認，或更新後再查看。";
+  }
+}
+
 
 let pushCountTimer=null;
 function debouncedLoadPushDeviceCount(){clearTimeout(pushCountTimer);pushCountTimer=setTimeout(loadPushDeviceCount,350);}
