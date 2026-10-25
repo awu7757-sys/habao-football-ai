@@ -4305,49 +4305,19 @@ ${getAnalysisLeagueName(
         </div>
 
 
-        ${
-          isBasketballAnalysis
-            ? `
-        <!-- NBA 模型公平線 -->
-        <div class="pick-card">
-          <div class="pick-label">MODEL FAIR LINE</div>
-
-          <div class="pick-value">
-            ${basketballFairSpread}
-          </div>
-
-          <div class="confidence">
-            ${analysisT("aiConfidence", "AI 信心")} ${basketballModel?.confidence || 0}%
-          </div>
-
-          <div class="bar">
-            <div style="width:${confidenceBar(basketballModel?.confidence)}%"></div>
-          </div>
-
-        </div>
-            `
-            : `
-        <!-- BTTS -->
+        ${isBasketballAnalysis ? "" : `
+        <!-- Football-only BTTS: NBA has exactly three recommendation markets. -->
         <div class="pick-card">
           <div class="pick-label">BTTS</div>
-
           <div class="pick-value">
             ${localizeAnalysisText(btts.pick) || analysisT("noRecommendation", "暫不推薦")}
           </div>
-
           <div class="confidence">
             ${analysisT("aiConfidence", "AI 信心")} ${btts.confidence || 0}%
             ${confidenceFire(btts.confidence, btts.pick)}
           </div>
-
-          <div class="bar">
-            <div style="width:${confidenceBar(btts.confidence)}%"></div>
-          </div>
-
-        </div>
-            `
-        }
-
+          <div class="bar"><div style="width:${confidenceBar(btts.confidence)}%"></div></div>
+        </div>`}
 
 </div>
 
