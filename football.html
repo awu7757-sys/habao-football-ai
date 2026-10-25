@@ -8970,16 +8970,47 @@ const basketballMatches =
       )
   }));
 
+// Load real MLB member records (game_id is not the football history id).
 const baseballMatches = await (async () => {
-  try {
-    const session = (await supabaseAuth.auth.getSession()).data?.session;
-    if(!session?.access_token) return [];
-    const r = await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis-history",{
+  window.habaoBaseballHistoryLoadError="";
+  try{
+    const session=(await supabaseAuth.auth.getSession()).data?.session;
+    if(!session?.access_token)throw new Error("請先重新登入會員");
+    const response=await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis-history",{
+      method:"GET",cache:"no-store",
       headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
     });
-    const j = await r.json();
-    return r.ok && j.success && Array.isArray(j.matches) ? j.matches.map(m=>({...m,sport:"baseball"})) : [];
-  }catch{return [];}
+    const data=await response.json();
+    if(!response.ok||data?.success!==true||!Array.isArray(data.matches))
+      throw new Error(data?.error||"MLB 歷史紀錄 API 未正常回傳");
+    return data.matches.map(match=>{
+      const gameId=match?.game_id??match?.fixture_id??match?.game?.id??match?.snapshot?.game_id??match?.id;
+      if(!Number.isSafeInteger(Number(gameId))||Number(gameId)<=0)return null;
+      const rawKey=String(match?.history_key||(
+        "baseball:"+String(gameId)+":"+String(match?.id??match?.snapshot_id??"official")
+      ));
+      const home=match?.home_team??match?.home?.name??match?.fixture?.home?.name??"";
+      const away=match?.away_team??match?.away?.name??match?.fixture?.away?.name??"";
+      const logo=side=>{
+        const id=Number(match?.[side+"_id"]??match?.[side+"_team_id"]??match?.[side]?.id);
+        return Number.isSafeInteger(id)&&id>0?"https://www.mlbstatic.com/team-logos/"+id+".svg":"";
+      };
+      return {...match,sport:"baseball",
+        game_id:Number(gameId),id:match?.id??gameId,
+        history_key:rawKey.startsWith("baseball:")?rawKey:"baseball:"+rawKey,
+        league_name:"MLB",
+        fixture_time:match?.fixture_time??match?.kickoff_at??match?.game_date??match?.fixture?.kickoff_at??null,
+        home_team:typeof home==="object"?(home?.name||""):home,
+        away_team:typeof away==="object"?(away?.name||""):away,
+        home_logo:match?.home_logo??match?.home?.logo??logo("home"),
+        away_logo:match?.away_logo??match?.away?.logo??logo("away")
+      };
+    }).filter(Boolean);
+  }catch(error){
+    console.warn("MLB history loading failed",error);
+    window.habaoBaseballHistoryLoadError=String(error?.message||"MLB 歷史紀錄讀取失敗");
+    return [];
+  }
 })();
 const allMatches =
   [
@@ -9146,18 +9177,17 @@ function renderAnalysisHistory(
           ? "⚾"
           : "⚽";
 
-    const emptyTitle =
-      normalizedSport === "baseball"
-        ? "棒球分析紀錄尚未開放"
-        : t(
-            "noHistory",
-            "尚無分析紀錄"
-          );
-
-    const emptyText =
-      normalizedSport === "baseball"
-        ? "棒球功能開放後，完成的分析會顯示在這裡。"
-        : "完成賽事分析後，紀錄會自動保存在這裡。";
+    const baseballLoadFailed =
+      normalizedSport === "baseball" && !!window.habaoBaseballHistoryLoadError;
+    const emptyTitle = baseballLoadFailed
+      ? (lang==="en"?"Unable to load MLB history":lang==="zh-Hans"?"棒球记录读取失败":"棒球紀錄讀取失敗")
+      : t("noHistory","尚無分析紀錄");
+    const emptyText = baseballLoadFailed
+      ? (lang==="en"?"MLB records cannot be loaded right now.":lang==="zh-Hans"?"目前无法读取 MLB 记录，请稍后重试。":"目前無法讀取 MLB 紀錄，請稍後重試。")
+      : t("noHistoryText","完成賽事分析後，紀錄會自動保存在這裡。");
+    const baseballRetry = baseballLoadFailed
+      ? '<button type="button" class="history-view-btn" onclick="openAnalysisHistory()">重新讀取</button>'
+      : "";
 
     container.innerHTML =
       historyTabsHtml +
@@ -9166,6 +9196,7 @@ function renderAnalysisHistory(
           <div class="history-sport-empty-icon">${emptyIcon}</div>
           <div class="history-sport-empty-title">${emptyTitle}</div>
           <div class="history-sport-empty-text">${emptyText}</div>
+          ${baseballRetry}
         </div>
       `;
 
@@ -9523,22 +9554,15 @@ function renderAnalysisHistory(
               )
             : "--";
 
-        const isBasketballHistory =
-          String(
-            match?.sport || ""
-          ).toLowerCase() ===
-            "basketball";
+        const historySport=String(match?.sport||"").toLowerCase();
+        const isBasketballHistory=historySport==="basketball";
+        const isBaseballHistory=historySport==="baseball";
 
-        const leagueName =
-          isBasketballHistory
-            ? (
-                lang === "en"
-                  ? "NBA"
-                  : "🏀 NBA"
-              )
-            : getHistoryLeagueName(
-                match.league_name
-              );
+        const leagueName = isBasketballHistory
+          ? (lang==="en"?"NBA":"🏀 NBA")
+          : isBaseballHistory
+          ? (lang==="en"?"MLB":"⚾ MLB 美國職棒")
+          : getHistoryLeagueName(match.league_name);
 
 const historyFixture =
   match?.result_data?.fixture || {};
@@ -9640,16 +9664,9 @@ const awayLogo =
     ?.logo ||
   "";
 
-const historyKey =
-  String(
-    match.history_key ||
-    (
-      isBasketballHistory
-        ? "basketball:"
-        : "football:"
-    ) +
-    String(match.id)
-  );
+const historyKey=String(match.history_key||
+  (isBaseballHistory?"baseball:":isBasketballHistory?"basketball:":"football:")+
+  String(isBaseballHistory?(match.game_id??match.id):match.id));
 
         return `
           <div class="history-match-card">
@@ -9766,13 +9783,14 @@ function viewAnalysisHistory(historyKey) {
   if(String(historyKey).startsWith("baseball:")){
     (async()=>{
       const history=window.habaoAnalysisHistory?.[String(historyKey)];
-      if(!history?.game_id)return alert("MLB 歷史賽事資料不足");
+      const gameId=Number(history?.game_id??history?.fixture_id??history?.id);
+      if(!Number.isSafeInteger(gameId)||gameId<=0)return alert("MLB 歷史賽事資料不足");
       const session=(await supabaseAuth.auth.getSession()).data?.session;
       if(!session?.access_token)return alert("請重新登入會員");
       const r=await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis",{
         method:"POST",headers:{apikey:FIXTURES_PUBLISHABLE_KEY,"Content-Type":"application/json",
         Authorization:"Bearer "+session.access_token},
-        body:JSON.stringify({game_id:history.game_id,action:"view"})});
+        body:JSON.stringify({game_id:gameId,action:"view"})});
       const j=await r.json();
       if(!r.ok||!j.success)return alert("MLB 歷史讀取失敗："+String(j.error||r.status));
       sessionStorage.setItem("matchAnalysis",JSON.stringify(j));
