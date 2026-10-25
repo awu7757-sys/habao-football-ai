@@ -3941,6 +3941,10 @@ function selectHabaoSport(
   sport,
   button
 ) {
+  if(habaoSportBatchRunning){
+    alert("批次分析正在進行，請保持頁面開啟直到完成。");
+    return;
+  }
   if (
     sport === "football" ||
     sport === "basketball"
@@ -5588,6 +5592,10 @@ function switchDate(
   element,
   offset
 ) {
+  if(habaoSportBatchRunning){
+    alert("批次分析正在進行，請保持頁面開啟直到完成。");
+    return;
+  }
   const tools =
     document.getElementById(
       "fixtureTools"
@@ -6189,6 +6197,10 @@ async function openBasketballMatch(
   gameId,
   button
 ) {
+  if(habaoSportBatchRunning){
+    alert("批次分析執行中，請等全部場次完成後再進行單場分析。");
+    return;
+  }
   const normalizedGameId =
     Number(gameId || 0);
 
@@ -6813,6 +6825,14 @@ function renderBasketballFixtureData(
               ${analysisStatusText}
             </div>
 
+            ${analysisAvailable && analysisWindow.isOpen && !previewTest ? `
+              <label class="v2-batch-select">
+                <input type="checkbox" class="batch-analysis-checkbox"
+                  value="${gameId}" data-sport="basketball"
+                  data-kickoff-at="${escapeBasketballHTML(match?.kickoff_at || "")}"
+                  onchange="updateBatchSelection(this)">
+                <span>${nbaT("addBatch","加入批次分析")}</span>
+              </label>` : ""}
             <button
               class="analysis-btn v2-analysis-btn ${isFinished || isLive ? "finished" : analysisAvailable ? "" : "locked"}"
               ${analysisAvailable
@@ -8185,13 +8205,17 @@ window.addEventListener(
 /* =========================
    HABAO 批次分析
 ========================= */
+let habaoSportBatchRunning=false;
+let habaoSportBatchFinished=false;
+window.habaoSportBatchRunning=false;
 
 function getSelectedBatchFixtureIds() {
   return Array.from(
     document.querySelectorAll(
       ".batch-analysis-checkbox:checked"
     )
-  ).map(input => String(input.value));
+  ).filter(input=>String(input.dataset.sport||"football")===currentHabaoSport)
+   .map(input=>String(input.value));
 }
 
 
@@ -8274,6 +8298,8 @@ function updateBatchSelection(
 
 
 function resetBatchAnalysisUI() {
+  if(habaoSportBatchRunning)return;
+  habaoSportBatchFinished=false;
 
     const bar =
     document.getElementById(
@@ -8538,7 +8564,117 @@ body: JSON.stringify({
 }
 
 
+
+/* NBA/MLB batch: invoke each sport's existing member endpoint once per
+   selected fixture. Existing backend alone owns credits and member history.
+   No re-analysis of the immutable T-10 public snapshot is performed. */
+async function startHabaoSportBatchAnalysis(){
+  if(habaoSportBatchRunning)return;
+  if(habaoSportBatchFinished){resetBatchAnalysisUI();return;}
+  const sport=currentHabaoSport;
+  if(sport!=="basketball"&&sport!=="baseball")return;
+  const inputs=Array.from(document.querySelectorAll(".batch-analysis-checkbox:checked"))
+    .filter(input=>input.dataset.sport===sport&&input.closest("#matchesContainer"));
+  const ids=inputs.map(input=>Number(input.value));
+  if(!ids.length)return;
+  if(ids.length>5||new Set(ids).size!==ids.length||ids.some(id=>!Number.isSafeInteger(id)||id<=0)){
+    alert("批次賽事資料異常，請重新選取（一次最多 5 場）。");
+    return;
+  }
+  if(inputs.some(input=>{
+    const date=Date.parse(input.dataset.kickoffAt||"");
+    const delta=date-Date.now();
+    return !Number.isFinite(date)||delta<=0||delta>10*60*60*1000;
+  })){
+    alert("選取的賽事已開賽或尚未進入 T-10，請更新賽事後重新選擇。");
+    return;
+  }
+  let member;
+  try{member=JSON.parse(sessionStorage.getItem("habao_member")||"null");}catch{member=null;}
+  if(!member?.account){alert("請重新登入會員");return;}
+  let accessToken="";
+  if(sport==="baseball"){
+    const session=(await supabaseAuth.auth.getSession()).data?.session;
+    accessToken=session?.access_token||"";
+    if(!accessToken){alert("請重新登入會員後再批次分析 MLB");return;}
+  }
+  const bar=document.getElementById("batchAnalysisBar");
+  const count=document.getElementById("batchAnalysisCount");
+  const sub=document.getElementById("batchAnalysisSub");
+  const start=document.getElementById("batchAnalysisStart");
+  const all=document.querySelectorAll(".batch-analysis-checkbox");
+  habaoSportBatchRunning=true;
+  window.habaoSportBatchRunning=true;
+  bar?.classList.add("show");
+  all.forEach(input=>input.disabled=true);
+  if(start){start.disabled=true;start.textContent="分析中…";}
+  let completed=0,failed=0,firstError="",quotaError="";
+  try{
+    for(let i=0;i<ids.length;i++){
+      if(count)count.textContent="分析進度 "+(i+1)+" / "+ids.length;
+      if(sub)sub.textContent=(sport==="baseball"?"MLB":"NBA")+" 分析中，請保持頁面開啟";
+      try{
+        const endpoint=sport==="basketball"?
+          BASKETBALL_MEMBER_ANALYSIS_URL:SUPABASE_URL+"/functions/v1/baseball-member-analysis";
+        const req=sport==="basketball"?
+          {game_id:ids[i],account:member.account}:{game_id:ids[i],action:"view"};
+        const headers={"Content-Type":"application/json",apikey:FIXTURES_PUBLISHABLE_KEY,
+          Authorization:"Bearer "+(sport==="baseball"?accessToken:FIXTURES_PUBLISHABLE_KEY)};
+        const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify(req)});
+        const data=await response.json();
+        if(!response.ok||data?.success!==true){
+          const error=new Error(data?.message||data?.error||"會員分析未完成");
+          error.code=data?.error||"analysis_failed";throw error;
+        }
+        completed++;
+        if(sport==="basketball"&&data?.member_access){
+          const access=data.member_access;
+          if(access.analysis_unlimited!==true){
+            if(access.remaining_paid_credits!=null)
+              member.analysis_credits=Number(access.remaining_paid_credits);
+            if(String(member.member_level||"").toLowerCase()==="vip"&&access.remaining_daily_credits!=null)
+              member.daily_free_credits=Number(access.remaining_daily_credits);
+            sessionStorage.setItem("habao_member",JSON.stringify(member));
+          }
+        }
+      }catch(error){
+        failed++;
+        if(!firstError)firstError=String(error?.message||"未知錯誤");
+        if(["analysis_credits_empty","daily_limit_reached","member_inactive"].includes(error?.code)){
+          quotaError=error.code;
+          break;
+        }
+      }
+    }
+  }finally{
+    habaoSportBatchRunning=false;
+    window.habaoSportBatchRunning=false;
+    habaoSportBatchFinished=true;
+    all.forEach(input=>input.disabled=false);
+    inputs.forEach(input=>input.checked=false);
+    if(count)count.textContent="分析完成 "+completed+" / "+ids.length+" 場";
+    if(sub){
+      sub.textContent=(failed?"未完成 "+failed+" 場":"已全部完成")+
+        (firstError?"｜"+firstError:"")+
+        "｜完成的賽事可在「我的分析」查看";
+    }
+    if(start){start.disabled=false;start.textContent="關閉";}
+    if(quotaError==="analysis_credits_empty")showQuotaLimitModal("credits_empty");
+    else if(quotaError==="daily_limit_reached")showQuotaLimitModal(0);
+    else if(quotaError==="member_inactive")alert("分析權限已停用，請聯絡客服");
+  }
+}
+
+window.addEventListener("beforeunload",event=>{
+  if(!habaoSportBatchRunning)return;
+  event.preventDefault();
+  event.returnValue="";
+});
+
 async function startBatchAnalysis() {
+  if(currentHabaoSport==="basketball"||currentHabaoSport==="baseball"){
+    return startHabaoSportBatchAnalysis();
+  }
   const fixtureIds =
     getSelectedBatchFixtureIds();
 

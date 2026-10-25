@@ -14,7 +14,7 @@ const badge=(id)=>Number.isInteger(Number(id))&&Number(id)>0?"https://www.mlbsta
 let filter="all", cache=new Map(), saved=null, memberEnabled=false;
 const CONFIG="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-feature-config";
 async function syncMlbGate(){try{const r=await fetch(CONFIG,{cache:"no-store"});const j=await r.json();memberEnabled=r.ok&&j.success===true&&j.member_analysis_enabled===true;}catch{memberEnabled=false;}}
-async function runMlbMember(gameId,button){if(!memberEnabled)return;const session=(await supabaseAuth.auth.getSession()).data?.session;if(!session?.access_token){alert("請先使用會員登入");return;}button.disabled=true;button.textContent="讀取正式分析中…";try{const r=await fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-member-analysis",{method:"POST",headers:{"Content-Type":"application/json",apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token},body:JSON.stringify({game_id:gameId,action:"view"})});const j=await r.json();if(!r.ok||j.success!==true)throw Error(j.error||"mlb_analysis_failed");sessionStorage.setItem("matchAnalysis",JSON.stringify(j));location.href="mlb-analysis.html";}catch(e){alert("MLB 分析尚未完成："+String(e.message||e));}finally{button.disabled=false;button.textContent="開始分析";}}
+async function runMlbMember(gameId,button){if(window.habaoSportBatchRunning)return;if(!memberEnabled)return;const session=(await supabaseAuth.auth.getSession()).data?.session;if(!session?.access_token){alert("請先使用會員登入");return;}button.disabled=true;button.textContent="讀取正式分析中…";try{const r=await fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-member-analysis",{method:"POST",headers:{"Content-Type":"application/json",apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token},body:JSON.stringify({game_id:gameId,action:"view"})});const j=await r.json();if(!r.ok||j.success!==true)throw Error(j.error||"mlb_analysis_failed");sessionStorage.setItem("matchAnalysis",JSON.stringify(j));location.href="mlb-analysis.html";}catch(e){alert("MLB 分析尚未完成："+String(e.message||e));}finally{button.disabled=false;button.textContent="開始分析";}}
 window.runMlbMember=runMlbMember;
 function setup(){
  if(currentHabaoSport!=="baseball")return;
@@ -41,7 +41,7 @@ function card(g){
  return '<article class="match-card v2-match-card" data-sport="baseball" data-mlb-game-id="'+esc(g.fixture_id)+'" data-search="'+esc([g.fixture_id,g.home?.name,g.away?.name,home,away,"MLB"].join(" "))+'">'+
  '<div class="v2-match-card-top"><div class="v2-match-league"><span class="v2-league-dot"></span>⚾ MLB 美國職棒大聯盟</div><div class="v2-match-time">'+esc(time)+'</div></div>'+
  '<div class="v2-match-teams"><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.home)+'</div><div class="team-name">'+esc(home)+'</div><div class="v2-team-side">主隊</div></div><div class="v2-match-vs-center"><div class="v2-vs-ring">VS</div><div class="v2-match-line"></div></div><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.away)+'</div><div class="team-name">'+esc(away)+'</div><div class="v2-team-side">客隊</div></div></div>'+
- '<div class="analysis v2-match-action habao-unified-action"><div class="ai-status v2-status '+(finished?"finished":live?"live":ready&&memberEnabled?"ready":"locked")+'"><span></span>'+(finished?"已完賽":live?"比賽已開賽":ready&&memberEnabled?"可分析":ready?"分析功能驗收中":"尚未開放分析")+'</div><button type="button" class="analysis-btn v2-analysis-btn '+(finished||live?"finished":ready&&memberEnabled?"":"locked")+'" ' +(ready&&memberEnabled?'onclick="runMlbMember('+Number(g.fixture_id)+',this)"':'disabled')+'>'+(finished?"✓ 已完賽":live?"分析已截止":ready&&memberEnabled?"開始分析":ready?"分析功能驗收中":"賽前 10 小時開放分析")+'</button></div></article>';
+ '<div class="analysis v2-match-action habao-unified-action"><div class="ai-status v2-status '+(finished?"finished":live?"live":ready&&memberEnabled?"ready":"locked")+'"><span></span>'+(finished?"已完賽":live?"比賽已開賽":ready&&memberEnabled?"可分析":ready?"分析功能驗收中":"尚未開放分析")+'</div>'+(ready&&memberEnabled?'<label class="v2-batch-select"><input type="checkbox" class="batch-analysis-checkbox" data-sport="baseball" data-kickoff-at="'+esc(g.kickoff_at)+'" value="'+esc(g.fixture_id)+'" onchange="updateBatchSelection(this)"><span>'+esc(window.HabaoI18n?.t("addBatch","加入批次分析")||"加入批次分析")+'</span></label>':'')+'<button type="button" class="analysis-btn v2-analysis-btn '+(finished||live?"finished":ready&&memberEnabled?"":"locked")+'" ' +(ready&&memberEnabled?'onclick="runMlbMember('+Number(g.fixture_id)+',this)"':'disabled')+'>'+(finished?"✓ 已完賽":live?"分析已截止":ready&&memberEnabled?"開始分析":ready?"分析功能驗收中":"賽前 10 小時開放分析")+'</button></div></article>';
 }
 async function load(offset=0){
  if(currentHabaoSport!=="baseball")return;
@@ -61,6 +61,7 @@ async function load(offset=0){
 }
 const originalSelect=window.selectHabaoSport,originalSwitch=window.switchDate;
 window.selectHabaoSport=function(sport,button){
+ if(window.habaoSportBatchRunning){alert("批次分析執行中，請保持頁面開啟直到完成。");return;}
  if(sport!=="baseball"){if(saved&&currentHabaoSport==="baseball"){const input=document.getElementById("fixtureSearchInput"),clear=document.getElementById("fixtureSearchClear"),filters=document.getElementById("fixtureLeagueFilter"),groups=document.getElementById("fixtureLeagueGroups"),caption=document.getElementById("leagueFilterCaption");if(input)input.oninput=saved.input;if(clear)clear.onclick=saved.clear;if(filters)filters.onclick=saved.filters;if(groups){groups.onclick=saved.groups;groups.innerHTML=saved.groupsHTML;}if(caption)caption.textContent=saved.caption; saved=null;}return originalSelect(sport,button);}
  currentHabaoSport="baseball";currentFixtureOffset=0;
  document.querySelectorAll(".v3-sport-tab").forEach(b=>b.classList.toggle("active",b.dataset.sport==="baseball"));
@@ -75,6 +76,7 @@ if(mlbPreviewDate){
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 }
 window.switchDate=function(element,offset){
+ if(window.habaoSportBatchRunning){alert("批次分析執行中，請保持頁面開啟直到完成。");return;}
  if(currentHabaoSport!=="baseball")return originalSwitch(element,offset);
  document.querySelectorAll(".date").forEach(b=>b.classList.remove("active"));element.classList.add("active");currentFixtureOffset=offset;load(offset);
 };
