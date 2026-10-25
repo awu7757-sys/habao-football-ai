@@ -480,6 +480,7 @@
 const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
 const BASKETBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-performance-api";
 const BASEBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api";
+const BASEBALL_OFFICIAL_PICKS_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-picks";
 const NBA_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/National_Basketball_Association_logo_2017-present.svg";
 const MLB_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/Major_League_Baseball_logo.svg";
 let topDays="", lowerDays=7, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
@@ -581,9 +582,35 @@ function localizedLeagueName(name,idHint=null,apiName=""){
   if(info)return info.zh;
   return s;
 }
+/* MLB Traditional Chinese club names consistent with the admin list. */
+const HABAO_MLB_TEAM_ZH={"Milwaukee Brewers":"密爾瓦基釀酒人","Tampa Bay Rays":"坦帕灣光芒","Los Angeles Dodgers":"洛杉磯道奇","New York Mets":"紐約大都會","New York Yankees":"紐約洋基","Boston Red Sox":"波士頓紅襪","Chicago Cubs":"芝加哥小熊","St. Louis Cardinals":"聖路易紅雀","Cleveland Guardians":"克里夫蘭守護者","Toronto Blue Jays":"多倫多藍鳥","Seattle Mariners":"西雅圖水手","San Diego Padres":"聖地牙哥教士","Philadelphia Phillies":"費城費城人","Houston Astros":"休士頓太空人","Detroit Tigers":"底特律老虎","Atlanta Braves":"亞特蘭大勇士","Texas Rangers":"德州遊騎兵","Baltimore Orioles":"巴爾的摩金鶯","Kansas City Royals":"堪薩斯市皇家","Arizona Diamondbacks":"亞利桑那響尾蛇","San Francisco Giants":"舊金山巨人","Minnesota Twins":"明尼蘇達雙城","Los Angeles Angels":"洛杉磯天使","Pittsburgh Pirates":"匹茲堡海盜","Cincinnati Reds":"辛辛那提紅人","Washington Nationals":"華盛頓國民","Miami Marlins":"邁阿密馬林魚","Colorado Rockies":"科羅拉多落磯","Chicago White Sox":"芝加哥白襪","Athletics":"運動家"};
+function habaoMlbTeamName(name){const raw=String(name??"").trim();return HABAO_MLB_TEAM_ZH[raw]||raw;}
+function habaoMlbPredictionPart(pred,key){
+  const rec=pred?.[key];
+  if(!rec||typeof rec!=="object"||rec.pick==null||String(rec.pick).trim()==="")return"—";
+  const raw=String(rec.pick).trim().toLowerCase(),lang=getLang(),simple=lang==="zh-Hans";
+  const label=raw==="home"?(lang==="en"?"Home":simple?"主队":"主隊"):
+    raw==="away"?(lang==="en"?"Away":simple?"客队":"客隊"):
+    raw==="over"?(lang==="en"?"Over":"大"):
+    raw==="under"?(lang==="en"?"Under":"小"):localizedPick(rec.pick);
+  return (key==="over_under"||key==="handicap")&&rec.line!=null&&String(rec.line).trim()!==""?label+" "+rec.line:label;
+}
+function habaoMlbPredictionText(pred){
+  if(!pred||typeof pred!=="object")return"—";
+  const parts=[habaoMlbPredictionPart(pred,"moneyline")];
+  for(const [key,zh,en] of [["over_under","大小分","O/U"],["handicap","讓分","Spread"]]){
+    const value=habaoMlbPredictionPart(pred,key);
+    if(value!=="—")parts.push((getLang()==="en"?en:zh)+" "+value);
+  }
+  return parts.join("｜");
+}
 function localizedTeamName(name,apiName="",prediction=null,side=""){
   const s=String(name||"--");
   const lang=getLang();
+  if(currentSport==="baseball"&&lang!=="en"){
+    const translated=habaoMlbTeamName(s);
+    return lang==="zh-Hans"?toSimplifiedText(translated):translated;
+  }
 
   if(lang==="zh-Hans"){
     return toSimplifiedText(s);
@@ -844,7 +871,7 @@ function renderRecords(){
     body.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
       const ov=overallResult(s);
-      const money=localizedPick(predictionPick(x.prediction,"moneyline"));
+      const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
       const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
       const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
       const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
@@ -865,7 +892,7 @@ function renderRecords(){
       const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
       const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
       const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
-      const money=localizedPick(predictionPick(x.prediction,"moneyline"));
+      const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
       return`<article class="record-card">
         <div class="record-top">
           <div class="record-league"><img src="${currentSport==="baseball"?MLB_LEAGUE_LOGO:NBA_LEAGUE_LOGO}" loading="lazy" alt="" onerror="this.style.display='none'"><span>${currentSport==="baseball"?"MLB":"NBA"}</span></div>
@@ -1078,7 +1105,22 @@ async function fetchData(days=""){
   if(!res.ok)throw new Error(`API ${res.status}`);
   const j=await res.json();
   if(!j?.success)throw new Error(j?.error||"API failed");
-  return base===BASEBALL_PERFORMANCE_API?normalizeMlbPerformance(j,days):j;
+  if(base!==BASEBALL_PERFORMANCE_API)return j;
+  const display=normalizeMlbPerformance(j,days);
+  try{
+    const response=await fetch(BASEBALL_OFFICIAL_PICKS_URL,{headers:{Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(12000)});
+    if(!response.ok)return display;
+    const official=await response.json();
+    if(official?.success!==true||!Array.isArray(official.rows))return display;
+    const byGame=new Map(official.rows.map(item=>[String(item.game_id),item]));
+    return {...display,matches:display.matches.map(row=>{
+      const source=byGame.get(String(row.game_id??row.fixture_id??""));
+      return source?{...row,prediction:source.prediction??row.prediction,model:source.model??row.model}:row;
+    })};
+  }catch(error){
+    console.warn("MLB official recommendation details not available",error);
+    return display;
+  }
 }
 async function loadTopView(){try{topData=topDays?await fetchData(topDays):allData;if(!topData)topData=await fetchData("");renderTop()}catch(e){console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop()}}
 async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
