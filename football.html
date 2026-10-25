@@ -5934,17 +5934,16 @@ function getBasketballTeamLogoData(
       apiLogo
     );
 
+  // The Sacramento SVG/provider image can fail on mobile browsers.
+  // Use the recognized NBA team logo as primary, retain two safe fallbacks.
+  const reliableLogo = officialTeamId === "1610612758"
+    ? "https://a.espncdn.com/i/teamlogos/nba/500/sac.png" : "";
+  const candidates = [reliableLogo, officialLogo, providerLogo]
+    .filter((url, index, list) => url && list.indexOf(url) === index);
   return {
-    src:
-      officialLogo ||
-      providerLogo ||
-      "",
-    fallback:
-      officialLogo &&
-      providerLogo &&
-      officialLogo !== providerLogo
-        ? providerLogo
-        : ""
+    src: candidates[0] || "",
+    fallback: candidates[1] || "",
+    backup: candidates[2] || ""
   };
 }
 
@@ -5956,12 +5955,9 @@ function handleBasketballLogoError(
       ?.fallbackLogo || "";
 
   if (fallback) {
-    image.dataset.fallbackLogo =
-      "";
-
-    image.src =
-      fallback;
-
+    image.dataset.fallbackLogo = image.dataset.backupLogo || "";
+    image.dataset.backupLogo = "";
+    image.src = fallback;
     return;
   }
 
@@ -6774,7 +6770,7 @@ function renderBasketballFixtureData(
                 <img
                   class="team-logo"
                   src="${homeLogo.src}"
-                  data-fallback-logo="${escapeBasketballHTML(homeLogo.fallback)}"
+                  data-fallback-logo="${escapeBasketballHTML(homeLogo.fallback)}" data-backup-logo="${escapeBasketballHTML(homeLogo.backup)}"
                   alt="${homeAlt}"
                   onerror="handleBasketballLogoError(this)"
                 >
@@ -6801,7 +6797,7 @@ function renderBasketballFixtureData(
                 <img
                   class="team-logo"
                   src="${awayLogo.src}"
-                  data-fallback-logo="${escapeBasketballHTML(awayLogo.fallback)}"
+                  data-fallback-logo="${escapeBasketballHTML(awayLogo.fallback)}" data-backup-logo="${escapeBasketballHTML(awayLogo.backup)}"
                   alt="${awayAlt}"
                   onerror="handleBasketballLogoError(this)"
                 >
