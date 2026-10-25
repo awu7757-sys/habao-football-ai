@@ -602,13 +602,21 @@ function habaoMlbPredictionPart(pred,key){
   }
   return label;
 }
-function habaoMlbPredictionText(pred){
+/* Render the three original T-10 recommendations in market order; never derive new picks. */
+function habaoSportPredictionText(pred){
   if(!pred||typeof pred!=="object")return"—";
-  const parts=[habaoMlbPredictionPart(pred,"moneyline")];
-  for(const [key,zh,en] of [["over_under","大小分","O/U"],["handicap","讓分","Spread"]]){
-    const value=habaoMlbPredictionPart(pred,key);
-    if(value!=="—")parts.push((getLang()==="en"?en:zh)+" "+value);
-  }
+  const keys=["moneyline","over_under","handicap"];
+  const parts=keys.map(key=>{
+    const roots=[pred?.recommendations,pred,pred?.predictions,pred?.analysis];
+    const rec=roots.map(root=>root?.[key]).find(value=>value!==undefined&&value!==null);
+    if(rec==null)return"—";
+    if(typeof rec==="object"){
+      const rawPick=rec.pick??rec.prediction??rec.value??rec.selection;
+      const rawLine=rec.line??rec.point??rec.handicap;
+      return habaoMlbPredictionPart({[key]:{pick:rawPick,line:rawLine}},key);
+    }
+    return habaoMlbPredictionPart({[key]:{pick:rec}},key);
+  });
   return parts.join("｜");
 }
 function localizedTeamName(name,apiName="",prediction=null,side=""){
@@ -891,7 +899,7 @@ function renderRecords(){
     body.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
       const ov=overallResult(s);
-      const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
+      const money=habaoSportPredictionText(x.prediction);
       return`<tr>
         <td>${esc(dateFmt(x.kickoff_at))}</td>
         <td><b>${currentSport==="baseball"?"MLB":"NBA"}</b></td>
@@ -906,7 +914,7 @@ function renderRecords(){
 
     mobile.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
-      const money=currentSport==="baseball"?habaoMlbPredictionText(x.prediction):localizedPick(predictionPick(x.prediction,"moneyline"));
+      const money=habaoSportPredictionText(x.prediction);
       return`<article class="record-card">
         <div class="record-top">
           <div class="record-league"><img src="${currentSport==="baseball"?MLB_LEAGUE_LOGO:NBA_LEAGUE_LOGO}" loading="lazy" alt="" onerror="this.style.display='none'"><span>${currentSport==="baseball"?"MLB":"NBA"}</span></div>
