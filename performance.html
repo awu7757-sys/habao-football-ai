@@ -479,6 +479,9 @@
 <script>
 const AI_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance";
 const BASKETBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-performance-api";
+const BASEBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api";
+const NBA_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/National_Basketball_Association_logo_2017-present.svg";
+const MLB_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/Major_League_Baseball_logo.svg";
 let topDays="", lowerDays=7, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
 let topData=null, lowerData=null, allData=null;
 
@@ -493,8 +496,8 @@ function applyLang(){document.documentElement.lang=getLang();document.querySelec
 function goBack(){if(history.length>1)history.back();else location.href="home-v2.html"}
 function num(v){const x=Number(v);return Number.isFinite(x)?x:0}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function pct(m){return num(m?.decided)>0?`${num(m.hit_rate).toFixed(1)}%`:"--"}
-function normalizeResult(v){v=String(v??"").toLowerCase();if(v==="win"||v==="won")return"win";if(v==="loss"||v==="lose"||v==="lost")return"loss";if(v==="push")return"push";if(v==="half_win")return"half_win";if(v==="half_loss")return"half_loss";return"push"}
+function pct(m){return (num(m?.decided)>0 || (m?.reported_rate===true && Number.isFinite(Number(m.hit_rate))))?`${num(m.hit_rate).toFixed(1)}%`:"--"}
+function normalizeResult(v){v=String(v??"").toLowerCase();if(v==="win"||v==="won")return"win";if(v==="loss"||v==="lose"||v==="lost")return"loss";if(v==="push")return"push";if(v==="half_win")return"half_win";if(v==="half_loss")return"half_loss";return""}
 function resultMark(v){const r=normalizeResult(v);return r==="win"||r==="half_win"?"✓":r==="loss"||r==="half_loss"?"✕":"−"}
 function marketResult(settlement,key){const v=settlement?.[key];return v&&typeof v==="object"?(v.result??v.status??v.outcome):v}
 function dateFmt(v){const d=new Date(v);if(Number.isNaN(d.getTime()))return"--";return new Intl.DateTimeFormat(getLang()==="en"?"en-US":"zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(d)}
@@ -519,8 +522,8 @@ const LEAGUE_IDS=[
   {id:128,keys:["liga profesional argentina","argentina liga profesional","阿根廷甲"]}
 ];
 function leagueId(name){const s=String(name||"").toLowerCase();for(const x of LEAGUE_IDS){if(x.keys.some(k=>s.includes(k.toLowerCase())))return x.id}return null}
-function leagueLogo(name){const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
-function leagueShort(name){const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA",90:"KNV",239:"PRI",265:"COP",128:"ARG"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
+function leagueLogo(name){if(currentSport==="basketball")return NBA_LEAGUE_LOGO;if(currentSport==="baseball")return MLB_LEAGUE_LOGO;const id=leagueId(name);return id?`https://media.api-sports.io/football/leagues/${id}.png`:""}
+function leagueShort(name){if(currentSport==="basketball")return"NBA";if(currentSport==="baseball")return"MLB";const id=leagueId(name);return({2:"UCL",3:"UEL",39:"EPL",140:"LL",78:"BL",135:"SA",61:"L1",98:"J1",292:"K1",169:"CSL",88:"ERE",71:"BRA",90:"KNV",239:"PRI",265:"COP",128:"ARG"})[id]||String(name||"LG").slice(0,3).toUpperCase()}
 function displayLeagueName(name){const s=String(name||"").trim();return(!s||s==="--"||s.toLowerCase()==="null"||s.toLowerCase()==="undefined")?tr("otherLeague"):s}
 function toSimplifiedText(value){
   const s=String(value??"");
@@ -545,6 +548,8 @@ const LEAGUE_NAMES={
   128:{zh:"阿根廷職業聯賽",hans:"阿根廷职业联赛",en:"Liga Profesional Argentina"}
 };
 function localizedLeagueName(name,idHint=null,apiName=""){
+  if(currentSport==="basketball")return"NBA";
+  if(currentSport==="baseball")return"MLB";
   const s=String(name||"").trim();
   const normalized=s.toLowerCase();
   const isOther=
@@ -657,12 +662,12 @@ function localizedPick(value){
 
 
 function classifyStatus(key){const trend=(topData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
-function renderMarkets(){const thirdKey=currentSport==="basketball"?"handicap":"btts";const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],[thirdKey,"bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
+function renderMarkets(){const thirdKey=currentSport==="football"?"btts":"handicap";const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],[thirdKey,"bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=m?.sample_unavailable?tr("insufficient"):`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
 
 function renderRange(){const start=topData?.summary?.range_start,end=topData?.summary?.range_end;if(start&&end){document.getElementById("rangeText").textContent=`${ymd(start)} - ${ymd(end)}`;return}const rows=topData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
 function sportMetricLabel(key){
-  if(currentSport==="basketball"){
+  if(currentSport==="basketball"||currentSport==="baseball"){
     if(key==="moneyline")return tr("moneyline");
     if(key==="over_under")return getLang()==="en"?"Over / Under":"大小分";
     if(key==="handicap"||key==="btts")return getLang()==="en"?"Spread":"讓分";
@@ -672,7 +677,7 @@ function sportMetricLabel(key){
 }
 function marketLabel(key){return sportMetricLabel(key)}
 function applySportLabels(){
-  const basketball=currentSport==="basketball";
+  const basketball=currentSport!=="football";
   const totalLabel=basketball?(getLang()==="en"?"Over / Under":"大小分"):tr("overUnder");
   const marginLabel=basketball?(getLang()==="en"?"Spread":"讓分"):"BTTS";
 
@@ -704,7 +709,9 @@ function applySportLabels(){
 
   const note=document.querySelector("#footballPerformance .method-note");
   if(note){
-    note.textContent=basketball
+    note.textContent=currentSport==="baseball"
+      ? (getLang()==="en"?"MLB includes only officially verified T-10 matches. Trends use only the verified rows returned by the MLB service. Missing prediction details are not inferred.":"MLB 僅採正式 T-10 與官方已驗證比分；趨勢依 MLB 服務回傳的可用正式明細計算。未提供的預測細項不會自行補造。")
+      : basketball
       ? (getLang()==="en"
           ? "NBA performance uses the first saved T-10 snapshot, including the captured market spread/total, and settles Moneyline, Over/Under and Spread against the official final score."
           : "NBA 戰績使用首次保存的 T-10 快照（含當時真實市場讓分與大小分）及正式完場比分，自動結算獨贏、大小分與讓分；不使用賽後補盤。")
@@ -803,7 +810,7 @@ function renderTrend(){
   document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${lowerDays}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
-function renderLeagues(){let list=[...(lowerData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
+function renderLeagues(){let list=[...(lowerData?.leagues||[])];list.sort((a,b)=>leagueSort==="count"?num(b.matches)-num(a.matches):num(b.overall?.hit_rate)-num(a.overall?.hit_rate));const el=document.getElementById("leagueStrip");if(!list.length){el.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;return}el.innerHTML=list.map(x=>{const logo=currentSport==="basketball"?NBA_LEAGUE_LOGO:currentSport==="baseball"?MLB_LEAGUE_LOGO:(String(x.league_logo||"").trim()||leagueLogo(x.league)),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);return`<article class="league-card"><div class="league-logo-wrap">${logo?`<img class="league-logo" src="${logo}" alt="${esc(leagueName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`:""}<div class="league-fallback" style="${logo?"display:none":""}">${esc(fallback)}</div></div><div class="league-name">${esc(leagueName)}</div><div class="league-rate">${pct(x.overall)}</div><div class="league-count">${num(x.matches)} ${tr("samples")}</div></article>`}).join("")}
 
 function predictionPick(p,key){
   const roots=[p?.recommendations,p,p?.predictions,p?.analysis];
@@ -828,7 +835,7 @@ function predictionPick(p,key){
   }
   return"--";
 }
-function overallResult(settlement){const keys=currentSport==="basketball"?["moneyline","over_under","handicap"]:["moneyline","over_under","btts"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
+function overallResult(settlement){const keys=currentSport==="football"?["moneyline","over_under","btts"]:["moneyline","over_under","handicap"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);if(!vals.length)return"";let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
   const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
         shown=showAll?rows:rows.slice(0,5),
@@ -841,17 +848,17 @@ function renderRecords(){
     return;
   }
 
-  if(currentSport==="basketball"){
+  if(currentSport==="basketball"||currentSport==="baseball"){
     body.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
       const ov=overallResult(s);
       const money=localizedPick(predictionPick(x.prediction,"moneyline"));
-      const ph=x?.model?.predicted_score?.home;
-      const pa=x?.model?.predicted_score?.away;
+      const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
+      const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
       const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
       return`<tr>
         <td>${esc(dateFmt(x.kickoff_at))}</td>
-        <td><b>NBA</b></td>
+        <td><b>${currentSport==="baseball"?"MLB":"NBA"}</b></td>
         <td>${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</td>
         <td class="score">${esc(x.final_score||"-")}</td>
         <td><div class="pred-main">${esc(money)}</div><div class="pred-sub">${esc(getLang()==="en"?"Projected score":"預測比分")} ${esc(scorePrediction)}</div></td>
@@ -863,13 +870,13 @@ function renderRecords(){
 
     mobile.innerHTML=shown.map(x=>{
       const s=x.settlement||{};
-      const ph=x?.model?.predicted_score?.home;
-      const pa=x?.model?.predicted_score?.away;
+      const ph=currentSport==="baseball"?(x?.model?.projection?.home_runs??null):(x?.model?.predicted_score?.home??null);
+      const pa=currentSport==="baseball"?(x?.model?.projection?.away_runs??null):(x?.model?.predicted_score?.away??null);
       const scorePrediction=(ph!=null&&pa!=null)?`${ph}-${pa}`:"--";
       const money=localizedPick(predictionPick(x.prediction,"moneyline"));
       return`<article class="record-card">
         <div class="record-top">
-          <div class="record-league"><span>NBA</span></div>
+          <div class="record-league"><img src="${currentSport==="baseball"?MLB_LEAGUE_LOGO:NBA_LEAGUE_LOGO}" loading="lazy" alt="" onerror="this.style.display='none'"><span>${currentSport==="baseball"?"MLB":"NBA"}</span></div>
           <div class="record-time">${esc(dateFmt(x.kickoff_at))}</div>
         </div>
         <div class="record-match">
@@ -903,7 +910,7 @@ function renderRecords(){
 
   mobile.innerHTML=shown.map(x=>{
     const s=x.settlement||{},mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
-    const logo=String(x.league_logo||"").trim()||leagueLogo(x.league),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);
+    const logo=currentSport==="basketball"?NBA_LEAGUE_LOGO:currentSport==="baseball"?MLB_LEAGUE_LOGO:(String(x.league_logo||"").trim()||leagueLogo(x.league)),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);
     return`<article class="record-card">
       <div class="record-top">
         <div class="record-league">
@@ -944,15 +951,15 @@ function renderSportSkeleton(){
 }
 let performanceSportToastTimer=null;
 
+let performanceSportRequestId=0;
 async function switchSport(sport){
-  if(sport==="baseball"){window.location.href="mlb-performance.html";return;}
-  if(sport==="football"||sport==="basketball"){
+  if(sport==="football"||sport==="basketball"||sport==="baseball"){
     currentSport=sport;
     showAll=false;
     currentRecent="overall";
     currentTrend="overall";
     const thirdTrend=document.querySelector('.trend-tab[data-third-market="true"], .trend-tab[data-trend="btts"], .trend-tab[data-trend="handicap"]');
-    if(thirdTrend){thirdTrend.dataset.trend=sport==="basketball"?"handicap":"btts";thirdTrend.dataset.thirdMarket="true";}
+    if(thirdTrend){thirdTrend.dataset.trend=sport==="football"?"btts":"handicap";thirdTrend.dataset.thirdMarket="true";}
 
     document.querySelectorAll(".sport-tab").forEach(btn=>{
       btn.classList.toggle("active",btn.dataset.sport===sport);
@@ -964,12 +971,18 @@ async function switchSport(sport){
     if(coming)coming.classList.remove("active");
 
     applySportLabels();
-
+    const requestId=++performanceSportRequestId;
+    history.replaceState(null,"",location.pathname+(sport==="football"?"":"?sport="+sport));
     try{
-      allData=await fetchData("");
-      topData=allData;
-      lowerData=await fetchData(String(lowerDays));
+      const full=await fetchData("");
+      if(requestId!==performanceSportRequestId)return;
+      allData=full;
+      topData=topDays?await fetchData(topDays):allData;
+      const recent=await fetchData(String(lowerDays));
+      if(requestId!==performanceSportRequestId)return;
+      lowerData=recent;
     }catch(e){
+      if(requestId!==performanceSportRequestId)return;
       console.error("SPORT PERFORMANCE ERROR",e);
       allData=topData=lowerData=emptyPerformanceData();
     }
@@ -994,22 +1007,90 @@ async function switchSport(sport){
   },1800);
 }
 
+
+/* MLB verified-only adapter: shares the football/NBA presentation, not their settlement code. */
+function mlbValidResult(value){
+  const raw=value&&typeof value==="object"?(value.result??value.status??value.outcome):value;
+  const v=String(raw??"").trim().toLowerCase();
+  return ["win","loss","push","half_win","half_loss"].includes(v)?v:"";
+}
+function mlbMarketStats(rows,key){
+  const vals=rows.map(x=>mlbValidResult(x.settlement?.[key])).filter(Boolean);
+  const win=vals.filter(x=>x==="win").length,loss=vals.filter(x=>x==="loss").length;
+  const halfWin=vals.filter(x=>x==="half_win").length,halfLoss=vals.filter(x=>x==="half_loss").length;
+  const effective_wins=win+halfWin*.5,effective_losses=loss+halfLoss+halfWin*.5;
+  const decided=win+loss+halfWin+halfLoss;
+  return{win,loss,half_win:halfWin,half_loss:halfLoss,push:vals.filter(x=>x==="push").length,
+    decided,effective_wins,effective_losses,
+    hit_rate:decided?effective_wins/(effective_wins+effective_losses)*100:null};
+}
+function mlbDate(value){
+  const d=new Date(value);if(!Number.isFinite(d.getTime()))return"";
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);
+  const get=k=>p.find(x=>x.type===k)?.value||"";
+  return get("year")+"-"+get("month")+"-"+get("day");
+}
+function normalizeMlbPerformance(j,days=""){
+  const raw=Array.isArray(j?.matches)?j.matches:[];
+  const rows=raw.filter(x=>x&&typeof x==="object").map(x=>({
+    ...x,league:"MLB",league_logo:MLB_LEAGUE_LOGO,
+    kickoff_at:x.kickoff_at??x.fixture_time??x.game_date??null,
+    home:x.home??x.home_team??"—",away:x.away??x.away_team??"—",
+    final_score:x.final_score??(x.home_score!=null&&x.away_score!=null?x.home_score+"-"+x.away_score:"—"),
+    prediction:x.prediction??null,model:x.model??null,
+    settlement:{
+      moneyline:mlbValidResult(x.moneyline_result??x.settlement?.moneyline),
+      handicap:mlbValidResult(x.handicap_result??x.settlement?.handicap),
+      over_under:mlbValidResult(x.over_under_result??x.settlement?.over_under)
+    }
+  })).sort((a,b)=>Date.parse(b.kickoff_at||0)-Date.parse(a.kickoff_at||0));
+  const period=Number(days)>0?Number(days)*86400000:0;
+  const selected=period?rows.filter(x=>{const t=Date.parse(x.kickoff_at);return Number.isFinite(t)&&t>=Date.now()-period&&t<=Date.now();}):rows;
+  const get=(x,k)=>k==="overall"?overallResult(x.settlement):mlbValidResult(x.settlement?.[k]);
+  const keys=["overall","moneyline","over_under","handicap"];
+  const statFor=(items,k)=>mlbMarketStats(items.map(x=>({settlement:{[k]:get(x,k)}})),k);
+  const markets={};
+  for(const k of keys.filter(k=>k!=="overall")){
+    const actual=statFor(selected,k),source=!period?(j?.markets?.[k]||{}):{};
+    const rawCount=source.decided??source.total_decided,hasCount=rawCount!=null&&Number.isFinite(Number(rawCount));
+    const rate=source.hit_rate!=null&&Number.isFinite(Number(source.hit_rate));
+    markets[k]={...actual,...source,
+      decided:hasCount?Number(rawCount):actual.decided,
+      effective_wins:source.effective_wins!=null?Number(source.effective_wins):actual.effective_wins,
+      hit_rate:rate?Number(source.hit_rate):actual.hit_rate,
+      reported_rate:rate,sample_unavailable:!hasCount&&actual.decided===0&&rate};
+  }
+  const recent_form={};
+  for(const k of keys){
+    const matching=selected.map(x=>({...x,result:get(x,k)})).filter(x=>mlbValidResult(x.result)).slice(0,10);
+    recent_form[k]={items:matching,summary:statFor(matching,k)};
+  }
+  const byDate=new Map();
+  for(const x of selected){const date=mlbDate(x.kickoff_at);if(!date)continue;if(!byDate.has(date))byDate.set(date,[]);byDate.get(date).push(x);}
+  const trend=[...byDate.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([date,rs])=>{
+    const entry={date};for(const key of keys)entry[key]=statFor(rs,key);return entry;
+  });
+  return{summary:{...j?.summary,verified_matches:period?selected.length:(j?.summary?.verified_matches??rows.length)},
+    markets,recent_form,trend,
+    leagues:[{league:"MLB",league_logo:MLB_LEAGUE_LOGO,matches:selected.length,overall:statFor(selected,"overall")}],
+    matches:selected};
+}
 function emptyPerformanceData(){return{summary:{verified_matches:0},markets:{},recent_form:{},trend:[],leagues:[],matches:[]}}
 function renderTop(){document.getElementById("verifiedMatches").textContent=num(topData?.summary?.verified_matches);const pill=document.getElementById("sampleKindPill");if(pill){const isSimulation=!topDays&&String(topData?.summary?.backtest_kind||"")==="simulation"&&num(topData?.summary?.backtest_matches)>0;pill.textContent=tr("simulationSample");pill.classList.toggle("show",isSimulation);pill.title=isSimulation?String(topData?.summary?.backtest_note||""):"";}renderRange();renderMarkets()}
 function renderLower(){renderRecent();renderTrend();renderLeagues();renderRecords()}
 function renderAll(){renderTop();renderLower()}
 async function fetchData(days=""){
-  const base=currentSport==="basketball"?BASKETBALL_PERFORMANCE_API:AI_PERFORMANCE_API;
+  const base=currentSport==="basketball"?BASKETBALL_PERFORMANCE_API:currentSport==="baseball"?BASEBALL_PERFORMANCE_API:AI_PERFORMANCE_API;
   const url=days?`${base}?days=${encodeURIComponent(days)}`:base;
   const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
   if(!res.ok)throw new Error(`API ${res.status}`);
   const j=await res.json();
   if(!j?.success)throw new Error(j?.error||"API failed");
-  return j;
+  return base===BASEBALL_PERFORMANCE_API?normalizeMlbPerformance(j,days):j;
 }
 async function loadTopView(){try{topData=topDays?await fetchData(topDays):allData;if(!topData)topData=await fetchData("");renderTop()}catch(e){console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop()}}
 async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
-async function init(){applyLang();applySportLabels();try{allData=await fetchData("");topData=allData;lowerData=await fetchData(String(lowerDays));renderAll();applySportLabels()}catch(e){console.error(e);allData=topData=lowerData=emptyPerformanceData();renderAll();applySportLabels()}}
+async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");await switchSport(["football","basketball","baseball"].includes(sport)?sport:"football")}
 
 document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>switchSport(btn.dataset.sport||"football")));
 document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadTopView()}));
