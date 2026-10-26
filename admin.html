@@ -1824,7 +1824,8 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbReadiness(true)">檢查 MLB 寫入開關</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
+          <div id="mlbReadyStatus" class="panel-desc" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">MLB 開關狀態尚未檢查，按「檢查 MLB 寫入開關」讀取。</div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -4657,7 +4658,7 @@ async function loadMlbReadiness(showAlert=false){
     setText("mlbReadyVerified",count(results,"checked_rows"));
     setText("mlbReadyMember",count(member,"history_count"));
     const gate=data.write_gates||{};
-    const status="讀取："+formatDate(data.generated_at)+"｜T-10："+(gate.t10?"開啟":"關閉")+"｜會員扣次："+(gate.member?"開啟":"關閉")+"｜賽後寫入："+(gate.result?"開啟":"關閉")+"｜MLB 推播：關閉。快照／結果筆數只是最近載入筆數，不代表排程執行成功。";
+    const status="讀取："+formatDate(data.generated_at)+"｜T-10："+(gate.t10?"開啟":"關閉")+"｜會員扣次："+(gate.member?"開啟":"關閉")+"｜賽後寫入："+(gate.result?"開啟":"關閉")+"｜MLB 推播："+(data.push?.enabled===true?"開啟":"關閉")+"。快照／結果筆數只是最近載入筆數，不代表排程執行成功。";
     if(info)info.textContent=status;
   }catch(e){
     if(info)info.textContent="就緒檢查未連線："+String(e?.message||e)+"。請先部署本次 admin-baseball 修正版。";
