@@ -1725,11 +1725,12 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools">
-              <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
+              <button class="ghost-btn" onclick="habaoCheckSportReadiness('football')">檢查足球系統狀態</button><button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
               <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
             </div>
           </div>
 
+          <div id="footballReadyStatus" class="panel-desc" role="status" aria-live="polite" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">尚未檢查。按「檢查足球系統狀態」讀取資料庫運作紀錄。</div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日足球</div><div id="fixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日足球</div><div id="fixtureTomorrowCount" class="stat-value">0</div></div>
@@ -1778,9 +1779,10 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
               <div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-basketball"></use></svg>NBA 賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
-            <div class="table-tools"><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
+            <div class="table-tools"><button class="ghost-btn" onclick="habaoCheckSportReadiness('basketball')">檢查 NBA 系統狀態</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
           </div>
 
+          <div id="nbaReadyStatus" class="panel-desc" role="status" aria-live="polite" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">尚未檢查。按「檢查 NBA 系統狀態」讀取資料庫運作紀錄。</div>
           <div class="stats-grid" style="margin-bottom:15px">
             <div class="stat-card gold"><div class="stat-label">今日 NBA</div><div id="nbaFixtureTodayCount" class="stat-value gold-text">0</div></div>
             <div class="stat-card"><div class="stat-label">明日 NBA</div><div id="nbaFixtureTomorrowCount" class="stat-value">0</div></div>
@@ -4646,6 +4648,44 @@ async function loadMlbAdminFixtures(force=false,onlyOffset=null){
       mlbAdminFixtures.filter(x=>x.__adminDate===mlbAdminTomorrow).length);
   }
   if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
+}
+
+/* Read-only, on-demand checks. Never call sports providers, AI or write APIs here. */
+async function habaoCheckSportReadiness(sport) {
+  const football = sport === "football";
+  if (!football && sport !== "basketball") return;
+  const id = football ? "footballReadyStatus" : "nbaReadyStatus";
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = "讀取既有運作紀錄中…";
+  try {
+    if (football) {
+      const data = await adminCenterRequest({action:"health"});
+      if (data?.success !== true || !data.health) throw new Error(data?.error || "無法取得足球健康資訊");
+      const h = data.health;
+      const n = v => v == null ? "不可用" : String(v);
+      const recent = h.latest_snapshot || null;
+      el.textContent = "足球｜已驗證快照："+n(h.verified_snapshots)+
+        "｜待驗證："+n(h.pending_snapshots)+
+        "｜逾期待驗證："+n(h.overdue_pending_snapshots)+
+        "｜最近快照賽事："+n(recent?.fixture_id)+
+        "｜最近快照狀態："+n(recent?.status)+
+        "。此為既有資料庫紀錄，不代表 T-10 準時或賽後結果全部正確。";
+    } else {
+      const data = await adminBasketballRequest({action:"overview"});
+      if (data?.success !== true || !data.overview) throw new Error(data?.error || "無法取得 NBA 概況");
+      const o = data.overview;
+      const n = v => v == null ? "不可用" : String(v);
+      el.textContent = "NBA｜正式快照紀錄："+n(o.snapshot_count)+
+        "｜可用分析快取："+n(o.ready_cache_count)+
+        "｜今日賽程："+n(o.today_fixtures)+
+        "｜明日賽程："+n(o.tomorrow_fixtures)+
+        "｜今日快取更新："+n(o.today_fetched_at)+
+        "。此為既有資料庫紀錄，不代表 T-10 準時或賽後結果全部正確。";
+    }
+  } catch (e) {
+    el.textContent = "檢查未完成："+String(e?.message||e)+"（不代表分析功能已停用）";
+  }
 }
 async function loadMlbReadiness(showAlert=false){
   const info=document.getElementById("mlbReadyStatus");if(info)info.textContent="檢查中…";
