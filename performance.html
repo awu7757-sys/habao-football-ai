@@ -1149,8 +1149,8 @@ async function loadTopView(){try{topData=topDays?await fetchData(topDays):allDat
 async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
 async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");await switchSport(["football","basketball","baseball"].includes(sport)?sport:"football")}
 
-document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>switchSport(btn.dataset.sport||"football")));
-document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadTopView()}));
+document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>window.HABAO_LOADING ? window.HABAO_LOADING.track(switchSport(btn.dataset.sport||"football")) : switchSport(btn.dataset.sport||"football")));
+document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadTopView()) : loadTopView())}));
 function syncMarketTabs(key){
   currentRecent=key;currentTrend=key;
   document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b.dataset.recent===key));
@@ -1159,7 +1159,7 @@ function syncMarketTabs(key){
 }
 document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.recent)));
 document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.trend)));
-document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||7;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await loadLowerView()}));
+document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||7;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadLowerView()) : loadLowerView())}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
 window.addEventListener("habao:languagechange",()=>{applyLang();renderAll();applySportLabels()});
