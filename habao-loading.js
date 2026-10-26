@@ -52,7 +52,7 @@
     if(a){
       const href=a.getAttribute('href') || '';
       if(href.startsWith('#') || a.hasAttribute('download') || a.target==='_blank' || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button!==0)return;
-      try{const u=new URL(a.href,location.href);if(u.protocol==='http:' || u.protocol==='https:'){show();return;}}catch(_){}
+      try{const u=new URL(a.href,location.href);if(u.protocol==='http:' || u.protocol==='https:'){queueMicrotask(()=>{if(!e.defaultPrevented)show();});return;}}catch(_){}
     }
     recent=Date.now();
   },true);
