@@ -5638,13 +5638,15 @@ function switchDate(
     currentHabaoSport ===
     "basketball"
   ) {
-    loadBasketballFixtures(
+    const task = loadBasketballFixtures(
       offset
     );
+    if (window.HABAO_LOADING) window.HABAO_LOADING.track(task);
   } else {
-    loadTomorrowFixtures(
+    const task = loadTomorrowFixtures(
       offset
     );
+    if (window.HABAO_LOADING) window.HABAO_LOADING.track(task);
   }
 }
 async function loadTomorrowFixtures(offset = 1) {
