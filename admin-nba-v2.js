@@ -79,6 +79,11 @@ function nrResearchMarket(row,key,market){
    const m=c.v2_model?.market||{};
    if(market==="handicap"&&m.home_spread==null)return{pick:"缺少讓分盤口",result:"—"};
    if(market==="over_under"&&m.total==null)return{pick:"缺少大小分盤口",result:"—"};
+   const raw=c.v2_model?.raw_directions||{};
+   const side=market==="moneyline"?raw.moneyline:market==="handicap"?raw.handicap:raw.over_under;
+   if(side)return{pick:"傾向 "+nrPick(market,side,
+     market==="handicap"?(side==="home"?m.home_spread:-Number(m.home_spread)):market==="over_under"?m.total:null),
+     result:"未達研究門檻"};
    return{pick:"未產生研究方向",result:"—"};
   }
   const line=market==="handicap"&&t.v2_pick==="away"&&t.v2_line!=null?-Number(t.v2_line):t.v2_line;
@@ -126,7 +131,9 @@ function nrCards(row,key){
  '<div class="nr-score-grid"><div class="nr-scorebox"><div><span class="nr-tag nr-v1">V1 正式</span> 賽前預測比分</div><strong>'+v1Score+'</strong><small>預估總分 '+nrNum(v1.total)+'</small></div>'+
  '<div class="nr-scorebox nr-scorebox-alt"><div><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":"研究")+'</span> '+nrEsc(modelName)+' 預測比分</div><strong>'+score.score+'</strong><small>預估總分 '+score.total+(key==="v2"?"｜主勝機率 "+score.prob:"")+'</small></div></div>'+
  '<div class="nr-market-grid">'+marketMarkup+'</div>'+
- (key==="v2"&&String(c.v2_status||"")!=="ready"?'<div class="nr-explain">V2 尚未完成此場獨立研究分析；沒有 V2 方向不代表模型判定「暫不推薦」。</div>':"")+'</article>';
+ (key==="v2"&&String(c.v2_status||"")!=="ready"?'<div class="nr-explain">V2 尚未完成此場獨立研究分析；沒有 V2 方向不代表模型判定「暫不推薦」。</div>':"")+
+ (key==="v2"&&c.v2_model?.pace_metrics?'<div class="nr-explain">回合效率模型｜預估回合 '+nrNum(c.v2_model.pace_metrics.expected_possessions)+'｜主隊 ORtg '+nrNum(c.v2_model.pace_metrics.home_ortg)+'／DRtg '+nrNum(c.v2_model.pace_metrics.home_drtg)+'｜客隊 ORtg '+nrNum(c.v2_model.pace_metrics.away_ortg)+'／DRtg '+nrNum(c.v2_model.pace_metrics.away_drtg)+'｜有效歷史 Box '+nrEsc(c.v2_model.sample?.home_box_games??"—")+'/'+nrEsc(c.v2_model.sample?.away_box_games??"—")+'</div>':"")+
+ (key==="v2"&&c.v2_model?.model_family==="bayesian_score_fallback"?'<div class="nr-explain">得失分備援模型：真實回合統計不足，未使用臆測的 Pace／攻守效率。</div>':"")+'</article>';
 }
 function nrSummary(){
  const el=document.getElementById("nrSummary");if(!el)return;
