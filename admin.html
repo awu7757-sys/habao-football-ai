@@ -2062,6 +2062,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="0">今日</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
           <select id="nrModel" class="input" onchange="renderNbaResearch()">
             <option value="v2" selected>V1 對照 V2 貝氏模型</option>
+            <option value="v3">V1 對照 V3 回合效率模型</option>
             <option value="market_anchored">V1 對照 市場校正</option>
             <option value="rolling_corrected">V1 對照 滾動誤差修正</option>
             <option value="hybrid">V1 對照 混合模型</option>
@@ -7571,7 +7572,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=3" defer></script>
-<script src="./admin-nba-v2.js?v=4" defer></script>
+<script src="./admin-nba-v2.js?v=5" defer></script>
 
 
 </body>
