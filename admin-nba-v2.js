@@ -1,101 +1,186 @@
-/* HABAO NBA V2 read-only comparison */
-const NBA_V2_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
-let nbaV2Data=null;
-// Research-only helper: show backend error.detail instead of generic compare_failed.
-async function requestNbaV2Research(payload){
-  const body={...payload};
-  if(!adminSessionToken && adminPassword)body.admin_password=adminPassword;
-  const r=await fetch(NBA_V2_URL,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(body),cache:"no-store"});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok||data?.success===false){
-    if(r.status===401&&adminSessionToken)clearAdminSession();
-    const reason=[data?.error||("HTTP "+r.status),data?.detail].filter(Boolean).join("：");
-    throw new Error(reason||"NBA 研究查詢失敗");
+/* HABAO NBA unified research dashboard v4: display only, read-only admin APIs */
+const NR_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
+const NR_BACKTEST_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/nba-model-backtest";
+let nrCompare=null,nrBacktest=null,nrErrors={},nrLoading=false;
+const nrNames={v2:"V2 貝氏模型",market_anchored:"市場校正",rolling_corrected:"滾動誤差修正",hybrid:"混合模型"};
+const nrMarkets={moneyline:"獨贏",handicap:"讓分",over_under:"大小分"};
+function nrEsc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
+function nrNum(v,d=1){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?n.toFixed(d):"—";}
+function nrPct(v){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?(n*100).toFixed(1)+"%":"—";}
+function nrHit(v){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?n.toFixed(1)+"%":"—";}
+function nrTeam(n){return typeof zhTeam==="function"?zhTeam(n):String(n??"—");}
+function nrOutcome(t){return ({win:"命中",loss:"未命中",half_win:"半贏",half_loss:"半輸",push:"走盤"})[t]||"待驗證";}
+function nrStatus(v){return ({ready:"已建模",not_collected:"尚未收集",insufficient_data:"資料不足",processing:"分析中",pending:"等待執行",failed:"分析失敗"})[String(v??"not_collected").toLowerCase()]||String(v||"尚未收集");}
+function nrDate(d){const x=Date.parse(String(d||""));return Number.isFinite(x)?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}):"—";}
+function nrScore(h,a){const n=nrNum(h),m=nrNum(a);return n==="—"||m==="—"?"—":n+"－"+m;}
+function nrPick(k,p,line){
+ if(!p)return"暫不推薦";
+ const name=k==="moneyline"?(p==="home"?"主勝":p==="away"?"客勝":"—"):k==="handicap"?(p==="home"?"主隊":p==="away"?"客隊":"—"):(p==="over"?"大":p==="under"?"小":"—");
+ if(name==="—")return"暫無方向";
+ if(k==="moneyline"||line===null||line===undefined||line==="")return name;
+ const n=Number(line);
+ return name+" "+(Number.isFinite(n)?(k==="handicap"&&n>0?"+":"")+n:String(line));
+}
+async function nrFetch(url,payload){
+ const req={...payload};
+ if(!adminSessionToken&&adminPassword)req.admin_password=adminPassword;
+ const response=await fetch(url,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(req),cache:"no-store"});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok||data.success===false){
+  if(response.status===401&&adminSessionToken)clearAdminSession();
+  throw Error([data.error||("HTTP "+response.status),data.detail].filter(Boolean).join("："));
+ }
+ return data;
+}
+async function loadNbaResearch(){
+ const msg=document.getElementById("nrStatus");if(!msg||nrLoading)return;
+ nrLoading=true;msg.textContent="正在取得 V1、V2 與歷史回測資料…";
+ const refresh=document.getElementById("nrRefresh");if(refresh)refresh.disabled=true;
+ const days=Number(document.getElementById("nrDays")?.value||30);
+ const result=await Promise.allSettled([
+  nrFetch(NR_COMPARE_URL,{action:"compare",days}),
+  nrFetch(NR_BACKTEST_URL,{action:"backtest"})
+ ]);
+ nrErrors={};
+ if(result[0].status==="fulfilled")nrCompare=result[0].value;
+ else{nrCompare=null;nrErrors.compare=String(result[0].reason?.message||result[0].reason);}
+ if(result[1].status==="fulfilled")nrBacktest=result[1].value;
+ else{nrBacktest=null;nrErrors.backtest=String(result[1].reason?.message||result[1].reason);}
+ nrLoading=false;if(refresh)refresh.disabled=false;
+ renderNbaResearch();
+}
+function nrRows(){
+ const cmp=Array.isArray(nrCompare?.rows)?nrCompare.rows:[];
+ const bt=Array.isArray(nrBacktest?.rows)?nrBacktest.rows:[];
+ const map=new Map;
+ for(const c of cmp){const id=Number(c.game_id);if(Number.isFinite(id)&&id>0)map.set(id,{id,compare:c,backtest:null});}
+ for(const b of bt){const id=Number(b.game_id);if(!Number.isFinite(id)||id<=0)continue;
+ if(map.has(id))map.get(id).backtest=b;
+ else if(!nrCompare)map.set(id,{id,compare:null,backtest:b});}
+ return [...map.values()].sort((a,b)=>Date.parse(b.compare?.kickoff_at||b.backtest?.kickoff_at||0)-Date.parse(a.compare?.kickoff_at||a.backtest?.kickoff_at||0)||b.id-a.id);
+}
+function nrVariantAvailability(row,key){
+ const c=row.compare, b=row.backtest;
+ if(key==="v2"){
+  const status=String(c?.v2_status||"not_collected").toLowerCase();
+  if(!c||status!=="ready")return nrStatus(status);
+  if(!c.v2_model||c.v2_model.expected_total==null)return"尚無有效 V2 模型";
+  return"已建模";
+ }
+ const v=b?.variants?.[key];return v&&v.score?"已完成歷史回測":"尚無研究結果";
+}
+function nrResearchMarket(row,key,market){
+ const c=row.compare,b=row.backtest;
+ if(key==="v2"){
+  const status=String(c?.v2_status||"not_collected").toLowerCase();
+  if(status!=="ready")return{pick:nrStatus(status),result:"—"};
+  const t=c?.markets?.[market]||{};
+  if(!t.v2_pick){
+   const m=c.v2_model?.market||{};
+   if(market==="handicap"&&m.home_spread==null)return{pick:"缺少讓分盤口",result:"—"};
+   if(market==="over_under"&&m.total==null)return{pick:"缺少大小分盤口",result:"—"};
+   return{pick:"未產生研究方向",result:"—"};
   }
-  return data;
+  const line=market==="handicap"&&t.v2_pick==="away"&&t.v2_line!=null?-Number(t.v2_line):t.v2_line;
+  return{pick:nrPick(market,t.v2_pick,line),result:nrOutcome(t.v2_result),mismatch:t.same_line===false&&!!t.v1_pick};
+ }
+ const v=b?.variants?.[key];
+ if(!v||!v.score)return{pick:"尚無研究結果",result:"—"};
+ if(market==="moneyline")return{pick:v.directions?.winner==="home"?"主勝方向":v.directions?.winner==="away"?"客勝方向":"未產生研究方向",result:"研究方向"};
+ if(market==="handicap"){
+  if(b?.market?.home_spread==null)return{pick:"缺少讓分盤口",result:"—"};
+  const side=v.signals?.handicap;
+  return{pick:side==="home"?"主隊讓分方向":side==="away"?"客隊受讓方向":"無足夠市場差距",result:"研究方向"};
+ }
+ if(b?.market?.total==null)return{pick:"缺少大小分盤口",result:"—"};
+ const side=v.signals?.over_under;
+ return{pick:side==="over"?"大分方向":side==="under"?"小分方向":"無足夠市場差距",result:"研究方向"};
 }
-// 與 HABAO 管理後台既有球隊翻譯字典共用，確保所有 NBA 頁面隊名一致。
-function nvTeamZh(name){
-  const nameText=String(name??"").trim();
-  return typeof zhTeam==="function"?zhTeam(nameText):(nameText||"—");
+function nrScoreInfo(row,key){
+ if(key==="v2"){
+  const m=row.compare?.v2_model||{};
+  return{score:nrScore(m.expected_home_points,m.expected_away_points),total:nrNum(m.expected_total),prob:nrPct(m.home_win_probability)};
+ }
+ const v=row.backtest?.variants?.[key]||{};
+ return{score:nrScore(v.score?.home,v.score?.away),total:nrNum(v.total),prob:"—"};
 }
-// 僅翻譯畫面標籤；影子模型與原始狀態仍保持不變。
-function nvStatusZh(status){
-  const code=String(status??"").trim().toLowerCase();
-  const labels={
-    ready:"已完成分析",
-    not_collected:"尚未收集",
-    insufficient_data:"資料不足",
-    pending:"待處理",
-    processing:"分析中",
-    failed:"分析失敗",
-    error:"分析異常",
-    skipped:"已略過",
-    complete:"已完成分析",
-    completed:"已完成分析"
-  };
-  return labels[code]||String(status??"—");
-}
-function nvReasonZh(reason){
-  const code=String(reason??"").trim().toLowerCase();
-  const labels={
-    insufficient_data:"歷史資料不足",
-    missing_market:"缺少市場盤口",
-    market_unavailable:"市場盤口不可用",
-    not_collected:"尚未收集",
-    model_error:"模型運算失敗",
-    no_snapshot:"沒有正式快照",
-    missing_snapshot:"缺少正式快照"
-  };
-  return labels[code]||String(reason??"");
-}
-function nvEscape(x){return String(x??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
-function nvFmt(x){return x==null||!Number.isFinite(Number(x))?"—":Number(x).toFixed(1)}
-function nvPct(x){return x==null||!Number.isFinite(Number(x))?"—":(100*Number(x)).toFixed(1)+"%"}
-function nvResult(x){return ({win:"命中",loss:"未命中",half_win:"半贏",half_loss:"半輸",push:"走盤"})[x]||"—"}
-function nvV2MissingLabel(row,market){
-  const status=String(row?.v2_status??"not_collected").toLowerCase();
-  if(status!=="ready")return nvStatusZh(status);
-  const m=row?.v2_model||{};
-  if(m.expected_total==null)return "尚無有效模型結果";
-  if(market==="handicap"&&m.market?.home_spread==null)return "缺少讓分盤口";
-  if(market==="over_under"&&m.market?.total==null)return "缺少大小分盤口";
-  // V2 是研究模型；未產生影子方向不等於正式「暫不推薦」。
-  return "未產生研究方向";
-}
-function nvPick(key,p,line){if(!p)return"暫不推薦";const z=key==="moneyline"?(p==="home"?"主勝":"客勝"):key==="handicap"?(p==="home"?"主隊":"客隊"):(p==="over"?"大":"小");return z+(key==="moneyline"||line==null?"":" "+(key==="handicap"&&Number(line)>0?"+":"")+line)}
-async function loadNbaV2Compare(force=false){
- const status=document.getElementById("nbaV2Status");if(!status)return;
- status.textContent="讀取 NBA 研究資料中…";
- try{
-   nbaV2Data=await requestNbaV2Research({action:"compare",days:Number(document.getElementById("nbaV2Days")?.value??30)});
-   status.textContent="V1 "+nbaV2Data.count+" 場｜V2 已建模 "+nbaV2Data.captured+" 場｜資料不足 "+nbaV2Data.insufficient+" 場｜尚未收集 "+nbaV2Data.not_collected+" 場";
-   renderNbaV2Compare();
- }catch(e){status.textContent="研究資料尚未就緒："+String(e?.message||e);
-   const t=document.getElementById("nbaV2Rows");if(t)t.textContent="確認 SQL 與 admin-nba-v2-compare 已部署";if(force)console.warn("NBA V2 compare",e);}
-}
-function renderNbaV2Compare(){
- if(!nbaV2Data)return;
- const names={moneyline:"獨贏",handicap:"讓分",over_under:"大小分"};
- const stats=document.getElementById("nbaV2Stats");
- if(stats)stats.innerHTML=Object.keys(names).map(k=>{
-  const v=nbaV2Data.markets?.[k]||{};
-  return '<div class="nv-stat"><b>'+names[k]+'</b><div class="nv-stat-line">V1 '+(v.paired_v1_rate??"—")+'%　 V2 '+(v.paired_v2_rate??"—")+'%</div><small>同場有效 '+(v.paired_count||0)+' 場｜各自有效 V1 '+(v.v1_count||0)+'／V2 '+(v.v2_count||0)+'</small></div>';
+function nrCards(row,key){
+ const c=row.compare||{},b=row.backtest||{};
+ const v1=b.variants?.v1_original||{};
+ const score=nrScoreInfo(row,key), v1Score=nrScore(v1.score?.home,v1.score?.away);
+ const modelName=nrNames[key]||"V2 貝氏模型";
+ const title=nrEsc(nrTeam(c.home||b.home))+' <span>對戰</span> '+nrEsc(nrTeam(c.away||b.away));
+ const done=c.verified===true||b.verified===true;
+ const final=c.home_score!=null&&c.away_score!=null?nrScore(c.home_score,c.away_score):"";
+ const status=key==="v2"?nrStatus(c.v2_status||"not_collected"):nrVariantAvailability(row,key);
+ const marketMarkup=Object.entries(nrMarkets).map(([market,name])=>{
+  const t=c.markets?.[market]||{};
+  const official=c.home||c.away?(t.v1_pick?nrPick(market,t.v1_pick,t.v1_line):"暫不推薦"):"正式資料未載入";
+  const research=nrResearchMarket(row,key,market);
+  const compareRes=done?nrOutcome(t.v1_result):"待驗證";
+  return '<div class="nr-market"><div class="nr-market-name">'+name+'</div><div class="nr-pick-row"><span class="nr-tag nr-v1">V1 正式</span><strong>'+nrEsc(official)+'</strong><span class="nr-result">'+(c.markets&&done?compareRes:"—")+'</span></div>'+
+  '<div class="nr-pick-row"><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":"研究")+'</span><strong>'+nrEsc(research.pick)+'</strong><span class="nr-result">'+nrEsc(research.result)+'</span></div>'+
+  (research.mismatch?'<div class="nr-note">盤口不同，不列入相同盤口的比較</div>':"")+'</div>';
  }).join("");
- const term=String(document.getElementById("nbaV2Search")?.value||"").trim().toLowerCase();
- const rows=(nbaV2Data.rows||[]).filter(x=>!term||[x.game_id,x.home,x.away,nvTeamZh(x.home),nvTeamZh(x.away)].some(v=>String(v??"").toLowerCase().includes(term)));
- const count=document.getElementById("nbaV2Visible");if(count)count.textContent="顯示 "+rows.length+"／"+nbaV2Data.count+" 場｜V2 未經機率校準，僅用於研究比較";
- const holder=document.getElementById("nbaV2Rows");if(!holder)return;
- holder.innerHTML=rows.length?rows.map(r=>{
-  const m=r.v2_model||{};
-  const src=['moneyline','handicap','over_under'].map(k=>{
-    const t=r.markets?.[k]||{};
-    const label=(tag,p,line,out)=>'<div class="fvc-market-line"><span class="fvc-model-tag '+(tag==="V2"?"fvc-model-v2":"")+'">'+tag+'</span><strong>'+nvEscape(tag==="V2"&&!p?nvV2MissingLabel(r,k):nvPick(k,p,line))+'</strong><span class="fvc-outcome">'+nvResult(out)+'</span></div>';
-    const v2line=k==="handicap"&&t.v2_pick==="away"&&t.v2_line!=null?-t.v2_line:t.v2_line;
-    return '<div class="fvc-market-card"><div class="fvc-market-title">'+names[k]+'</div>'+label("V1",t.v1_pick,t.v1_line,t.v1_result)+label("V2",t.v2_pick,v2line,t.v2_result)+(k!=="moneyline"&&t.v1_pick&&t.v2_pick&&!t.same_line?'<div class="nv-sub">盤口不同，不列同場統計</div>':"")+'</div>';
-   }).join("");
-  const metrics=m.expected_total==null?'<div class="nv-sub">'+(String(r.v2_status).toLowerCase()==="not_collected"?"此場尚未執行 V2，並非暫不推薦":String(r.v2_status).toLowerCase()==="insufficient_data"?"歷史資料不足，未能建立 V2 模型":"尚無有效 V2 模型結果")+'</div>':[['主隊預估得分',nvFmt(m.expected_home_points)],['客隊預估得分',nvFmt(m.expected_away_points)],['預估總分',nvFmt(m.expected_total)],['主勝機率',nvPct(m.home_win_probability)],['大分機率',nvPct(m.over_probability)]].map(v=>'<div class="fvc-metric"><span>'+v[0]+'</span><strong>'+v[1]+'</strong></div>').join("");
-  let time="—";try{time=new Date(r.kickoff_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",hour12:false,month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"})}catch{}
-  return '<article class="fvc-game-card"><div class="fvc-game-top"><div class="fvc-game-detail"><div class="fvc-game-metadata"><span>'+nvEscape(time)+'</span><span>NBA 賽事編號 #'+nvEscape(r.game_id)+'</span><span>V2 '+nvEscape(nvStatusZh(r.v2_status))+(r.v2_reason?"："+nvEscape(nvReasonZh(r.v2_reason)):"")+'</span></div><div class="fvc-game-title">'+nvEscape(nvTeamZh(r.home))+' <span>對戰</span> '+nvEscape(nvTeamZh(r.away))+'</div></div><div class="fvc-score">'+(r.verified?nvEscape(r.home_score)+" : "+nvEscape(r.away_score):"待驗證")+'</div></div><div class="fvc-market-grid">'+src+'</div><div class="fvc-research"><div class="fvc-research-title">V2 貝氏得分分布模型 <span>研究專用</span></div><div class="fvc-metric-grid">'+metrics+'</div></div></article>';
- }).join(""):'<div class="fvc-empty">目前沒有符合條件的 NBA 賽事</div>';
+ return '<article class="nr-game"><div class="nr-game-top"><div><div class="nr-meta"><span>'+nrDate(c.kickoff_at||b.kickoff_at)+'</span><span>NBA #'+nrEsc(row.id)+'</span><span>'+nrEsc(modelName)+'：'+nrEsc(status)+'</span></div><div class="fvc-game-title">'+title+'</div></div><div class="nr-verified">'+(done?(final?'完賽 '+final:"已驗證"):"待驗證")+'</div></div>'+
+ '<div class="nr-score-grid"><div class="nr-scorebox"><div><span class="nr-tag nr-v1">V1 正式</span> 賽前預測比分</div><strong>'+v1Score+'</strong><small>預估總分 '+nrNum(v1.total)+'</small></div>'+
+ '<div class="nr-scorebox nr-scorebox-alt"><div><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":"研究")+'</span> '+nrEsc(modelName)+' 預測比分</div><strong>'+score.score+'</strong><small>預估總分 '+score.total+(key==="v2"?"｜主勝機率 "+score.prob:"")+'</small></div></div>'+
+ '<div class="nr-market-grid">'+marketMarkup+'</div>'+
+ (key==="v2"&&String(c.v2_status||"")!=="ready"?'<div class="nr-explain">V2 尚未完成此場獨立研究分析；沒有 V2 方向不代表模型判定「暫不推薦」。</div>':"")+'</article>';
+}
+function nrSummary(){
+ const el=document.getElementById("nrSummary");if(!el)return;
+ const cmp=nrCompare||{},bt=nrBacktest||{};
+ const vals=[
+ ["V1 正式快照",cmp.count??bt.total??"—","已保存的賽前預測"],
+ ["V2 已建模",cmp.captured??"—","獨立貝氏模型"],
+ ["V2 尚未收集",cmp.not_collected??"—","不是暫不推薦"],
+ ["已驗證可回測",bt.verified??cmp.verified??"—","只計入有效完賽比分"]
+ ];
+ el.innerHTML=vals.map(v=>'<div class="nr-summary-tile"><div>'+v[0]+'</div><strong>'+nrEsc(v[1])+'</strong><small>'+v[2]+'</small></div>').join("");
+}
+function nrStats(model){
+ const box=document.getElementById("nrStats");if(!box)return;
+ if(model==="v2"){
+  if(!nrCompare){box.innerHTML='<div class="nr-empty">V2 比較資料目前不可用</div>';return;}
+  box.innerHTML=Object.entries(nrMarkets).map(([key,name])=>{const v=nrCompare.markets?.[key]||{};
+    return '<div class="nr-stat"><b>'+name+'｜同場命中</b><div><span>V1 '+nrHit(v.paired_v1_rate)+'</span><span>V2 '+nrHit(v.paired_v2_rate)+'</span></div><small>同場有效 '+(v.paired_count||0)+' 場｜盤口相同且已驗證才納入</small></div>';
+  }).join("");
+  return;
+ }
+ if(!nrBacktest){box.innerHTML='<div class="nr-empty">歷史回測資料目前不可用</div>';return;}
+ const b=nrBacktest.stats||{},a=b.v1_original||{},v=b[model]||{};
+ const categories=[["總分平均誤差",a.total_mae,v.total_mae," 分"],["分差平均誤差",a.margin_mae,v.margin_mae," 分"],["獨贏方向命中",a.moneyline?.hit_rate,v.moneyline?.hit_rate,"%"]];
+ box.innerHTML=categories.map(([name,x,y,unit])=>'<div class="nr-stat"><b>'+name+'</b><div><span>V1 '+nrNum(x)+unit+'</span><span>'+nrEsc(nrNames[model])+' '+nrNum(y)+unit+'</span></div><small>研究用回測，尚未通過跨期獨立驗證</small></div>').join("");
+}
+function nrHistorical(){
+ const el=document.getElementById("nrHistory");if(!el)return;
+ const data=nrBacktest?.stats||{};
+ const names={v1_original:"V1 原始",market_anchored:"市場校正",rolling_corrected:"歷史誤差修正",hybrid:"混合模型"};
+ el.innerHTML=nrBacktest?'<div class="nr-hist-table"><div class="nr-hist-head"><span>方法</span><span>總分誤差</span><span>分差誤差</span><span>獨贏命中</span><span>大小分研究</span></div>'+Object.entries(names).map(([key,title])=>{
+ const d=data[key]||{};return '<div class="nr-hist-row"><span>'+title+'</span><span>'+nrNum(d.total_mae)+' 分</span><span>'+nrNum(d.margin_mae)+' 分</span><span>'+nrHit(d.moneyline?.hit_rate)+'（'+(d.moneyline?.n||0)+' 場）</span><span>'+nrHit(d.total?.hit_rate)+'（'+(d.total?.n||0)+' 場）</span></div>';
+ }).join("")+'</div>':'<div class="nr-empty">尚無歷史回測資料</div>';
+}
+function renderNbaResearch(){
+ const model=document.getElementById("nrModel")?.value||"v2";
+ const msg=document.getElementById("nrStatus");
+ const warnings=[];
+ if(nrErrors.compare)warnings.push("V1／V2 比較 API："+nrErrors.compare);
+ if(nrErrors.backtest)warnings.push("歷史回測 API："+nrErrors.backtest);
+ const c=nrCompare||{},b=nrBacktest||{};
+ if(msg)msg.textContent=[warnings.length?"部分資料來源異常："+warnings.join("；"):"已更新",nrCompare?"V1 "+(c.count??"—")+" 場、V2 已建模 "+(c.captured??"—")+" 場":null,nrBacktest?"歷史有效回測 "+(b.verified??"—")+" 場":null].filter(Boolean).join("｜");
+ nrSummary();nrStats(model);nrHistorical();
+ const search=String(document.getElementById("nrSearch")?.value||"").trim().toLowerCase();
+ const filter=document.getElementById("nrFilter")?.value||"all";
+ const rows=nrRows().filter(r=>{
+  const c=r.compare||{},b=r.backtest||{},status=String(c.v2_status||"not_collected");
+  if(filter==="ready"&&status!=="ready")return false;
+  if(filter==="missing"&&status==="ready")return false;
+  if(filter==="verified"&&c.verified!==true&&b.verified!==true)return false;
+  if(search&&![(r.id),c.home,c.away,b.home,b.away,nrTeam(c.home||b.home),nrTeam(c.away||b.away)].some(x=>String(x??"").toLowerCase().includes(search)))return false;
+  return true;
+ });
+ const summary=document.getElementById("nrVisible");if(summary)summary.textContent="顯示 "+rows.length+" 場｜左 V1 正式、右 "+(nrNames[model]||"V2")+"｜研究結果不影響會員推薦";
+ const cards=document.getElementById("nrRows");if(!cards)return;
+ cards.innerHTML=rows.length?rows.map(r=>nrCards(r,model)).join(""):'<div class="nr-empty">目前沒有符合條件的賽事資料</div>';
 }
