@@ -1,6 +1,19 @@
 /* HABAO NBA V2 read-only comparison */
 const NBA_V2_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
 let nbaV2Data=null;
+// Research-only helper: show backend error.detail instead of generic compare_failed.
+async function requestNbaV2Research(payload){
+  const body={...payload};
+  if(!adminSessionToken && adminPassword)body.admin_password=adminPassword;
+  const r=await fetch(NBA_V2_URL,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(body),cache:"no-store"});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok||data?.success===false){
+    if(r.status===401&&adminSessionToken)clearAdminSession();
+    const reason=[data?.error||("HTTP "+r.status),data?.detail].filter(Boolean).join("：");
+    throw new Error(reason||"NBA 研究查詢失敗");
+  }
+  return data;
+}
 function nvEscape(x){return String(x??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
 function nvFmt(x){return x==null||!Number.isFinite(Number(x))?"—":Number(x).toFixed(1)}
 function nvPct(x){return x==null||!Number.isFinite(Number(x))?"—":(100*Number(x)).toFixed(1)+"%"}
@@ -10,7 +23,7 @@ async function loadNbaV2Compare(force=false){
  const status=document.getElementById("nbaV2Status");if(!status)return;
  status.textContent="讀取 NBA 研究資料中…";
  try{
-   nbaV2Data=await adminServiceRequest(NBA_V2_URL,{action:"compare",days:Number(document.getElementById("nbaV2Days")?.value??30)});
+   nbaV2Data=await requestNbaV2Research({action:"compare",days:Number(document.getElementById("nbaV2Days")?.value??30)});
    status.textContent="V1 "+nbaV2Data.count+" 場｜V2 已建模 "+nbaV2Data.captured+" 場｜資料不足 "+nbaV2Data.insufficient+" 場｜尚未收集 "+nbaV2Data.not_collected+" 場";
    renderNbaV2Compare();
  }catch(e){status.textContent="研究資料尚未就緒："+String(e?.message||e);
