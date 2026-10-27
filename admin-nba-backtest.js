@@ -8,7 +8,7 @@ async function loadNbaBacktest(){
  info.textContent="載入歷史賽前快照及回測中…";
  try{const r=await fetch(NBA_BT_API,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify({action:"backtest"}),cache:"no-store"});
  const b=await r.json().catch(()=>({}));if(!r.ok||!b.success)throw Error([b.error||("HTTP "+r.status),b.detail].filter(Boolean).join("："));
- nbaBtData=b;info.textContent="賽前快照 "+b.total+" 場｜已驗證 "+b.verified+" 場｜研究專用，不消耗 NBA 歷史 API";renderNbaBacktest();
+ nbaBtData=b;info.textContent="賽前快照 "+b.total+" 場｜公開戰績配對 "+(b.performance_match_count??"—")+" 場｜有效完賽比分 "+(b.verified_with_score_count??"—")+" 場｜符合回測 "+b.verified+" 場｜研究專用，不消耗 NBA 歷史 API";renderNbaBacktest();
  }catch(e){info.textContent="回測讀取失敗："+String(e?.message||e)+"。請先部署 nba-model-backtest。";}
 }
 function renderNbaBacktest(){if(!nbaBtData)return;
