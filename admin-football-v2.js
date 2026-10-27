@@ -23,7 +23,7 @@ return '<div class="fvc-stat"><div class="fvc-stat-title">'+v2marketNames[market
 async function loadFootballV2Compare(force=false){
 if(footballV2Loading)return;
 const status=document.getElementById("footballV2CompareStatus");
-const days=Number(document.getElementById("footballV2Days")?.value||30);
+const days=Number(document.getElementById("footballV2Days")?.value??0);
 const btn=document.getElementById("footballV2Reload");
 footballV2Loading=true;if(btn)btn.disabled=true;
 if(status)status.textContent="讀取研究數據中…";
@@ -38,7 +38,7 @@ throw Error(response.status===404?"V2 比較後端尚未部署":(packet?.error||
 }
 footballV2CompareData=packet;
 renderFootballV2Compare();
-if(status)status.textContent="已更新｜"+(packet.count||0)+" 場影子紀錄、"+(packet.verified||0)+" 場已驗證｜"+new Date().toLocaleTimeString("zh-TW",{hour12:false});
+if(status)status.textContent="已更新｜V1 "+(packet.count||0)+" 場、V2已收集 "+(packet.collected||0)+" 場、未收集 "+(packet.missing||0)+" 場（資料不足 "+(packet.insufficient||0)+" 場）、已驗證 "+(packet.verified||0)+" 場｜"+new Date().toLocaleTimeString("zh-TW",{hour12:false});
 }catch(e){
 if(status)status.textContent="無法載入："+(e?.message||String(e));
 if(!footballV2CompareData){
@@ -54,7 +54,7 @@ function renderFootballV2Compare(){
   const filter=String(document.getElementById("footballV2Search")?.value||"").trim().toLowerCase();
   const rows=(packet.rows||[]).filter(r=>!filter||[r.fixture_id,r.league_name,r.home,r.away].some(x=>String(x||"").toLowerCase().includes(filter)));
   const count=document.getElementById("footballV2Visible");
-  if(count)count.textContent="顯示 "+rows.length+"／"+(packet.count||0)+" 場｜有效統計僅限正式完賽與原始快照";
+  if(count)count.textContent="符合 "+rows.length+"／"+(packet.count||0)+" 場（最多顯示120場）｜只計正式已驗證樣本";
   const holder=document.getElementById("footballV2Rows");if(!holder)return;
   if(!rows.length){
     holder.innerHTML='<div class="fvc-empty">目前沒有符合條件的影子比較紀錄</div>';
@@ -62,8 +62,8 @@ function renderFootballV2Compare(){
   }
   const probability=n=>n==null?"—":v2pct(Number(n)*100);
   const ratio=n=>n==null?"—":v2pct(Number(n)*100);
-  holder.innerHTML=rows.map(r=>{
-    const score=r.resolved?v2esc(r.home_score+" : "+r.away_score):"待驗證";
+  holder.innerHTML=rows.slice(0,120).map(r=>{
+    const score=r.resolved?v2esc(r.home_score+" : "+r.away_score):"待驗證";const v2Missing=r.v2_status!=="collected";const missingBadge=v2Missing?'<div class="fvc-no-data"><strong>'+v2esc(r.v2_status_label||"V2未收集")+'</strong> · '+v2esc(r.v2_status_detail||"")+'</div>':'';
     const renderMarket=k=>{
       const m=r.markets?.[k]||{};
       const flag=m.settlement_mismatch?'<p class="fvc-alert">原始推薦與結算不一致</p>':'';
@@ -72,13 +72,13 @@ function renderFootballV2Compare(){
         '<strong>'+v2esc(v2pickLabel(k,pick,line))+'</strong>'+
         '<span class="fvc-outcome '+(result==="win"||result==="half_win"?"fvc-outcome-good":result==="loss"||result==="half_loss"?"fvc-outcome-bad":"")+'">'+v2esc(v2resultLabel(result))+'</span></div>';
       return '<div class="fvc-market-card"><div class="fvc-market-title">'+v2esc(v2marketNames[k])+'</div>'+
-        row("V1",m.v1_pick,m.v1_line,m.v1_result)+row("V2",m.v2_pick,m.v2_line,m.v2_result)+flag+diff+'</div>';
+        row("V1",m.v1_pick,m.v1_line,m.v1_result)+(v2Missing?'<div class="fvc-market-line"><span class="fvc-model-tag fvc-model-v2">V2</span><span class="fvc-unavailable">無賽前資料</span></div>':row("V2",m.v2_pick,m.v2_line,m.v2_result))+flag+diff+'</div>';
     };
     const metric=(label,value)=>'<div class="fvc-metric"><span>'+label+'</span><strong>'+v2esc(value)+'</strong></div>';
     return '<article class="fvc-game-card">'+
       '<div class="fvc-game-top"><div class="fvc-game-detail">'+
         '<div class="fvc-game-metadata"><span>'+v2esc(v2time(r.kickoff_at))+'</span><span>'+v2esc(r.league_name||"足球")+'</span><span>賽事 #'+v2esc(r.fixture_id)+'</span></div>'+
-        '<div class="fvc-game-title">'+v2esc(r.home||"主隊")+' <span>vs</span> '+v2esc(r.away||"客隊")+'</div></div>'+
+        '<div class="fvc-game-title">'+v2esc(r.home||"主隊")+' <span>vs</span> '+v2esc(r.away||"客隊")+'</div>'+missingBadge+'</div>'+
         '<div class="fvc-score '+(r.resolved?"fvc-score-complete":"")+'">'+score+'</div></div>'+
       '<div class="fvc-market-grid">'+["moneyline","over_under","btts"].map(renderMarket).join("")+'</div>'+
       '<div class="fvc-research"><div class="fvc-research-title">V2 數學研究指標 <span>未校準模型</span></div>'+
