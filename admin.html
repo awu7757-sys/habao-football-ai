@@ -840,6 +840,37 @@ tr:last-child td{border-bottom:0}
 #performanceBody td:nth-child(7){min-width:108px;white-space:nowrap}
 #performanceBody td:nth-child(7) .status{display:inline-flex;align-items:center;justify-content:center}
 
+
+/* Fully responsive football V1 / V2 game cards */
+.fvc-games{display:grid;grid-template-columns:1fr;gap:14px;min-width:0}
+.fvc-game-card{min-width:0;padding:16px;border:1px solid rgba(160,184,207,.18);border-radius:14px;background:rgba(8,18,29,.62)}
+.fvc-game-top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0;margin-bottom:14px}
+.fvc-game-detail{min-width:0}
+.fvc-game-metadata{display:flex;flex-wrap:wrap;gap:6px 14px;color:#92a6b8;font-size:11px;margin-bottom:7px}
+.fvc-game-title{font-size:16px;font-weight:900;color:#e7edf4;overflow-wrap:anywhere}
+.fvc-game-title span{font-weight:600;color:#8399aa;font-size:12px;margin:0 5px}
+.fvc-score{flex:0 0 auto;border:1px solid rgba(204,184,127,.25);background:rgba(230,189,98,.07);border-radius:9px;padding:10px 13px;color:#edc67b;font-size:12px;font-weight:900;white-space:nowrap}
+.fvc-score-complete{font-size:18px}
+.fvc-market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fvc-market-card{min-width:0;border:1px solid rgba(122,157,180,.17);border-radius:10px;padding:12px;background:rgba(23,42,62,.5)}
+.fvc-market-title{font-size:12px;font-weight:900;color:#efbe5b;margin-bottom:9px}
+.fvc-market-line{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:7px;min-width:0}
+.fvc-market-line strong{flex:1;min-width:0;overflow-wrap:anywhere;color:#e4ecf4}
+.fvc-model-tag{font-size:10px;font-weight:900;color:#9dc8f7;background:rgba(65,120,180,.12);padding:3px 6px;border-radius:5px}
+.fvc-model-v2{color:#8de1b1;background:rgba(40,150,90,.14)}
+.fvc-outcome{font-size:11px;color:#95a6b8;white-space:nowrap}
+.fvc-outcome-good{color:#6ddb9b}.fvc-outcome-bad{color:#ff9393}
+.fvc-research{margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(72,133,130,.07);border:1px solid rgba(101,175,150,.14)}
+.fvc-research-title{font-weight:900;font-size:12px;color:#a0e5c1;margin-bottom:10px}
+.fvc-research-title span{font-size:10px;font-weight:500;color:#91a8a1;margin-left:7px}
+.fvc-metric-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.fvc-metric{min-width:0;display:flex;flex-direction:column;gap:5px}
+.fvc-metric span{font-size:10px;color:#9aacae}
+.fvc-metric strong{font-size:14px;color:#e5f0ed}
+.fvc-empty{color:#9caebe;padding:30px;text-align:center}
+@media(max-width:1050px){.fvc-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.fvc-game-top{align-items:flex-start}.fvc-market-grid{grid-template-columns:1fr}.fvc-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fvc-game-card{padding:12px}.fvc-score{padding:7px 9px}}
+
 /* V1 / V2 研究比較 */
 .fvc-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:14px 0}
 .fvc-stat{background:var(--card,#101b2b);border:1px solid rgba(230,192,104,.22);border-radius:14px;padding:16px}
@@ -1971,10 +2002,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel"><div class="panel-head">
           <div><div class="panel-title">逐場 V1 / V2 比較</div><div class="panel-desc" id="footballV2Visible">尚未讀取影子資料</div></div>
         </div>
-        <div class="table-shell"><div class="table-scroll"><table class="fvc-table" style="min-width:960px">
-          <thead><tr><th>開賽時間</th><th>賽事</th><th>比分</th><th>獨贏</th><th>大小球</th><th>BTTS</th><th>V2 研究指標</th></tr></thead>
-          <tbody id="footballV2Rows"><tr><td colspan="7" class="empty">尚未載入</td></tr></tbody>
-        </table></div></div></div>
+<div id="footballV2Rows" class="fvc-games"><div class="fvc-empty">尚未載入</div></div></div>
       </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
@@ -7462,7 +7490,7 @@ function escapeHtml(value) {
 
 restoreAdminSession();
 </script>
-<script src="./admin-football-v2.js?v=1" defer></script>
+<script src="./admin-football-v2.js?v=2" defer></script>
 
 </body>
 </html>
