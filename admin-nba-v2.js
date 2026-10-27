@@ -53,6 +53,16 @@ function nvEscape(x){return String(x??"").replaceAll("&","&amp;").replaceAll("<"
 function nvFmt(x){return x==null||!Number.isFinite(Number(x))?"—":Number(x).toFixed(1)}
 function nvPct(x){return x==null||!Number.isFinite(Number(x))?"—":(100*Number(x)).toFixed(1)+"%"}
 function nvResult(x){return ({win:"命中",loss:"未命中",half_win:"半贏",half_loss:"半輸",push:"走盤"})[x]||"—"}
+function nvV2MissingLabel(row,market){
+  const status=String(row?.v2_status??"not_collected").toLowerCase();
+  if(status!=="ready")return nvStatusZh(status);
+  const m=row?.v2_model||{};
+  if(m.expected_total==null)return "尚無有效模型結果";
+  if(market==="handicap"&&m.market?.home_spread==null)return "缺少讓分盤口";
+  if(market==="over_under"&&m.market?.total==null)return "缺少大小分盤口";
+  // V2 是研究模型；未產生影子方向不等於正式「暫不推薦」。
+  return "未產生研究方向";
+}
 function nvPick(key,p,line){if(!p)return"暫不推薦";const z=key==="moneyline"?(p==="home"?"主勝":"客勝"):key==="handicap"?(p==="home"?"主隊":"客隊"):(p==="over"?"大":"小");return z+(key==="moneyline"||line==null?"":" "+(key==="handicap"&&Number(line)>0?"+":"")+line)}
 async function loadNbaV2Compare(force=false){
  const status=document.getElementById("nbaV2Status");if(!status)return;
@@ -80,11 +90,11 @@ function renderNbaV2Compare(){
   const m=r.v2_model||{};
   const src=['moneyline','handicap','over_under'].map(k=>{
     const t=r.markets?.[k]||{};
-    const label=(tag,p,line,out)=>'<div class="fvc-market-line"><span class="fvc-model-tag '+(tag==="V2"?"fvc-model-v2":"")+'">'+tag+'</span><strong>'+nvEscape(nvPick(k,p,line))+'</strong><span class="fvc-outcome">'+nvResult(out)+'</span></div>';
+    const label=(tag,p,line,out)=>'<div class="fvc-market-line"><span class="fvc-model-tag '+(tag==="V2"?"fvc-model-v2":"")+'">'+tag+'</span><strong>'+nvEscape(tag==="V2"&&!p?nvV2MissingLabel(r,k):nvPick(k,p,line))+'</strong><span class="fvc-outcome">'+nvResult(out)+'</span></div>';
     const v2line=k==="handicap"&&t.v2_pick==="away"&&t.v2_line!=null?-t.v2_line:t.v2_line;
     return '<div class="fvc-market-card"><div class="fvc-market-title">'+names[k]+'</div>'+label("V1",t.v1_pick,t.v1_line,t.v1_result)+label("V2",t.v2_pick,v2line,t.v2_result)+(k!=="moneyline"&&t.v1_pick&&t.v2_pick&&!t.same_line?'<div class="nv-sub">盤口不同，不列同場統計</div>':"")+'</div>';
    }).join("");
-  const metrics=m.expected_total==null?'<div class="nv-sub">無有效 V2 模型結果</div>':[['主隊預估得分',nvFmt(m.expected_home_points)],['客隊預估得分',nvFmt(m.expected_away_points)],['預估總分',nvFmt(m.expected_total)],['主勝機率',nvPct(m.home_win_probability)],['大分機率',nvPct(m.over_probability)]].map(v=>'<div class="fvc-metric"><span>'+v[0]+'</span><strong>'+v[1]+'</strong></div>').join("");
+  const metrics=m.expected_total==null?'<div class="nv-sub">'+(String(r.v2_status).toLowerCase()==="not_collected"?"此場尚未執行 V2，並非暫不推薦":String(r.v2_status).toLowerCase()==="insufficient_data"?"歷史資料不足，未能建立 V2 模型":"尚無有效 V2 模型結果")+'</div>':[['主隊預估得分',nvFmt(m.expected_home_points)],['客隊預估得分',nvFmt(m.expected_away_points)],['預估總分',nvFmt(m.expected_total)],['主勝機率',nvPct(m.home_win_probability)],['大分機率',nvPct(m.over_probability)]].map(v=>'<div class="fvc-metric"><span>'+v[0]+'</span><strong>'+v[1]+'</strong></div>').join("");
   let time="—";try{time=new Date(r.kickoff_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",hour12:false,month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"})}catch{}
   return '<article class="fvc-game-card"><div class="fvc-game-top"><div class="fvc-game-detail"><div class="fvc-game-metadata"><span>'+nvEscape(time)+'</span><span>NBA 賽事編號 #'+nvEscape(r.game_id)+'</span><span>V2 '+nvEscape(nvStatusZh(r.v2_status))+(r.v2_reason?"："+nvEscape(nvReasonZh(r.v2_reason)):"")+'</span></div><div class="fvc-game-title">'+nvEscape(nvTeamZh(r.home))+' <span>對戰</span> '+nvEscape(nvTeamZh(r.away))+'</div></div><div class="fvc-score">'+(r.verified?nvEscape(r.home_score)+" : "+nvEscape(r.away_score):"待驗證")+'</div></div><div class="fvc-market-grid">'+src+'</div><div class="fvc-research"><div class="fvc-research-title">V2 貝氏得分分布模型 <span>研究專用</span></div><div class="fvc-metric-grid">'+metrics+'</div></div></article>';
  }).join(""):'<div class="fvc-empty">目前沒有符合條件的 NBA 賽事</div>';
