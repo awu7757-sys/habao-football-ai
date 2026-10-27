@@ -903,6 +903,43 @@ tr:last-child td{border-bottom:0}
 .fvc-table th:nth-child(7){width:196px}
 .fvc-table .fvc-market{min-width:0;line-height:1.6}
 @media(max-width:900px){.fvc-cards{grid-template-columns:1fr}}
+
+/* unified NBA research */
+.nr-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.nr-summary-tile,.nr-stat{min-width:0;border:1px solid rgba(154,182,212,.19);background:#102034;border-radius:13px;padding:15px}
+.nr-summary-tile>div{font-size:11px;color:#9cbbd3;font-weight:800}
+.nr-summary-tile strong{font-size:26px;color:#fff;display:block;margin:5px 0}
+.nr-summary-tile small{color:#99aabb;font-size:11px}
+.nr-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.nr-stat b{font-size:12px;color:#f0c16a}
+.nr-stat>div{display:flex;justify-content:space-between;gap:12px;margin:12px 0;font-weight:900}
+.nr-stat>div span{flex:1}
+.nr-stat small{font-size:10px;color:#a0b4c8}
+.nr-games{display:grid;gap:13px}
+.nr-game{padding:16px;border:1px solid rgba(133,168,195,.2);border-radius:13px;background:#0a1622;min-width:0}
+.nr-game-top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:13px}
+.nr-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#91acc2;margin-bottom:6px}
+.nr-verified{padding:7px 10px;border:1px solid rgba(238,185,76,.22);border-radius:8px;color:#eec77c;font-size:11px;font-weight:900;white-space:nowrap}
+.nr-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.nr-scorebox{border:1px solid rgba(83,144,216,.24);padding:12px;border-radius:10px;background:#101e30;min-width:0}
+.nr-scorebox-alt{border-color:rgba(69,180,128,.24);background:#0c231f}
+.nr-scorebox>div{font-size:11px;color:#b4c8df}.nr-scorebox strong{display:block;margin:8px 0;font-size:23px;color:#fff;font-weight:950}
+.nr-scorebox small{font-size:11px;color:#9fb7c9}
+.nr-tag{display:inline-block;padding:3px 7px;margin-right:5px;border-radius:5px;font-size:10px;font-weight:900}
+.nr-v1{background:#153657;color:#a4cffb}.nr-v2{background:#13563c;color:#a1ebc7}
+.nr-market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.nr-market{min-width:0;border:1px solid rgba(113,151,183,.17);border-radius:9px;padding:11px;background:#102031}
+.nr-market-name{color:#f3c46d;font-size:12px;font-weight:900;margin-bottom:9px}
+.nr-pick-row{display:flex;align-items:center;gap:4px;min-width:0;margin:7px 0;font-size:11px}
+.nr-pick-row strong{flex:1;min-width:0;overflow-wrap:anywhere;color:#eaf3fa}
+.nr-result{color:#9baec1;font-size:10px;white-space:nowrap}
+.nr-note,.nr-explain{font-size:11px;color:#a9bbca;margin-top:9px;line-height:1.6}
+.nr-empty{color:#9daec0;text-align:center;padding:28px}
+.nr-hist-table{width:100%;overflow-x:auto}
+.nr-hist-head,.nr-hist-row{display:grid;grid-template-columns:1.3fr repeat(4,minmax(120px,1fr));gap:10px;min-width:720px;padding:12px;border-bottom:1px solid rgba(154,182,212,.12);font-size:12px}
+.nr-hist-head{color:#a1b6ca;font-weight:900}.nr-hist-row{color:#e0edf6}
+@media(max-width:980px){.nr-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.nr-stats{grid-template-columns:1fr}.nr-market-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.nr-score-grid{grid-template-columns:1fr}.nr-game-top{align-items:flex-start}.nr-verified{white-space:normal}.nr-summary{gap:7px}.nr-game{padding:12px}.nr-scorebox strong{font-size:20px}}
 </style>
 </head>
 
@@ -1031,10 +1068,7 @@ tr:last-child td{border-bottom:0}
       <button class="nav-btn" data-page="footballV2ComparePage" onclick="switchPage('footballV2ComparePage',this)">
         <span class="nav-icon">V2</span> 足球模型比較
       </button>
-      <button class="nav-btn" data-page="nbaV2ComparePage" onclick="switchPage('nbaV2ComparePage',this)">
-        <span class="nav-icon">V2</span> NBA 模型比較
-      </button>
-      <button class="nav-btn" data-page="nbaModelBacktestPage" onclick="switchPage('nbaModelBacktestPage',this)"><span class="nav-icon">V3</span> NBA 模型研究</button>
+      <button class="nav-btn" data-page="nbaModelBacktestPage" onclick="switchPage('nbaModelBacktestPage',this)"><span class="nav-icon">NBA</span> NBA 模型研究</button>
 
     </div>
 
@@ -2017,33 +2051,34 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 <div id="footballV2Rows" class="fvc-games"><div class="fvc-empty">尚未載入</div></div></div>
       </section>
-      <!-- NBA SHADOW RESEARCH: no production model writes -->
-      <section id="nbaV2ComparePage" class="page">
-        <div class="page-head"><div><div class="page-kicker">NBA MODEL RESEARCH</div><div class="page-title">NBA V1／V2 模型比較</div>
-          <div class="page-desc">影子研究專用｜獨立 V2 貝氏得分分布模型｜不修改正式 T-10、會員推薦或結算</div></div>
-          <button class="ghost-btn" onclick="loadNbaV2Compare(true)">↻ 更新</button></div>
-        <div class="panel" style="margin-bottom:16px"><div class="toolbar"><div class="filters">
-          <select id="nbaV2Days" class="input" onchange="loadNbaV2Compare(true)">
-          <option value="0">今日快照</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
-          <input id="nbaV2Search" class="input search" placeholder="搜尋球隊、賽事 ID..." oninput="renderNbaV2Compare()">
-        </div></div><div id="nbaV2Status" class="page-desc" aria-live="polite">切換到此頁後載入</div>
-        <p class="page-desc">僅統計已驗證快照；走盤排除；讓分與大小分須使用相同賽前盤口才列同場比較。V2 尚未進行概率校準。</p></div>
-        <div id="nbaV2Stats" class="nv-stats"></div>
-        <div class="panel"><div class="panel-head"><div class="panel-title">NBA 逐場 V1／V2 比較</div><div id="nbaV2Visible" class="panel-desc">尚未載入</div></div>
-          <div id="nbaV2Rows" class="fvc-games"><div class="fvc-empty">尚無研究資料</div></div></div>
-      </section>
+      <!-- NBA V1/V2 AND BACKTEST UNIFIED READ-ONLY RESEARCH -->
       <section id="nbaModelBacktestPage" class="page">
-        <div class="page-head"><div><div class="page-kicker">NBA MODEL BACKTEST</div><div class="page-title">NBA 新模型回測實驗室</div><div class="page-desc">原始賽前快照：四模型同場驗證。不修改 T-10、會員正式推薦及公開戰績。</div></div>
-          <button class="ghost-btn" onclick="loadNbaBacktest()">↻ 重新回測</button></div>
-        <div class="panel" style="margin-bottom:15px"><div id="nbaBtStatus" class="page-desc">點擊「開始回測」載入結果</div>
-          <p id="nbaBtWarning" class="page-desc">市場校正權重與研究門檻為待驗證假設，不等於正式推薦。</p>
-          <button class="ghost-btn" onclick="loadNbaBacktest()">開始回測</button></div>
-        <div id="nbaBtStats" class="nv-stats" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))"></div>
-        <div class="panel"><div class="panel-head"><div class="panel-title">逐場模型預測比較</div></div>
-          <div class="toolbar"><div class="filters">
-            <select id="nbaBtModel" class="input" onchange="renderNbaBacktest()"><option value="v1_original">V1 原始模型</option><option value="market_anchored">市場校正模型</option><option value="rolling_corrected">歷史誤差修正模型</option><option value="hybrid" selected>混合模型</option></select>
-            <input id="nbaBtSearch" class="input search" oninput="renderNbaBacktest()" placeholder="搜尋中文隊名或賽事編號..."></div></div>
-          <div id="nbaBtRows" class="fvc-games"><div class="fvc-empty">尚無回測結果</div></div></div>
+        <div class="page-head"><div>
+          <div class="page-kicker">NBA 模型分析研究</div>
+          <div class="page-title">NBA V1／V2 模型研究與比較</div>
+          <div class="page-desc">同場預測、獨贏、讓分、大小分與賽後驗證｜V1 正式快照不會被重新計算</div>
+        </div><button class="ghost-btn" id="nrRefresh" onclick="loadNbaResearch()">↻ 更新研究資料</button></div>
+        <div class="panel" style="margin-bottom:14px"><div class="toolbar"><div class="filters">
+          <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="0">今日</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
+          <select id="nrModel" class="input" onchange="renderNbaResearch()">
+            <option value="v2" selected>V1 對照 V2 貝氏模型</option>
+            <option value="market_anchored">V1 對照 市場校正</option>
+            <option value="rolling_corrected">V1 對照 滾動誤差修正</option>
+            <option value="hybrid">V1 對照 混合模型</option>
+          </select>
+          <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部賽事</option><option value="ready">V2 已建模</option><option value="missing">V2 尚未完成</option><option value="verified">已驗證賽果</option></select>
+          <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="renderNbaResearch()">
+        </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入 V1／V2 與歷史研究</div></div>
+        <div id="nrSummary" class="nr-summary"></div>
+        <div id="nrStats" class="nr-stats"></div>
+        <div class="panel"><div class="panel-head">
+          <div><div class="panel-title">同一場比賽：正式 V1 與研究模型</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
+        </div><div id="nrRows" class="nr-games"><div class="nr-empty">目前尚無研究資料</div></div></div>
+        <div class="panel" style="margin-top:16px"><div class="panel-head"><div>
+          <div class="panel-title">四模型歷史回測摘要</div>
+          <div class="panel-desc">同批賽前快照回測，研究數據不等於正式推薦；有比分且符合條件才計入命中率</div>
+        </div></div><div id="nrHistory"></div>
+        <p class="page-desc" style="margin-top:12px">V2 獨立分析與另外三種歷史校正方法是不同研究來源。僅在相同賽事、同一市場盤口與已驗證時進行對照；未收集、未建模與缺少盤口不等於「暫不推薦」。</p></div>
       </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
@@ -2489,8 +2524,7 @@ const PAGE_NAMES = {
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
   footballV2ComparePage: "足球模型比較",
-  nbaV2ComparePage: "NBA 模型比較",
-  nbaModelBacktestPage: "NBA 模型研究",
+  nbaModelBacktestPage: "NBA 模型研究與比較",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
   healthPage: "系統健康"
@@ -2507,7 +2541,6 @@ const PAGE_PERMISSIONS = {
   fixturesPage: "fixtures",
   performanceAdminPage: "performance",
   footballV2ComparePage: "performance",
-  nbaV2ComparePage: "performance",
   nbaModelBacktestPage: "performance",
   partnersPage: "partners",
   healthPage: "health",
@@ -4373,8 +4406,7 @@ function ensurePageData(pageId) {
   else if (pageId === "apiPage") probeMlbStatsApi(false);
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
   else if (pageId === "footballV2ComparePage") loadFootballV2Compare(false);
-  else if (pageId === "nbaV2ComparePage") loadNbaV2Compare(false);
-  else if (pageId === "nbaModelBacktestPage") loadNbaBacktest();
+  else if (pageId === "nbaModelBacktestPage") loadNbaResearch();
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
   else if (pageId === "healthPage") loadHealth(false);
@@ -4388,8 +4420,7 @@ function refreshPageData(pageId) {
   if (pageId === "fixturesPage") return loadFixtures(true);
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
   if (pageId === "footballV2ComparePage") return loadFootballV2Compare(true);
-  if (pageId === "nbaV2ComparePage") return loadNbaV2Compare(true);
-  if (pageId === "nbaModelBacktestPage") return loadNbaBacktest();
+  if (pageId === "nbaModelBacktestPage") return loadNbaResearch();
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
   if (pageId === "healthPage") return loadHealth(true);
@@ -7540,8 +7571,8 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=3" defer></script>
-<script src="./admin-nba-v2.js?v=3" defer></script>
+<script src="./admin-nba-v2.js?v=4" defer></script>
 
-<script src="./admin-nba-backtest.js?v=1" defer></script>
+
 </body>
 </html>
