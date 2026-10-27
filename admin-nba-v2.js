@@ -1,8 +1,9 @@
 /* HABAO NBA unified research dashboard v4: display only, read-only admin APIs */
 const NR_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
 const NR_BACKTEST_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/nba-model-backtest";
-let nrCompare=null,nrBacktest=null,nrErrors={},nrLoading=false;
-const nrNames={v2:"V2 貝氏模型",market_anchored:"市場校正",rolling_corrected:"滾動誤差修正",hybrid:"混合模型"};
+const NR_V3_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v3-read";
+let nrCompare=null,nrBacktest=null,nrV3=null,nrErrors={},nrLoading=false;
+const nrNames={v2:"V2 貝氏模型",v3:"V3 回合效率模型",market_anchored:"市場校正",rolling_corrected:"滾動誤差修正",hybrid:"混合模型"};
 const nrMarkets={moneyline:"獨贏",handicap:"讓分",over_under:"大小分"};
 function nrEsc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
 function nrNum(v,d=1){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?n.toFixed(d):"—";}
@@ -39,9 +40,12 @@ async function loadNbaResearch(){
  const days=Number(document.getElementById("nrDays")?.value||30);
  const result=await Promise.allSettled([
   nrFetch(NR_COMPARE_URL,{action:"compare",days}),
-  nrFetch(NR_BACKTEST_URL,{action:"backtest"})
+  nrFetch(NR_BACKTEST_URL,{action:"backtest"}),
+  nrFetch(NR_V3_URL,{action:"list",days})
  ]);
  nrErrors={};
+ if(result[2]?.status==="fulfilled")nrV3=result[2].value;
+ else{nrV3=null;nrErrors.v3=String(result[2]?.reason?.message||result[2]?.reason||"尚未部署");}
  if(result[0].status==="fulfilled")nrCompare=result[0].value;
  else{nrCompare=null;nrErrors.compare=String(result[0].reason?.message||result[0].reason);}
  if(result[1].status==="fulfilled")nrBacktest=result[1].value;
@@ -53,14 +57,16 @@ function nrRows(){
  const cmp=Array.isArray(nrCompare?.rows)?nrCompare.rows:[];
  const bt=Array.isArray(nrBacktest?.rows)?nrBacktest.rows:[];
  const map=new Map;
- for(const c of cmp){const id=Number(c.game_id);if(Number.isFinite(id)&&id>0)map.set(id,{id,compare:c,backtest:null});}
+ for(const c of cmp){const id=Number(c.game_id);if(Number.isFinite(id)&&id>0)map.set(id,{id,compare:c,backtest:null,v3:null});}
  for(const b of bt){const id=Number(b.game_id);if(!Number.isFinite(id)||id<=0)continue;
  if(map.has(id))map.get(id).backtest=b;
- else if(!nrCompare)map.set(id,{id,compare:null,backtest:b});}
+ else if(!nrCompare)map.set(id,{id,compare:null,backtest:b,v3:null});}
+ for(const v of nrV3?.rows||[]){const id=Number(v.game_id);if(map.has(id))map.get(id).v3=v;}
  return [...map.values()].sort((a,b)=>Date.parse(b.compare?.kickoff_at||b.backtest?.kickoff_at||0)-Date.parse(a.compare?.kickoff_at||a.backtest?.kickoff_at||0)||b.id-a.id);
 }
 function nrVariantAvailability(row,key){
  const c=row.compare, b=row.backtest;
+ if(key==="v3")return row.v3?.status==="ready"?"已建模":row.v3?nrStatus(row.v3.status):"尚未收集";
  if(key==="v2"){
   const status=String(c?.v2_status||"not_collected").toLowerCase();
   if(!c||status!=="ready")return nrStatus(status);
@@ -71,6 +77,13 @@ function nrVariantAvailability(row,key){
 }
 function nrResearchMarket(row,key,market){
  const c=row.compare,b=row.backtest;
+ if(key==="v3"){
+  const record=row.v3,m=record?.model_output;
+  if(record?.status!=="ready"||!m)return{pick:record?nrStatus(record.status):"尚未收集",result:"—"};
+  const side=m.raw_directions?.[market],line=market==="handicap"?(side==="home"?m.market?.home_spread:side==="away"&&m.market?.home_spread!=null?-Number(m.market.home_spread):null):market==="over_under"?m.market?.total:null;
+  if(!side)return{pick:market==="handicap"?"缺少讓分盤口":market==="over_under"?"缺少大小分盤口":"無研究方向",result:"—"};
+  return{pick:nrPick(market,side,line),result:"研究方向（未校準）"};
+ }
  if(key==="v2"){
   const status=String(c?.v2_status||"not_collected").toLowerCase();
   if(status!=="ready")return{pick:nrStatus(status),result:"—"};
@@ -102,6 +115,10 @@ function nrResearchMarket(row,key,market){
  return{pick:side==="over"?"大分方向":side==="under"?"小分方向":"無足夠市場差距",result:"研究方向"};
 }
 function nrScoreInfo(row,key){
+ if(key==="v3"){
+  const m=row.v3?.model_output||{};
+  return{score:nrScore(m.expected_home_points,m.expected_away_points),total:nrNum(m.expected_total),prob:nrPct(m.home_win_probability)};
+ }
  if(key==="v2"){
   const m=row.compare?.v2_model||{};
   return{score:nrScore(m.expected_home_points,m.expected_away_points),total:nrNum(m.expected_total),prob:nrPct(m.home_win_probability)};
@@ -124,12 +141,12 @@ function nrCards(row,key){
   const research=nrResearchMarket(row,key,market);
   const compareRes=done?nrOutcome(t.v1_result):"待驗證";
   return '<div class="nr-market"><div class="nr-market-name">'+name+'</div><div class="nr-pick-row"><span class="nr-tag nr-v1">V1 正式</span><strong>'+nrEsc(official)+'</strong><span class="nr-result">'+(c.markets&&done?compareRes:"—")+'</span></div>'+
-  '<div class="nr-pick-row"><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":"研究")+'</span><strong>'+nrEsc(research.pick)+'</strong><span class="nr-result">'+nrEsc(research.result)+'</span></div>'+
+  '<div class="nr-pick-row"><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":key==="v3"?"V3 影子":"研究")+'</span><strong>'+nrEsc(research.pick)+'</strong><span class="nr-result">'+nrEsc(research.result)+'</span></div>'+
   (research.mismatch?'<div class="nr-note">盤口不同，不列入相同盤口的比較</div>':"")+'</div>';
  }).join("");
  return '<article class="nr-game"><div class="nr-game-top"><div><div class="nr-meta"><span>'+nrDate(c.kickoff_at||b.kickoff_at)+'</span><span>NBA #'+nrEsc(row.id)+'</span><span>'+nrEsc(modelName)+'：'+nrEsc(status)+'</span></div><div class="fvc-game-title">'+title+'</div></div><div class="nr-verified">'+(done?(final?'完賽 '+final:"已驗證"):"待驗證")+'</div></div>'+
  '<div class="nr-score-grid"><div class="nr-scorebox"><div><span class="nr-tag nr-v1">V1 正式</span> 賽前預測比分</div><strong>'+v1Score+'</strong><small>預估總分 '+nrNum(v1.total)+'</small></div>'+
- '<div class="nr-scorebox nr-scorebox-alt"><div><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":"研究")+'</span> '+nrEsc(modelName)+' 預測比分</div><strong>'+score.score+'</strong><small>預估總分 '+score.total+(key==="v2"?"｜主勝機率 "+score.prob:"")+'</small></div></div>'+
+ '<div class="nr-scorebox nr-scorebox-alt"><div><span class="nr-tag nr-v2">'+nrEsc(key==="v2"?"V2 影子":key==="v3"?"V3 影子":"研究")+'</span> '+nrEsc(modelName)+' 預測比分</div><strong>'+score.score+'</strong><small>預估總分 '+score.total+(key==="v2"||key==="v3"?"｜主勝機率 "+score.prob:"")+'</small></div></div>'+
  '<div class="nr-market-grid">'+marketMarkup+'</div>'+
  (key==="v2"&&String(c.v2_status||"")!=="ready"?'<div class="nr-explain">V2 尚未完成此場獨立研究分析；沒有 V2 方向不代表模型判定「暫不推薦」。</div>':"")+
  (key==="v2"&&c.v2_model?.pace_metrics?'<div class="nr-explain">回合效率模型｜預估回合 '+nrNum(c.v2_model.pace_metrics.expected_possessions)+'｜主隊 ORtg '+nrNum(c.v2_model.pace_metrics.home_ortg)+'／DRtg '+nrNum(c.v2_model.pace_metrics.home_drtg)+'｜客隊 ORtg '+nrNum(c.v2_model.pace_metrics.away_ortg)+'／DRtg '+nrNum(c.v2_model.pace_metrics.away_drtg)+'｜有效歷史 Box '+nrEsc(c.v2_model.sample?.home_box_games??"—")+'/'+nrEsc(c.v2_model.sample?.away_box_games??"—")+'</div>':"")+
@@ -141,13 +158,18 @@ function nrSummary(){
  const vals=[
  ["V1 正式快照",cmp.count??bt.total??"—","已保存的賽前預測"],
  ["V2 已建模",cmp.captured??"—","獨立貝氏模型"],
- ["V2 尚未收集",cmp.not_collected??"—","不是暫不推薦"],
+ ["V3 已建模",(nrV3?.rows||[]).filter(x=>x.status==="ready").length,"效率影子模型"],
  ["已驗證可回測",bt.verified??cmp.verified??"—","只計入有效完賽比分"]
  ];
  el.innerHTML=vals.map(v=>'<div class="nr-summary-tile"><div>'+v[0]+'</div><strong>'+nrEsc(v[1])+'</strong><small>'+v[2]+'</small></div>').join("");
 }
 function nrStats(model){
  const box=document.getElementById("nrStats");if(!box)return;
+ if(model==="v3"){
+   const v=nrV3?.rows||[],ready=v.filter(x=>x.status==="ready");
+   box.innerHTML='<div class="nr-stat"><b>V3 建模狀態</b><div><span>已保存 '+v.length+' 場</span><span>有效 '+ready.length+' 場</span></div><small>只顯示獨立賽前快照；正式命中需同場賽果驗證</small></div>';
+   return;
+ }
  if(model==="v2"){
   if(!nrCompare){box.innerHTML='<div class="nr-empty">V2 比較資料目前不可用</div>';return;}
   box.innerHTML=Object.entries(nrMarkets).map(([key,name])=>{const v=nrCompare.markets?.[key]||{};
@@ -174,8 +196,9 @@ function renderNbaResearch(){
  const warnings=[];
  if(nrErrors.compare)warnings.push("V1／V2 比較 API："+nrErrors.compare);
  if(nrErrors.backtest)warnings.push("歷史回測 API："+nrErrors.backtest);
+ if(nrErrors.v3)warnings.push("V3 研究 API："+nrErrors.v3);
  const c=nrCompare||{},b=nrBacktest||{};
- if(msg)msg.textContent=[warnings.length?"部分資料來源異常："+warnings.join("；"):"已更新",nrCompare?"V1 "+(c.count??"—")+" 場、V2 已建模 "+(c.captured??"—")+" 場":null,nrBacktest?"歷史有效回測 "+(b.verified??"—")+" 場":null].filter(Boolean).join("｜");
+ if(msg)msg.textContent=[warnings.length?"部分資料來源異常："+warnings.join("；"):"已更新",nrCompare?"V1 "+(c.count??"—")+" 場、V2 已建模 "+(c.captured??"—")+" 場":null,nrBacktest?"歷史有效回測 "+(b.verified??"—")+" 場":null,nrV3?"V3 已保存 "+(nrV3.count??"—")+" 場":null].filter(Boolean).join("｜");
  nrSummary();nrStats(model);nrHistorical();
  const search=String(document.getElementById("nrSearch")?.value||"").trim().toLowerCase();
  const filter=document.getElementById("nrFilter")?.value||"all";
