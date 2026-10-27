@@ -840,6 +840,18 @@ tr:last-child td{border-bottom:0}
 #performanceBody td:nth-child(7){min-width:108px;white-space:nowrap}
 #performanceBody td:nth-child(7) .status{display:inline-flex;align-items:center;justify-content:center}
 
+/* V1 / V2 研究比較 */
+.fvc-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:14px 0}
+.fvc-stat{background:var(--card,#101b2b);border:1px solid rgba(230,192,104,.22);border-radius:14px;padding:16px}
+.fvc-stat-title{font-size:15px;font-weight:900;color:var(--gold,#e6bb6c)}
+.fvc-paired,.fvc-sub{font-size:11px;color:var(--muted,#9aa9b8);margin:6px 0}
+.fvc-compare{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:12px 0}
+.fvc-compare b{font-size:20px;color:#d9e8e8}
+.fvc-alert{color:#ff9999;font-size:11px;margin:5px 0}
+.fvc-market{font-size:12px;min-width:125px;line-height:1.8}
+.fvc-market small{color:var(--muted,#9aa9b8)}
+.fvc-league{font-size:11px;color:var(--gold,#e6bb6c)}
+@media(max-width:900px){.fvc-cards{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -964,6 +976,9 @@ tr:last-child td{border-bottom:0}
 
       <button class="nav-btn" data-page="performanceAdminPage" onclick="switchPage('performanceAdminPage',this)">
         <span class="nav-icon">✓</span> 公開 AI 戰績
+      </button>
+      <button class="nav-btn" data-page="footballV2ComparePage" onclick="switchPage('footballV2ComparePage',this)">
+        <span class="nav-icon">V2</span> 足球模型比較
       </button>
 
     </div>
@@ -1921,6 +1936,35 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
       </section>
 
+      <!-- FOOTBALL RESEARCH COMPARISON (ADMIN ONLY) -->
+      <section id="footballV2ComparePage" class="page">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">FOOTBALL MODEL RESEARCH</div>
+            <div class="page-title">足球 V1／V2 模型比較</div>
+            <div class="page-desc">影子研究專用｜僅管理員查看，不修改正式快照、推薦、結算或會員扣點。</div>
+          </div>
+          <button class="ghost-btn" id="footballV2Reload" onclick="loadFootballV2Compare(true)">↻ 更新</button>
+        </div>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="toolbar"><div class="filters">
+            <select id="footballV2Days" class="input" onchange="loadFootballV2Compare(true)">
+              <option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option>
+            </select>
+            <input id="footballV2Search" class="input search" placeholder="搜尋聯賽、球隊、賽事 ID..." oninput="renderFootballV2Compare()">
+          </div></div>
+          <div id="footballV2CompareStatus" class="page-desc" aria-live="polite">切換到此頁後自動載入</div>
+          <p class="page-desc">命中率採半贏 0.5、半輸 0；走盤不計分母。大小球只比較相同盤口的已驗證場次；V2 尚未校準，研究數據不代表獲利保證。</p>
+        </div>
+        <div id="footballV2Stats" class="fvc-cards"></div>
+        <div class="panel"><div class="panel-head">
+          <div><div class="panel-title">逐場 V1 / V2 比較</div><div class="panel-desc" id="footballV2Visible">尚未讀取影子資料</div></div>
+        </div>
+        <div class="table-shell"><div class="table-scroll"><table style="min-width:1160px">
+          <thead><tr><th>開賽時間</th><th>賽事</th><th>比分</th><th>獨贏</th><th>大小球</th><th>BTTS</th><th>V2 研究指標</th></tr></thead>
+          <tbody id="footballV2Rows"><tr><td colspan="7" class="empty">尚未載入</td></tr></tbody>
+        </table></div></div></div>
+      </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
         <div class="page-head">
@@ -2364,6 +2408,7 @@ const PAGE_NAMES = {
   jobsPage: "分析任務",
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
+  footballV2ComparePage: "足球模型比較",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
   healthPage: "系統健康"
@@ -2379,6 +2424,7 @@ const PAGE_PERMISSIONS = {
   jobsPage: "analysis_jobs",
   fixturesPage: "fixtures",
   performanceAdminPage: "performance",
+  footballV2ComparePage: "performance",
   partnersPage: "partners",
   healthPage: "health",
   adminUsersPage: "admin_users"
@@ -2640,6 +2686,7 @@ async function logoutAdmin() {
   nbaFixtureStats = {};
   nbaFixtureDates = {};
   performanceSnapshots = [];
+  if (typeof resetFootballV2Compare === "function") resetFootballV2Compare();
   partnerPlatforms = [];
   adminUsers = [];
   healthPayload = null;
@@ -4241,6 +4288,7 @@ function ensurePageData(pageId) {
   else if (pageId === "fixturesPage") loadFixtures(false);
   else if (pageId === "apiPage") probeMlbStatsApi(false);
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
+  else if (pageId === "footballV2ComparePage") loadFootballV2Compare(false);
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
   else if (pageId === "healthPage") loadHealth(false);
@@ -4253,6 +4301,7 @@ function refreshPageData(pageId) {
   if (pageId === "jobsPage") return loadJobs(true);
   if (pageId === "fixturesPage") return loadFixtures(true);
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
+  if (pageId === "footballV2ComparePage") return loadFootballV2Compare(true);
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
   if (pageId === "healthPage") return loadHealth(true);
@@ -7402,6 +7451,7 @@ function escapeHtml(value) {
 
 restoreAdminSession();
 </script>
+<script src="./admin-football-v2.js?v=1" defer></script>
 
 </body>
 </html>
