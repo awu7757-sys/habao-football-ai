@@ -841,6 +841,9 @@ tr:last-child td{border-bottom:0}
 #performanceBody td:nth-child(7) .status{display:inline-flex;align-items:center;justify-content:center}
 
 
+.fvc-no-data{margin-top:7px;color:#eec079;font-size:11px}
+.fvc-no-data strong{color:#ffcb74}
+.fvc-unavailable{color:#96a8ba;font-size:11px}
 /* Fully responsive football V1 / V2 game cards */
 .fvc-games{display:grid;grid-template-columns:1fr;gap:14px;min-width:0}
 .fvc-game-card{min-width:0;padding:16px;border:1px solid rgba(160,184,207,.18);border-radius:14px;background:rgba(8,18,29,.62)}
@@ -1991,7 +1994,7 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel" style="margin-bottom:16px">
           <div class="toolbar"><div class="filters">
             <select id="footballV2Days" class="input" onchange="loadFootballV2Compare(true)">
-              <option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option>
+              <option value="0" selected>今日快照</option><option value="7">近 7 天</option><option value="30">近 30 天</option><option value="90">近 90 天</option>
             </select>
             <input id="footballV2Search" class="input search" placeholder="搜尋聯賽、球隊、賽事 ID..." oninput="renderFootballV2Compare()">
           </div></div>
@@ -7490,7 +7493,7 @@ function escapeHtml(value) {
 
 restoreAdminSession();
 </script>
-<script src="./admin-football-v2.js?v=2" defer></script>
+<script src="./admin-football-v2.js?v=3" defer></script>
 
 </body>
 </html>
