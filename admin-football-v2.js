@@ -43,39 +43,54 @@ if(status)status.textContent="已更新｜"+(packet.count||0)+" 場影子紀錄�
 if(status)status.textContent="無法載入："+(e?.message||String(e));
 if(!footballV2CompareData){
 const holder=document.getElementById("footballV2Rows");
-if(holder)holder.innerHTML='<tr><td colspan="7" class="empty">'+v2esc(e?.message||"尚未有影子數據")+'</td></tr>';
+if(holder)holder.innerHTML='<div class="fvc-empty">'+v2esc(e?.message||"尚未有影子數據")+'</div>';
 }
 }finally{footballV2Loading=false;if(btn)btn.disabled=false;}
 }
 function renderFootballV2Compare(){
-const packet=footballV2CompareData;if(!packet)return;
-const stats=document.getElementById("footballV2Stats");
-if(stats)stats.innerHTML=["moneyline","over_under","btts"].map(k=>v2statCard(k,packet.markets?.[k])).join("");
-const filter=String(document.getElementById("footballV2Search")?.value||"").trim().toLowerCase();
-const rows=(packet.rows||[]).filter(r=>!filter||[r.fixture_id,r.league_name,r.home,r.away].some(x=>String(x||"").toLowerCase().includes(filter)));
-const count=document.getElementById("footballV2Visible");
-if(count)count.textContent="顯示 "+rows.length+"／"+(packet.count||0)+" 場｜有效統計僅限正式完賽與原始快照";
-const body=document.getElementById("footballV2Rows");if(!body)return;
-if(!rows.length){body.innerHTML='<tr><td colspan="7" class="empty">目前沒有符合條件的影子比較紀錄</td></tr>';return;}
-body.innerHTML=rows.map(r=>{
- const score=r.resolved?v2esc(r.home_score+" : "+r.away_score):"待驗證";
- const renderMarket=k=>{
-  const m=r.markets?.[k]||{};
-  return '<div class="fvc-market"><div><small>V1</small> '+v2esc(v2pickLabel(k,m.v1_pick,m.v1_line))+
-     ' <b>'+v2esc(v2resultLabel(m.v1_result))+'</b></div>'+
-    '<div><small>V2</small> '+v2esc(v2pickLabel(k,m.v2_pick,m.v2_line))+
-     ' <b>'+v2esc(v2resultLabel(m.v2_result))+'</b></div>'+
-    (m.settlement_mismatch?'<div class="fvc-alert">原始推薦與正式結算不一致</div>':'')+
-    (k==="over_under"&&!m.same_line&&m.v1_pick&&m.v2_pick?'<div class="fvc-sub">盤口不同，不列同場比較</div>':'')+
-    '</div>';
- };
- return '<tr><td>'+v2esc(v2time(r.kickoff_at))+'</td>'+
- '<td><div class="fvc-league">'+v2esc(r.league_name)+'</div><strong>'+v2esc(r.home)+' vs '+v2esc(r.away)+'</strong><div class="fvc-sub">#'+v2esc(r.fixture_id)+'</div></td>'+
- '<td>'+score+'</td><td>'+renderMarket("moneyline")+'</td><td>'+renderMarket("over_under")+'</td><td>'+renderMarket("btts")+'</td>'+
- '<td><div>主 '+v2num(r.expected_home_goals,2)+'／客 '+v2num(r.expected_away_goals,2)+'</div>'+
- '<div class="fvc-sub">主勝 '+(r.home_win_probability==null?"—":v2pct(r.home_win_probability*100))+'，平 '+(r.draw_probability==null?"—":v2pct(r.draw_probability*100))+'</div>'+
- '<div class="fvc-sub">大球模型 EV '+(r.over_ev==null?"—":v2pct(r.over_ev*100))+'</div></td></tr>';
-}).join("");
+  const packet=footballV2CompareData;if(!packet)return;
+  const stats=document.getElementById("footballV2Stats");
+  if(stats)stats.innerHTML=["moneyline","over_under","btts"].map(k=>v2statCard(k,packet.markets?.[k])).join("");
+  const filter=String(document.getElementById("footballV2Search")?.value||"").trim().toLowerCase();
+  const rows=(packet.rows||[]).filter(r=>!filter||[r.fixture_id,r.league_name,r.home,r.away].some(x=>String(x||"").toLowerCase().includes(filter)));
+  const count=document.getElementById("footballV2Visible");
+  if(count)count.textContent="顯示 "+rows.length+"／"+(packet.count||0)+" 場｜有效統計僅限正式完賽與原始快照";
+  const holder=document.getElementById("footballV2Rows");if(!holder)return;
+  if(!rows.length){
+    holder.innerHTML='<div class="fvc-empty">目前沒有符合條件的影子比較紀錄</div>';
+    return;
+  }
+  const probability=n=>n==null?"—":v2pct(Number(n)*100);
+  const ratio=n=>n==null?"—":v2pct(Number(n)*100);
+  holder.innerHTML=rows.map(r=>{
+    const score=r.resolved?v2esc(r.home_score+" : "+r.away_score):"待驗證";
+    const renderMarket=k=>{
+      const m=r.markets?.[k]||{};
+      const flag=m.settlement_mismatch?'<p class="fvc-alert">原始推薦與結算不一致</p>':'';
+      const diff=k==="over_under"&&!m.same_line&&m.v1_pick&&m.v2_pick?'<p class="fvc-alert fvc-info">盤口不同，不列同場比較</p>':'';
+      const row=(label,pick,line,result)=>'<div class="fvc-market-line"><span class="fvc-model-tag '+(label==="V2"?"fvc-model-v2":"")+'">'+label+'</span>'+
+        '<strong>'+v2esc(v2pickLabel(k,pick,line))+'</strong>'+
+        '<span class="fvc-outcome '+(result==="win"||result==="half_win"?"fvc-outcome-good":result==="loss"||result==="half_loss"?"fvc-outcome-bad":"")+'">'+v2esc(v2resultLabel(result))+'</span></div>';
+      return '<div class="fvc-market-card"><div class="fvc-market-title">'+v2esc(v2marketNames[k])+'</div>'+
+        row("V1",m.v1_pick,m.v1_line,m.v1_result)+row("V2",m.v2_pick,m.v2_line,m.v2_result)+flag+diff+'</div>';
+    };
+    const metric=(label,value)=>'<div class="fvc-metric"><span>'+label+'</span><strong>'+v2esc(value)+'</strong></div>';
+    return '<article class="fvc-game-card">'+
+      '<div class="fvc-game-top"><div class="fvc-game-detail">'+
+        '<div class="fvc-game-metadata"><span>'+v2esc(v2time(r.kickoff_at))+'</span><span>'+v2esc(r.league_name||"足球")+'</span><span>賽事 #'+v2esc(r.fixture_id)+'</span></div>'+
+        '<div class="fvc-game-title">'+v2esc(r.home||"主隊")+' <span>vs</span> '+v2esc(r.away||"客隊")+'</div></div>'+
+        '<div class="fvc-score '+(r.resolved?"fvc-score-complete":"")+'">'+score+'</div></div>'+
+      '<div class="fvc-market-grid">'+["moneyline","over_under","btts"].map(renderMarket).join("")+'</div>'+
+      '<div class="fvc-research"><div class="fvc-research-title">V2 數學研究指標 <span>未校準模型</span></div>'+
+        '<div class="fvc-metric-grid">'+
+          metric("主隊預估進球",v2num(r.expected_home_goals,2))+
+          metric("客隊預估進球",v2num(r.expected_away_goals,2))+
+          metric("主勝機率",probability(r.home_win_probability))+
+          metric("平局機率",probability(r.draw_probability))+
+          metric("大球預期報酬",ratio(r.over_ev))+
+        '</div></div>'+
+      '</article>';
+  }).join("");
 }
 function resetFootballV2Compare(){footballV2CompareData=null;const s=document.getElementById("footballV2CompareStatus");if(s)s.textContent="尚未載入";}
 window.addEventListener("DOMContentLoaded",()=>{
