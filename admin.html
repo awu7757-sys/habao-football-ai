@@ -844,6 +844,12 @@ tr:last-child td{border-bottom:0}
 .fvc-no-data{margin-top:7px;color:#eec079;font-size:11px}
 .fvc-no-data strong{color:#ffcb74}
 .fvc-unavailable{color:#96a8ba;font-size:11px}
+.nv-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:15px}
+.nv-stat{background:#101c2b;border:1px solid rgba(191,206,231,.2);border-radius:13px;padding:16px;min-width:0;color:#cfdeed}
+.nv-stat>b{color:#f0bf65;font-size:14px}
+.nv-stat-line{font-size:16px;font-weight:900;margin:12px 0}
+.nv-stat small,.nv-sub{color:#92a6bc;font-size:11px}
+@media(max-width:750px){.nv-stats{grid-template-columns:1fr}}
 /* Fully responsive football V1 / V2 game cards */
 .fvc-games{display:grid;grid-template-columns:1fr;gap:14px;min-width:0}
 .fvc-game-card{min-width:0;padding:16px;border:1px solid rgba(160,184,207,.18);border-radius:14px;background:rgba(8,18,29,.62)}
@@ -1024,6 +1030,9 @@ tr:last-child td{border-bottom:0}
       </button>
       <button class="nav-btn" data-page="footballV2ComparePage" onclick="switchPage('footballV2ComparePage',this)">
         <span class="nav-icon">V2</span> 足球模型比較
+      </button>
+      <button class="nav-btn" data-page="nbaV2ComparePage" onclick="switchPage('nbaV2ComparePage',this)">
+        <span class="nav-icon">V2</span> NBA 模型比較
       </button>
 
     </div>
@@ -2007,6 +2016,21 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
 <div id="footballV2Rows" class="fvc-games"><div class="fvc-empty">尚未載入</div></div></div>
       </section>
+      <!-- NBA SHADOW RESEARCH: no production model writes -->
+      <section id="nbaV2ComparePage" class="page">
+        <div class="page-head"><div><div class="page-kicker">NBA MODEL RESEARCH</div><div class="page-title">NBA V1／V2 模型比較</div>
+          <div class="page-desc">影子研究專用｜獨立 V2 貝氏得分分布模型｜不修改正式 T-10、會員推薦或結算</div></div>
+          <button class="ghost-btn" onclick="loadNbaV2Compare(true)">↻ 更新</button></div>
+        <div class="panel" style="margin-bottom:16px"><div class="toolbar"><div class="filters">
+          <select id="nbaV2Days" class="input" onchange="loadNbaV2Compare(true)">
+          <option value="0">今日快照</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
+          <input id="nbaV2Search" class="input search" placeholder="搜尋球隊、賽事 ID..." oninput="renderNbaV2Compare()">
+        </div></div><div id="nbaV2Status" class="page-desc" aria-live="polite">切換到此頁後載入</div>
+        <p class="page-desc">僅統計已驗證快照；走盤排除；讓分與大小分須使用相同賽前盤口才列同場比較。V2 尚未進行概率校準。</p></div>
+        <div id="nbaV2Stats" class="nv-stats"></div>
+        <div class="panel"><div class="panel-head"><div class="panel-title">NBA 逐場 V1／V2 比較</div><div id="nbaV2Visible" class="panel-desc">尚未載入</div></div>
+          <div id="nbaV2Rows" class="fvc-games"><div class="fvc-empty">尚無研究資料</div></div></div>
+      </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
         <div class="page-head">
@@ -2451,6 +2475,7 @@ const PAGE_NAMES = {
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
   footballV2ComparePage: "足球模型比較",
+  nbaV2ComparePage: "NBA 模型比較",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
   healthPage: "系統健康"
@@ -2467,6 +2492,7 @@ const PAGE_PERMISSIONS = {
   fixturesPage: "fixtures",
   performanceAdminPage: "performance",
   footballV2ComparePage: "performance",
+  nbaV2ComparePage: "performance",
   partnersPage: "partners",
   healthPage: "health",
   adminUsersPage: "admin_users"
@@ -4331,6 +4357,7 @@ function ensurePageData(pageId) {
   else if (pageId === "apiPage") probeMlbStatsApi(false);
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
   else if (pageId === "footballV2ComparePage") loadFootballV2Compare(false);
+  else if (pageId === "nbaV2ComparePage") loadNbaV2Compare(false);
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
   else if (pageId === "healthPage") loadHealth(false);
@@ -4344,6 +4371,7 @@ function refreshPageData(pageId) {
   if (pageId === "fixturesPage") return loadFixtures(true);
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
   if (pageId === "footballV2ComparePage") return loadFootballV2Compare(true);
+  if (pageId === "nbaV2ComparePage") return loadNbaV2Compare(true);
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
   if (pageId === "healthPage") return loadHealth(true);
@@ -7494,6 +7522,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=3" defer></script>
+<script src="./admin-nba-v2.js?v=1" defer></script>
 
 </body>
 </html>
