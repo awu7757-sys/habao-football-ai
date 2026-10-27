@@ -1034,6 +1034,7 @@ tr:last-child td{border-bottom:0}
       <button class="nav-btn" data-page="nbaV2ComparePage" onclick="switchPage('nbaV2ComparePage',this)">
         <span class="nav-icon">V2</span> NBA 模型比較
       </button>
+      <button class="nav-btn" data-page="nbaModelBacktestPage" onclick="switchPage('nbaModelBacktestPage',this)"><span class="nav-icon">V3</span> NBA 模型研究</button>
 
     </div>
 
@@ -2031,6 +2032,19 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         <div class="panel"><div class="panel-head"><div class="panel-title">NBA 逐場 V1／V2 比較</div><div id="nbaV2Visible" class="panel-desc">尚未載入</div></div>
           <div id="nbaV2Rows" class="fvc-games"><div class="fvc-empty">尚無研究資料</div></div></div>
       </section>
+      <section id="nbaModelBacktestPage" class="page">
+        <div class="page-head"><div><div class="page-kicker">NBA MODEL BACKTEST</div><div class="page-title">NBA 新模型回測實驗室</div><div class="page-desc">原始賽前快照：四模型同場驗證。不修改 T-10、會員正式推薦及公開戰績。</div></div>
+          <button class="ghost-btn" onclick="loadNbaBacktest()">↻ 重新回測</button></div>
+        <div class="panel" style="margin-bottom:15px"><div id="nbaBtStatus" class="page-desc">點擊「開始回測」載入結果</div>
+          <p id="nbaBtWarning" class="page-desc">市場校正權重與研究門檻為待驗證假設，不等於正式推薦。</p>
+          <button class="ghost-btn" onclick="loadNbaBacktest()">開始回測</button></div>
+        <div id="nbaBtStats" class="nv-stats" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))"></div>
+        <div class="panel"><div class="panel-head"><div class="panel-title">逐場模型預測比較</div></div>
+          <div class="toolbar"><div class="filters">
+            <select id="nbaBtModel" class="input" onchange="renderNbaBacktest()"><option value="v1_original">V1 原始模型</option><option value="market_anchored">市場校正模型</option><option value="rolling_corrected">歷史誤差修正模型</option><option value="hybrid" selected>混合模型</option></select>
+            <input id="nbaBtSearch" class="input search" oninput="renderNbaBacktest()" placeholder="搜尋中文隊名或賽事編號..."></div></div>
+          <div id="nbaBtRows" class="fvc-games"><div class="fvc-empty">尚無回測結果</div></div></div>
+      </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
         <div class="page-head">
@@ -2476,6 +2490,7 @@ const PAGE_NAMES = {
   performanceAdminPage: "公開 AI 戰績",
   footballV2ComparePage: "足球模型比較",
   nbaV2ComparePage: "NBA 模型比較",
+  nbaModelBacktestPage: "NBA 模型研究",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
   healthPage: "系統健康"
@@ -2493,6 +2508,7 @@ const PAGE_PERMISSIONS = {
   performanceAdminPage: "performance",
   footballV2ComparePage: "performance",
   nbaV2ComparePage: "performance",
+  nbaModelBacktestPage: "performance",
   partnersPage: "partners",
   healthPage: "health",
   adminUsersPage: "admin_users"
@@ -4358,6 +4374,7 @@ function ensurePageData(pageId) {
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
   else if (pageId === "footballV2ComparePage") loadFootballV2Compare(false);
   else if (pageId === "nbaV2ComparePage") loadNbaV2Compare(false);
+  else if (pageId === "nbaModelBacktestPage") loadNbaBacktest();
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
   else if (pageId === "healthPage") loadHealth(false);
@@ -4372,6 +4389,7 @@ function refreshPageData(pageId) {
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
   if (pageId === "footballV2ComparePage") return loadFootballV2Compare(true);
   if (pageId === "nbaV2ComparePage") return loadNbaV2Compare(true);
+  if (pageId === "nbaModelBacktestPage") return loadNbaBacktest();
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
   if (pageId === "healthPage") return loadHealth(true);
@@ -7524,5 +7542,6 @@ restoreAdminSession();
 <script src="./admin-football-v2.js?v=3" defer></script>
 <script src="./admin-nba-v2.js?v=3" defer></script>
 
+<script src="./admin-nba-backtest.js?v=1" defer></script>
 </body>
 </html>
