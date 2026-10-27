@@ -940,6 +940,10 @@ tr:last-child td{border-bottom:0}
 .nr-hist-head{color:#a1b6ca;font-weight:900}.nr-hist-row{color:#e0edf6}
 @media(max-width:980px){.nr-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.nr-stats{grid-template-columns:1fr}.nr-market-grid{grid-template-columns:1fr}}
 @media(max-width:640px){.nr-score-grid{grid-template-columns:1fr}.nr-game-top{align-items:flex-start}.nr-verified{white-space:normal}.nr-summary{gap:7px}.nr-game{padding:12px}.nr-scorebox strong{font-size:20px}}
+
+.nr-simple-table{overflow-x:auto}.nr-simple-head,.nr-simple-row{display:grid;grid-template-columns:minmax(105px,1.5fr) repeat(5,minmax(70px,1fr));min-width:620px;gap:8px;padding:13px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.17);font-size:12px}
+.nr-simple-head{color:#9dafc3;font-weight:900}.nr-simple-row{color:#dce9f7}.nr-simple-row strong:nth-child(2){color:#f2c270;font-size:17px}
+@media(max-width:720px){.nr-simple-head,.nr-simple-row{min-width:650px}}
 </style>
 </head>
 
@@ -2070,6 +2074,14 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部賽事</option><option value="ready">V2 已建模</option><option value="missing">V2 尚未完成</option><option value="verified">已驗證賽果</option></select>
           <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="renderNbaResearch()">
         </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入 V1／V2 與歷史研究</div></div>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><div><div class="panel-title">近 2～3 天，哪個 NBA 模型比較好？</div><div class="panel-desc">先看命中率、再看有方向數及缺少多少資料</div></div>
+          <select id="nrSimpleWindow" class="input" onchange="nrSimpleScoreboard()"><option value="48">近 2 天</option><option value="72" selected>近 3 天</option></select></div>
+          <div id="nrSimpleMeta" class="page-desc" style="margin:0 0 12px">載入中…</div>
+          <div id="nrSimpleTable" class="nr-simple-table"><div class="nr-empty">尚未取得資料</div></div>
+          <div id="nrSimpleConclusion" class="page-desc" style="margin-top:12px">只計入實際有賽後結果的場次。</div>
+          <p class="page-desc" style="margin-top:8px">「有方向」包含研究傾向，不等於正式推薦；「未給方向」不包含尚未建立模型的場次。命中率排除走盤及尚未驗證。</p>
+        </div>
         <div id="nrSummary" class="nr-summary"></div>
         <div id="nrStats" class="nr-stats"></div>
         <div class="panel"><div class="panel-head">
@@ -7572,7 +7584,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=3" defer></script>
-<script src="./admin-nba-v2.js?v=5" defer></script>
+<script src="./admin-nba-v2.js?v=6" defer></script>
 
 
 </body>
