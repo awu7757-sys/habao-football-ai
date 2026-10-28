@@ -29,7 +29,7 @@ async function football(path:string):Promise<any[]>{
   if(!r.ok)throw new Error(`football_http_${r.status}`);const b=await r.json();if(!Array.isArray(b?.response)||b?.errors&&Object.keys(b.errors).length)throw new Error('football_invalid_or_error_payload');return b.response;
 }
 function poisson(lambda:number,k:number){let p=Math.exp(-lambda);for(let i=1;i<=k;i++)p*=lambda/i;return p;}
-function nval(v:any){const n=Number(v);return Number.isFinite(n)?n:null;}
+function nval(v:any){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function clamp(x:number,lo:number,hi:number){return Math.max(lo,Math.min(hi,x));}
 function shrunk(value:number|null,prior:number,n:number,k=5){return value===null?prior:(n/(n+k))*value+(k/(n+k))*prior;}
 function venueMultiplier(team:any,overall:number|null){
@@ -51,14 +51,17 @@ function predict(home:any,away:any,baseline:any){
   const hxg=clamp(((ha+ad)/2)*venueMultiplier(home,ha),.15,4);
   const axg=clamp(((aa+hd)/2)*venueMultiplier(away,aa),.15,4);
   const max=18, hp=Array.from({length:max+1},(_,i)=>poisson(hxg,i)),ap=Array.from({length:max+1},(_,i)=>poisson(axg,i));
+  const mass=hp.reduce((s,p)=>s+p,0)*ap.reduce((s,p)=>s+p,0);
+  if(!Number.isFinite(mass)||mass<=0)throw new Error('poisson_probability_mass_invalid');
   let h=0,d=0,a=0,btts=0;const totals:Record<string,number>={};
-  for(let i=0;i<=max;i++)for(let j=0;j<=max;j++){const p=hp[i]*ap[j];if(i>j)h+=p;else if(i===j)d+=p;else a+=p;if(i>0&&j>0)btts+=p;}
-  for(const line of [1.5,2.5,3.5,4.5,5.5]){let over=0;for(let i=0;i<=max;i++)for(let j=0;j<=max;j++)if(i+j>line)over+=hp[i]*ap[j];totals[String(line)]=over;}
-  const scores=[];for(let i=0;i<=max;i++)for(let j=0;j<=max;j++)scores.push({home:i,away:j,p:hp[i]*ap[j]});
+  for(let i=0;i<=max;i++)for(let j=0;j<=max;j++){const p=hp[i]*ap[j]/mass;if(i>j)h+=p;else if(i===j)d+=p;else a+=p;if(i>0&&j>0)btts+=p;}
+  for(const line of [1.5,2.5,3.5,4.5,5.5]){let over=0;for(let i=0;i<=max;i++)for(let j=0;j<=max;j++)if(i+j>line)over+=hp[i]*ap[j]/mass;totals[String(line)]=over;}
+  const scores=[];for(let i=0;i<=max;i++)for(let j=0;j<=max;j++)scores.push({home:i,away:j,p:hp[i]*ap[j]/mass});
   scores.sort((x,y)=>y.p-x.p);
-  const probs={home_win:h,draw:d,away_win:a,btts_yes:btts,btts_no:1-btts,totals_over:totals,most_likely_scores:scores.slice(0,5).map(x=>({score:`${x.home}-${x.away}`,probability:x.p}))};
+  const under=Object.fromEntries(Object.entries(totals).map(([line,p])=>[line,1-p]));
+  const probs={home_win:h,draw:d,away_win:a,btts_yes:btts,btts_no:1-btts,totals_over:totals,totals_under:under,most_likely_scores:scores.slice(0,5).map(x=>({score:`${x.home}-${x.away}`,probability:x.p}))};
   const fair=(p:number)=>p>0?Number((1/p).toFixed(4)):null;
-  return {home_xg:Number(hxg.toFixed(4)),away_xg:Number(axg.toFixed(4)),probabilities:probs,fair_odds:{home_win:fair(h),draw:fair(d),away_win:fair(a),btts_yes:fair(btts),btts_no:fair(1-btts),totals_over:Object.fromEntries(Object.entries(totals).map(([k,v])=>[k,fair(v)]))}};
+  return {home_xg:Number(hxg.toFixed(4)),away_xg:Number(axg.toFixed(4)),probabilities:probs,fair_odds:{home_win:fair(h),draw:fair(d),away_win:fair(a),btts_yes:fair(btts),btts_no:fair(1-btts),totals_over:Object.fromEntries(Object.entries(totals).map(([k,v])=>[k,fair(v)])),totals_under:Object.fromEntries(Object.entries(under).map(([k,v])=>[k,fair(v)]))}};
 }
 function day(ms:number){return new Date(ms).toISOString().slice(0,10);}
 async function loadFixtures(now:number,allowFetch:boolean){
@@ -105,6 +108,11 @@ async function run(action:'dry_run'|'run'){
     const features=await dbGet<any>('football_v2_shadow_feature_snapshots',`select=*&fixture_id=eq.${id}&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&order=captured_at.desc&limit=1`);
     const feature=features[0];
     if(!feature){await audit(f,stage,'missing_features','no_prior_feature_snapshot',attempt,true,{api_football_calls:calls});return {success:true,version:VERSION,action,status:'missing_features',fixture_id:id,stage:stage.key,api_football_calls:calls};}
+    const featureTime=Date.parse(String(feature.captured_at||'')),featureKickoff=Date.parse(String(feature.kickoff_at||''));
+    if(!Number.isFinite(featureTime)||!Number.isFinite(featureKickoff)||Math.abs(featureKickoff-officialKickoff)>90*MINUTE||featureTime<officialKickoff-52*HOUR){
+      await audit(f,stage,'missing_features','stale_or_mismatched_feature_snapshot',attempt,true,{feature_kickoff:feature.kickoff_at,official_kickoff:live.fixture.date,feature_captured_at:feature.captured_at,api_football_calls:calls});
+      return {success:true,version:VERSION,action,status:'missing_features',reason:'stale_or_mismatched_feature_snapshot',fixture_id:id,stage:stage.key,api_football_calls:calls};
+    }
     const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline);
     const quotes=await dbGet<any>('football_v2_shadow_market_quotes',`select=captured_at,provider,market_key,total_line,over_odds,under_odds,bookmaker_count&fixture_id=eq.${id}&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&order=captured_at.desc&limit=1`);
     let availabilityEvidence:any={status:'not_collected_at_this_stage',items:[],model_adjustment_applied:false};
