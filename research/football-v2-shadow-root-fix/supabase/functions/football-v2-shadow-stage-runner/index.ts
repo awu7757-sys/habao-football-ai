@@ -40,10 +40,14 @@ function venueMultiplier(team:any,overall:number|null){
 function predict(home:any,away:any,baseline:any){
   const base=nval(baseline?.avg_goals_for_per_match);
   if(base===null||base<=0)throw new Error('league_goal_baseline_missing');
-  const ha=shrunk(nval(home?.opponent_adjusted_avg_goals_for),base,Number(home?.matches||0));
-  const hd=shrunk(nval(home?.opponent_adjusted_avg_goals_against),base,Number(home?.matches||0));
-  const aa=shrunk(nval(away?.opponent_adjusted_avg_goals_for),base,Number(away?.matches||0));
-  const ad=shrunk(nval(away?.opponent_adjusted_avg_goals_against),base,Number(away?.matches||0));
+  const blend=(recent:any,season:number|null,n:number,seasonN:number)=>{
+    const r=shrunk(nval(recent),base,n),s=shrunk(season,base,seasonN);
+    return nval(season)===null?r:.6*r+.4*s;
+  };
+  const ha=blend(home?.opponent_adjusted_avg_goals_for,nval(home?.season_features?.goals_for_per_match),Number(home?.matches||0),Number(home?.season_features?.matches_played||0));
+  const hd=blend(home?.opponent_adjusted_avg_goals_against,nval(home?.season_features?.goals_against_per_match),Number(home?.matches||0),Number(home?.season_features?.matches_played||0));
+  const aa=blend(away?.opponent_adjusted_avg_goals_for,nval(away?.season_features?.goals_for_per_match),Number(away?.matches||0),Number(away?.season_features?.matches_played||0));
+  const ad=blend(away?.opponent_adjusted_avg_goals_against,nval(away?.season_features?.goals_against_per_match),Number(away?.matches||0),Number(away?.season_features?.matches_played||0));
   const hxg=clamp(((ha+ad)/2)*venueMultiplier(home,ha),.15,4);
   const axg=clamp(((aa+hd)/2)*venueMultiplier(away,aa),.15,4);
   const max=18, hp=Array.from({length:max+1},(_,i)=>poisson(hxg,i)),ap=Array.from({length:max+1},(_,i)=>poisson(axg,i));
@@ -116,7 +120,8 @@ async function run(action:'dry_run'|'run'){
       home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,
       market_context:quotes[0]||{status:'no_prior_quote'},availability_evidence:availabilityEvidence,lineup_evidence:lineups,data_quality:quality,
       source_meta:{provider:'api_football',feature_snapshot_stage:feature.stage,feature_captured_at:feature.captured_at,feature_quality:feature.data_quality,api_football_calls:calls,
-        shrinkage_prior:'current API-Football league average goals per team match',shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
+        model_inputs:'60% opponent-adjusted recent form + 40% season standings attack/defense, each shrunk toward sourced league goal average',
+        shrinkage_prior:`API-Football league average from season ${feature.league_baseline?.source_season}`,shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
         score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:false},model_version:VERSION,research_only:true};
     await dbWrite('football_v2_shadow_stage_snapshots',payload,'fixture_id,stage','resolution=ignore-duplicates,return=minimal');
     await audit(f,stage,'ready','shadow_prediction_saved',attempt,true,{feature_stage:feature.stage,feature_captured_at:feature.captured_at,api_football_calls:calls});
