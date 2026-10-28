@@ -1,22 +1,28 @@
 # HABAO 足球 V2 影子版修正草稿
 
-這個隔離分支依 2026-10-29 唯讀稽核結果，先處理兩個已確認缺口：既有 V2 輸入缺盤口時不會重試；V1 快照表只在 T-10 建立，無法提供 T-48/T-24 的資料收集清單。
+依 2026-10-29 唯讀稽核結果整理，僅供隔離研究與審查；未部署、未啟用排程、未改 V1。
 
-## 目前新增
+## 已整理的修正
 
-- 缺盤口重試：獨立記錄重試原因、下次重試時間和次數；真實盤口寫入新的附加式表格，保留實際取得時間，不覆蓋舊 V2 輸入。
-- T-48/T-24 研究資料準備：以 API-Football 賽程作為獨立清單，只處理現有 V1 支援的聯賽；按日期快取賽程，按球隊／球季快取近期比賽和排名資料。
-- 特徵資料：最多取近 12 場同聯賽完賽資料，保存逐場比分、主客場、對手 ID、對手排名資料和資料來源；計算 120 天半衰期的近期權重，以及主場／客場分組平均。排名資料取不到時保留空值，不自行補造。
-- 執行限制：每次處理一場；研究資料 `dry_run` 不呼叫付費 API；實際 API 呼叫須先通過每日用量上限。所有程式只寫影子研究資料，不碰正式 V1、會員、公開戰績或結算資料。
+- **盤口重試**：獨立追蹤缺盤與重試；實際取得的盤口附加寫入新表，保留來源與取得時間，不覆蓋舊 V2 輸入。
+- **歷史資料準備**：以 API-Football 賽程作獨立清單，使用賽程日期快取，取每隊近 12 場同聯賽完賽記錄，保留比分、主客場、對手、排名和來源；近期權重採 120 天半衰期。缺樣本會明確標記，不無限往前找。
+- **新模型**：近期攻守調整對手強弱後，與真實聯賽平均做小樣本收縮；按主客場表現作有限修正，計算預期進球，再用 Poisson 分布產生勝和負、大小球、BTTS、最可能比分及公平賠率。這是未校準研究模型，不作正式推薦。
+- **T-15/T-10/T-2 影子快照**：每個時間點獨立保存，抓取前重新核對官方賽程；錯過時間窗不補造。盤口只保存最近已取得的市場資料，不混入模型特徵。
+- **球員資料**：T-15 試抓傷停，三個時間點記錄可取得的先發名單；無資料或 API 失敗會標記。現階段不把球員狀態換算成進球修正，避免沒有出賽時間／位置影響依據時臆測。
+- **成本與隔離**：每次最多處理一場；dry-run 不呼叫外部 API；所有 API 呼叫走每日用量上限。SQL 僅新增影子表，完全不寫 V1、會員、公開戰績、T-10 正式快照或結算資料。
 
-## 尚未完成
+## 檔案
 
-這是隔離分支中的程式草稿，尚未部署。球員傷停來源驗證、T-10/T-2/T-15 三份預測快照、完整 V2.1 機率模型校準與歷史回測仍待完成。正式切換流程也尚未開始。
+- SQL 順序：`sql/01_market_repair_tables.sql`、`sql/02_history_prep_tables.sql`、`sql/03_shadow_stage_model.sql`。
+- Edge Functions：`football-v2-market-repair-runner`、`football-v2-shadow-feature-runner`、`football-v2-shadow-stage-runner`。
+- 三個時間點建議各設每分鐘 Cron 呼叫 `football-v2-shadow-stage-runner`；市場與歷史準備函式需另設 Cron。**本草稿沒有建立或啟用任何正式排程。**
 
 ## 環境變數
 
-盤口修復函式：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`THE_ODDS_API_KEY`（或 `ODDS_API_KEY`）、`FOOTBALL_V2_MARKET_CRON_KEY`。
+- 市場修復：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`THE_ODDS_API_KEY`（或 `ODDS_API_KEY`）、`FOOTBALL_V2_MARKET_CRON_KEY`。
+- 歷史準備：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`FOOTBALL_V2_FEATURE_CRON_KEY`、`FOOTBALL_V2_FEATURE_DAILY_CALL_CAP`。
+- 三階段模型：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`FOOTBALL_V2_STAGE_CRON_KEY`、共用 `FOOTBALL_V2_FEATURE_DAILY_CALL_CAP`。
 
-T-48/T-24 特徵準備函式：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`FOOTBALL_V2_FEATURE_CRON_KEY`、`FOOTBALL_V2_FEATURE_DAILY_CALL_CAP`。沒有設定每日上限時，函式只允許 `dry_run`。
+## 尚待驗收
 
-請勿把 Secret 值放入 SQL、原始碼或截圖。SQL migration 與排程只在完成審查及隔離驗收後才部署；本分支未建立或啟用正式 Cron。
+這些 SQL／程式仍是未部署草稿。部署前需確認正式資料表實際欄位、SQL migration、API 回應格式、每日用量上限與排程頻率；部署後再做影子輸出與歷史回測、校準比較。通過驗收前不得切換 V1，也不應把未校準機率當正式推薦。Deno 執行環境目前不可用，因此這輪只完成程式碼審閱，沒有聲稱已編譯或執行驗證。
