@@ -49,12 +49,15 @@ CREATE TABLE IF NOT EXISTS public.football_v2_shadow_feature_snapshots (
   away_team_id bigint NOT NULL,
   home_features jsonb NOT NULL,
   away_features jsonb NOT NULL,
+  league_baseline jsonb,
   data_quality text NOT NULL,
   source_meta jsonb NOT NULL DEFAULT '{}'::jsonb,
   model_version text NOT NULL DEFAULT 'football-v2-features-0.1',
   research_only boolean NOT NULL DEFAULT true,
   PRIMARY KEY (fixture_id, stage)
 );
+ALTER TABLE public.football_v2_shadow_feature_snapshots
+  ADD COLUMN IF NOT EXISTS league_baseline jsonb;
 CREATE TABLE IF NOT EXISTS public.football_v2_shadow_api_budget (
   usage_date date PRIMARY KEY,
   calls_used integer NOT NULL DEFAULT 0 CHECK (calls_used >= 0),
