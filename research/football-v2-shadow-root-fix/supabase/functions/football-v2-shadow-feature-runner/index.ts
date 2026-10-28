@@ -1,6 +1,6 @@
 // Shadow-only T-48/T-24 history feature preparation. No writes to V1/member/public-result tables.
 const VERSION = 'football-v2-shadow-features-0.1';
-const DAY = 86_400_000, HOUR = 3_600_000, CACHE_TTL = 6 * HOUR, CALENDAR_TTL = HOUR;
+const DAY = 86_400_000, HOUR = 3_600_000, CACHE_TTL = 6 * HOUR, CALENDAR_TTL = 6 * HOUR;
 const SPORTS = new Set([39,140,78,135,61,2,3,88,40,253,262,848]);
 const cfg = {
   url: (Deno.env.get('SUPABASE_URL') || '').replace(/\/$/, ''),
@@ -104,7 +104,7 @@ async function getStandings(league:number,season:number,asof:number):Promise<Rec
     const id=Number(r?.team?.id), played=Number(r?.all?.played), points=Number(r?.points);
     const gf=Number(r?.all?.goals?.for),ga=Number(r?.all?.goals?.against);
     if(Number.isSafeInteger(id)&&Number.isFinite(played)&&played>0&&Number.isFinite(points)){
-      teams[String(id)]={points_per_game:Number((points/played).toFixed(4)),goals_for_per_match:Number.isFinite(gf)?Number((gf/played).toFixed(4)):null,
+      teams[String(id)]={matches_played:played,points_per_game:Number((points/played).toFixed(4)),goals_for_per_match:Number.isFinite(gf)?Number((gf/played).toFixed(4)):null,
         goals_against_per_match:Number.isFinite(ga)?Number((ga/played).toFixed(4)):null,rank:Number(r.rank)||null,goal_difference:Number(r.goalsDiff)||0,as_of:new Date(asof).toISOString()};
       if(Number.isFinite(gf)&&Number.isFinite(ga))allStats.push({gf,ga,played});
     }
@@ -178,13 +178,20 @@ async function run(action:'dry_run'|'run'){
       await writeAudit(f,stage,a,'insufficient_data','fewer_than_3_league_matches',{home_matches:homeHistory.length,away_matches:awayHistory.length,api_football_calls:apiCalls},terminal?null:60,terminal);
       return {success:true,version:VERSION,action,status:'insufficient_data',fixture_id:id,home_matches:homeHistory.length,away_matches:awayHistory.length,terminal,api_football_calls:apiCalls};
     }
-    const seasons=[...new Set([...homeHistory,...awayHistory].map(x=>Number(x.season)))];
+    const seasons=[...new Set([season,...[...homeHistory,...awayHistory].map(x=>Number(x.season))])];
     const standingsBySeason:Record<string,Record<string,any>>={};
     for(const y of seasons)standingsBySeason[String(y)]=await getStandings(league,y,now);
     const hf=weightedFeatures(homeHistory,'home',standingsBySeason),af=weightedFeatures(awayHistory,'away',standingsBySeason);
+    const baselineCandidates=seasons.filter(y=>Number(standingsBySeason[String(y)]?.league?.avg_goals_for_per_match)>0).sort((a,b)=>b-a);
+    const baselineSeason=baselineCandidates[0]??season;
+    const baseline=standingsBySeason[String(baselineSeason)]?.league||null;
+    const seasonalTeams=standingsBySeason[String(baselineSeason)]?.teams||{};
+    const homeFeatures={...hf,season_features:seasonalTeams[String(homeId)]||null};
+    const awayFeatures={...af,season_features:seasonalTeams[String(awayId)]||null};
     const quality=Math.min(hf.matches,af.matches)>=5?'research_ready':'low_sample';
     const payload={fixture_id:id,stage,kickoff_at:new Date(f.fixture.date).toISOString(),captured_at:new Date(now).toISOString(),league_id:league,season,
-      home_team_id:homeId,away_team_id:awayId,home_features:hf,away_features:af,data_quality:quality,
+      home_team_id:homeId,away_team_id:awayId,home_features:homeFeatures,away_features:awayFeatures,
+      league_baseline:baseline?{...baseline,source_season:baselineSeason,requested_season:season,season_fallback:baselineSeason!==season}:null,data_quality:quality,
       source_meta:{provider:'api_football',version:VERSION,capture_mode:stage,history_window_days:550,history_limit_per_team:12,
         home_match_count:hf.matches,away_match_count:af.matches,standings_seasons:seasons,api_football_calls:apiCalls,
         recency_half_life_days:120,late_capture:false},model_version:'football-v2-features-0.1',research_only:true};
