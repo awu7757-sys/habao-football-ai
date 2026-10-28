@@ -74,7 +74,7 @@ async function loadFixtures(now:number,allowFetch:boolean){
 async function availability(fixtureId:number):Promise<Record<string,unknown>>{
   const rows=await football(`/injuries?fixture=${fixtureId}`);
   const entries=rows.map(x=>({player_id:Number(x?.player?.id)||null,player_name:String(x?.player?.name||''),team_id:Number(x?.team?.id)||null,type:String(x?.player?.type||x?.type||''),reason:String(x?.player?.reason||x?.reason||''),status:String(x?.player?.status||'')}));
-  return {source:'api_football_injuries',status:entries.length?'data_returned':'no_rows_returned',items:entries,captured_at:new Date().toISOString(),model_adjustment_applied:false,reason:'No verified minutes/role impact model is available; evidence is recorded without an invented goal adjustment.'};
+  return {source:'api_football_injuries',status:entries.length?'data_returned':'no_rows_returned',items:entries,captured_at:new Date().toISOString(),documented_update_interval:'4 hours',model_adjustment_applied:false,reason:'No verified minutes/role impact model is available; evidence is recorded without an invented goal adjustment.'};
 }
 async function audit(f:Fixture,s:Stage,status:string,reason:string,attempts:number,terminal:boolean,detail:Record<string,unknown>={}){
   await dbWrite('football_v2_shadow_stage_audit',{fixture_id:f.fixture.id,stage:s.key,kickoff_at:f.fixture.date,status,reason_code:reason,attempts,terminal,detail,updated_at:new Date().toISOString()},'fixture_id,stage');
@@ -114,8 +114,8 @@ async function run(action:'dry_run'|'run'){
     }
     else {const priorAvailability=await dbGet<any>('football_v2_shadow_stage_snapshots',`select=availability_evidence,captured_at&fixture_id=eq.${id}&stage=eq.t15&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&limit=1`);if(priorAvailability[0])availabilityEvidence={...priorAvailability[0].availability_evidence,carried_from_t15_at:priorAvailability[0].captured_at};}
     const lineupRows=Array.isArray(live.lineups)?live.lineups:[];
-    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),model_adjustment_applied:false};
-    const quality=feature.data_quality==='research_ready'?'research_uncalibrated':'low_sample';
+    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:false};
+    const quality=feature.data_quality==='research_ready'?'research_ready_uncalibrated':'low_sample_uncalibrated';
     const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date().toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
       home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,
       market_context:quotes[0]||{status:'no_prior_quote'},availability_evidence:availabilityEvidence,lineup_evidence:lineups,data_quality:quality,
