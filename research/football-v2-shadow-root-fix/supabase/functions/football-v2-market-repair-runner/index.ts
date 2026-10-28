@@ -60,7 +60,8 @@ function norm(name: unknown) {
 }
 function sameTeam(a: unknown, b: unknown) {
   const x = norm(a), y = norm(b);
-  return Boolean(x && y && (x === y || (Math.min(x.length, y.length) >= 7 && (x.includes(y) || y.includes(x))));
+  if (!x || !y) return false;
+  return x === y || (Math.min(x.length, y.length) >= 7 && (x.includes(y) || y.includes(x)));
 }
 async function writeAudit(fixture: V1, prior: Audit | undefined, status: string, reason: string,
   detail: Record<string, unknown>, retryMinutes: number | null, terminal: boolean) {
