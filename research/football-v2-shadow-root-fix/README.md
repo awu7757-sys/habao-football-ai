@@ -1,25 +1,22 @@
-# HABAO Football V2 shadow odds recovery (draft)
+# HABAO 足球 V2 影子版修正草稿
 
-This branch adds an isolated, shadow-only odds recovery path for upcoming fixtures. It is based on the 2026-10-29 read-only audit, which found existing V2 input rows with no total line and no explicit market status.
+這個隔離分支依 2026-10-29 唯讀稽核結果，先處理兩個已確認缺口：既有 V2 輸入缺盤口時不會重試；V1 快照表只在 T-10 建立，無法提供 T-48/T-24 的資料收集清單。
 
-## What this addresses
+## 目前新增
 
-- Existing inputs with missing odds are no longer treated as complete by the repair workflow.
-- Each market retry records a reason, attempt count, and retry time.
-- Real quotes are written to a separate append-only table with their actual capture time and source.
-- The runner handles at most one fixture per invocation, one API-Football lookup and at most one Odds API request, and stops retrying after three attempts or inside the 30-minute kickoff guard.
-- Existing `football_v2_shadow_inputs`, V1 snapshots, member records, public results, and historical odds remain untouched.
+- 缺盤口重試：獨立記錄重試原因、下次重試時間和次數；真實盤口寫入新的附加式表格，保留實際取得時間，不覆蓋舊 V2 輸入。
+- T-48/T-24 研究資料準備：以 API-Football 賽程作為獨立清單，只處理現有 V1 支援的聯賽；按日期快取賽程，按球隊／球季快取近期比賽和排名資料。
+- 特徵資料：最多取近 12 場同聯賽完賽資料，保存逐場比分、主客場、對手 ID、對手排名資料和資料來源；計算 120 天半衰期的近期權重，以及主場／客場分組平均。排名資料取不到時保留空值，不自行補造。
+- 執行限制：每次處理一場；研究資料 `dry_run` 不呼叫付費 API；實際 API 呼叫須先通過每日用量上限。所有程式只寫影子研究資料，不碰正式 V1、會員、公開戰績或結算資料。
 
-## Scope and status
+## 尚未完成
 
-This is a code draft for review on an isolated GitHub branch. It is not deployed. It only addresses odds recovery and auditability; it does not yet implement the full T-48/T-24 collector, expanded 12-match opponent-adjusted features, player/lineup source validation, calibrated V2.1, or T-10/T-2/T-15 snapshot orchestration.
+這是隔離分支中的程式草稿，尚未部署。球員傷停來源驗證、T-10/T-2/T-15 三份預測快照、完整 V2.1 機率模型校準與歷史回測仍待完成。正式切換流程也尚未開始。
 
-## Required environment for the Edge Function
+## 環境變數
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `API_FOOTBALL_KEY`
-- `THE_ODDS_API_KEY` (or `ODDS_API_KEY`)
-- `FOOTBALL_V2_MARKET_CRON_KEY`
+盤口修復函式：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`THE_ODDS_API_KEY`（或 `ODDS_API_KEY`）、`FOOTBALL_V2_MARKET_CRON_KEY`。
 
-Do not put secret values in SQL, source control, or screenshots. Apply the SQL migration and deploy the function only after review and separate acceptance. No production cron is created by these files.
+T-48/T-24 特徵準備函式：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`API_FOOTBALL_KEY`、`FOOTBALL_V2_FEATURE_CRON_KEY`、`FOOTBALL_V2_FEATURE_DAILY_CALL_CAP`。沒有設定每日上限時，函式只允許 `dry_run`。
+
+請勿把 Secret 值放入 SQL、原始碼或截圖。SQL migration 與排程只在完成審查及隔離驗收後才部署；本分支未建立或啟用正式 Cron。
