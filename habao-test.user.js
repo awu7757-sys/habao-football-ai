@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name HABAO HD5577 Floating Assistant TEST
 // @namespace https://github.com/awu7757-sys/habao-football-ai
-// @version 0.3.0
+// @version 0.3.1
 // @description HD5577/DG overlay display test only. No account or gameplay access.
 // @match https://hd5577.com/*
 // @match https://www.hd5577.com/*
 // @match https://cn.dingdangmail.com/*
+// @match https://new-dd-cn.ahsy114.com/*
 // @grant none
 // @run-at document-idle
 // ==/UserScript==
