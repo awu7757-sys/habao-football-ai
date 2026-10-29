@@ -49,33 +49,61 @@ async def main():
             await page.screenshot(
                 path=str(OUTPUT_DIR / "public_page.png"), full_page=False
             )
-            # Probe the publicly visible live-casino category only.
-            # No sign-in, gameplay entry, credentials, cookies, or bets.
-            result["live_entry"] = {"attempted": True, "clicked": False}
+            # Public navigation diagnostics only. Never log in or enter game tables.
+            entry = result["live_entry"] = {
+                "attempted": True, "dismissed": False, "clicked": False
+            }
             try:
-                dismiss = page.get_by_text("不再自動顯示公告", exact=False).first
-                if await dismiss.count():
-                    await dismiss.click(timeout=3000)
-                    await page.wait_for_timeout(600)
+                dismiss = page.get_by_text("不再自動顯示公告", exact=False)
+                entry["dismiss_candidates"] = await dismiss.count()
+                for i in range(min(entry["dismiss_candidates"], 5)):
+                    item = dismiss.nth(i)
+                    if await item.is_visible():
+                        await item.click(timeout=4000)
+                        entry["dismissed"] = True
+                        break
+                await page.wait_for_timeout(1200)
             except Exception as exc:
-                result["live_entry"]["dismiss_issue"] = type(exc).__name__
+                entry["dismiss_error"] = str(exc).splitlines()[0][:240]
+
+            # Screenshot even if navigation is blocked.
+            await page.screenshot(
+                path=str(OUTPUT_DIR / "after_announcement.png"), full_page=False
+            )
             try:
-                live_link = page.get_by_text("真人", exact=True).first
-                await live_link.click(timeout=10000)
-                await page.wait_for_timeout(3000)
-                result["live_entry"]["clicked"] = True
-                result["live_entry"]["tab_count"] = len(context.pages)
-                result["live_entry"]["origins"] = [
+                selectors = [
+                    page.get_by_role("link", name="真人", exact=True),
+                    page.get_by_text("真人", exact=True),
+                    page.locator("a").filter(has_text="真人"),
+                ]
+                entry["candidate_counts"] = [await s.count() for s in selectors]
+                for group in selectors:
+                    for i in range(min(await group.count(), 8)):
+                        candidate = group.nth(i)
+                        if not await candidate.is_visible():
+                            continue
+                        try:
+                            await candidate.click(timeout=5000)
+                            entry["clicked"] = True
+                            break
+                        except Exception as exc:
+                            entry["click_error"] = str(exc).splitlines()[0][:240]
+                    if entry["clicked"]:
+                        break
+                await page.wait_for_timeout(1600)
+                entry["tab_count"] = len(context.pages)
+                entry["origins"] = [
                     urlsplit(tab.url).hostname for tab in context.pages
                 ]
-                result["live_entry"]["main_page_title"] = (await page.title())[:100]
+                entry["main_page_title"] = (await page.title())[:100]
+            except Exception as exc:
+                entry["error_type"] = type(exc).__name__
+                entry["error"] = str(exc).splitlines()[0][:240]
+            finally:
                 await page.screenshot(
-                    path=str(OUTPUT_DIR / "public_live_entry.png"),
+                    path=str(OUTPUT_DIR / "after_live_click.png"),
                     full_page=False
                 )
-            except Exception as exc:
-                result["live_entry"]["error_type"] = type(exc).__name__
-                result["live_entry"]["error"] = str(exc).splitlines()[0][:140]
             
             await browser.close()
     except Exception as exc:
