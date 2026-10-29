@@ -1,0 +1,29 @@
+{
+  "target": "https://hd5577.com/",
+  "timestamp_utc": "2026-10-29T12:39:29.576087+00:00",
+  "browser_opened": true,
+  "public_page_loaded": true,
+  "dg_login_tested": false,
+  "real_time_card_data_tested": false,
+  "http_status": 200,
+  "final_origin": "https://hd5577.com",
+  "title": "HD皇鼎娛樂城 | 不分等級電子返水2.0%天天領 - 首頁",
+  "page_body_length": 1557,
+  "live_entry": {
+    "attempted": true,
+    "dismissed": true,
+    "clicked": false,
+    "dismiss_candidates": 5,
+    "candidate_counts": [
+      1,
+      2,
+      26
+    ],
+    "click_error": "Locator.click: Timeout 5000ms exceeded.",
+    "tab_count": 1,
+    "origins": [
+      "hd5577.com"
+    ],
+    "main_page_title": "HD皇鼎娛樂城 | 不分等級電子返水2.0%天天領 - 首頁"
+  }
+}
