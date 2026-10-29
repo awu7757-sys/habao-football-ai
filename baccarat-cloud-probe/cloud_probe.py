@@ -49,6 +49,34 @@ async def main():
             await page.screenshot(
                 path=str(OUTPUT_DIR / "public_page.png"), full_page=False
             )
+            # Probe the publicly visible live-casino category only.
+            # No sign-in, gameplay entry, credentials, cookies, or bets.
+            result["live_entry"] = {"attempted": True, "clicked": False}
+            try:
+                dismiss = page.get_by_text("不再自動顯示公告", exact=False).first
+                if await dismiss.count():
+                    await dismiss.click(timeout=3000)
+                    await page.wait_for_timeout(600)
+            except Exception as exc:
+                result["live_entry"]["dismiss_issue"] = type(exc).__name__
+            try:
+                live_link = page.get_by_text("真人", exact=True).first
+                await live_link.click(timeout=10000)
+                await page.wait_for_timeout(3000)
+                result["live_entry"]["clicked"] = True
+                result["live_entry"]["tab_count"] = len(context.pages)
+                result["live_entry"]["origins"] = [
+                    urlsplit(tab.url).hostname for tab in context.pages
+                ]
+                result["live_entry"]["main_page_title"] = (await page.title())[:100]
+                await page.screenshot(
+                    path=str(OUTPUT_DIR / "public_live_entry.png"),
+                    full_page=False
+                )
+            except Exception as exc:
+                result["live_entry"]["error_type"] = type(exc).__name__
+                result["live_entry"]["error"] = str(exc).splitlines()[0][:140]
+            
             await browser.close()
     except Exception as exc:
         result["error_type"] = type(exc).__name__
