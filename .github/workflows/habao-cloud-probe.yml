@@ -1,0 +1,30 @@
+name: HABAO Cloud Public Browser Probe
+on:
+  push:
+    branches: [baccarat-cloud-probe]
+    paths: ['baccarat-cloud-probe/**', '.github/workflows/habao-cloud-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-chrome-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Run public-only browser probe
+        run: python baccarat-cloud-probe/cloud_probe.py
+      - name: Upload public test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: habao-public-cloud-probe
+          path: probe-output/
+          retention-days: 7
