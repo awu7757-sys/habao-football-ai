@@ -16,10 +16,12 @@ async def main():
    r["http_status"]=resp.status if resp else None
    u=urlsplit(page.url);r["final_origin"]=u.scheme+"://"+str(u.hostname)
    r["title"]=(await page.title())[:100]
-   r["public_page_loaded"]=r["http_status"] is not None and 200<=r["http_status"]<400
+     r["page_body_length"]=len((await page.locator("body").inner_text(timeout=10000)).strip())
+   r["public_page_loaded"]=(r["http_status"] is not None and 200<=r["http_status"]<400 and r["page_body_length"]>=20)
    await page.screenshot(path=str(OUT/"public_page.png"))
    await b.close()
  except Exception as e:r["error_type"]=type(e).__name__;r["error"]=str(e).splitlines()[0][:180]
  (OUT/"result.json").write_text(json.dumps(r,ensure_ascii=False,indent=2))
  print(json.dumps(r,ensure_ascii=False))
+ if not r["public_page_loaded"]:\n  raise SystemExit("FAIL: HD5577 public page was not verified as loaded; review result.json and screenshot")
 asyncio.run(main())
