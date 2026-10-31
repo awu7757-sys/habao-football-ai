@@ -1,29 +1,50 @@
 {
-  "target": "https://hd5577.com/",
-  "timestamp_utc": "2026-10-29T12:39:29.576087+00:00",
+  "probe_version": "public-login-0.2",
+  "environment": "github-actions-playwright-not-cloudflare",
+  "timestamp_utc": "2026-10-31T07:49:11.336705+00:00",
   "browser_opened": true,
   "public_page_loaded": true,
+  "login_page_verified": true,
   "dg_login_tested": false,
   "real_time_card_data_tested": false,
-  "http_status": 200,
-  "final_origin": "https://hd5577.com",
-  "title": "HD皇鼎娛樂城 | 不分等級電子返水2.0%天天領 - 首頁",
-  "page_body_length": 1557,
-  "live_entry": {
-    "attempted": true,
-    "dismissed": true,
-    "clicked": false,
-    "dismiss_candidates": 5,
-    "candidate_counts": [
-      1,
-      2,
-      26
-    ],
-    "click_error": "Locator.click: Timeout 5000ms exceeded.",
-    "tab_count": 1,
-    "origins": [
-      "hd5577.com"
-    ],
-    "main_page_title": "HD皇鼎娛樂城 | 不分等級電子返水2.0%天天領 - 首頁"
-  }
+  "credentials_used": false,
+  "notes": "Public pages only. No account login, cookies export, game or betting interaction.",
+  "steps": {
+    "home": {
+      "http_status": 200,
+      "location": {
+        "host": "hd5577.com",
+        "path": "/"
+      },
+      "visible_body": true
+    },
+    "announcement": {
+      "attempted": true,
+      "dismissed": true
+    },
+    "login_button": {
+      "attempted": true,
+      "clicked": false,
+      "candidate_counts": [
+        0,
+        3
+      ],
+      "error": "TimeoutError: Locator.click: Timeout 5000ms exceeded.",
+      "after_click": {
+        "host": "hd5577.com",
+        "path": "/"
+      },
+      "login_form_visible": false
+    },
+    "direct_login_route": {
+      "attempted": true,
+      "loaded": true,
+      "http_status": 200,
+      "location": {
+        "host": "hd5577.com",
+        "path": "/login"
+      }
+    }
+  },
+  "elapsed_seconds": 11.5
 }
