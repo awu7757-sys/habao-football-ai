@@ -121,13 +121,17 @@ async function run() {
       select: "fixture_id,stage,kickoff_at,captured_at,home_xg,away_xg,probabilities,fair_odds,market_context,source_meta,model_version,research_only",
       model_version: "eq.football-v2-poisson-shrinkage-0.2.1",
       research_only: "eq.true", kickoff_at: "gt." + new Date().toISOString(),
-      captured_at: "gte." + since, order: "captured_at.asc", limit: String(MAX_SNAPSHOTS)
+      captured_at: "gte." + since, order: "captured_at.asc", limit: "1000"
     }).toString()
   );
   const results: any[] = [];
+  let handled = 0;
   for (const snap of snapshots) {
     const source = json(snap.source_meta), old = source.llm_shadow;
-    if (old?.status === "complete" || old?.status === "partial") continue;
+    if (old?.status === "complete" || old?.status === "partial" ||
+        (old?.status === "failed" && Number(old?.attempts || 0) >= 3)) continue;
+    if (handled >= MAX_SNAPSHOTS) break;
+    handled++;
     const featureAt = source.feature_captured_at;
     if (!featureAt) { results.push({ fixture_id: snap.fixture_id, stage: snap.stage, status: "feature_timestamp_missing" }); continue; }
     const fq = new URLSearchParams({
@@ -146,7 +150,7 @@ async function run() {
     const [gpt, claude] = await Promise.all([callGpt(input, market), callClaude(input, market)]);
     const done = [gpt, claude].filter((x: any) => x.status === "ready").length;
     const shadow = { status: done === 2 ? "complete" : done === 1 ? "partial" : "failed", version: VERSION,
-      generated_at: new Date().toISOString(), stage: snap.stage, feature_captured_at: featureAt,
+      attempts: Number(old?.attempts || 0) + 1, generated_at: new Date().toISOString(), stage: snap.stage, feature_captured_at: featureAt,
       same_input: true, providers: { gpt, claude } };
     const merged = { ...source, llm_shadow: shadow };
     const patchUrl = new URL(BASE + "/rest/v1/football_v2_shadow_stage_snapshots");
