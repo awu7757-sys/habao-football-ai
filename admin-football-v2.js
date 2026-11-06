@@ -166,6 +166,8 @@ function renderFootballV2StageCompare(){
    cells.push([name+" 大小球",lines(out.total_settlements,"total"),null,null]);
    cells.push([name+" 讓分",lines(out.handicap_settlements,"handicap"),null,null]);
    if(out.summary)cells.push([name+" 判讀",v2esc(out.summary),null,null]);
+   if(Array.isArray(out.concerns)&&out.concerns.length)cells.push([name+" 疑點",out.concerns.map(v2esc).join("；"),null,null]);
+   if(Array.isArray(out.evidence_checks)&&out.evidence_checks.length)cells.push([name+" 檢查",out.evidence_checks.map(v2esc).join("；"),null,null]);
   }
   return '<div style="min-width:280px;line-height:1.8">'+cells.map(a=>'<div><strong>'+v2esc(a[0])+'：</strong>'+((a[2]!==null||a[3]!==null)?v2esc(a[1])+' '+mark(a[2],a[3]):a[1])+'</div>').join("")+'</div>';
  };
