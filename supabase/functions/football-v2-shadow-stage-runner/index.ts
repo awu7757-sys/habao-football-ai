@@ -100,11 +100,16 @@ function sameTeam(a:unknown,b:unknown){
   const x=normTeam(a),y=normTeam(b);
   return !!x&&!!y&&(x===y||(Math.min(x.length,y.length)>=7&&(x.includes(y)||y.includes(x))));
 }
-function consensus<T extends Record<string,number>>(rows:T[],lineKey:string,oddsKeys:string[]){
+function consensusAll<T extends Record<string,number>>(rows:T[],lineKey:string,oddsKeys:string[]){
   const groups=new Map<string,T[]>();for(const row of rows){const line=Number(row[lineKey]);if(!Number.isFinite(line))continue;const key=line.toFixed(2);groups.set(key,[...(groups.get(key)||[]),row]);}
-  const ranked=[...groups.entries()].map(([key,list])=>({line:Number(key),rows:list})).sort((a,b)=>b.rows.length-a.rows.length||Math.abs(a.line)-Math.abs(b.line));
-  if(!ranked.length)return null;const best=ranked[0];const averages:Record<string,number>={};for(const k of oddsKeys){const xs=best.rows.map(r=>Number(r[k])).filter(n=>Number.isFinite(n)&&n>1&&n<=100);if(xs.length)averages[k]=Number((xs.reduce((a,b)=>a+b,0)/xs.length).toFixed(4));}
-  return {line:best.line,...averages,bookmaker_count:best.rows.length};
+  return [...groups.entries()].map(([key,list])=>{
+    const averages:Record<string,number>={};
+    for(const k of oddsKeys){const xs=list.map(r=>Number(r[k])).filter(n=>Number.isFinite(n)&&n>1&&n<=100);if(xs.length)averages[k]=Number((xs.reduce((a,b)=>a+b,0)/xs.length).toFixed(4));}
+    return {line:Number(key),...averages,bookmaker_count:list.length};
+  }).sort((a,b)=>a.line-b.line);
+}
+function consensus<T extends Record<string,number>>(rows:T[],lineKey:string,oddsKeys:string[]){
+  return consensusAll(rows,lineKey,oddsKeys).sort((a,b)=>b.bookmaker_count-a.bookmaker_count||Math.abs(a.line)-Math.abs(b.line))[0]||null;
 }
 async function captureStageMarkets(f:Fixture):Promise<Record<string,unknown>>{
   const leagueId=Number(f.league?.id),sport=ODDS_SPORTS[leagueId];
@@ -126,9 +131,12 @@ async function captureStageMarkets(f:Fixture):Promise<Record<string,unknown>>{
         if(home&&away&&Math.abs(home.line+away.line)<=0.26)spreads.push({home_line:home.line,away_line:away.line,home_odds:home.odds,away_odds:away.odds,bookmaker:String(book.key||'')});
       }
     }
-    const total=consensus(totals,'line',['over','under']);
-    const spreadRows=spreads.map(x=>({...x,line:x.home_line})),spread=consensus(spreadRows,'line',['home_odds','away_odds']);
-    return {source:'the_odds_api',status:total||spread?'captured':'markets_unavailable',captured_at:new Date().toISOString(),total:total?{line:total.line,over_odds:total.over,under_odds:total.under,bookmaker_count:total.bookmaker_count}:null,handicap:spread?{home_line:spread.line,away_line:-spread.line,home_odds:spread.home_odds,away_odds:spread.away_odds,bookmaker_count:spread.bookmaker_count}:null,odds_api_requests:1};
+    const totalLines=consensusAll(totals,'line',['over','under']).map(x=>({line:x.line,over_odds:x.over,under_odds:x.under,bookmaker_count:x.bookmaker_count}));
+    const spreadRows=spreads.map(x=>({...x,line:x.home_line}));
+    const handicapLines=consensusAll(spreadRows,'line',['home_odds','away_odds']).map(x=>({home_line:x.line,away_line:-x.line,home_odds:x.home_odds,away_odds:x.away_odds,bookmaker_count:x.bookmaker_count}));
+    const total=totalLines.slice().sort((a,b)=>b.bookmaker_count-a.bookmaker_count||Math.abs(a.line)-Math.abs(b.line))[0]||null;
+    const spread=handicapLines.slice().sort((a,b)=>b.bookmaker_count-a.bookmaker_count||Math.abs(a.home_line)-Math.abs(b.home_line))[0]||null;
+    return {source:'the_odds_api',status:totalLines.length||handicapLines.length?'captured':'markets_unavailable',captured_at:new Date().toISOString(),totals:totalLines,handicaps:handicapLines,total,handicap:spread,odds_api_requests:1};
   }catch(error){return {source:'the_odds_api',status:'capture_failed',error:safe(error),captured_at:new Date().toISOString()};}
 }
 async function audit(f:Fixture,s:Stage,status:string,reason:string,attempts:number,terminal:boolean,detail:Record<string,unknown>={}){
