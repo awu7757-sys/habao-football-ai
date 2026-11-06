@@ -10,7 +10,7 @@ const GPT_KEY = Deno.env.get("OPENAI_API_KEY") || "";
 const CLAUDE_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
 const GPT_MODEL = Deno.env.get("FOOTBALL_V2_GPT_MODEL") || "gpt-5-mini";
 const CLAUDE_MODEL = Deno.env.get("FOOTBALL_V2_CLAUDE_MODEL") || "claude-sonnet-4-5";
-const MAX_SNAPSHOTS = 4;
+const MAX_SNAPSHOTS = 2;
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "content-type, x-habao-cron-key, apikey, authorization",
@@ -112,6 +112,8 @@ async function dbGet(table: string, query: string) {
 async function run() {
   if (!BASE || !ROLE) throw new Error("storage_not_configured");
   if (!ENABLED) return { success: true, status: "disabled", processed: 0 };
+  if (!GPT_KEY || !CLAUDE_KEY) return { success: true, status: "provider_keys_missing", processed: 0,
+    gpt_configured: Boolean(GPT_KEY), claude_configured: Boolean(CLAUDE_KEY) };
   const since = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
   const snapshots = await dbGet(
     "football_v2_shadow_stage_snapshots",
