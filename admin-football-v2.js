@@ -139,7 +139,7 @@ function renderFootballV2StageCompare(){
   const providerName=provider==="gpt"?"GPT":"Claude";
   for(const [key,label] of [["moneyline","獨贏"],["btts","BTTS"],["totals","大小球各線"],["handicaps","讓分各線"]]){
    const info=p.llm_metrics?.[provider]?.[key]||{};
-   rows.push('<tr><th>'+providerName+' '+label+'</th>'+stages.map(s=>'<td>'+v2esc(pct(info[s]))+(info[s]?.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(info[s].avg_return_units)*100).toFixed(1)+'%｜'+Number(info[s].bet_count||0)+' 注</small>')+'</td>').join("")+'</tr>');
+   rows.push('<tr><th>'+providerName+' '+label+'</th>'+stages.map(s=>{const x=info[s]||{},byLine=Object.entries(x.by_line||{}).map(([line,m])=>line+"："+pct(m)).join("；");return '<td>'+v2esc(pct(x))+(x.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(x.avg_return_units)*100).toFixed(1)+'%｜'+Number(x.bet_count||0)+' 注</small>')+(byLine?'<br><small>各線 '+v2esc(byLine)+'</small>':"")+'</td>';}).join("")+'</tr>');
   }
  }
  for(const [key,label] of [["totals_market_line","V2 大小球各線"],["handicap_market_line","V2 讓分各線"]]){
