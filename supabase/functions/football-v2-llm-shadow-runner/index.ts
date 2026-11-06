@@ -128,8 +128,8 @@ async function run() {
   let handled = 0;
   for (const snap of snapshots) {
     const source = json(snap.source_meta), old = source.llm_shadow;
-    if (old?.status === "complete" || old?.status === "partial" ||
-        (old?.status === "failed" && Number(old?.attempts || 0) >= 3)) continue;
+    if (old?.status === "complete" ||
+        ((old?.status === "partial" || old?.status === "failed") && Number(old?.attempts || 0) >= 3)) continue;
     if (handled >= MAX_SNAPSHOTS) break;
     handled++;
     const featureAt = source.feature_captured_at;
@@ -147,7 +147,10 @@ async function run() {
       v2_prediction: { home_xg: snap.home_xg, away_xg: snap.away_xg, probabilities: json(snap.probabilities), fair_odds: json(snap.fair_odds) },
       market_snapshot: market
     };
-    const [gpt, claude] = await Promise.all([callGpt(input, market), callClaude(input, market)]);
+    const [gpt, claude] = await Promise.all([
+      old?.providers?.gpt?.status === "ready" ? Promise.resolve(old.providers.gpt) : callGpt(input, market),
+      old?.providers?.claude?.status === "ready" ? Promise.resolve(old.providers.claude) : callClaude(input, market)
+    ]);
     const done = [gpt, claude].filter((x: any) => x.status === "ready").length;
     const shadow = { status: done === 2 ? "complete" : done === 1 ? "partial" : "failed", version: VERSION,
       attempts: Number(old?.attempts || 0) + 1, generated_at: new Date().toISOString(), stage: snap.stage, feature_captured_at: featureAt,
