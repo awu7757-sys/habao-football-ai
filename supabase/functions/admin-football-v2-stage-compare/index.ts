@@ -198,7 +198,13 @@ function llmMetrics(rows: any[]) {
           if (market === "btts") return typeof x.btts_hit === "boolean" ? [{ hit:x.btts_hit }] : [];
           return market === "totals" ? (x.total_settlements || []) : (x.handicap_settlements || []);
         });
-        return [stage, summarizeBets(bets)];
+        const summary = summarizeBets(bets);
+        if (market === "totals" || market === "handicaps") {
+          const lineField = market === "totals" ? "line" : "home_line";
+          const lineKeys = [...new Set(bets.map((x: any) => Number(x[lineField]).toFixed(2)))].sort((a,b)=>Number(a)-Number(b));
+          summary.by_line = Object.fromEntries(lineKeys.map(line => [line, summarizeBets(bets.filter((x: any) => Number(x[lineField]).toFixed(2) === line))]));
+        }
+        return [stage, summary];
       }));
     }
   }
