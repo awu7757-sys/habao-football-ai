@@ -105,7 +105,7 @@ function ensureFootballV2StagePanel(){
  const page=document.getElementById("footballV2ComparePage");if(!page)return null;
  let panel=document.getElementById("footballV2StagePanel");if(panel)return panel;
  panel=document.createElement("div");panel.className="panel";panel.id="footballV2StagePanel";panel.style.marginTop="16px";
- panel.innerHTML='<div class="panel-head"><div><div class="panel-title">V2 三階段影子準確率</div><div class="panel-desc">同場配對比較 T-10、T-2、T-15 分鐘；只讀研究資料，不影響會員分析或公開戰績。</div></div><select id="footballV2StageDays" class="input"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="365">近 365 天</option><option value="0">全部</option></select><button class="ghost-btn" id="footballV2StageReload" type="button">更新比較</button></div><div id="footballV2StageStatus" class="page-desc" aria-live="polite">切換到本頁後自動載入</div><div id="footballV2StageMetrics" style="margin-top:12px"><div class="fvc-empty">尚未載入三階段研究結果</div></div><div id="footballV2StageCoverage" style="margin-top:14px"></div><div class="panel-head" style="margin-top:18px"><div><div class="panel-title">同場逐場結果</div><div class="panel-desc">每場列出三階段預測與比分命中情況。</div></div></div><div id="footballV2StageRows"><div class="fvc-empty">尚未載入</div></div>';
+ panel.innerHTML='<div class="panel-head"><div><div class="panel-title">V2 與 GPT／Claude 三階段影子比較</div><div class="panel-desc">正式公開仍只採 V2 T-10 快照。後台逐場比較 T-10、T-2、T-15 分鐘，以及各場實際大小球與讓分線；GPT 和 Claude 讀取相同凍結資料，各自獨立判讀。影子結果不改正式預測或公開戰績。</div></div><select id="footballV2StageDays" class="input"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="365">近 365 天</option><option value="0">全部</option></select><button class="ghost-btn" id="footballV2StageReload" type="button">更新比較</button></div><div id="footballV2StageStatus" class="page-desc" aria-live="polite">切換到本頁後自動載入</div><div id="footballV2StageMetrics" style="margin-top:12px"><div class="fvc-empty">尚未載入三階段研究結果</div></div><div id="footballV2StageCoverage" style="margin-top:14px"></div><div class="panel-head" style="margin-top:18px"><div><div class="panel-title">同場逐場結果</div><div class="panel-desc">每場列出三階段預測與比分命中情況。</div></div></div><div id="footballV2StageRows"><div class="fvc-empty">尚未載入</div></div>';
  page.appendChild(panel);
  document.getElementById("footballV2StageDays")?.addEventListener("change",()=>loadFootballV2StageCompare(true));
  document.getElementById("footballV2StageReload")?.addEventListener("click",()=>loadFootballV2StageCompare(true));
@@ -133,9 +133,17 @@ async function loadFootballV2StageCompare(force=false){
 function renderFootballV2StageCompare(){
  const p=footballV2StageData;if(!p)return;
  const stages=["t10","t2","t15"], labels={moneyline:"獨贏",btts:"BTTS"};
- const rows=Object.keys(labels).map(k=>'<tr><th>'+labels[k]+'</th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(p.metrics?.[k]?.[s]))+'</td>').join("")+'</tr>');
- for(const [key,label] of [["totals_market_line","大小球（各場當時市場線）"],["handicap_market_line","讓分（各場當時市場線）"]]){
-  const info=p.metrics?.[key]||{};rows.push('<tr><th>'+label+'<br><small>三階段都有報價 '+Number(info.paired_fixture_count||0)+' 場</small></th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(info.by_stage?.[s]))+(info.by_stage?.[s]?.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(info.by_stage[s].avg_return_units)*100).toFixed(1)+'%</small>')+'</td>').join("")+'</tr>');
+ const rows=Object.keys(labels).map(k=>'<tr><th>V2 '+labels[k]+'</th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(p.metrics?.[k]?.[s]))+'</td>').join("")+'</tr>');
+ const pct=x=>x?.accuracy==null?"—":(Number(x.accuracy)*100).toFixed(1)+"%（"+(x.correct||0)+"/"+(x.total||0)+"）";
+ for(const provider of ["gpt","claude"]){
+  const providerName=provider==="gpt"?"GPT":"Claude";
+  for(const [key,label] of [["moneyline","獨贏"],["btts","BTTS"],["totals","大小球各線"],["handicaps","讓分各線"]]){
+   const info=p.llm_metrics?.[provider]?.[key]||{};
+   rows.push('<tr><th>'+providerName+' '+label+'</th>'+stages.map(s=>'<td>'+v2esc(pct(info[s]))+(info[s]?.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(info[s].avg_return_units)*100).toFixed(1)+'%｜'+Number(info[s].bet_count||0)+' 注</small>')+'</td>').join("")+'</tr>');
+  }
+ }
+ for(const [key,label] of [["totals_market_line","V2 大小球各線"],["handicap_market_line","V2 讓分各線"]]){
+  const info=p.metrics?.[key]||{};rows.push('<tr><th>'+label+'<br><small>三階段皆有市場報價 '+Number(info.paired_fixture_count||0)+' 場</small></th>'+stages.map(s=>{const x=info.by_stage?.[s]||{},lines=Object.entries(x.by_line||{}).map(([line,m])=>line+"："+pct(m)).join("；");return '<td>'+v2esc(pct(x))+(x.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(x.avg_return_units)*100).toFixed(1)+'%｜'+Number(x.bet_count||0)+' 注</small>')+(lines?'<br><small>各線 '+v2esc(lines)+'</small>':"")+'</td>';}).join("")+'</tr>');
  }
  const m=document.getElementById("footballV2StageMetrics");
  if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>同場三階段配對命中率</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">大小球與讓分依每場、每階段實際擷取的市場盤線和雙邊賠率分析，盤線會隨賽事不同。模型按 xG 機率與賠率選期望報酬較高的一邊，再用實際比分結算；只有三階段都有該市場報價的賽事納入該列比較。命中率分母排除走盤；平均報酬包含走盤。此區只供後台研究，不進公開戰績。 '+v2esc(p.note||"")+'</p>';
@@ -146,10 +154,20 @@ function renderFootballV2StageCompare(){
  const pickLabel=(pick,kind)=>kind==="moneyline"?({home:"主勝",draw:"和局",away:"客勝"})[pick]||"—":kind==="btts"?(pick==="yes"?"BTTS 是":pick==="no"?"BTTS 否":"—"):kind==="total"?(pick==="over"?"大":pick==="under"?"小":"—"):kind==="handicap"?(pick==="home"?"主隊":pick==="away"?"客隊":"—"):"—";
  const mark=(hit,result)=>hit===true?"✓":hit===false?"✗":result==="push"?"走":result==="half_win"?"半贏":result==="half_loss"?"半輸":"—";
  const stageSummary=x=>{
-  const cells=[["1X2",pickLabel(x.moneyline_pick,"moneyline"),x.moneyline_hit,null],["BTTS",pickLabel(x.btts_pick,"btts"),x.btts_hit,null]];
-  const total=x.market?.total;if(total)cells.push(["大小 "+total.line,pickLabel(total.pick,"total"),total.hit,total.result]);else cells.push(["大小球","該階段無盤口",null,null]);
-  const handicap=x.market?.handicap;if(handicap)cells.push(["讓分 主"+(Number(handicap.home_line)>0?"+":"")+handicap.home_line+"／客"+(Number(handicap.away_line)>0?"+":"")+handicap.away_line,pickLabel(handicap.pick,"handicap"),handicap.hit,handicap.result]);else cells.push(["讓分","該階段無盤口",null,null]);
-  return '<div style="min-width:250px;line-height:1.8">'+cells.map(a=>'<div>'+v2esc(a[0])+'：'+v2esc(a[1])+' '+mark(a[2],a[3])+'</div>').join("")+'</div>';
+  const lines=(xs,kind)=>Array.isArray(xs)&&xs.length?xs.map(y=>(kind==="total"?"大小 "+y.line:(Number(y.home_line)>0?"讓主 +":"讓主 ")+y.home_line+"／客 "+y.away_line)+"："+pickLabel(y.pick,kind)+" "+mark(y.hit,y.result)).join("<br>"):"無市場線";
+  const cells=[["V2 1X2",pickLabel(x.moneyline_pick,"moneyline"),x.moneyline_hit,null],["V2 BTTS",pickLabel(x.btts_pick,"btts"),x.btts_hit,null]];
+  const totalRows=x.market?.totals||[];const handicapRows=x.market?.handicaps||[];
+  if(totalRows.length)cells.push(["V2 市場線",lines(totalRows,"total"),null,null]);else cells.push(["V2 大小球","該階段無盤口",null,null]);
+  if(handicapRows.length)cells.push(["V2 讓分線",lines(handicapRows,"handicap"),null,null]);else cells.push(["V2 讓分","該階段無盤口",null,null]);
+  for(const provider of ["gpt","claude"]){
+   const name=provider==="gpt"?"GPT":"Claude",review=x.llm?.providers?.[provider],out=review?.output;
+   if(!out){cells.push([name,review?.status==="not_run"?"尚未執行":review?.status==="not_configured"?"未設定 API Key":review?.status||"未完成",null,null]);continue;}
+   cells.push([name+" 1X2／BTTS",pickLabel(out.moneyline_pick,"moneyline")+"／"+pickLabel(out.btts_pick,"btts")+"（"+mark(out.moneyline_hit,null)+"／"+mark(out.btts_hit,null)+"）",null,null]);
+   cells.push([name+" 大小球",lines(out.total_settlements,"total"),null,null]);
+   cells.push([name+" 讓分",lines(out.handicap_settlements,"handicap"),null,null]);
+   if(out.summary)cells.push([name+" 判讀",v2esc(out.summary),null,null]);
+  }
+  return '<div style="min-width:280px;line-height:1.8">'+cells.map(a=>'<div><strong>'+v2esc(a[0])+'：</strong>'+((a[2]!==null||a[3]!==null)?v2esc(a[1])+' '+mark(a[2],a[3]):a[1])+'</div>').join("")+'</div>';
  };
- host.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:1020px;width:100%"><thead><tr><th>賽事 ID</th><th>比分</th>'+stages.map(s=>'<th>'+v2StageLabels[s]+'</th>').join("")+'</tr></thead><tbody>'+list.slice(0,150).map(r=>'<tr><td>'+v2esc(r.fixture_id)+'</td><td>'+v2esc(r.home_score+" : "+r.away_score)+'</td>'+stages.map(s=>'<td>'+stageSummary(r.predictions?.[s]||{})+'</td>').join("")+'</tr>').join("")+'</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場；大小球與讓分使用該場該階段實際保存的市場盤線及賠率；缺少報價時顯示「該階段無盤口」。走盤顯示「走」。</p>';
+ host.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:1020px;width:100%"><thead><tr><th>賽事 ID</th><th>比分</th>'+stages.map(s=>'<th>'+v2StageLabels[s]+'</th>').join("")+'</tr></thead><tbody>'+list.slice(0,150).map(r=>'<tr><td>'+v2esc(r.fixture_id)+'</td><td>'+v2esc(r.home_score+" : "+r.away_score)+'</td>'+stages.map(s=>'<td>'+stageSummary(r.predictions?.[s]||{})+'</td>').join("")+'</tr>').join("")+'</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場。每場每階段顯示 V2、GPT、Claude 的獨立選擇，大小球／讓分逐條列出實際保存的市場線與賠率結算；缺少報價時顯示「該階段無盤口」。走盤顯示「走」。GPT／Claude 不修改 V2，也不進公開戰績。</p>';
 }
