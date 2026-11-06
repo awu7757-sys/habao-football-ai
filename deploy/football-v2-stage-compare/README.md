@@ -1,27 +1,40 @@
-# Football V2 three-stage market comparison
+# Football V2 stage and AI shadow comparison
 
-This is an admin-only research comparison of V2 snapshots at T-10 hours, T-2 hours, and T-15 minutes. It does not alter the member-facing T-10 snapshot or public performance data.
+## What this adds
 
-## Included changes
+- Keeps the official/member-facing V2 snapshot at T-10 hours. The public performance record continues to use only that official T-10 snapshot.
+- Captures separate research snapshots at T-10 hours, T-2 hours, and T-15 minutes.
+- Captures all available paired totals and spread/Asian handicap lines from The Odds API, including their two prices and bookmaker counts. It does not substitute fixed totals such as 2.5, 3.0, or 4.0.
+- Scores the deterministic Poisson V2 choices line by line using each snapshot's actual quote, expected return, and verified final score.
+- Gives GPT and Claude the same frozen feature snapshot, V2 probabilities/xG/fair odds, and that stage's market quotes. They independently return shadow picks, disagreements, concerns, and evidence checks. They cannot alter V2 output.
+- The admin-only V2 comparison page shows the three stage results, line-level totals and handicap results, and GPT/Claude results. None of these shadow comparisons enter public performance data.
+- The AI shadow runner writes only the `source_meta.llm_shadow` JSON metadata on the research snapshot. It does not update the official prediction or public results.
+- No database migration is needed: quote data already uses `market_context` JSON, and AI review data uses `source_meta` JSON.
+- Historical snapshots do not contain the new full line set or GPT/Claude reviews. Those comparisons accumulate from new captures after deployment.
 
-- The admin Football V2 page compares paired, verified results for 1X2 and BTTS.
-- Totals and Asian handicap use the actual line and both decimal prices captured for each fixture at each stage. Lines may differ by fixture and by stage; no fixed 2.5/3/4 totals or standard handicap lines are substituted.
-- For each saved xG score grid, the endpoint chooses the side with the higher expected return at that stage's quote, then settles it against the verified score. Quarter lines are split into adjacent lines for settlement.
-- A market's T-10/T-2/T-15 comparison uses only fixtures with valid quotes for that market at all three stages, so the three percentages use the same match set. Pushes are excluded from hit-rate denominators; average return per unit is shown alongside accuracy.
-- The comparison endpoint makes no Football API or odds-provider calls and writes no database rows. The stage runner makes one The Odds API request per fixture-stage capture (up to three requests per match) to record totals and spreads.
-- This does not change member analysis, the official T-10 snapshot, or public performance/standings.
-- Older snapshots without stage-specific captured quotes cannot be backfilled into this market-line comparison. They remain eligible for 1X2/BTTS comparisons; market comparison coverage builds from new captures after deployment.
+## Manual Supabase deployment
 
-## Supabase manual deployment
+Supabase is managed by the project owner. Apply these steps in the Supabase project for the production branch.
 
-The user operates Supabase deployment. No database migration is needed because the existing `football_v2_shadow_stage_snapshots.market_context` JSON field stores the quote.
+1. **Update the market capture function.** In Supabase Dashboard → Edge Functions, update `football-v2-shadow-stage-runner` from `supabase/functions/football-v2-shadow-stage-runner/index.ts`. Confirm the existing Odds API secret is named `THE_ODDS_API_KEY` or `ODDS_API_KEY`. The runner uses either name.
+2. **Update the comparison function.** Deploy `admin-football-v2-stage-compare` from `supabase/functions/admin-football-v2-stage-compare/index.ts`. Set **Verify JWT** off; the function validates the admin session with `admin-center`. It needs the existing Supabase URL and service-role environment.
+3. **Add the independent AI runner.** Deploy `football-v2-llm-shadow-runner` from `supabase/functions/football-v2-llm-shadow-runner/index.ts`, with **Verify JWT** off. Its own cron-key check protects the endpoint.
+4. In Supabase → Edge Functions → Secrets, add:
+   - `FOOTBALL_V2_LLM_SHADOW_ENABLED=true`
+   - `OPENAI_API_KEY` (an OpenAI API key)
+   - `ANTHROPIC_API_KEY` (an Anthropic API key)
+   - Optionally `FOOTBALL_V2_GPT_MODEL` and `FOOTBALL_V2_CLAUDE_MODEL`; defaults are `gpt-5-mini` and `claude-sonnet-4-5`.
+   
+   The LLM runner also reads the existing `FOOTBALL_V2_STAGE_CRON_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. Keep all secret values in Supabase Secrets; do not put them in GitHub or chat. Claude web/app subscription is separate from Anthropic API billing.
+5. **Schedule the LLM runner every minute.** In Supabase Cron, create a separate recurring Edge Function invocation for `football-v2-llm-shadow-runner` at `* * * * *`. Send a POST request with header `x-habao-cron-key` set from the existing `FOOTBALL_V2_STAGE_CRON_KEY`. Keep the existing stage-runner cron unchanged. The runner processes two pending snapshots per invocation to stay within function time limits.
+6. Publish the updated `admin-football-v2.js` in the admin page. Open Admin → 足球 V1／V2 模型比較 → **V2 與 GPT／Claude 三階段影子比較**.
 
-1. In Supabase Dashboard → Edge Functions, open `football-v2-shadow-stage-runner` and update its `index.ts` from `supabase/functions/football-v2-shadow-stage-runner/index.ts`.
-2. Confirm the project has an Odds API secret named `THE_ODDS_API_KEY` or `ODDS_API_KEY`. The runner uses either name. Do not paste the key into code or chat. If neither secret exists, add the Odds API key in Supabase Secrets before deploying.
-3. Deploy the updated runner. Each eligible stage capture requests both totals and spreads from The Odds API. It can use up to three requests per fixture (T-15, T-10, T-2); account for the provider's quota. Missing/unavailable quotes do not block the V2 prediction snapshot, but that fixture-stage will not enter the matching market comparison.
-4. Deploy/update `admin-football-v2-stage-compare` from `supabase/functions/admin-football-v2-stage-compare/index.ts`. Turn **Verify JWT** off. It authenticates the admin session through `admin-center` and allows super admins or admins with the `performance` permission. It uses existing `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
-5. Publish `admin-football-v2.js` from this change. Open Admin → 足球 V1／V2 模型比較 → V2 三階段影子準確率.
+The stage runner can make up to three The Odds API requests per match (one at each research stage). Quote capture is optional and does not block V2 predictions. OpenAI and Anthropic API usage is billed by those providers.
 
-## Interpretation
+## Reading the comparison
 
-When fewer than 30 fixtures have paired, verified results for a market, treat its percentages as early research observations. The endpoint compares only fixtures with all three stage snapshots and a verified final score; totals and handicaps also require a valid quote in all three snapshots.
+- T-10 means ten hours before kickoff; T-2 means two hours; T-15 means fifteen minutes.
+- Each stage is scored against the exact market lines and prices captured at that stage. Individual lines appear separately; fixtures can have different lines.
+- Totals and handicap summaries include line-level breakdowns. Pushes are excluded from hit-rate denominators; mean return includes pushes and half settlements.
+- GPT and Claude are scored separately from V2. Missing or invalid provider output is shown as unavailable. These are research observations, not member recommendations.
+- Treat percentages as early observations until each market/model has a reasonable sample; the admin page flags small matched samples.
