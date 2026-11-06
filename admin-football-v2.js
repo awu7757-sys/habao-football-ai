@@ -132,32 +132,24 @@ async function loadFootballV2StageCompare(force=false){
 }
 function renderFootballV2StageCompare(){
  const p=footballV2StageData;if(!p)return;
- const stages=["t10","t2","t15"], labels={
-  moneyline:"獨贏",btts:"BTTS","total_2.5":"大小球 2.5",total_3:"大小球 3",total_4:"大小球 4",
-  "handicap_-1.5":"讓分（主隊 -1.5）","handicap_-1":"讓分（主隊 -1）","handicap_-0.5":"讓分（主隊 -0.5）",
-  "handicap_0":"讓分（平手）","handicap_0.5":"讓分（主隊 +0.5）","handicap_1":"讓分（主隊 +1）","handicap_1.5":"讓分（主隊 +1.5）"
- };
- const names=Object.keys(labels);
- const rows=names.map(k=>'<tr><th>'+labels[k]+'</th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(p.metrics?.[k]?.[s]))+'</td>').join("")+'</tr>').join("");
+ const stages=["t10","t2","t15"], labels={moneyline:"獨贏",btts:"BTTS"};
+ const rows=Object.keys(labels).map(k=>'<tr><th>'+labels[k]+'</th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(p.metrics?.[k]?.[s]))+'</td>').join("")+'</tr>');
+ for(const [key,label] of [["totals_market_line","大小球（各場當時市場線）"],["handicap_market_line","讓分（各場當時市場線）"]]){
+  const info=p.metrics?.[key]||{};rows.push('<tr><th>'+label+'<br><small>三階段都有報價 '+Number(info.paired_fixture_count||0)+' 場</small></th>'+stages.map(s=>'<td>'+v2esc(v2StageRate(info.by_stage?.[s]))+(info.by_stage?.[s]?.avg_return_units==null?"":'<br><small>平均報酬 '+(Number(info.by_stage[s].avg_return_units)*100).toFixed(1)+'%</small>')+'</td>').join("")+'</tr>');
+ }
  const m=document.getElementById("footballV2StageMetrics");
- if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>同場三階段配對命中率</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="page-desc" style="margin-top:10px">只比較同時具備三階段快照且已驗證比分的同一批賽事。大小球 3、4 與整數讓分的走盤不計命中率分母；讓分採固定標準線，由該階段 xG 推算，並非即時投注盤口。此區只供後台研究，不進公開戰績。 '+v2esc(p.note||"")+'</p>';
+ if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>同場三階段配對命中率</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">大小球與讓分依每場、每階段實際擷取的市場盤線和雙邊賠率分析，盤線會隨賽事不同。模型按 xG 機率與賠率選期望報酬較高的一邊，再用實際比分結算；只有三階段都有該市場報價的賽事納入該列比較。命中率分母排除走盤；平均報酬包含走盤。此區只供後台研究，不進公開戰績。 '+v2esc(p.note||"")+'</p>';
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:660px;width:100%"><thead><tr><th>階段</th><th>影子快照</th><th>排程稽核</th><th>平均擷取時間</th><th>配對已驗證</th></tr></thead><tbody>'+stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",states=Object.entries(x.audit_statuses||{}).map(([k,v])=>k+":"+v).join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">期間內已驗證賽果 '+Number(p.verified_result_fixtures||0)+(p.truncated?"｜資料超過讀取上限，請縮小期間。":"")+'｜此 API 不寫入資料且不呼叫足球 API</p>';
  const host=document.getElementById("footballV2StageRows");if(!host)return;const list=Array.isArray(p.paired_rows)?p.paired_rows:[];
  if(!list.length){host.innerHTML='<div class="fvc-empty">目前沒有同時具備三階段快照及已驗證賽果的賽事。</div>';return;}
- const pickLabel=(pick,line,kind)=>{
-  if(kind==="moneyline")return ({home:"主勝",draw:"和局",away:"客勝"})[pick]||"—";
-  if(kind==="btts")return pick==="yes"?"BTTS 是":pick==="no"?"BTTS 否":"—";
-  if(kind==="total")return pick==="over"?"大":"小";
-  if(kind==="handicap")return pick==="home"?"主隊 "+(Number(line)>0?"+":"")+line:pick==="away"?"客隊 "+(Number(-line)>0?"+":"")+(-Number(line)):"—";
-  return "—";
- };
- const mark=(hit,result)=>hit===true?"✓":hit===false?"✗":result==="push"?"走":"—";
+ const pickLabel=(pick,kind)=>kind==="moneyline"?({home:"主勝",draw:"和局",away:"客勝"})[pick]||"—":kind==="btts"?(pick==="yes"?"BTTS 是":pick==="no"?"BTTS 否":"—"):kind==="total"?(pick==="over"?"大":pick==="under"?"小":"—"):kind==="handicap"?(pick==="home"?"主隊":pick==="away"?"客隊":"—"):"—";
+ const mark=(hit,result)=>hit===true?"✓":hit===false?"✗":result==="push"?"走":result==="half_win"?"半贏":result==="half_loss"?"半輸":"—";
  const stageSummary=x=>{
-  const cells=[["1X2",pickLabel(x.moneyline_pick,null,"moneyline"),x.moneyline_hit,null],["BTTS",pickLabel(x.btts_pick,null,"btts"),x.btts_hit,null]];
-  for(const line of [2.5,3,4]){const a=x.totals?.[String(line)]||{};cells.push(["O/U "+line,pickLabel(a.pick,line,"total"),a.hit,a.result]);}
-  for(const line of [-1.5,-1,-0.5,0,0.5,1,1.5]){const a=x.handicaps?.[String(line)]||{};cells.push(["讓分 "+(line>0?"+":"")+line,pickLabel(a.pick,line,"handicap"),a.hit,a.result]);}
-  return '<div style="min-width:250px;line-height:1.8">'+cells.map(a=>'<div>'+a[0]+'：'+v2esc(a[1])+' '+mark(a[2],a[3])+'</div>').join("")+'</div>';
+  const cells=[["1X2",pickLabel(x.moneyline_pick,"moneyline"),x.moneyline_hit,null],["BTTS",pickLabel(x.btts_pick,"btts"),x.btts_hit,null]];
+  const total=x.market?.total;if(total)cells.push(["大小 "+total.line,pickLabel(total.pick,"total"),total.hit,total.result]);else cells.push(["大小球","該階段無盤口",null,null]);
+  const handicap=x.market?.handicap;if(handicap)cells.push(["讓分 主"+(Number(handicap.home_line)>0?"+":"")+handicap.home_line+"／客"+(Number(handicap.away_line)>0?"+":"")+handicap.away_line,pickLabel(handicap.pick,"handicap"),handicap.hit,handicap.result]);else cells.push(["讓分","該階段無盤口",null,null]);
+  return '<div style="min-width:250px;line-height:1.8">'+cells.map(a=>'<div>'+v2esc(a[0])+'：'+v2esc(a[1])+' '+mark(a[2],a[3])+'</div>').join("")+'</div>';
  };
- host.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:1020px;width:100%"><thead><tr><th>賽事 ID</th><th>比分</th>'+stages.map(s=>'<th>'+v2StageLabels[s]+'</th>').join("")+'</tr></thead><tbody>'+list.slice(0,150).map(r=>'<tr><td>'+v2esc(r.fixture_id)+'</td><td>'+v2esc(r.home_score+" : "+r.away_score)+'</td>'+stages.map(s=>'<td>'+stageSummary(r.predictions?.[s]||{})+'</td>').join("")+'</tr>').join("")+'</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場；每一階段都以同一個版本的 xG 分數矩陣推算 O/U 與讓分。走盤顯示「走」。</p>';
+ host.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:1020px;width:100%"><thead><tr><th>賽事 ID</th><th>比分</th>'+stages.map(s=>'<th>'+v2StageLabels[s]+'</th>').join("")+'</tr></thead><tbody>'+list.slice(0,150).map(r=>'<tr><td>'+v2esc(r.fixture_id)+'</td><td>'+v2esc(r.home_score+" : "+r.away_score)+'</td>'+stages.map(s=>'<td>'+stageSummary(r.predictions?.[s]||{})+'</td>').join("")+'</tr>').join("")+'</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場；大小球與讓分使用該場該階段實際保存的市場盤線及賠率；缺少報價時顯示「該階段無盤口」。走盤顯示「走」。</p>';
 }

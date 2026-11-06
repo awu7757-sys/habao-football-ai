@@ -2,9 +2,6 @@
 // It does not alter the member-facing T-10 snapshot or public performance data.
 const VERSION = "football-v2-poisson-shrinkage-0.2.1";
 const STAGES = ["t10", "t2", "t15"] as const;
-const TOTAL_LINES = [2.5, 3, 4] as const;
-// Asian handicap lines are signed from the home team's perspective.
-const HANDICAP_LINES = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5] as const;
 const PAGE_SIZE = 1000, MAX_ROWS = 10000, GRID_MAX = 18;
 const BASE = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
 const ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -47,6 +44,53 @@ function accuracy(rows: any[], stage: string, getter: (p: any) => boolean | null
   return { correct, total: outcomes.length, pushes_or_unavailable: rows.length - outcomes.length,
     accuracy: outcomes.length ? correct / outcomes.length : null };
 }
+function marketQuote(snapshot: any) {
+  const context = json(snapshot.market_context), total = context?.total, handicap = context?.handicap;
+  const oddsOkay = (x: unknown) => num(x) !== null && Number(x) > 1 && Number(x) <= 100;
+  return {
+    total: num(total?.line) !== null && oddsOkay(total?.over_odds) && oddsOkay(total?.under_odds)
+      ? { line: Number(total.line), over_odds: Number(total.over_odds), under_odds: Number(total.under_odds) } : null,
+    handicap: num(handicap?.home_line) !== null && num(handicap?.away_line) !== null &&
+      oddsOkay(handicap?.home_odds) && oddsOkay(handicap?.away_odds)
+      ? { home_line: Number(handicap.home_line), away_line: Number(handicap.away_line),
+          home_odds: Number(handicap.home_odds), away_odds: Number(handicap.away_odds) } : null
+  };
+}
+function splitLine(line: number) {
+  const scaled = Math.round(line * 100), rem = Math.abs(scaled % 100);
+  if (rem === 25) return [(Math.floor(line * 2) / 2), (Math.ceil(line * 2) / 2)];
+  if (rem === 75) return [(Math.floor(line * 2) / 2), (Math.ceil(line * 2) / 2)];
+  return [line];
+}
+function marketLegResult(value: number, line: number, side: "over" | "under" | "home" | "away") {
+  const margin = side === "over" ? value - line : side === "under" ? line - value : value + line;
+  return margin > 1e-9 ? "win" : margin < -1e-9 ? "loss" : "push";
+}
+function settlement(value: number, line: number, side: "over" | "under" | "home" | "away", odds: number) {
+  const lines = splitLine(line), stake = 1 / lines.length;
+  let returned = 0, wins = 0, pushes = 0;
+  for (const leg of lines) {
+    const outcome = marketLegResult(value, leg, side);
+    if (outcome === "win") { returned += stake * odds; wins++; }
+    else if (outcome === "push") { returned += stake; pushes++; }
+  }
+  const profit = returned - 1;
+  const result = profit > 1e-9 ? (pushes ? "half_win" : "win")
+    : profit < -1e-9 ? (pushes ? "half_loss" : "loss") : "push";
+  return { result, hit: profit > 1e-9 ? true : profit < -1e-9 ? false : null,
+    return_units: Number(profit.toFixed(6)), lines };
+}
+function expectedReturn(cells: Array<{h:number;a:number;p:number}>, line: number, side: "over" | "under" | "home" | "away", odds: number) {
+  const lines = splitLine(line), stake = 1 / lines.length;
+  let returned = 0;
+  for (const cell of cells) for (const leg of lines) {
+    const value = side === "over" || side === "under" ? cell.h + cell.a
+      : side === "home" ? cell.h - cell.a : cell.a - cell.h;
+    const outcome = marketLegResult(value, leg, side);
+    returned += cell.p * stake * (outcome === "win" ? odds : outcome === "push" ? 1 : 0);
+  }
+  return returned - 1;
+}
 function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<number, any>) {
   const rows: any[] = [];
   for (const [id, result] of results) {
@@ -56,53 +100,58 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
     if (!Number.isInteger(hs) || !Number.isInteger(as) || result.excluded_from_public === true) continue;
     const predictions: Record<string, any> = {};
     for (const stage of STAGES) {
-      const snap = stages.get(stage), homeXg = num(snap.home_xg), awayXg = num(snap.away_xg);
+      const snap = stages.get(stage), homeXg = num(snap.home_xg), awayXg = num(snap.away_xg), quote = marketQuote(snap);
       if (homeXg === null || awayXg === null || homeXg < 0 || awayXg < 0 || homeXg > 12 || awayXg > 12) {
-        predictions[stage] = { unavailable: "invalid_xg" }; continue;
+        predictions[stage] = { unavailable: "invalid_xg", market: quote }; continue;
       }
-      const grid = scoreGrid(homeXg, awayXg);
-      const p: any = json(snap.probabilities);
+      const grid = scoreGrid(homeXg, awayXg), p: any = json(snap.probabilities);
       const winner = [["home", num(p.home_win)], ["draw", num(p.draw)], ["away", num(p.away_win)]]
         .filter((x: any) => x[1] !== null && x[1] >= 0 && x[1] <= 1)
         .sort((a: any, b: any) => b[1] - a[1])[0]?.[0] ?? null;
-      const actualWinner = hs > as ? "home" : hs < as ? "away" : "draw";
-      const bttsProb = num(p.btts_yes);
-      const totals: Record<string, any> = {};
-      for (const line of TOTAL_LINES) {
-        let over = 0, under = 0, push = 0;
-        for (const cell of grid) {
-          const sum = cell.h + cell.a;
-          if (sum > line) over += cell.p; else if (sum < line) under += cell.p; else push += cell.p;
-        }
-        const pick = over > under ? "over" : under > over ? "under" : null;
-        const actual = hs + as > line ? "over" : hs + as < line ? "under" : "push";
-        totals[String(line)] = { pick, hit: pick === null || actual === "push" ? null : pick === actual,
-          result: actual, over_probability: over, under_probability: under, push_probability: push };
+      const actualWinner = hs > as ? "home" : hs < as ? "away" : "draw", bttsProb = num(p.btts_yes);
+      let totalPrediction: any = null;
+      if (quote.total) {
+        const line = quote.total.line;
+        const overEV = expectedReturn(grid, line, "over", quote.total.over_odds);
+        const underEV = expectedReturn(grid, line, "under", quote.total.under_odds);
+        const pick = overEV >= underEV ? "over" : "under", odds = pick === "over" ? quote.total.over_odds : quote.total.under_odds;
+        totalPrediction = { line, pick, odds, expected_return_units: Number(Math.max(overEV, underEV).toFixed(6)),
+          ...settlement(hs + as, line, pick, odds) };
       }
-      const handicaps: Record<string, any> = {};
-      for (const line of HANDICAP_LINES) {
-        let homeCover = 0, awayCover = 0, push = 0;
-        for (const cell of grid) {
-          const adjusted = cell.h - cell.a + line;
-          if (adjusted > 0) homeCover += cell.p; else if (adjusted < 0) awayCover += cell.p; else push += cell.p;
-        }
-        const pick = homeCover > awayCover ? "home" : awayCover > homeCover ? "away" : null;
-        const actualMargin = hs - as + line;
-        const actual = actualMargin > 0 ? "home" : actualMargin < 0 ? "away" : "push";
-        handicaps[String(line)] = { pick, hit: pick === null || actual === "push" ? null : pick === actual,
-          result: actual, home_cover_probability: homeCover, away_cover_probability: awayCover, push_probability: push };
+      let handicapPrediction: any = null;
+      if (quote.handicap) {
+        const h = quote.handicap;
+        const homeEV = expectedReturn(grid, h.home_line, "home", h.home_odds);
+        const awayEV = expectedReturn(grid, h.away_line, "away", h.away_odds);
+        const pick = homeEV >= awayEV ? "home" : "away", line = pick === "home" ? h.home_line : h.away_line;
+        const odds = pick === "home" ? h.home_odds : h.away_odds;
+        const value = pick === "home" ? hs - as : as - hs;
+        handicapPrediction = { home_line: h.home_line, away_line: h.away_line, pick,
+          odds, expected_return_units: Number(Math.max(homeEV, awayEV).toFixed(6)),
+          ...settlement(value, line, pick, odds) };
       }
       predictions[stage] = {
         moneyline_pick: winner, moneyline_hit: winner === null ? null : winner === actualWinner,
         btts_pick: bttsProb === null ? null : bttsProb >= 0.5 ? "yes" : "no",
         btts_hit: bttsProb === null ? null : (bttsProb >= 0.5) === (hs > 0 && as > 0),
-        totals, handicaps
+        market: { total: totalPrediction, handicap: handicapPrediction }
       };
     }
-    rows.push({ fixture_id: id, kickoff_at: String(result.kickoff_at || ""),
-      home_score: hs, away_score: as, predictions });
+    rows.push({ fixture_id: id, kickoff_at: String(result.kickoff_at || ""), home_score: hs, away_score: as, predictions });
   }
   return rows.sort((a, b) => Date.parse(b.kickoff_at) - Date.parse(a.kickoff_at));
+}
+function marketMetrics(rows: any[], market: "total" | "handicap") {
+  const paired = rows.filter(r => STAGES.every(s => r.predictions?.[s]?.market?.[market]));
+  const byStage = Object.fromEntries(STAGES.map(stage => {
+    const bets = paired.map(r => r.predictions[stage].market[market]);
+    const settled = bets.filter((x: any) => typeof x.hit === "boolean");
+    const correct = settled.filter((x: any) => x.hit).length;
+    return [stage, { correct, total: settled.length, pushes_or_unavailable: bets.length - settled.length,
+      accuracy: settled.length ? correct / settled.length : null,
+      avg_return_units: bets.length ? bets.reduce((sum:number,x:any)=>sum+Number(x.return_units||0),0)/bets.length : null }];
+  }));
+  return { paired_fixture_count: paired.length, by_stage: byStage };
 }
 function coverage(stage: string, snaps: any[], audits: any[], paired: any[]) {
   const s = snaps.filter(x => x.stage === stage), a = audits.filter(x => x.stage === stage);
@@ -153,7 +202,7 @@ Deno.serve(async req => {
       if (since) x.set("kickoff_at", "gte." + since);
       return x;
     };
-    const snapQ = q("fixture_id,stage,kickoff_at,captured_at,home_xg,away_xg,probabilities,model_version,data_quality,research_only");
+    const snapQ = q("fixture_id,stage,kickoff_at,captured_at,home_xg,away_xg,probabilities,market_context,model_version,data_quality,research_only");
     snapQ.set("stage", "in.(t10,t2,t15)"); snapQ.set("model_version", "eq." + VERSION); snapQ.set("research_only", "eq.true");
     const auditQ = q("fixture_id,stage,kickoff_at,status,reason_code,attempts,terminal,updated_at"); auditQ.set("stage", "in.(t10,t2,t15)");
     const resultQ = q("fixture_id,kickoff_at,home_score,away_score,verified_at,excluded_from_public");
@@ -174,16 +223,14 @@ Deno.serve(async req => {
       moneyline: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.moneyline_hit)])),
       btts: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.btts_hit)]))
     };
-    for (const line of TOTAL_LINES) metrics[`total_${line}`] = Object.fromEntries(STAGES.map(s => [s,
-      accuracy(paired, s, p => p.totals?.[String(line)]?.hit ?? null)]));
-    for (const line of HANDICAP_LINES) metrics[`handicap_${line}`] = Object.fromEntries(STAGES.map(s => [s,
-      accuracy(paired, s, p => p.handicaps?.[String(line)]?.hit ?? null)]));
+    metrics.totals_market_line = marketMetrics(paired, "total");
+    metrics.handicap_market_line = marketMetrics(paired, "handicap");
     return reply(200, {
       success: true, research_only: true, model_version: VERSION, window_days: days,
       verified_result_fixtures: resultRows.filter(x => x.excluded_from_public !== true).length,
       paired_fixture_count: paired.length,
-      comparison_method: "同一賽事必須同時具有三個階段的 V2 研究快照及已驗證比分；T-3 與整數讓分走盤不計入命中率分母。機率依快照 xG 以同版 Poisson 分數矩陣推算。",
-      market_lines: { totals: TOTAL_LINES, handicap_home_lines: HANDICAP_LINES }, metrics,
+      comparison_method: "同一賽事三階段使用各自快照內實際擷取的大小球／讓分盤線與雙邊賠率；以 xG Poisson 分數矩陣計算期望報酬最高的一邊，再用實際比分結算。大小球、讓分各自只用三階段都有有效報價的同一批賽事；走盤不計命中率分母，半贏／半輸按實際派彩判定，另列平均每注報酬。",
+      market_lines: "per_fixture_per_stage_quotes", market_metrics: { totals: metrics.totals_market_line, handicap: metrics.handicap_market_line }, metrics,
       stages: Object.fromEntries(STAGES.map(s => [s, coverage(s, snaps, audits, paired)])),
       paired_rows: paired.slice(0, 300),
       truncated: snaps.length >= MAX_ROWS || audits.length >= MAX_ROWS || resultRows.length >= MAX_ROWS,
