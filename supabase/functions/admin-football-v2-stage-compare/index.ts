@@ -215,11 +215,13 @@ function llmMetrics(rows: any[]) {
   return metrics;
 }
 function coverage(stage: string, snaps: any[], audits: any[], paired: any[]) {
-  const s = snaps.filter(x => x.stage === stage), a = audits.filter(x => x.stage === stage);
+  const allStageSnaps = snaps.filter(x => x.stage === stage);
+  const recovered = allStageSnaps.filter(x => json(x.source_meta)?.capture_mode === "late_pre_match_recovery");
+  const s = allStageSnaps.filter(x => json(x.source_meta)?.eligible_for_stage_metrics !== false && json(x.source_meta)?.capture_mode !== "late_pre_match_recovery"), a = audits.filter(x => x.stage === stage);
   const statuses: Record<string, number> = {};
   for (const row of a) statuses[row.status || "unknown"] = (statuses[row.status || "unknown"] || 0) + 1;
   const leads = s.map(x => (Date.parse(x.kickoff_at) - Date.parse(x.captured_at)) / 60000).filter(Number.isFinite);
-  return { snapshots: s.length, audit_rows: a.length, audit_statuses: statuses, paired_verified: paired.length,
+  return { snapshots: s.length, late_recovery_snapshots: recovered.length, audit_rows: a.length, audit_statuses: statuses, paired_verified: paired.length,
     average_minutes_before_kickoff: leads.length ? leads.reduce((x, y) => x + y, 0) / leads.length : null };
 }
 async function adminAllowed(req: Request) {
@@ -277,6 +279,8 @@ Deno.serve(async req => {
     for (const r of snaps) {
       const id = Number(r.fixture_id), stage = String(r.stage);
       if (!Number.isSafeInteger(id) || !STAGES.includes(stage as any)) continue;
+      const meta = json(r.source_meta);
+      if (meta?.capture_mode === "late_pre_match_recovery" || meta?.eligible_for_stage_metrics === false) continue;
       const m = byFixture.get(id) || new Map<string, any>(); if (!m.has(stage)) m.set(stage, r); byFixture.set(id, m);
     }
     const paired = pairedData(byFixture, results);
@@ -296,7 +300,7 @@ Deno.serve(async req => {
       stages: Object.fromEntries(STAGES.map(s => [s, coverage(s, snaps, audits, paired)])),
       paired_rows: paired.slice(0, 300),
       truncated: snaps.length >= MAX_ROWS || audits.length >= MAX_ROWS || resultRows.length >= MAX_ROWS,
-      note: paired.length < 30 ? "三階段配對樣本少於 30 場，命中率僅供觀察。" : null,
+      note: paired.length < 30 ? "三階段配對樣本少於 30 場，命中率僅供觀察。晚到補抓快照僅列入資料覆蓋數，不進入正式階段比對。" : "晚到補抓快照僅列入資料覆蓋數，不進入正式階段比對。",
       no_writes: true, football_api_calls: 0
     });
   } catch (e) {

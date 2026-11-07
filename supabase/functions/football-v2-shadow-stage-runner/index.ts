@@ -20,12 +20,17 @@ const safe=(x:unknown)=>String(x??'').slice(0,220).replace(/[\r\n]/g,' ');
 const headers=(prefer?:string)=>({apikey:cfg.role,authorization:`Bearer ${cfg.role}`,'content-type':'application/json',...(prefer?{prefer}:{})});
 type Fixture={fixture:{id:number;date:string;status?:{short?:string}};league:{id:number;season:number};teams:{home:{id:number;name:string};away:{id:number;name:string}};lineups?:any[]};
 type Stage={key:'t15'|'t10'|'t2';target:number};
-type Audit={fixture_id:number;stage:string;attempts:number;terminal:boolean};
+type Audit={fixture_id:number;stage:string;attempts:number;terminal:boolean;updated_at?:string};
 let calls=0;
 async function dbGet<T>(table:string,q:string):Promise<T[]>{const r=await fetch(`${cfg.url}/rest/v1/${table}?${q}`,{headers:headers(),signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error(`db_read_${table}_${r.status}`);const x=await r.json();if(!Array.isArray(x))throw new Error(`db_bad_${table}`);return x as T[];}
 async function dbWrite(table:string,value:Record<string,unknown>,conflict:string,prefer='resolution=merge-duplicates,return=minimal'){
   const r=await fetch(`${cfg.url}/rest/v1/${table}?on_conflict=${conflict}`,{method:'POST',headers:headers(prefer),body:JSON.stringify(value),signal:AbortSignal.timeout(10000)});
   if(!r.ok)throw new Error(`db_write_${table}_${r.status}_${safe(await r.text())}`);
+}
+async function leaseRpc(name:string,body:Record<string,unknown>):Promise<boolean>{
+  const r=await fetch(`${cfg.url}/rest/v1/rpc/${name}`,{method:'POST',headers:headers(),body:JSON.stringify(body),signal:AbortSignal.timeout(10000)});
+  if(!r.ok)throw new Error(`lease_${name}_${r.status}_${safe(await r.text())}`);
+  return await r.json()===true;
 }
 async function football(path:string):Promise<any[]>{
   if(!cfg.footballKey)throw new Error('football_api_key_missing');
@@ -221,17 +226,15 @@ function officialReady(status:string|undefined){
   return status==='created'||status==='already_ready'||status==='created_response_non2xx';
 }
 
-async function captureDueStage(
-  f:Fixture,
-  stage:Stage,
-  now:number,
+async function captureDueStageUnlocked(
+  f:Fixture, stage:Stage, now:number, captureMode:'scheduled'|'late_pre_match_recovery',
   officialResults:Array<{fixture_id:number;status:string;reason?:string}>,
   officialSnapshotBatch:Record<string,unknown>
 ):Promise<Record<string,unknown>>{
   const id=Number(f.fixture.id);
   const [saved,audits]=await Promise.all([
     dbGet<any>('football_v2_shadow_stage_snapshots',`select=fixture_id&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`),
-    dbGet<Audit>('football_v2_shadow_stage_audit',`select=fixture_id,stage,attempts,terminal&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`)
+    dbGet<Audit>('football_v2_shadow_stage_audit',`select=fixture_id,stage,attempts,terminal,updated_at&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`)
   ]);
   if(saved.length){
     if(stage.key==='t10'){
@@ -246,22 +249,23 @@ async function captureDueStage(
     return {fixture_id:id,stage:stage.key,status:'already_captured'};
   }
   const prior=audits[0],attempt=Number(prior?.attempts||0)+1;
-  if(prior?.terminal||attempt>3)return {fixture_id:id,stage:stage.key,status:'terminal'};
+  if(prior?.terminal)return {fixture_id:id,stage:stage.key,status:'terminal'};
+  if(prior?.updated_at&&now-Date.parse(prior.updated_at)<5*MINUTE)return {fixture_id:id,stage:stage.key,status:'retry_backoff'};
   await audit(f,stage,'processing','processing',attempt,false,{started_at:new Date().toISOString()});
   try{
     const liveRows=await football(`/fixtures?id=${id}`),live=liveRows.find(x=>Number(x?.fixture?.id)===id);
     if(!live)throw new Error('fixture_not_found');
     const officialKickoff=Date.parse(String(live.fixture?.date||'')),scheduled=Date.parse(f.fixture.date),diff=(officialKickoff-now)/MINUTE;
-    if(!Number.isFinite(officialKickoff)||Math.abs(officialKickoff-scheduled)>90||Math.abs(diff-stage.target)>1.5||String(live.fixture?.status?.short||'NS')!=='NS'){
+    if(!Number.isFinite(officialKickoff)||Math.abs(officialKickoff-scheduled)>90||diff<=0||String(live.fixture?.status?.short||'NS')!=='NS'||(stage.key==='t10'&&Math.abs(diff-stage.target)>1.5)||(stage.key==='t2'&&!(diff<=120&&diff>15))||(stage.key==='t15'&&!(diff<=15&&diff>0))){
       await audit(f,stage,'expired','fixture_changed_or_capture_window_missed',attempt,true,{scheduled_kickoff:f.fixture.date,official_kickoff:live.fixture?.date,minutes_to_kickoff:diff,api_football_calls:calls});
       return {fixture_id:id,stage:stage.key,status:'expired'};
     }
     const features=await dbGet<any>('football_v2_shadow_feature_snapshots',`select=*&fixture_id=eq.${id}&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&order=captured_at.desc&limit=1`);
     const feature=features[0];
-    if(!feature){await audit(f,stage,'missing_features','no_prior_feature_snapshot',attempt,true,{api_football_calls:calls});return {fixture_id:id,stage:stage.key,status:'missing_features'};}
+    if(!feature){await audit(f,stage,'missing_features','no_prior_feature_snapshot',attempt,false,{api_football_calls:calls,capture_mode:captureMode});return {fixture_id:id,stage:stage.key,status:'missing_features'};}
     const featureTime=Date.parse(String(feature.captured_at||'')),featureKickoff=Date.parse(String(feature.kickoff_at||''));
     if(!Number.isFinite(featureTime)||!Number.isFinite(featureKickoff)||Math.abs(featureKickoff-officialKickoff)>90*MINUTE||featureTime<officialKickoff-52*HOUR){
-      await audit(f,stage,'missing_features','stale_or_mismatched_feature_snapshot',attempt,true,{feature_kickoff:feature.kickoff_at,official_kickoff:live.fixture.date,feature_captured_at:feature.captured_at,api_football_calls:calls});
+      await audit(f,stage,'missing_features','stale_or_mismatched_feature_snapshot',attempt,false,{feature_kickoff:feature.kickoff_at,official_kickoff:live.fixture.date,feature_captured_at:feature.captured_at,api_football_calls:calls,capture_mode:captureMode});
       return {fixture_id:id,stage:stage.key,status:'missing_features',reason:'stale_or_mismatched_feature_snapshot'};
     }
     const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season));
@@ -284,7 +288,7 @@ async function captureDueStage(
       source_meta:{provider:'api_football',feature_snapshot_stage:feature.stage,feature_captured_at:feature.captured_at,feature_quality:feature.data_quality,api_football_calls:calls,odds_api_requests:marketContext.odds_api_requests||0,market_capture_status:marketContext.status,
         model_inputs:'opponent-adjusted recent form shrunk toward league average; season standings contribution discounted by overlap with recent-history matches',
         shrinkage_prior:`API-Football league average from season ${feature.league_baseline?.source_season}`,shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
-        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:false},model_version:VERSION,research_only:true};
+        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:false,capture_mode:captureMode,scheduled_target_at:new Date(officialKickoff-stage.target*MINUTE).toISOString(),capture_lag_minutes:Number(Math.max(0,Math.abs((officialKickoff-stage.target*MINUTE-now)/MINUTE)).toFixed(2)),eligible_for_stage_metrics:captureMode==='scheduled'},model_version:VERSION,research_only:true};
     await dbWrite('football_v2_shadow_stage_snapshots',payload,'fixture_id,stage','resolution=ignore-duplicates,return=minimal');
     await audit(f,stage,'ready','shadow_prediction_saved',attempt,true,{feature_stage:feature.stage,feature_captured_at:feature.captured_at,api_football_calls:calls});
     if(stage.key==='t10'){
@@ -298,16 +302,36 @@ async function captureDueStage(
     }
     return {fixture_id:id,stage:stage.key,status:'ready',home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality};
   }catch(e){
-    const reason=safe(e);await audit(f,stage,'failed',reason,attempt,attempt>=3,{api_football_calls:calls});
-    return {fixture_id:id,stage:stage.key,status:'failed',reason,attempt,terminal:attempt>=3};
+    const reason=safe(e);await audit(f,stage,'failed',reason,attempt,false,{api_football_calls:calls,capture_mode:captureMode});
+    return {fixture_id:id,stage:stage.key,status:'failed',reason,attempt,terminal:false};
   }
+}
+
+async function captureDueStage(f:Fixture,stage:Stage,now:number,captureMode:'scheduled'|'late_pre_match_recovery',officialResults:Array<{fixture_id:number;status:string;reason?:string}>,officialSnapshotBatch:Record<string,unknown>):Promise<Record<string,unknown>>{
+  if(stage.key==='t10')return captureDueStageUnlocked(f,stage,now,captureMode,officialResults,officialSnapshotBatch);
+  const token=crypto.randomUUID(),leaseSeconds=120;
+  const acquired=await leaseRpc('reserve_football_v2_stage_capture_lease',{p_fixture_id:Number(f.fixture.id),p_stage:stage.key,p_lease_token:token,p_lease_seconds:leaseSeconds});
+  if(!acquired)return {fixture_id:Number(f.fixture.id),stage:stage.key,status:'capture_in_progress'};
+  try{return await captureDueStageUnlocked(f,stage,now,captureMode,officialResults,officialSnapshotBatch);}
+  finally{await leaseRpc('release_football_v2_stage_capture_lease',{p_fixture_id:Number(f.fixture.id),p_stage:stage.key,p_lease_token:token}).catch(()=>false);}
+}
+async function recoverStage(fixtureId:number,stageKey:'t2'|'t15'){
+  calls=0;if(!Number.isSafeInteger(cfg.dailyCallCap)||cfg.dailyCallCap<1)return {success:false,status:'daily_api_cap_not_configured',api_football_calls:0};
+  const liveRows=await football(`/fixtures?id=${fixtureId}`),live=liveRows.find(x=>Number(x?.fixture?.id)===fixtureId) as Fixture|undefined;
+  if(!live)return {success:false,action:'recover_stage',status:'fixture_not_found',api_football_calls:calls};
+  const delta=(Date.parse(live.fixture.date)-Date.now())/MINUTE,stage=STAGES.find(x=>x.key===stageKey)!;
+  if(String(live.fixture?.status?.short||'NS')!=='NS'||!(stageKey==='t2'?delta<=120&&delta>15:delta<=15&&delta>0))return {success:false,action:'recover_stage',status:'stage_window_closed',minutes_to_kickoff:Number(delta.toFixed(2)),api_football_calls:calls};
+  const captureMode=Math.abs(delta-stage.target)<=1.5?'scheduled':'late_pre_match_recovery';
+  const officialBatch={eligible:0,ready:0,pending:0};
+  const result=await captureDueStage(live,stage,Date.now(),captureMode,[],officialBatch);
+  return {success:result.status==='ready'||result.status==='already_captured',action:'recover_stage',...result,api_football_calls:calls};
 }
 
 async function run(action:'dry_run'|'run'){
   calls=0;if(action==='run'&&(!Number.isSafeInteger(cfg.dailyCallCap)||cfg.dailyCallCap<1))return {success:false,status:'daily_api_cap_not_configured',api_football_calls:0};
   const now=Date.now(),cal=await loadFixtures(now,action==='run');
-  const due=cal.fixtures.flatMap(f=>{const delta=(Date.parse(f.fixture.date)-now)/MINUTE;return STAGES.filter(s=>Math.abs(delta-s.target)<=1.5).map(stage=>({f,stage,delta}));});
-  if(action==='dry_run')return {success:true,version:VERSION,action,status:due.length?'preview':cal.misses.length?'calendar_cache_missing':'outside_capture_windows',due:due.slice(0,20).map(x=>({fixture_id:x.f.fixture.id,stage:x.stage.key,minutes_to_kickoff:Number(x.delta.toFixed(2))})),calendar_cache_misses:cal.misses,api_football_calls:0};
+  const due=cal.fixtures.flatMap(f=>{const delta=(Date.parse(f.fixture.date)-now)/MINUTE;return STAGES.filter(s=>s.key==='t10'?Math.abs(delta-s.target)<=1.5:s.key==='t2'?delta<=120&&delta>15:delta<=15&&delta>0).map(stage=>({f,stage,delta,captureMode:Math.abs(delta-stage.target)<=1.5?'scheduled' as const:'late_pre_match_recovery' as const}));});
+  if(action==='dry_run')return {success:true,version:VERSION,action,status:due.length?'preview':cal.misses.length?'calendar_cache_missing':'outside_capture_windows',due:due.slice(0,20).map(x=>({fixture_id:x.f.fixture.id,stage:x.stage.key,capture_mode:x.captureMode,minutes_to_kickoff:Number(x.delta.toFixed(2))})),calendar_cache_misses:cal.misses,api_football_calls:0};
 
   // Process every unbuilt official T-10 snapshot, not just the single research
   // stage selected below. This prevents simultaneous kickoff groups being
@@ -385,7 +409,7 @@ async function run(action:'dry_run'|'run'){
       if(index>=orderedDue.length)return;
       const item=orderedDue[index];
       try{
-        stageResults.push(await captureDueStage(item.f,item.stage,now,officialResults,officialSnapshotBatch));
+        stageResults.push(await captureDueStage(item.f,item.stage,now,item.captureMode,officialResults,officialSnapshotBatch));
       }catch(error){
         const result={fixture_id:Number(item.f.fixture.id),stage:item.stage.key,status:'stage_worker_failed',reason:safe(error)};
         stageResults.push(result);
@@ -399,9 +423,11 @@ async function run(action:'dry_run'|'run'){
 }
 Deno.serve(async request=>{
   if(request.method!=='POST')return response(405,{success:false,error:'method_not_allowed'});
-  if(!cfg.cronKey||request.headers.get('x-habao-cron-key')!==cfg.cronKey)return response(401,{success:false,error:'unauthorized'});
   if(!cfg.url||!cfg.role)return response(503,{success:false,error:'storage_not_configured'});
   let body:any;try{body=await request.json()}catch{return response(400,{success:false,error:'invalid_json'})};const action = String(body?.action || 'dry_run');
+  const serviceAuthorized=request.headers.get('apikey')===cfg.role&&request.headers.get('authorization')===`Bearer ${cfg.role}`;
+  if(action==='recover_stage'?!serviceAuthorized:(!cfg.cronKey||request.headers.get('x-habao-cron-key')!==cfg.cronKey))return response(401,{success:false,error:'unauthorized'});
+  if(action==='recover_stage'){const fixtureId=Number(body?.fixture_id),stage=String(body?.stage||'');if(!Number.isSafeInteger(fixtureId)||fixtureId<=0||!['t2','t15'].includes(stage))return response(400,{success:false,error:'valid_fixture_and_stage_required'});try{const result=await recoverStage(fixtureId,stage as 't2'|'t15');return response(result.success?200:409,result);}catch(e){return response(503,{success:false,action:'recover_stage',error:safe(e),api_football_calls:calls});}}
 
 if (action === 'diagnostic') {
   const fixtureId = Number(body?.fixture_id);
