@@ -229,7 +229,7 @@ function officialReady(status:string|undefined){
 async function captureDueStageUnlocked(
   f:Fixture, stage:Stage, now:number, captureMode:'scheduled'|'late_pre_match_recovery',
   officialResults:Array<{fixture_id:number;status:string;reason?:string}>,
-  officialSnapshotBatch:Record<string,unknown>
+  officialSnapshotBatch:Record<string,unknown>, validatedLive?:Fixture
 ):Promise<Record<string,unknown>>{
   const id=Number(f.fixture.id);
   const [saved,audits]=await Promise.all([
@@ -253,7 +253,7 @@ async function captureDueStageUnlocked(
   if(prior?.updated_at&&now-Date.parse(prior.updated_at)<5*MINUTE)return {fixture_id:id,stage:stage.key,status:'retry_backoff'};
   await audit(f,stage,'processing','processing',attempt,false,{started_at:new Date().toISOString()});
   try{
-    const liveRows=await football(`/fixtures?id=${id}`),live=liveRows.find(x=>Number(x?.fixture?.id)===id);
+    const live=validatedLive||((await football(`/fixtures?id=${id}`)).find(x=>Number(x?.fixture?.id)===id) as Fixture|undefined);
     if(!live)throw new Error('fixture_not_found');
     const officialKickoff=Date.parse(String(live.fixture?.date||'')),scheduled=Date.parse(f.fixture.date),diff=(officialKickoff-now)/MINUTE;
     if(!Number.isFinite(officialKickoff)||Math.abs(officialKickoff-scheduled)>90||diff<=0||String(live.fixture?.status?.short||'NS')!=='NS'||(stage.key==='t10'&&Math.abs(diff-stage.target)>1.5)||(stage.key==='t2'&&!(diff<=120&&diff>15))||(stage.key==='t15'&&!(diff<=15&&diff>0))){
@@ -317,14 +317,25 @@ async function captureDueStage(f:Fixture,stage:Stage,now:number,captureMode:'sch
 }
 async function recoverStage(fixtureId:number,stageKey:'t2'|'t15'){
   calls=0;if(!Number.isSafeInteger(cfg.dailyCallCap)||cfg.dailyCallCap<1)return {success:false,status:'daily_api_cap_not_configured',api_football_calls:0};
-  const liveRows=await football(`/fixtures?id=${fixtureId}`),live=liveRows.find(x=>Number(x?.fixture?.id)===fixtureId) as Fixture|undefined;
-  if(!live)return {success:false,action:'recover_stage',status:'fixture_not_found',api_football_calls:calls};
-  const delta=(Date.parse(live.fixture.date)-Date.now())/MINUTE,stage=STAGES.find(x=>x.key===stageKey)!;
-  if(String(live.fixture?.status?.short||'NS')!=='NS'||!(stageKey==='t2'?delta<=120&&delta>15:delta<=15&&delta>0))return {success:false,action:'recover_stage',status:'stage_window_closed',minutes_to_kickoff:Number(delta.toFixed(2)),api_football_calls:calls};
-  const captureMode=Math.abs(delta-stage.target)<=1.5?'scheduled':'late_pre_match_recovery';
-  const officialBatch={eligible:0,ready:0,pending:0};
-  const result=await captureDueStage(live,stage,Date.now(),captureMode,[],officialBatch);
-  return {success:result.status==='ready'||result.status==='already_captured',action:'recover_stage',...result,api_football_calls:calls};
+  const stage=STAGES.find(x=>x.key===stageKey)!,token=crypto.randomUUID();
+  const acquired=await leaseRpc('reserve_football_v2_stage_capture_lease',{p_fixture_id:fixtureId,p_stage:stageKey,p_lease_token:token,p_lease_seconds:120});
+  if(!acquired)return {success:false,action:'recover_stage',status:'capture_in_progress',api_football_calls:0};
+  try{
+    const [saved,audits]=await Promise.all([
+      dbGet<any>('football_v2_shadow_stage_snapshots',`select=fixture_id&fixture_id=eq.${fixtureId}&stage=eq.${stageKey}&limit=1`),
+      dbGet<Audit>('football_v2_shadow_stage_audit',`select=attempts,terminal,updated_at&fixture_id=eq.${fixtureId}&stage=eq.${stageKey}&limit=1`)
+    ]);
+    if(saved.length)return {success:true,action:'recover_stage',fixture_id:fixtureId,stage:stageKey,status:'already_captured',api_football_calls:0};
+    if(audits[0]?.terminal)return {success:false,action:'recover_stage',fixture_id:fixtureId,stage:stageKey,status:'terminal',api_football_calls:0};
+    if(audits[0]?.updated_at&&Date.now()-Date.parse(audits[0].updated_at)<5*MINUTE)return {success:false,action:'recover_stage',fixture_id:fixtureId,stage:stageKey,status:'retry_backoff',api_football_calls:0};
+    const liveRows=await football(`/fixtures?id=${fixtureId}`),live=liveRows.find(x=>Number(x?.fixture?.id)===fixtureId) as Fixture|undefined;
+    if(!live)return {success:false,action:'recover_stage',status:'fixture_not_found',api_football_calls:calls};
+    const delta=(Date.parse(live.fixture.date)-Date.now())/MINUTE;
+    if(String(live.fixture?.status?.short||'NS')!=='NS'||!(stageKey==='t2'?delta<=120&&delta>15:delta<=15&&delta>0))return {success:false,action:'recover_stage',status:'stage_window_closed',minutes_to_kickoff:Number(delta.toFixed(2)),api_football_calls:calls};
+    const captureMode=Math.abs(delta-stage.target)<=1.5?'scheduled':'late_pre_match_recovery';
+    const result=await captureDueStageUnlocked(live,stage,Date.now(),captureMode,[],{eligible:0,ready:0,pending:0},live);
+    return {success:result.status==='ready'||result.status==='already_captured',action:'recover_stage',...result,api_football_calls:calls};
+  }finally{await leaseRpc('release_football_v2_stage_capture_lease',{p_fixture_id:fixtureId,p_stage:stageKey,p_lease_token:token}).catch(()=>false);}
 }
 
 async function run(action:'dry_run'|'run'){
