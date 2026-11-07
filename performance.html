@@ -436,7 +436,7 @@
         </table></div>
         <div id="mobileRecords" class="mobile-records"></div>
       </div>
-      <div class="method-note" data-i18n="methodNote">所有公開戰績均以賽前 T-10 正式分析快照為依據，透過官方賽果進行驗證，完整呈現 AI 預測與實際結果。</div>
+      <div class="method-note" id="publicStageMethodNote" data-i18n="methodNote">所有公開戰績均以賽前 T-10 正式分析快照為依據，透過官方賽果進行驗證，完整呈現 AI 預測與實際結果。</div>
     </section>
     </div>
 
@@ -938,12 +938,13 @@ function renderRecords(){
 
   body.innerHTML=shown.map(x=>{
     const s=x.settlement||{},ov=overallResult(s),mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
+    const stageLabel=x.public_stage==="t2"?"T-2 深度分析":x.public_stage==="t15"?"T-15 最終分析":"T-10 正式分析";
     return`<tr>
       <td>${esc(dateFmt(x.kickoff_at))}</td>
       <td><b>${esc(localizedLeagueName(x.league,x.league_id,x.league_api_name))}</b></td>
       <td>${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))} vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</td>
       <td class="score">${esc(x.final_score||"-")}</td>
-      <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(ou)}｜BTTS ${esc(bt)}</div></td>
+      <td><div class="pred-main">${esc(mp)}</div><div class="pred-sub">${esc(stageLabel)}｜${esc(ou)}｜BTTS ${esc(bt)}</div></td>
       <td><div class="verify-dot">${resultMark(ov)}</div></td>
       ${["moneyline","over_under","btts"].map(k=>{const r=normalizeResult(marketResult(s,k));return`<td><div class="mark ${r}">${resultMark(r)}</div></td>`}).join("")}
       <td class="row-arrow">›</td>
@@ -952,6 +953,7 @@ function renderRecords(){
 
   mobile.innerHTML=shown.map(x=>{
     const s=x.settlement||{},mp=localizedPick(predictionPick(x.prediction,"moneyline")),ou=localizedPick(predictionPick(x.prediction,"over_under")),bt=localizedPick(predictionPick(x.prediction,"btts"));
+    const stageLabel=x.public_stage==="t2"?"T-2 深度分析":x.public_stage==="t15"?"T-15 最終分析":"T-10 正式分析";
     const logo=currentSport==="basketball"?NBA_LEAGUE_LOGO:currentSport==="baseball"?MLB_LEAGUE_LOGO:(String(x.league_logo||"").trim()||leagueLogo(x.league)),fallback=leagueShort(x.league),leagueName=localizedLeagueName(x.league,x.league_id,x.league_api_name);
     return`<article class="record-card">
       <div class="record-top">
@@ -965,7 +967,7 @@ function renderRecords(){
         <div class="record-teams">${esc(localizedTeamName(x.home,x.home_api_name,x.prediction,"home"))}<br>vs ${esc(localizedTeamName(x.away,x.away_api_name,x.prediction,"away"))}</div>
         <div class="record-score">${esc(x.final_score||"-")}</div>
       </div>
-      <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(mp)}｜${esc(ou)}｜BTTS ${esc(bt)}</div>
+      <div class="record-pred"><b>${esc(tr("aiPrediction"))}</b>：${esc(stageLabel)}｜${esc(mp)}｜${esc(ou)}｜BTTS ${esc(bt)}</div>
       <div class="record-results">
         ${[["moneyline",tr("moneyline")],["over_under",tr("overUnder")],["btts","BTTS"]].map(([k,label])=>{const r=normalizeResult(marketResult(s,k));return`<div class="record-result"><span>${esc(label)}</span><span class="mark ${r}">${resultMark(r)}</span></div>`}).join("")}
       </div>
@@ -1128,6 +1130,7 @@ async function fetchData(days=""){
   if(!res.ok)throw new Error(`API ${res.status}`);
   const j=await res.json();
   if(!j?.success)throw new Error(j?.error||"API failed");
+  if(base===AI_PERFORMANCE_API){const note=document.getElementById("publicStageMethodNote"),stage=String(j.public_stage||"t10"),label=stage==="t2"?"T-2 小時":stage==="t15"?"T-15 分鐘":"T-10 小時";if(note)note.textContent=`公開戰績採用 ${label} 階段。切換僅影響設定時間後開賽且有該階段快照的賽事，舊賽事不回寫；賽後依正式比分驗證。`;}
   if(base!==BASEBALL_PERFORMANCE_API)return j;
   const display=normalizeMlbPerformance(j,days);
   try{

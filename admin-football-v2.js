@@ -105,14 +105,48 @@ function ensureFootballV2StagePanel(){
  const page=document.getElementById("footballV2ComparePage");if(!page)return null;
  let panel=document.getElementById("footballV2StagePanel");if(panel)return panel;
  panel=document.createElement("div");panel.className="panel";panel.id="footballV2StagePanel";panel.style.marginTop="16px";
- panel.innerHTML='<div class="panel-head"><div><div class="panel-title">V2 三階段影子比對</div><div class="panel-desc">同一批已完賽賽事，直接比較 T-10、T-2、T-15 分鐘的獨贏、大小球、讓分、BTTS。正式分析與公開戰績仍採 T-10。</div></div><select id="footballV2StageDays" class="input"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="365">近 365 天</option><option value="0">全部</option></select><button class="ghost-btn" id="footballV2StageReload" type="button">更新比較</button></div><div id="footballV2StageStatus" class="page-desc" aria-live="polite">切換到本頁後自動載入</div><div id="footballV2StageMetrics" style="margin-top:12px"><div class="fvc-empty">尚未載入三階段研究結果</div></div><div id="footballV2StageCoverage" style="margin-top:14px"></div><div class="panel-head" style="margin-top:18px"><div><div class="panel-title">逐場結果</div><div class="panel-desc">查看每場在各階段選了哪一邊，以及賽後結果。</div></div></div><div id="footballV2StageRows"><div class="fvc-empty">尚未載入</div></div>';
+ panel.innerHTML='<div class="panel-head"><div><div class="panel-title">V2 三階段影子比對</div><div class="panel-desc">同一批已完賽賽事，直接比較 T-10、T-2、T-15 分鐘的獨贏、大小球、讓分、BTTS。正式分析與公開戰績依下方設定。</div></div><select id="footballV2StageDays" class="input"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="365">近 365 天</option><option value="0">全部</option></select><button class="ghost-btn" id="footballV2StageReload" type="button">更新比較</button></div><div class="panel" style="margin:12px 0;padding:14px"><div class="panel-title">會員與公開戰績設定</div><div class="page-desc" id="footballV2RolloutStatus" aria-live="polite">讀取設定中…</div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px"><button class="ghost-btn" id="footballV2MemberRollout" type="button">載入會員開放狀態</button><label for="footballV2PublicStage" class="page-desc">公開戰績採用</label><select id="footballV2PublicStage" class="input"><option value="t10">T-10 正式分析</option><option value="t2">T-2 深度分析</option><option value="t15">T-15 最終分析</option></select><button class="ghost-btn" id="footballV2PublicStageSave" type="button">儲存公開戰績設定</button></div><div class="page-desc" style="margin-top:8px">會員按鈕目前只開放測試帳號；開放全體後才會顯示給所有會員。公開戰績切換只影響設定後開賽的賽事。</div></div><div id="footballV2StageStatus" class="page-desc" aria-live="polite">切換到本頁後自動載入</div><div id="footballV2StageMetrics" style="margin-top:12px"><div class="fvc-empty">尚未載入三階段研究結果</div></div><div id="footballV2StageCoverage" style="margin-top:14px"></div><div class="panel-head" style="margin-top:18px"><div><div class="panel-title">逐場結果</div><div class="panel-desc">查看每場在各階段選了哪一邊，以及賽後結果。</div></div></div><div id="footballV2StageRows"><div class="fvc-empty">尚未載入</div></div>';
  (document.getElementById("footballV2StageMount")||page).appendChild(panel);
  document.getElementById("footballV2StageDays")?.addEventListener("change",()=>loadFootballV2StageCompare(true));
  document.getElementById("footballV2StageReload")?.addEventListener("click",()=>loadFootballV2StageCompare(true));
  document.getElementById("footballV2Reload")?.addEventListener("click",()=>loadFootballV2StageCompare(true));
+ document.getElementById("footballV2MemberRollout")?.addEventListener("click",toggleFootballV2MemberRollout);
+ document.getElementById("footballV2PublicStageSave")?.addEventListener("click",saveFootballV2PublicStage);
+ loadFootballV2RolloutSettings();
  return panel;
 }
 const FOOTBALL_V2_STAGE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-football-v2-stage-compare";
+let footballV2RolloutSettings=null,footballV2RolloutBusy=false;
+async function footballV2RolloutRequest(payload){
+ if(!adminSessionToken)throw Error("請先登入管理後台");
+ const result=await adminCenterRequest(payload);
+ if(!result?.success)throw Error(result?.error||"設定儲存失敗");
+ return result.settings||{};
+}
+async function loadFootballV2RolloutSettings(){
+ const status=document.getElementById("footballV2RolloutStatus");if(!status||footballV2RolloutBusy)return;
+ try{const s=await footballV2RolloutRequest({action:"football_v2_rollout_get"});footballV2RolloutSettings=s;
+  const stage=document.getElementById("footballV2PublicStage");if(stage)stage.value=s.public_stage||"t10";
+  const button=document.getElementById("footballV2MemberRollout");if(button)button.textContent=s.all_members_enabled?"目前已開放所有會員｜點此關閉":"一鍵開放所有會員";
+  status.textContent="測試帳號："+(s.pilot_account||"google_2d3cef6b6e2d")+"｜會員按鈕："+(s.all_members_enabled?"所有會員皆可使用":"僅測試帳號可使用")+"｜公開戰績："+({t10:"T-10 正式分析",t2:"T-2 深度分析",t15:"T-15 最終分析"}[s.public_stage]||"T-10 正式分析")+(s.public_stage_effective_at?"｜設定生效時間 "+v2time(s.public_stage_effective_at):"");
+ }catch(e){status.textContent="設定讀取失敗："+(e?.message||String(e));}
+}
+async function toggleFootballV2MemberRollout(){
+ if(footballV2RolloutBusy)return;const next=!footballV2RolloutSettings?.all_members_enabled;
+ if(!confirm(next?"確定要把 T-2 與 T-15 分析按鈕開放給所有會員？":"確定要關閉全體開放，恢復僅測試帳號可用？"))return;
+ footballV2RolloutBusy=true;const b=document.getElementById("footballV2MemberRollout");if(b)b.disabled=true;
+ try{footballV2RolloutSettings=await footballV2RolloutRequest({action:"football_v2_rollout_update",all_members_enabled:next});}
+ catch(e){const s=document.getElementById("footballV2RolloutStatus");if(s)s.textContent="會員開放設定失敗："+(e?.message||String(e));}
+ finally{footballV2RolloutBusy=false;if(b)b.disabled=false;await loadFootballV2RolloutSettings();}
+}
+async function saveFootballV2PublicStage(){
+ if(footballV2RolloutBusy)return;const stage=document.getElementById("footballV2PublicStage")?.value||"t10";
+ if(!confirm("公開戰績改用「"+({t10:"T-10 正式分析",t2:"T-2 深度分析",t15:"T-15 最終分析"}[stage]||stage)+"」？只影響設定後開賽的賽事。"))return;
+ footballV2RolloutBusy=true;const b=document.getElementById("footballV2PublicStageSave");if(b)b.disabled=true;
+ try{footballV2RolloutSettings=await footballV2RolloutRequest({action:"football_v2_rollout_update",public_stage:stage});}
+ catch(e){const s=document.getElementById("footballV2RolloutStatus");if(s)s.textContent="公開戰績設定失敗："+(e?.message||String(e));}
+ finally{footballV2RolloutBusy=false;if(b)b.disabled=false;await loadFootballV2RolloutSettings();}
+}
 let footballV2StageData=null,footballV2StageLoading=false;
 const v2StageLabels={t10:"T-10 小時",t2:"T-2 小時",t15:"T-15 分鐘"};
 function v2StageRate(x,unit="場"){return !x||!x.total?"尚無可計算資料":(Number(x.accuracy)*100).toFixed(1)+"%（命中 "+(x.correct||0)+"／有效 "+(x.total)+" "+unit+"）";}
@@ -135,8 +169,8 @@ function renderFootballV2StageCompare(){
  const stages=["t10","t2","t15"];
  const metricRows=[
   ["moneyline","獨贏","預測主勝／和局／客勝","場"],
-  ["totals_market_line","大小球","依該場實際盤口選出一條線，每場計一筆","場"],
-  ["handicap_market_line","讓分","依該場實際盤口選出一條線，每場計一筆","場"],
+  ["totals_market_line","大小球","用該場實際盤線選一個結果，每場一筆","場"],
+  ["handicap_market_line","讓分","用該場實際盤線選一個結果，每場一筆","場"],
   ["btts","BTTS","預測雙方是否都有進球","場"]
  ];
  const rows=metricRows.map(([key,label,desc,unit])=>{
@@ -145,7 +179,7 @@ function renderFootballV2StageCompare(){
    stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x,unit))+'</td>';}).join("")+'</tr>';
  });
  const m=document.getElementById("footballV2StageMetrics");
- if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分也按場數算：模型先參考該場實際提供的所有盤口，選出預期報酬較高的一條線及方向，再計算結果；不同賽事選出的線可以不同。缺少盤口不列入統計；走盤不算命中或未中，半贏算命中、半輸算未中。'+v2esc(p.note||"")+'</p>';
+ if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分會依每場當時實際開出的盤線結算，模型每場各選一個結果；不固定用大 2.5、大 3 或大 4，不同賽事的盤線可以不同。缺少盤口不列入統計；走盤不算命中或未中，半贏算命中、半輸算未中。'+v2esc(p.note||"")+'</p>';
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<details><summary style="cursor:pointer">展開快照與資料狀況</summary><div style="overflow-x:auto;margin-top:10px"><table class="data-table" style="min-width:660px;width:100%"><thead><tr><th>階段</th><th>快照筆數</th><th>排程檢查</th><th>平均擷取時間</th><th>配對且已驗證</th></tr></thead><tbody>'+
   stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",statusLabel={ready:"資料就緒",already_ready:"已完成",failed:"失敗",pending:"等待中",skipped:"略過"},states=Object.entries(x.audit_statuses||{}).map(([k,v])=>(statusLabel[k]||k)+" "+v+" 筆").join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+

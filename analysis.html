@@ -3744,6 +3744,10 @@ app.innerHTML = `
     const fixture = data.fixture || {};
     const analysis = data.analysis || {};
     const rec = analysis.recommendations || {};
+    const footballV2Stage = String(data?.v2_stage || "");
+    const footballV2Evidence = analysis?.v2_stage_evidence || null;
+    const footballV2InjuryText = (Array.isArray(footballV2Evidence?.availability?.items) ? footballV2Evidence.availability.items : []).slice(0, 8).map(item => `${escapePartnerHtml(item?.player_name || "球員")}${item?.reason || item?.type ? `（${escapePartnerHtml(item.reason || item.type)}）` : ""}`).join("、") || "目前沒有可用傷停名單";
+    const footballV2LineupText = (Array.isArray(footballV2Evidence?.lineups?.teams) ? footballV2Evidence.lineups.teams : []).map(item => `${escapePartnerHtml(item?.team?.name || item?.team_name || "球隊")}：先發 ${Array.isArray(item?.startXI) ? item.startXI.length : 0} 人`).join("；") || "目前沒有可用先發名單";
 
 const isBasketballAnalysis =
   isBasketballAnalysisData(
@@ -4161,6 +4165,8 @@ const timeText = gameDate
         )
   }</h1>
 
+  ${footballV2Stage ? `<div class="v2-detail-badge" style="display:inline-flex;margin-top:10px">足球 V2｜${escapePartnerHtml(data.v2_stage_label || (footballV2Stage === "t2" ? "深度分析" : "最終分析"))}｜${footballV2Stage === "t2" ? "T-2 小時" : "T-15 分鐘"}</div>` : ""}
+
   <div class="sub">
     ${
       isBasketballAnalysis
@@ -4222,6 +4228,8 @@ ${getAnalysisLeagueName(
 <br>
         ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
       </div>
+
+      ${footballV2Evidence ? `<div class="v2-insight-card" style="margin-top:16px"><div class="v2-insight-icon">V2</div><div class="v2-insight-content"><div class="v2-insight-label">賽前最新資訊</div><div class="v2-insight-title">傷停與先發資料</div><p>傷停（${escapePartnerHtml(footballV2Evidence.availability?.status || "尚無資料")}）：${footballV2InjuryText}<br>先發（${escapePartnerHtml(footballV2Evidence.lineups?.status || "尚無資料")}）：${footballV2LineupText}<br>${escapePartnerHtml(footballV2Evidence.note || "")}</p></div></div>` : ""}
 
       <div class="grid">
 
