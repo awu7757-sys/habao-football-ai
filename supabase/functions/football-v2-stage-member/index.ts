@@ -181,7 +181,6 @@ Deno.serve(async (req) => {
     if (stage !== "t2" && stage !== "t15") return reply(400, { success: false, error: "stage_must_be_t2_or_t15" });
     const fixtureId = fixtureIds[0];
     const current = result[String(fixtureId)] as any;
-    if (!current?.claimed?.t10 || (stage === "t15" && !current?.claimed?.t2)) return reply(409, { success: false, error: "previous_stage_required", required_stage: stage === "t2" ? "t10" : "t2" });
     const existing = claims.find(x => Number(x.fixture_id) === fixtureId && x.stage === stage && x.claim_state === "claimed");
     if (existing) {
       const saved = await rest<any>("football_v2_stage_member_claims", `account=eq.${encodeURIComponent(account)}&fixture_id=eq.${fixtureId}&stage=eq.${stage}&select=result_data&limit=1`);
@@ -190,7 +189,12 @@ Deno.serve(async (req) => {
     const snapshots = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version&limit=1`);
     if (!snapshots[0]) return reply(409, { success: false, error: "stage_snapshot_not_ready" });
     const model = snapshots[0];
-    if (Date.parse(model.kickoff_at) <= Date.now()) return reply(410, { success: false, error: "match_already_started" });
+    const minutesToKickoff = (Date.parse(model.kickoff_at) - Date.now()) / 60000;
+    if (minutesToKickoff <= 0) return reply(410, { success: false, error: "match_already_started" });
+    const stageIsOpen = stage === "t2"
+      ? minutesToKickoff > 15 && minutesToKickoff <= 120
+      : minutesToKickoff <= 15;
+    if (!stageIsOpen) return reply(409, { success: false, error: "stage_not_open" });
     const fixtureData = body?.fixture && typeof body.fixture === "object" ? body.fixture : {};
     let claimId: number | null = null;
     const reserve = await post("football_v2_stage_member_claims", {
