@@ -221,6 +221,88 @@ function officialReady(status:string|undefined){
   return status==='created'||status==='already_ready'||status==='created_response_non2xx';
 }
 
+async function captureDueStage(
+  f:Fixture,
+  stage:Stage,
+  now:number,
+  officialResults:Array<{fixture_id:number;status:string;reason?:string}>,
+  officialSnapshotBatch:Record<string,unknown>
+):Promise<Record<string,unknown>>{
+  const id=Number(f.fixture.id);
+  const [saved,audits]=await Promise.all([
+    dbGet<any>('football_v2_shadow_stage_snapshots',`select=fixture_id&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`),
+    dbGet<Audit>('football_v2_shadow_stage_audit',`select=fixture_id,stage,attempts,terminal&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`)
+  ]);
+  if(saved.length){
+    if(stage.key==='t10'){
+      try{
+        let official=officialResults.find(x=>x.fixture_id===id);
+        if(!official){const result=await ensureOfficialV2(f);official={fixture_id:id,status:result.status};}
+        return {fixture_id:id,stage:stage.key,status:'already_captured',official_snapshot:official.status};
+      }catch(error){
+        return {fixture_id:id,stage:stage.key,status:'official_snapshot_pending',reason:safe(error)};
+      }
+    }
+    return {fixture_id:id,stage:stage.key,status:'already_captured'};
+  }
+  const prior=audits[0],attempt=Number(prior?.attempts||0)+1;
+  if(prior?.terminal||attempt>3)return {fixture_id:id,stage:stage.key,status:'terminal'};
+  await audit(f,stage,'processing','processing',attempt,false,{started_at:new Date().toISOString()});
+  try{
+    const liveRows=await football(`/fixtures?id=${id}`),live=liveRows.find(x=>Number(x?.fixture?.id)===id);
+    if(!live)throw new Error('fixture_not_found');
+    const officialKickoff=Date.parse(String(live.fixture?.date||'')),scheduled=Date.parse(f.fixture.date),diff=(officialKickoff-now)/MINUTE;
+    if(!Number.isFinite(officialKickoff)||Math.abs(officialKickoff-scheduled)>90||Math.abs(diff-stage.target)>1.5||String(live.fixture?.status?.short||'NS')!=='NS'){
+      await audit(f,stage,'expired','fixture_changed_or_capture_window_missed',attempt,true,{scheduled_kickoff:f.fixture.date,official_kickoff:live.fixture?.date,minutes_to_kickoff:diff,api_football_calls:calls});
+      return {fixture_id:id,stage:stage.key,status:'expired'};
+    }
+    const features=await dbGet<any>('football_v2_shadow_feature_snapshots',`select=*&fixture_id=eq.${id}&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&order=captured_at.desc&limit=1`);
+    const feature=features[0];
+    if(!feature){await audit(f,stage,'missing_features','no_prior_feature_snapshot',attempt,true,{api_football_calls:calls});return {fixture_id:id,stage:stage.key,status:'missing_features'};}
+    const featureTime=Date.parse(String(feature.captured_at||'')),featureKickoff=Date.parse(String(feature.kickoff_at||''));
+    if(!Number.isFinite(featureTime)||!Number.isFinite(featureKickoff)||Math.abs(featureKickoff-officialKickoff)>90*MINUTE||featureTime<officialKickoff-52*HOUR){
+      await audit(f,stage,'missing_features','stale_or_mismatched_feature_snapshot',attempt,true,{feature_kickoff:feature.kickoff_at,official_kickoff:live.fixture.date,feature_captured_at:feature.captured_at,api_football_calls:calls});
+      return {fixture_id:id,stage:stage.key,status:'missing_features',reason:'stale_or_mismatched_feature_snapshot'};
+    }
+    const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season));
+    const marketContext=await captureStageMarkets(f);
+    let availabilityEvidence:any={status:'not_collected_at_this_stage',items:[],model_adjustment_applied:false};
+    if(stage.key==='t2'||stage.key==='t15'){
+      try{availabilityEvidence=await availability(id);}
+      catch(error){availabilityEvidence={source:'api_football_injuries',status:'collection_failed',items:[],error:safe(error),captured_at:new Date().toISOString(),model_adjustment_applied:false};}
+    }
+    let lineupRows:any[]=[],lineupCollectionFailed=false;
+    if(stage.key==='t2'||stage.key==='t15'){
+      try{lineupRows=await football(`/fixtures/lineups?fixture=${id}`);}
+      catch(error){lineupRows=[];lineupCollectionFailed=true;}
+    }
+    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':lineupCollectionFailed?'collection_failed':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:false};
+    const quality=feature.data_quality==='research_ready'?'research_ready_uncalibrated':'low_sample_uncalibrated';
+    const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date().toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
+      home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,
+      market_context:marketContext,availability_evidence:availabilityEvidence,lineup_evidence:lineups,data_quality:quality,
+      source_meta:{provider:'api_football',feature_snapshot_stage:feature.stage,feature_captured_at:feature.captured_at,feature_quality:feature.data_quality,api_football_calls:calls,odds_api_requests:marketContext.odds_api_requests||0,market_capture_status:marketContext.status,
+        model_inputs:'opponent-adjusted recent form shrunk toward league average; season standings contribution discounted by overlap with recent-history matches',
+        shrinkage_prior:`API-Football league average from season ${feature.league_baseline?.source_season}`,shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
+        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:false},model_version:VERSION,research_only:true};
+    await dbWrite('football_v2_shadow_stage_snapshots',payload,'fixture_id,stage','resolution=ignore-duplicates,return=minimal');
+    await audit(f,stage,'ready','shadow_prediction_saved',attempt,true,{feature_stage:feature.stage,feature_captured_at:feature.captured_at,api_football_calls:calls});
+    if(stage.key==='t10'){
+      try{
+        let official=officialResults.find(x=>x.fixture_id===id);
+        if(!official){const result=await ensureOfficialV2(f);official={fixture_id:id,status:result.status};}
+        return {fixture_id:id,stage:stage.key,status:'ready',official_snapshot:official.status,home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality};
+      }catch(error){
+        return {fixture_id:id,stage:stage.key,status:'official_snapshot_pending',reason:safe(error)};
+      }
+    }
+    return {fixture_id:id,stage:stage.key,status:'ready',home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality};
+  }catch(e){
+    const reason=safe(e);await audit(f,stage,'failed',reason,attempt,attempt>=3,{api_football_calls:calls});
+    return {fixture_id:id,stage:stage.key,status:'failed',reason,attempt,terminal:attempt>=3};
+  }
+}
+
 async function run(action:'dry_run'|'run'){
   calls=0;if(action==='run'&&(!Number.isSafeInteger(cfg.dailyCallCap)||cfg.dailyCallCap<1))return {success:false,status:'daily_api_cap_not_configured',api_football_calls:0};
   const now=Date.now(),cal=await loadFixtures(now,action==='run');
@@ -293,76 +375,27 @@ async function run(action:'dry_run'|'run'){
   };
   console.log('FOOTBALL_V2_OFFICIAL_T10_BATCH',JSON.stringify(officialSnapshotBatch));
   if(!due.length)return {success:true,version:VERSION,action,status:'outside_capture_windows',official_snapshot_batch:officialSnapshotBatch,calendar_cache_misses:cal.misses,api_football_calls:calls};
-  const {f,stage}=due.sort((a,b)=>a.delta-b.delta)[0],id=Number(f.fixture.id);
-  const [saved,audits]=await Promise.all([
-    dbGet<any>('football_v2_shadow_stage_snapshots',`select=fixture_id&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`),
-    dbGet<Audit>('football_v2_shadow_stage_audit',`select=fixture_id,stage,attempts,terminal&fixture_id=eq.${id}&stage=eq.${stage.key}&limit=1`)
-  ]);
-  if(saved.length){
-    if(stage.key==='t10'){
+  const orderedDue=due.slice().sort((a,b)=>a.delta-b.delta);
+  const stageResults:Array<Record<string,unknown>>=[];
+  let stageCursor=0;
+  const stageWorkers=Math.min(3,orderedDue.length);
+  await Promise.all(Array.from({length:stageWorkers},async()=>{
+    while(true){
+      const index=stageCursor++;
+      if(index>=orderedDue.length)return;
+      const item=orderedDue[index];
       try{
-        let official=officialResults.find(x=>x.fixture_id===id);
-        if(!official){const result=await ensureOfficialV2(f);official={fixture_id:id,status:result.status};}
-        return {success:true,version:VERSION,action,status:'already_captured',official_snapshot:official.status,official_snapshot_batch:officialSnapshotBatch,fixture_id:id,stage:stage.key,api_football_calls:calls};
+        stageResults.push(await captureDueStage(item.f,item.stage,now,officialResults,officialSnapshotBatch));
       }catch(error){
-        return {success:false,version:VERSION,action,status:'official_snapshot_pending',reason:safe(error),official_snapshot_batch:officialSnapshotBatch,fixture_id:id,stage:stage.key,api_football_calls:calls};
+        const result={fixture_id:Number(item.f.fixture.id),stage:item.stage.key,status:'stage_worker_failed',reason:safe(error)};
+        stageResults.push(result);
+        console.error('FOOTBALL_V2_STAGE_WORKER_ERROR',JSON.stringify(result));
       }
     }
-    return {success:true,version:VERSION,action,status:'already_captured',fixture_id:id,stage:stage.key,api_football_calls:0};
-  }
-  const prior=audits[0],attempt=Number(prior?.attempts||0)+1;if(prior?.terminal||attempt>3)return {success:true,version:VERSION,action,status:'terminal',fixture_id:id,stage:stage.key,api_football_calls:0};
-  await audit(f,stage,'processing','processing',attempt,false,{started_at:new Date().toISOString()});
-  try{
-    // Re-read the official fixture immediately before capture; do not turn a missed stage into a backfill.
-    const liveRows=await football(`/fixtures?id=${id}`),live=liveRows.find(x=>Number(x?.fixture?.id)===id);
-    if(!live)throw new Error('fixture_not_found');
-    const officialKickoff=Date.parse(String(live.fixture?.date||'')),scheduled=Date.parse(f.fixture.date),diff=(officialKickoff-now)/MINUTE;
-    if(!Number.isFinite(officialKickoff)||Math.abs(officialKickoff-scheduled)>90||Math.abs(diff-stage.target)>1.5||String(live.fixture?.status?.short||'NS')!=='NS'){
-      await audit(f,stage,'expired','fixture_changed_or_capture_window_missed',attempt,true,{scheduled_kickoff:f.fixture.date,official_kickoff:live.fixture?.date,minutes_to_kickoff:diff,api_football_calls:calls});
-      return {success:true,version:VERSION,action,status:'expired',fixture_id:id,stage:stage.key,api_football_calls:calls};
-    }
-    const features=await dbGet<any>('football_v2_shadow_feature_snapshots',`select=*&fixture_id=eq.${id}&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&order=captured_at.desc&limit=1`);
-    const feature=features[0];
-    if(!feature){await audit(f,stage,'missing_features','no_prior_feature_snapshot',attempt,true,{api_football_calls:calls});return {success:true,version:VERSION,action,status:'missing_features',fixture_id:id,stage:stage.key,api_football_calls:calls};}
-    const featureTime=Date.parse(String(feature.captured_at||'')),featureKickoff=Date.parse(String(feature.kickoff_at||''));
-    if(!Number.isFinite(featureTime)||!Number.isFinite(featureKickoff)||Math.abs(featureKickoff-officialKickoff)>90*MINUTE||featureTime<officialKickoff-52*HOUR){
-      await audit(f,stage,'missing_features','stale_or_mismatched_feature_snapshot',attempt,true,{feature_kickoff:feature.kickoff_at,official_kickoff:live.fixture.date,feature_captured_at:feature.captured_at,api_football_calls:calls});
-      return {success:true,version:VERSION,action,status:'missing_features',reason:'stale_or_mismatched_feature_snapshot',fixture_id:id,stage:stage.key,api_football_calls:calls};
-    }
-    const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season));
-    const marketContext=await captureStageMarkets(f);
-    let availabilityEvidence:any={status:'not_collected_at_this_stage',items:[],model_adjustment_applied:false};
-    if(stage.key==='t2'||stage.key==='t15'){
-      try{availabilityEvidence=await availability(id);}
-      catch(error){availabilityEvidence={source:'api_football_injuries',status:'collection_failed',items:[],error:safe(error),captured_at:new Date().toISOString(),model_adjustment_applied:false};}
-    }
-    let lineupRows:any[]=[],lineupCollectionFailed=false;
-    if(stage.key==='t2'||stage.key==='t15'){
-      try{lineupRows=await football(`/fixtures/lineups?fixture=${id}`);}
-      catch(error){lineupRows=[];lineupCollectionFailed=true;}
-    }
-    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':lineupCollectionFailed?'collection_failed':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:false};
-    const quality=feature.data_quality==='research_ready'?'research_ready_uncalibrated':'low_sample_uncalibrated';
-    const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date().toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
-      home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,
-      market_context:marketContext,availability_evidence:availabilityEvidence,lineup_evidence:lineups,data_quality:quality,
-      source_meta:{provider:'api_football',feature_snapshot_stage:feature.stage,feature_captured_at:feature.captured_at,feature_quality:feature.data_quality,api_football_calls:calls,odds_api_requests:marketContext.odds_api_requests||0,market_capture_status:marketContext.status,
-model_inputs:'opponent-adjusted recent form shrunk toward league average; season standings contribution discounted by overlap with recent-history matches',
-        shrinkage_prior:`API-Football league average from season ${feature.league_baseline?.source_season}`,shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
-        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:false},model_version:VERSION,research_only:true};
-    await dbWrite('football_v2_shadow_stage_snapshots',payload,'fixture_id,stage','resolution=ignore-duplicates,return=minimal');
-    await audit(f,stage,'ready','shadow_prediction_saved',attempt,true,{feature_stage:feature.stage,feature_captured_at:feature.captured_at,api_football_calls:calls});
-    if(stage.key==='t10'){
-      try{
-        let official=officialResults.find(x=>x.fixture_id===id);
-        if(!official){const result=await ensureOfficialV2(f);official={fixture_id:id,status:result.status};}
-        return {success:true,version:VERSION,action,status:'ready',official_snapshot:official.status,official_snapshot_batch:officialSnapshotBatch,fixture_id:id,stage:stage.key,home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality,api_football_calls:calls};
-      }catch(error){
-        return {success:false,version:VERSION,action,status:'official_snapshot_pending',reason:safe(error),official_snapshot_batch:officialSnapshotBatch,fixture_id:id,stage:stage.key,home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality,api_football_calls:calls};
-      }
-    }
-    return {success:true,version:VERSION,action,status:'ready',fixture_id:id,stage:stage.key,home_xg:prediction.home_xg,away_xg:prediction.away_xg,data_quality:quality,api_football_calls:calls};
-  }catch(e){const reason=safe(e);await audit(f,stage,'failed',reason,attempt,attempt>=3,{api_football_calls:calls});return {success:false,version:VERSION,action,status:'failed',fixture_id:id,stage:stage.key,reason,attempt,terminal:attempt>=3,api_football_calls:calls};}
+  }));
+  return {success:true,version:VERSION,action,status:stageResults.some(x=>x.status==='ready'||x.status==='already_captured')?'stages_processed':'stage_attempts_finished',
+    due_stages:orderedDue.length,stage_results:stageResults.slice(0,80),official_snapshot_batch:officialSnapshotBatch,
+    calendar_cache_misses:cal.misses,api_football_calls:calls};
 }
 Deno.serve(async request=>{
   if(request.method!=='POST')return response(405,{success:false,error:'method_not_allowed'});
