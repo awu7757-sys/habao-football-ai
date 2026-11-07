@@ -139,10 +139,10 @@ function renderFootballV2StageCompare(){
   ["handicap_market_line","讓分","按每場實際讓分盤線逐條計算","盤線"],
   ["btts","BTTS","預測雙方是否都有進球","場"]
  ];
- const rows=metricRows.map(([key,label,desc])=>{
+ const rows=metricRows.map(([key,label,desc,unit])=>{
   const info=p.metrics?.[key]||{};
   return '<tr><th>'+label+'<br><small>'+desc+(info.paired_fixture_count!=null?'｜三階段都有盤口 '+Number(info.paired_fixture_count)+' 場':'')+'</small></th>'+
-   stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x,key==="totals_market_line"||key==="handicap_market_line"?"盤線":(key==="moneyline"?"場":"場")))+'</td>';}).join("")+'</tr>';
+   stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x,unit))+'</td>';}).join("")+'</tr>';
  });
  const m=document.getElementById("footballV2StageMetrics");
  if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分則是「命中盤線／有效盤線」。大小球與讓分依每場當時實際盤口逐條結算，不同賽事的盤線可以不同。缺少盤口或走盤不算命中，也不算失誤。'+v2esc(p.note||"")+'</p>';
