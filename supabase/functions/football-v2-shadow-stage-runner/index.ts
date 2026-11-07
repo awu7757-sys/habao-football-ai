@@ -332,13 +332,16 @@ async function run(action:'dry_run'|'run'){
     const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season));
     const marketContext=await captureStageMarkets(f);
     let availabilityEvidence:any={status:'not_collected_at_this_stage',items:[],model_adjustment_applied:false};
-    if(stage.key==='t15'){
+    if(stage.key==='t2'||stage.key==='t15'){
       try{availabilityEvidence=await availability(id);}
       catch(error){availabilityEvidence={source:'api_football_injuries',status:'collection_failed',items:[],error:safe(error),captured_at:new Date().toISOString(),model_adjustment_applied:false};}
     }
-    else {const priorAvailability=await dbGet<any>('football_v2_shadow_stage_snapshots',`select=availability_evidence,captured_at&fixture_id=eq.${id}&stage=eq.t15&captured_at=lte.${encodeURIComponent(new Date(now).toISOString())}&limit=1`);if(priorAvailability[0])availabilityEvidence={...priorAvailability[0].availability_evidence,carried_from_t15_at:priorAvailability[0].captured_at};}
-    const lineupRows=Array.isArray(live.lineups)?live.lineups:[];
-    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:false};
+    let lineupRows:any[]=[],lineupCollectionFailed=false;
+    if(stage.key==='t2'||stage.key==='t15'){
+      try{lineupRows=await football(`/fixtures/lineups?fixture=${id}`);}
+      catch(error){lineupRows=[];lineupCollectionFailed=true;}
+    }
+    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':lineupCollectionFailed?'collection_failed':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:false};
     const quality=feature.data_quality==='research_ready'?'research_ready_uncalibrated':'low_sample_uncalibrated';
     const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date().toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
       home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,

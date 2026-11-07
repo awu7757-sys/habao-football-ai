@@ -2912,6 +2912,14 @@ border-radius: 22px;
   cursor: not-allowed;
 }
 
+.football-v2-stage-actions{grid-column:1/-1;display:none;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:2px}
+.football-v2-stage-actions.is-visible{display:flex}
+.football-v2-stage-btn{min-height:36px;padding:8px 13px;border:1px solid transparent;border-radius:10px;display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:900;cursor:pointer}
+.football-v2-stage-btn strong{font-size:14px;line-height:1}
+.football-v2-stage-btn:disabled{opacity:.65;cursor:wait}
+.football-v2-stage-btn.stage-t2{background:linear-gradient(135deg,#c5e9ff,#52b7ed);color:#062238;border-color:rgba(113,201,248,.55);box-shadow:0 7px 18px rgba(61,165,220,.16)}
+.football-v2-stage-btn.stage-t15{background:linear-gradient(135deg,#ffe39a,#e5a72f);color:#211500;border-color:rgba(245,196,81,.6);box-shadow:0 7px 18px rgba(217,157,39,.17)}
+
 
 /* ===== MOBILE ===== */
 
@@ -4215,6 +4223,73 @@ if (isOAuthMember) {
 
 const MATCH_ANALYSIS_URL =
 "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis";
+const FOOTBALL_V2_STAGE_MEMBER_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/football-v2-stage-member";
+const FOOTBALL_V2_STAGE_SEQUENCE = ["t10", "t2", "t15"];
+
+async function refreshFootballV2StageButtons(fixtureIds) {
+  let member = null;
+  try { member = JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch {}
+  const account = String(member?.account || "").trim();
+  if (!account || !fixtureIds?.length) return;
+  try {
+    const response = await fetch(FOOTBALL_V2_STAGE_MEMBER_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "status", account, fixture_ids: fixtureIds }),
+      cache: "no-store", signal: AbortSignal.timeout(15000),
+    });
+    const packet = await response.json().catch(() => ({}));
+    for (const fixtureId of fixtureIds) {
+      const host = document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
+      if (host) { host.innerHTML = ""; host.classList.remove("is-visible"); }
+    }
+    if (!response.ok || packet?.success !== true || packet.enabled !== true) return;
+    for (const fixtureId of fixtureIds) {
+      const host = document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
+      if (!host) continue;
+      const match = packet.stages?.[String(fixtureId)];
+      if (!match) continue;
+      const actions = [];
+      if (match.claimed?.t10 && match.ready?.t2) actions.push(["t2", "深度分析", "stage-t2"]);
+      if (match.claimed?.t2 && match.ready?.t15) actions.push(["t15", "最終分析", "stage-t15"]);
+      if (!actions.length) continue;
+      host.innerHTML = actions.map(([stage,label,style]) => `<button type="button" class="football-v2-stage-btn ${style}" data-stage="${stage}" onclick="openFootballV2Stage(${fixtureId}, '${stage}', this)"><span>${label}</span><strong>→</strong></button>`).join("");
+      host.classList.add("is-visible");
+    }
+  } catch (error) {
+    console.warn("FOOTBALL_V2_STAGE_STATUS_UNAVAILABLE", error?.message || error);
+  }
+}
+
+async function openFootballV2Stage(fixtureId, stage, button) {
+  const id = Number(fixtureId);
+  const member = (() => { try { return JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch { return null; } })();
+  if (!member?.account || !id || !["t2", "t15"].includes(stage)) { alert("請重新登入會員後再查看賽前分析"); return; }
+  const oldText = button?.innerHTML || "";
+  if (button) { button.disabled = true; button.innerHTML = `<span>${stage === "t2" ? "載入深度分析…" : "載入最終分析…"}</span>`; }
+  try {
+    const match = window.habaoFixtureMap?.[String(id)] || {};
+    const response = await fetch(FOOTBALL_V2_STAGE_MEMBER_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "claim", account: member.account, fixture_id: id, stage,
+        fixture: { league: match.league || {}, home: match.home || {}, away: match.away || {} } }),
+      cache: "no-store", signal: AbortSignal.timeout(25000),
+    });
+    const packet = await response.json().catch(() => ({}));
+    if (!response.ok || packet?.success !== true || !packet?.result) {
+      if (packet?.error === "analysis_credits_empty") throw new Error("分析次數已用完，請聯絡客服補充。 ");
+      if (packet?.error === "stage_snapshot_not_ready") throw new Error("這個階段的資料還在準備，請稍後再試。 ");
+      if (packet?.error === "previous_stage_required") throw new Error("請先完成前一階段分析，再開啟這個階段。 ");
+      throw new Error(packet?.error || `HTTP ${response.status}`);
+    }
+    sessionStorage.setItem("matchAnalysis", JSON.stringify(packet.result));
+    window.location.href = `analysis.html?v=2&v2stage=${encodeURIComponent(stage)}`;
+  } catch (error) {
+    alert(error?.message || "階段分析失敗，請稍後再試");
+    if (button) { button.disabled = false; button.innerHTML = oldText; }
+  }
+}
+
 const ANALYSIS_JOB_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/analysis-job";
 
@@ -4891,6 +4966,7 @@ async function finishAnalysisJob(
         );
       }
     );
+    void refreshFootballV2StageButtons(results.map(x=>Number(x?.fixture?.id||x?.fixture_id||0)).filter(Number.isSafeInteger));
   }
 
   const firstFailure =
@@ -7494,6 +7570,7 @@ container.innerHTML =
                   <span>${window.HabaoI18n?.t("startAnalysis", "開始分析") || "開始分析"}</span>
                   <strong>→</strong>
                 </button>
+                <div class="football-v2-stage-actions" data-v2-stage-actions="${safeFixtureId}" aria-label="足球 V2 賽前分析階段"></div>
               `
           }
 
@@ -7503,6 +7580,8 @@ container.innerHTML =
     `;
 
   }).join("");
+
+  refreshFootballV2StageButtons(fixtures.map(x=>Number(x.fixtureId)).filter(Number.isSafeInteger));
 
 
 // ======================================
