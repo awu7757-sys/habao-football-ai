@@ -6,7 +6,7 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 
 1. In Supabase SQL Editor, run `02_stage_recovery_leases.sql`. It creates the restricted lease table and atomic reserve/release functions that prevent cron and member recovery from duplicating a stage capture. `01_rollout_tables.sql` was already applied earlier and does not need to be rerun.
 2. Replace and deploy `football-v2-shadow-stage-runner/index.ts`. Keep its existing **Verify JWT OFF** setting, once-per-minute scheduled invocation, and `FOOTBALL_V2_STAGE_CRON_KEY`. The function still uses the existing `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `API_FOOTBALL_KEY`, odds key, and daily API-call cap.
-3. Replace and deploy `football-v2-stage-member/index.ts`. Keep **Verify JWT OFF**, as in the existing setup. When a member selects T-2 or T-15 and its snapshot is missing, it asks the runner to recover it. It charges no analysis credit unless a snapshot is available and the claim succeeds.
+3. Replace and deploy `football-v2-stage-member/index.ts`. Keep **Verify JWT OFF**, as in the existing setup. When a member selects T-2 or T-15 and its snapshot is missing, it asks the runner to recover it. It acquires the same database lock before calling the football data API, so concurrent clicks do not duplicate recovery calls. It charges no analysis credit unless a snapshot is available and the claim succeeds.
 4. Replace and deploy `ai-performance/index.ts` and `admin-football-v2-stage-compare/index.ts`. Public results and official paired-stage metrics ignore late recovery snapshots. The admin coverage row reports them separately as `late_recovery_snapshots`.
 
 ## Recovery behavior
