@@ -115,7 +115,7 @@ function ensureFootballV2StagePanel(){
 const FOOTBALL_V2_STAGE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-football-v2-stage-compare";
 let footballV2StageData=null,footballV2StageLoading=false;
 const v2StageLabels={t10:"T-10 小時",t2:"T-2 小時",t15:"T-15 分鐘"};
-function v2StageRate(x){return !x||!x.total?"尚無可計算賽事":(Number(x.accuracy)*100).toFixed(1)+"%（命中 "+(x.correct||0)+"／有效 "+(x.total)+" 場）";}
+function v2StageRate(x,unit="場"){return !x||!x.total?"尚無可計算資料":(Number(x.accuracy)*100).toFixed(1)+"%（命中 "+(x.correct||0)+"／有效 "+(x.total)+" "+unit+"）";}
 async function loadFootballV2StageCompare(force=false){
  ensureFootballV2StagePanel();if(footballV2StageLoading)return;
  const status=document.getElementById("footballV2StageStatus"),days=Number(document.getElementById("footballV2StageDays")?.value??90);
@@ -134,18 +134,18 @@ function renderFootballV2StageCompare(){
  const p=footballV2StageData;if(!p)return;
  const stages=["t10","t2","t15"];
  const metricRows=[
-  ["moneyline","獨贏","預測主勝／和局／客勝"],
-  ["totals_market_line","大小球","按每場當時實際大小盤"],
-  ["handicap_market_line","讓分","按每場當時實際讓分盤"],
-  ["btts","BTTS","預測雙方是否都有進球"]
+  ["moneyline","獨贏","預測主勝／和局／客勝","場"],
+  ["totals_market_line","大小球","按每場實際大小盤線逐條計算","盤線"],
+  ["handicap_market_line","讓分","按每場實際讓分盤線逐條計算","盤線"],
+  ["btts","BTTS","預測雙方是否都有進球","場"]
  ];
  const rows=metricRows.map(([key,label,desc])=>{
   const info=p.metrics?.[key]||{};
   return '<tr><th>'+label+'<br><small>'+desc+(info.paired_fixture_count!=null?'｜三階段都有盤口 '+Number(info.paired_fixture_count)+' 場':'')+'</small></th>'+
-   stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x))+'</td>';}).join("")+'</tr>';
+   stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x,key==="totals_market_line"||key==="handicap_market_line"?"盤線":(key==="moneyline"?"場":"場")))+'</td>';}).join("")+'</tr>';
  });
  const m=document.getElementById("footballV2StageMetrics");
- if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率，括號內是「命中場數／有效場數」。大小球與讓分依每場當時實際盤口結算，所以不同賽事的盤線可以不同。缺少盤口或走盤不算命中，也不算失誤。'+v2esc(p.note||"")+'</p>';
+ if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分則是「命中盤線／有效盤線」。大小球與讓分依每場當時實際盤口逐條結算，不同賽事的盤線可以不同。缺少盤口或走盤不算命中，也不算失誤。'+v2esc(p.note||"")+'</p>';
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<details><summary style="cursor:pointer">展開快照與資料狀況</summary><div style="overflow-x:auto;margin-top:10px"><table class="data-table" style="min-width:660px;width:100%"><thead><tr><th>階段</th><th>快照筆數</th><th>排程檢查</th><th>平均擷取時間</th><th>配對且已驗證</th></tr></thead><tbody>'+
   stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",statusLabel={ready:"資料就緒",already_ready:"已完成",failed:"失敗",pending:"等待中",skipped:"略過"},states=Object.entries(x.audit_statuses||{}).map(([k,v])=>(statusLabel[k]||k)+" "+v+" 筆").join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+
