@@ -98,7 +98,7 @@ const originalSwitchPage=window.switchPage;if(typeof originalSwitchPage==="funct
 // Passive refresh while this admin-only page is open; no official AI jobs are triggered.
 window.setInterval(()=>{
 const page=document.getElementById("footballV2ComparePage");
-if(page?.classList.contains("active")&&adminSessionToken){if(!footballV2Loading)loadFootballV2Compare(true);if(!footballV2StageLoading)loadFootballV2StageCompare(true);}
+if(page?.classList.contains("active")&&adminSessionToken&&!footballV2StageLoading)loadFootballV2StageCompare(true);
 },300000);
 });
 function ensureFootballV2StagePanel(){
@@ -106,7 +106,7 @@ function ensureFootballV2StagePanel(){
  let panel=document.getElementById("footballV2StagePanel");if(panel)return panel;
  panel=document.createElement("div");panel.className="panel";panel.id="footballV2StagePanel";panel.style.marginTop="16px";
  panel.innerHTML='<div class="panel-head"><div><div class="panel-title">V2 三階段影子比對</div><div class="panel-desc">同一批已完賽賽事，直接比較 T-10、T-2、T-15 分鐘的獨贏、大小球、讓分、BTTS。正式分析與公開戰績仍採 T-10。</div></div><select id="footballV2StageDays" class="input"><option value="30">近 30 天</option><option value="90" selected>近 90 天</option><option value="365">近 365 天</option><option value="0">全部</option></select><button class="ghost-btn" id="footballV2StageReload" type="button">更新比較</button></div><div id="footballV2StageStatus" class="page-desc" aria-live="polite">切換到本頁後自動載入</div><div id="footballV2StageMetrics" style="margin-top:12px"><div class="fvc-empty">尚未載入三階段研究結果</div></div><div id="footballV2StageCoverage" style="margin-top:14px"></div><div class="panel-head" style="margin-top:18px"><div><div class="panel-title">逐場結果</div><div class="panel-desc">查看每場在各階段選了哪一邊，以及賽後結果。</div></div></div><div id="footballV2StageRows"><div class="fvc-empty">尚未載入</div></div>';
- page.prepend(panel);
+ (document.getElementById("footballV2StageMount")||page).appendChild(panel);
  document.getElementById("footballV2StageDays")?.addEventListener("change",()=>loadFootballV2StageCompare(true));
  document.getElementById("footballV2StageReload")?.addEventListener("click",()=>loadFootballV2StageCompare(true));
  document.getElementById("footballV2Reload")?.addEventListener("click",()=>loadFootballV2StageCompare(true));
