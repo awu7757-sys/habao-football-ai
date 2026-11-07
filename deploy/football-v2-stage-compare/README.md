@@ -5,7 +5,7 @@
 - Keeps the official/member-facing V2 snapshot and public performance record at T-10 hours.
 - Captures separate research snapshots at T-10 hours, T-2 hours, and T-15 minutes.
 - Captures all available totals and spread/Asian handicap lines from The Odds API, including both prices and bookmaker counts. Lines are collected from the market; the model does not assume fixed totals such as 2.5, 3.0, or 4.0.
-- Scores the V2 Poisson choices against each stage's captured lines and verified final scores.
+- Uses all captured lines to select one actual totals line and one actual handicap line per match and stage (the side/line with the stronger expected return), then settles that single pick against the verified final score.
 - The admin-only comparison shows four markets side by side: match winner, totals, handicap, and BTTS. Shadow results never enter public performance data.
 - No database migration is needed; captured market details use the existing JSON fields.
 - Historical snapshots may not contain all three stages or the full market-line data. Complete comparisons build up from new captures.
@@ -26,7 +26,7 @@ The stage runner may make up to three Odds API requests per match, one per snaps
 
 - T-10, T-2, and T-15 mean ten hours, two hours, and fifteen minutes before kickoff.
 - The summary table compares the four requested markets side by side.
-- Match-winner and BTTS rates count matches. Totals and handicap rates count individual quoted lines; each match may contribute multiple lines, and the page labels the denominator accordingly.
+- All four market rates count matches. The model considers every captured totals/handicap line, then outputs and scores one selected line and side per match for those markets. The selected line can vary from match to match and from stage to stage.
 - Each line is settled using that stage's actual saved quote and the final score. Pushes are excluded from hit-rate denominators.
 - Small samples are marked for caution. The panel also shows how many fixtures had quotes at all three stages.
 - These are research comparisons only; public performance continues to use the official T-10 snapshot.
