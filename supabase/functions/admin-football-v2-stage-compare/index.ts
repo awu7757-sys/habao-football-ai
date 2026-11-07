@@ -117,6 +117,8 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
         return { line: line.line, pick, odds, bookmaker_count: line.bookmaker_count,
           expected_return_units: Number(Math.max(overEV, underEV).toFixed(6)), ...settlement(hs + as, line.line, pick, odds) };
       });
+      const selectedTotal = totalPredictions.reduce((best: any, x: any) =>
+        !best || x.expected_return_units > best.expected_return_units ? x : best, null);
       const handicapPredictions = quote.handicaps.map((h: any) => {
         const homeEV = expectedReturn(grid, h.home_line, "home", h.home_odds);
         const awayEV = expectedReturn(grid, h.away_line, "away", h.away_odds);
@@ -126,6 +128,8 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
         return { home_line: h.home_line, away_line: h.away_line, pick, odds, bookmaker_count: h.bookmaker_count,
           expected_return_units: Number(Math.max(homeEV, awayEV).toFixed(6)), ...settlement(value, line, pick, odds) };
       });
+      const selectedHandicap = handicapPredictions.reduce((best: any, x: any) =>
+        !best || x.expected_return_units > best.expected_return_units ? x : best, null);
       const source = json(snap.source_meta), llm = source?.llm_shadow, providers: Record<string, any> = {};
       for (const provider of ["gpt", "claude"]) {
         const saved = llm?.providers?.[provider] || { status: "not_run" };
@@ -157,8 +161,8 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
         moneyline_pick: winner, moneyline_hit: winner === null ? null : winner === actualWinner,
         btts_pick: bttsProb === null ? null : bttsProb >= 0.5 ? "yes" : "no",
         btts_hit: bttsProb === null ? null : (bttsProb >= 0.5) === (hs > 0 && as > 0),
-        market: { total: totalPredictions[0] || null, totals: totalPredictions,
-          handicap: handicapPredictions[0] || null, handicaps: handicapPredictions },
+        market: { total: selectedTotal, totals: selectedTotal ? [selectedTotal] : [],
+          handicap: selectedHandicap, handicaps: selectedHandicap ? [selectedHandicap] : [] },
         llm: { status: llm?.status || "not_run", version: llm?.version || null, generated_at: llm?.generated_at || null, providers }
       };
     }
@@ -175,15 +179,15 @@ function summarizeBets(bets: any[]) {
     bet_count: bets.length };
 }
 function marketMetrics(rows: any[], market: "total" | "handicap") {
-  const field = market === "total" ? "totals" : "handicaps";
-  const paired = rows.filter(r => STAGES.every(s => (r.predictions?.[s]?.market?.[field] || []).length > 0));
+  const field = market === "total" ? "total" : "handicap";
+  const selected = (r: any, stage: string) => r.predictions?.[stage]?.market?.[field] || null;
+  // One selected market outcome per fixture and stage; keep the same fixtures paired across all three stages.
+  const paired = rows.filter(r => STAGES.every(s => selected(r, s) !== null));
   const byStage = Object.fromEntries(STAGES.map(stage => {
-    const bets = paired.flatMap(r => r.predictions[stage].market[field] || []);
-    const lines = [...new Set(bets.map((x: any) => Number(market === "total" ? x.line : x.home_line).toFixed(2)))].sort((a,b)=>Number(a)-Number(b));
-    const byLine = Object.fromEntries(lines.map(line => [line, summarizeBets(bets.filter((x: any) => Number(market === "total" ? x.line : x.home_line).toFixed(2) === line))]));
-    return [stage, { ...summarizeBets(bets), by_line: byLine }];
+    const bets = paired.map(r => selected(r, stage));
+    return [stage, summarizeBets(bets)];
   }));
-  return { paired_fixture_count: paired.length, by_stage: byStage, line_unit: market === "total" ? "total_goals" : "home_handicap" };
+  return { paired_fixture_count: paired.length, by_stage: byStage, unit: "match" };
 }
 function llmMetrics(rows: any[]) {
   const metrics: Record<string, any> = {};

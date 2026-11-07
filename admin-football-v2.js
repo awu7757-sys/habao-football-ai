@@ -135,17 +135,17 @@ function renderFootballV2StageCompare(){
  const stages=["t10","t2","t15"];
  const metricRows=[
   ["moneyline","獨贏","預測主勝／和局／客勝","場"],
-  ["totals_market_line","大小球","按每場實際大小盤線逐條計算","盤線"],
-  ["handicap_market_line","讓分","按每場實際讓分盤線逐條計算","盤線"],
+  ["totals_market_line","大小球","依該場實際盤口選出一條線，每場計一筆","場"],
+  ["handicap_market_line","讓分","依該場實際盤口選出一條線，每場計一筆","場"],
   ["btts","BTTS","預測雙方是否都有進球","場"]
  ];
  const rows=metricRows.map(([key,label,desc,unit])=>{
   const info=p.metrics?.[key]||{};
-  return '<tr><th>'+label+'<br><small>'+desc+(info.paired_fixture_count!=null?'｜三階段都有盤口 '+Number(info.paired_fixture_count)+' 場':'')+'</small></th>'+
+  return '<tr><th>'+label+'<br><small>'+desc+(info.paired_fixture_count!=null?'｜三階段都有可比結果 '+Number(info.paired_fixture_count)+' 場':'')+'</small></th>'+
    stages.map(s=>{const x=key==="totals_market_line"||key==="handicap_market_line"?info.by_stage?.[s]:info[s];return '<td>'+v2esc(v2StageRate(x,unit))+'</td>';}).join("")+'</tr>';
  });
  const m=document.getElementById("footballV2StageMetrics");
- if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分則是「命中盤線／有效盤線」。大小球與讓分依每場當時實際盤口逐條結算，不同賽事的盤線可以不同。缺少盤口或走盤不算命中，也不算失誤。'+v2esc(p.note||"")+'</p>';
+ if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分也按場數算：模型先參考該場實際提供的所有盤口，選出預期報酬較高的一條線及方向，再計算結果；不同賽事選出的線可以不同。缺少盤口不列入統計；走盤不算命中或未中，半贏算命中、半輸算未中。'+v2esc(p.note||"")+'</p>';
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<details><summary style="cursor:pointer">展開快照與資料狀況</summary><div style="overflow-x:auto;margin-top:10px"><table class="data-table" style="min-width:660px;width:100%"><thead><tr><th>階段</th><th>快照筆數</th><th>排程檢查</th><th>平均擷取時間</th><th>配對且已驗證</th></tr></thead><tbody>'+
   stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",statusLabel={ready:"資料就緒",already_ready:"已完成",failed:"失敗",pending:"等待中",skipped:"略過"},states=Object.entries(x.audit_statuses||{}).map(([k,v])=>(statusLabel[k]||k)+" "+v+" 筆").join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+
