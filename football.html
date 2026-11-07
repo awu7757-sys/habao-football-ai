@@ -4239,28 +4239,44 @@ async function refreshFootballV2StageButtons(fixtureIds) {
       cache: "no-store", signal: AbortSignal.timeout(15000),
     });
     const packet = await response.json().catch(() => ({}));
-    for (const fixtureId of fixtureIds) {
-      const host = document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
-      if (host) { host.innerHTML = ""; host.classList.remove("is-visible"); }
-    }
     if (!response.ok || packet?.success !== true || packet.enabled !== true) return;
     for (const fixtureId of fixtureIds) {
       const host = document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
       if (!host) continue;
+      host.innerHTML = "";
+      host.classList.remove("is-visible");
+      const primary = host.parentElement?.querySelector(".analysis-btn.v2-analysis-btn");
       const match = packet.stages?.[String(fixtureId)];
-      if (!match) continue;
-      const actions = [];
-      if (match.claimed?.t10 && match.ready?.t2) actions.push(["t2", "深度分析", "stage-t2"]);
-      if (match.claimed?.t2 && match.ready?.t15) actions.push(["t15", "最終分析", "stage-t15"]);
-      if (!actions.length) continue;
-      host.innerHTML = actions.map(([stage,label,style]) => `<button type="button" class="football-v2-stage-btn ${style}" data-stage="${stage}" onclick="openFootballV2Stage(${fixtureId}, '${stage}', this)"><span>${label}</span><strong>→</strong></button>`).join("");
-      host.classList.add("is-visible");
+      if (!primary || !match?.claimed?.t10) continue;
+
+      const nextStage = !match.claimed?.t2 ? "t2" : !match.claimed?.t15 ? "t15" : null;
+      primary.classList.remove("stage-t2", "stage-t15", "football-v2-stage-btn");
+      if (!nextStage) {
+        primary.disabled = true;
+        primary.onclick = null;
+        primary.classList.add("finished");
+        primary.innerHTML = "<span>本場分析已完成</span>";
+        continue;
+      }
+
+      const label = nextStage === "t2" ? "開始深度分析" : "最終分析";
+      const style = nextStage === "t2" ? "stage-t2" : "stage-t15";
+      primary.classList.add("football-v2-stage-btn", style);
+      if (match.ready?.[nextStage]) {
+        primary.disabled = false;
+        primary.classList.remove("finished");
+        primary.onclick = () => openFootballV2Stage(fixtureId, nextStage, primary);
+        primary.innerHTML = `<span>${label}</span><strong>→</strong>`;
+      } else {
+        primary.disabled = true;
+        primary.onclick = null;
+        primary.innerHTML = `<span>${nextStage === "t2" ? "深度分析準備中" : "最終分析準備中"}</span>`;
+      }
     }
   } catch (error) {
     console.warn("FOOTBALL_V2_STAGE_STATUS_UNAVAILABLE", error?.message || error);
   }
 }
-
 async function openFootballV2Stage(fixtureId, stage, button) {
   const id = Number(fixtureId);
   const member = (() => { try { return JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch { return null; } })();
