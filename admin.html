@@ -1070,7 +1070,7 @@ tr:last-child td{border-bottom:0}
         <span class="nav-icon">✓</span> 公開 AI 戰績
       </button>
       <button class="nav-btn" data-page="footballV2ComparePage" onclick="switchPage('footballV2ComparePage',this)">
-        <span class="nav-icon">V2</span> 足球模型比較
+        <span class="nav-icon">V2</span> 足球 V2 三階段比對
       </button>
       <button class="nav-btn" data-page="nbaModelBacktestPage" onclick="switchPage('nbaModelBacktestPage',this)"><span class="nav-icon">NBA</span> NBA 模型研究</button>
 
@@ -2029,31 +2029,17 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
       </section>
 
-      <!-- FOOTBALL RESEARCH COMPARISON (ADMIN ONLY) -->
+      <!-- FOOTBALL V2 THREE-STAGE COMPARISON (ADMIN ONLY) -->
       <section id="footballV2ComparePage" class="page">
         <div class="page-head">
           <div>
-            <div class="page-kicker">FOOTBALL MODEL RESEARCH</div>
-            <div class="page-title">足球 V1／V2 模型比較</div>
-            <div class="page-desc">影子研究專用｜僅管理員查看，不修改正式快照、推薦、結算或會員扣點。</div>
+            <div class="page-kicker">FOOTBALL V2 RESEARCH</div>
+            <div class="page-title">足球 V2 三階段影子比對</div>
+            <div class="page-desc">只比較 T-10、T-2、T-15 分鐘四項結果；不影響正式推薦或公開戰績。</div>
           </div>
-          <button class="ghost-btn" id="footballV2Reload" onclick="loadFootballV2Compare(true)">↻ 更新</button>
+          <button class="ghost-btn" id="footballV2Reload" onclick="loadFootballV2StageCompare(true)">↻ 更新比較</button>
         </div>
-        <div class="panel" style="margin-bottom:16px">
-          <div class="toolbar"><div class="filters">
-            <select id="footballV2Days" class="input" onchange="loadFootballV2Compare(true)">
-              <option value="0" selected>今日快照</option><option value="7">近 7 天</option><option value="30">近 30 天</option><option value="90">近 90 天</option>
-            </select>
-            <input id="footballV2Search" class="input search" placeholder="搜尋聯賽、球隊、賽事 ID..." oninput="renderFootballV2Compare()">
-          </div></div>
-          <div id="footballV2CompareStatus" class="page-desc" aria-live="polite">切換到此頁後自動載入</div>
-          <p class="page-desc">命中率採半贏 0.5、半輸 0；走盤不計分母。大小球只比較相同盤口的已驗證場次；V2 尚未校準，研究數據不代表獲利保證。</p>
-        </div>
-        <div id="footballV2Stats" class="fvc-cards"></div>
-        <div class="panel"><div class="panel-head">
-          <div><div class="panel-title">逐場 V1 / V2 比較</div><div class="panel-desc" id="footballV2Visible">尚未讀取影子資料</div></div>
-        </div>
-<div id="footballV2Rows" class="fvc-games"><div class="fvc-empty">尚未載入</div></div></div>
+        <div id="footballV2StageMount"></div>
       </section>
       <!-- NBA V1/V2 AND BACKTEST UNIFIED READ-ONLY RESEARCH -->
       <section id="nbaModelBacktestPage" class="page">
@@ -2536,7 +2522,7 @@ const PAGE_NAMES = {
   jobsPage: "分析任務",
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
-  footballV2ComparePage: "足球模型比較",
+  footballV2ComparePage: "足球 V2 三階段比對",
   nbaModelBacktestPage: "NBA 模型研究與比較",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
@@ -4418,7 +4404,7 @@ function ensurePageData(pageId) {
   else if (pageId === "fixturesPage") loadFixtures(false);
   else if (pageId === "apiPage") probeMlbStatsApi(false);
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
-  else if (pageId === "footballV2ComparePage") loadFootballV2Compare(false);
+  else if (pageId === "footballV2ComparePage") loadFootballV2StageCompare(false);
   else if (pageId === "nbaModelBacktestPage") loadNbaResearch();
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
@@ -4432,7 +4418,7 @@ function refreshPageData(pageId) {
   if (pageId === "jobsPage") return loadJobs(true);
   if (pageId === "fixturesPage") return loadFixtures(true);
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
-  if (pageId === "footballV2ComparePage") return loadFootballV2Compare(true);
+  if (pageId === "footballV2ComparePage") return loadFootballV2StageCompare(true);
   if (pageId === "nbaModelBacktestPage") return loadNbaResearch();
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
@@ -7583,7 +7569,7 @@ function escapeHtml(value) {
 
 restoreAdminSession();
 </script>
-<script src="./admin-football-v2.js?v=4" defer></script>
+<script src="./admin-football-v2.js?v=5" defer></script>
 <script src="./admin-nba-v2.js?v=6" defer></script>
 
 
