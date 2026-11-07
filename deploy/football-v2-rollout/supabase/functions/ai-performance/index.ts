@@ -170,14 +170,18 @@ Deno.serve(async (req) => {
       for (let i = 0; i < eligibleIds.length; i += 80) {
         const ids = eligibleIds.slice(i, i + 80);
         if (!ids.length) continue;
-        const stageUrl = `${SUPABASE_URL}/rest/v1/football_v2_shadow_stage_snapshots?fixture_id=in.(${ids.join(",")})&stage=in.(t2,t15)&model_version=eq.football-v2-poisson-shrinkage-0.2.1&research_only=eq.true&select=fixture_id,stage,kickoff_at,home_xg,away_xg,probabilities,market_context,model_version&limit=1000`;
+        const stageUrl = `${SUPABASE_URL}/rest/v1/football_v2_shadow_stage_snapshots?fixture_id=in.(${ids.join(",")})&stage=in.(t2,t15)&model_version=eq.football-v2-poisson-shrinkage-0.2.1&research_only=eq.true&select=fixture_id,stage,kickoff_at,home_xg,away_xg,probabilities,market_context,model_version,source_meta&limit=1000`;
         const stageResponse = await fetch(stageUrl, { headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` }, signal: AbortSignal.timeout(15000) });
         if (!stageResponse.ok) throw new Error(`public_stage_snapshot_read_${stageResponse.status}: ${await stageResponse.text()}`);
         const values = await stageResponse.json();
         if (Array.isArray(values)) stageRows.push(...values);
       }
       const byId = new Map<string, any>();
-      for (const snapshot of stageRows) byId.set(`${Number(snapshot.fixture_id)}|${snapshot.stage}`, snapshot);
+      for (const snapshot of stageRows) {
+        const meta = snapshot.source_meta && typeof snapshot.source_meta === "object" ? snapshot.source_meta : {};
+        if (meta.capture_mode === "late_pre_match_recovery" || meta.eligible_for_stage_metrics === false) continue;
+        byId.set(`${Number(snapshot.fixture_id)}|${snapshot.stage}`, snapshot);
+      }
       const poisson = (lambda: number, k: number) => { let p = Math.exp(-lambda); for (let n = 1; n <= k; n++) p *= lambda / n; return p; };
       const splitLine = (line: number) => Math.abs(line * 4 - Math.round(line * 4)) < 1e-6 && Math.round(line * 4) % 2 ? [Math.floor(line * 2) / 2, Math.floor(line * 2) / 2 + 0.5] : [line];
       const settle = (value: number, line: number, side: "over" | "under" | "home" | "away") => {

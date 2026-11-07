@@ -111,7 +111,11 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
     availability: snapshot.availability_evidence || { status: "not_collected_at_this_stage", items: [] },
     lineups: snapshot.lineup_evidence || { status: "not_available", teams: [] },
     player_adjustment_applied: false,
-    note: "傷停與先發會列入本階段分析資訊；現有模型尚無經歷史資料校準的球員影響係數，因此不虛構 xG 數值調整。",
+    capture_mode: snapshot.source_meta?.capture_mode || "scheduled",
+    scheduled_target_at: snapshot.source_meta?.scheduled_target_at || null,
+    note: snapshot.source_meta?.capture_mode === "late_pre_match_recovery"
+      ? `系統於 ${new Date(snapshot.captured_at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })} 賽前補抓資料；這不是原定 T-${stage === "t2" ? "2" : "15"} 的即時快照，不列入階段正式比對。傷停與先發僅作資訊呈現，模型尚無經歷史資料校準的球員影響係數。`
+      : "傷停與先發會列入本階段分析資訊；現有模型尚無經歷史資料校準的球員影響係數，因此不虛構 xG 數值調整。",
   };
   const fixtureData = fixture && typeof fixture === "object" ? fixture : {};
   return {
@@ -186,8 +190,18 @@ Deno.serve(async (req) => {
       const saved = await rest<any>("football_v2_stage_member_claims", `account=eq.${encodeURIComponent(account)}&fixture_id=eq.${fixtureId}&stage=eq.${stage}&select=result_data&limit=1`);
       if (saved[0]?.result_data) return reply(200, { success: true, already_claimed: true, result: saved[0].result_data });
     }
-    const snapshots = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version&limit=1`);
-    if (!snapshots[0]) return reply(409, { success: false, error: "stage_snapshot_not_ready" });
+    const snapshots = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version,source_meta&limit=1`);
+    let recovery: any = null;
+    if (!snapshots[0]) {
+      const recoverResponse = await fetch(`${BASE}/functions/v1/football-v2-shadow-stage-runner`, {
+        method: "POST", headers: { ...headers() },
+        body: JSON.stringify({ action: "recover_stage", fixture_id: fixtureId, stage }), signal: AbortSignal.timeout(45000),
+      });
+      recovery = await recoverResponse.json().catch(() => ({ status: "invalid_recovery_response" }));
+      const refreshed = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version,source_meta&limit=1`);
+      snapshots.push(...refreshed);
+    }
+    if (!snapshots[0]) return reply(409, { success: false, error: "stage_snapshot_not_ready", recovery_status: recovery?.status || recovery?.error || "not_ready", can_retry: true });
     const model = snapshots[0];
     const minutesToKickoff = (Date.parse(model.kickoff_at) - Date.now()) / 60000;
     if (minutesToKickoff <= 0) return reply(410, { success: false, error: "match_already_started" });
