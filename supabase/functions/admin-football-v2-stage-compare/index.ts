@@ -1,6 +1,6 @@
 // Read-only paired-stage research backtest for V2 T-10 / T-2 / T-15 snapshots.
 // It does not alter the member-facing T-10 snapshot or public performance data.
-const VERSION = "football-v2-poisson-shrinkage-0.2.1";
+const VERSION = "football-v2-poisson-player-impact-0.3.0";
 const STAGES = ["t10", "t2", "t15"] as const;
 const PAGE_SIZE = 1000, MAX_ROWS = 10000, GRID_MAX = 18;
 const BASE = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
@@ -308,3 +308,4 @@ Deno.serve(async req => {
     return reply(500, { success: false, error: safe(e) });
   }
 });
+
