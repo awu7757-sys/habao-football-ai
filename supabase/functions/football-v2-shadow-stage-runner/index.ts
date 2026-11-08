@@ -111,7 +111,7 @@ async function availability(fixtureId:number):Promise<Record<string,unknown>>{
 }
 type PlayerImpactRow={id:number;name:string;position:string;minutes:number;starts:number;appearances:number;goals:number;assists:number;conceded:number|null};
 async function teamPlayerStats(teamId:number,leagueId:number,season:number):Promise<{status:string;players:PlayerImpactRow[];api_calls:number}> {
-  const prior=await dbGet<any>('football_v2_player_impact_cache',`select=team_id,league_id,season,cached_at,players&team_id=eq.${teamId}&league_id=eq.${leagueId}&season=eq.${season}&limit=1`).catch(()=>null);
+  const prior=await dbGet<any>('football_v2_player_impact_cache',`select=team_id,league_id,season,cached_at,players,roster_complete&team_id=eq.${teamId}&league_id=eq.${leagueId}&season=eq.${season}&limit=1`).catch(()=>null);
   if(!prior)return {status:'cache_table_unavailable',players:[],api_calls:0};
   if(prior[0]&&Date.parse(prior[0].cached_at)>Date.now()-DAY&&Array.isArray(prior[0].players))return {status:prior[0].roster_complete===true?'cached':'cached_partial',players:prior[0].players,api_calls:0};
   const startCalls=calls;
@@ -550,4 +550,3 @@ try {
   });
 }
 });
-
