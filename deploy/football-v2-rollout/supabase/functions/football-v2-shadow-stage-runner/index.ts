@@ -135,7 +135,7 @@ function playerTeamAdjustment(players:PlayerImpactRow[],injuries:any[],lineups:a
   const valid=players.filter(p=>p.minutes>=270&&p.starts>=1);
   const injuryIds=new Set(injuries.filter((x:any)=>Number(x?.team_id)===teamId).map((x:any)=>Number(x?.player_id)).filter((n:number)=>Number.isSafeInteger(n)&&n>0));
   const baseline=valid.slice().sort((a,b)=>b.starts-a.starts||b.minutes-a.minutes).slice(0,11);
-  if(baseline.length<11)return {status:'insufficient_player_sample',attack_delta:0,keeper_conceded_delta:0,injury_count:injuryIds.size,lineup_count:lineupPlayerIds(lineups,teamId).length,matched_injuries:0};
+  if(baseline.length<11)return {status:'insufficient_player_sample',attack_delta:0,keeper_conceded_delta:0,injury_count:injuryIds.size,lineup_count:lineupPlayerIds(lineups,teamId).length,matched_injuries:players.filter(p=>injuryIds.has(p.id)).length};
   const totalGoals=players.reduce((s,p)=>s+p.goals,0),totalAssists=players.reduce((s,p)=>s+p.assists,0);
   const goalEquivalentFactor=totalGoals+totalAssists>0?clamp(totalGoals/(totalGoals+totalAssists),.35,.85):1;
   const output=(p:PlayerImpactRow)=>((p.goals+p.assists)*goalEquivalentFactor*90/p.minutes)*(p.minutes/(p.minutes+900));
@@ -145,14 +145,14 @@ function playerTeamAdjustment(players:PlayerImpactRow[],injuries:any[],lineups:a
   if(actual.length<11){
     const available=valid.filter(p=>!injuryIds.has(p.id));actual=available.slice().sort((a,b)=>b.starts-a.starts||b.minutes-a.minutes).slice(0,11);
   }
-  if(actual.length<11)return {status:'insufficient_confirmed_lineup_data',attack_delta:0,keeper_conceded_delta:0,injury_count:injuryIds.size,lineup_count:officialIds.length,matched_injuries:valid.filter(p=>injuryIds.has(p.id)).length};
+  if(actual.length<11)return {status:'insufficient_confirmed_lineup_data',attack_delta:0,keeper_conceded_delta:0,injury_count:injuryIds.size,lineup_count:officialIds.length,matched_injuries:players.filter(p=>injuryIds.has(p.id)).length};
   const projectedOutput=actual.reduce((s,p)=>s+output(p),0);
   const attackDelta=clamp(projectedOutput-expectedOutput,-.35,.35);
   const expectedKeeper=baseline.filter(p=>/goalkeeper/i.test(p.position)).sort((a,b)=>b.starts-a.starts)[0];
   const actualKeeper=actual.filter(p=>/goalkeeper/i.test(p.position)).sort((a,b)=>b.minutes-a.minutes)[0];
   const keeperDelta=expectedKeeper&&actualKeeper&&expectedKeeper.id!==actualKeeper.id&&expectedKeeper.conceded!==null&&actualKeeper.conceded!==null
     ?clamp((actualKeeper.conceded/Math.max(actualKeeper.minutes,1)-expectedKeeper.conceded/Math.max(expectedKeeper.minutes,1))*90,-.25,.25):0;
-  return {status:officialIds.length>=11?'confirmed_lineup':'injury_projected_lineup',attack_delta:Number(attackDelta.toFixed(4)),keeper_conceded_delta:Number(keeperDelta.toFixed(4)),injury_count:injuryIds.size,lineup_count:officialIds.length,matched_injuries:valid.filter(p=>injuryIds.has(p.id)).length};
+  return {status:officialIds.length>=11?'confirmed_lineup':'injury_projected_lineup',attack_delta:Number(attackDelta.toFixed(4)),keeper_conceded_delta:Number(keeperDelta.toFixed(4)),injury_count:injuryIds.size,lineup_count:officialIds.length,matched_injuries:players.filter(p=>injuryIds.has(p.id)).length};
 }
 async function playerImpact(fixture:Fixture,injuryEvidence:any,lineupRows:any[]):Promise<Record<string,unknown>>{
   const homeId=Number(fixture.teams.home.id),awayId=Number(fixture.teams.away.id),leagueId=Number(fixture.league.id),season=Number(fixture.league.season);
@@ -160,8 +160,9 @@ async function playerImpact(fixture:Fixture,injuryEvidence:any,lineupRows:any[])
   const injuries=Array.isArray(injuryEvidence?.items)?injuryEvidence.items:[];
   const home=playerTeamAdjustment(homeStats.players,injuries,lineupRows,homeId),away=playerTeamAdjustment(awayStats.players,injuries,lineupRows,awayId);
   const injuryDataReady=['data_returned','no_rows_returned'].includes(String(injuryEvidence?.status));
-  const lineupsReady=lineupPlayerIds(lineupRows,homeId).length>=11&&lineupPlayerIds(lineupRows,awayId).length>=11;
-  const ready=['fresh','cached','fresh_partial','cached_partial'].includes(homeStats.status)&&['fresh','cached','fresh_partial','cached_partial'].includes(awayStats.status)&&!['insufficient_player_sample','insufficient_confirmed_lineup_data'].includes(home.status)&&!['insufficient_player_sample','insufficient_confirmed_lineup_data'].includes(away.status)&&(injuryDataReady||lineupsReady);
+  const homeLineupReady=lineupPlayerIds(lineupRows,homeId).length>=11,awayLineupReady=lineupPlayerIds(lineupRows,awayId).length>=11;
+  const homeInputReady=homeLineupReady||(injuryDataReady&&home.matched_injuries===home.injury_count),awayInputReady=awayLineupReady||(injuryDataReady&&away.matched_injuries===away.injury_count);
+  const ready=['fresh','cached','fresh_partial','cached_partial'].includes(homeStats.status)&&['fresh','cached','fresh_partial','cached_partial'].includes(awayStats.status)&&!['insufficient_player_sample','insufficient_confirmed_lineup_data'].includes(home.status)&&!['insufficient_player_sample','insufficient_confirmed_lineup_data'].includes(away.status)&&homeInputReady&&awayInputReady;
   return {status:ready?'applied':'not_applied',model_adjustment_applied:ready,home,away,player_data:{home:homeStats.status,away:awayStats.status},additional_api_calls:homeStats.api_calls+awayStats.api_calls,method:'T-2/T-15 only: compare goal-involvement rates for the confirmed XI (or best available XI excluding listed injuries) against the team regular XI; shrink by minutes played, convert goals/assists using team observed goal-to-assist ratio, cap each team xG change at +/-0.35. A changed goalkeeper adjusts opponent xG by observed goals-conceded-per-minute difference, capped at +/-0.25.'};
 }
 function normTeam(x:unknown){return String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\b(football club|futbol club|fc|afc|cf|sc|ac)\b/g,'').replace(/[^a-z0-9]/g,'');}
