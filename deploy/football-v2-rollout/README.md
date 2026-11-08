@@ -6,7 +6,7 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 
 1. In Supabase SQL Editor, run `02_stage_recovery_leases.sql`. It creates the restricted lease table and atomic reserve/release functions that prevent cron and member recovery from duplicating a stage capture. `01_rollout_tables.sql` was already applied earlier and does not need to be rerun.
 2. Replace and deploy `football-v2-shadow-stage-runner/index.ts`. Keep its existing **Verify JWT OFF** setting, once-per-minute scheduled invocation, and `FOOTBALL_V2_STAGE_CRON_KEY`. The function still uses the existing `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `API_FOOTBALL_KEY`, odds key, and daily API-call cap.
-3. Replace and deploy `football-v2-stage-member/index.ts`. Keep **Verify JWT OFF**, as in the existing setup. When a member selects T-2 or T-15 and its snapshot is missing, it asks the runner to recover it. It acquires the same database lock before calling the football data API, so concurrent clicks do not duplicate recovery calls. It charges no analysis credit unless a snapshot is available and the claim succeeds.
+3. Replace and deploy `football-v2-stage-member/index.ts`. Keep **Verify JWT OFF**, as in the existing setup. The function verifies Supabase Auth identity for OAuth-backed accounts, including the pilot Google account. When a member selects T-2 or T-15 and its snapshot is missing, it asks the runner to recover it. It acquires the same database lock before calling the football data API, so concurrent clicks do not duplicate recovery calls. It charges no analysis credit unless a snapshot is available and the claim succeeds.
 4. Replace and deploy `ai-performance/index.ts` and `admin-football-v2-stage-compare/index.ts`. Public results and official paired-stage metrics ignore late recovery snapshots. The admin coverage row reports them separately as `late_recovery_snapshots`.
 
 ## Recovery behavior
@@ -21,7 +21,9 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 
 - Pilot account: `google_2d3cef6b6e2d`; all-member rollout remains controlled from Admin → 足球 V2 三階段比對.
 - Public stage remains selected prospectively from the admin page. Late recovery is never eligible for the public results.
-- T-2 and T-15 continue collecting injury and lineup evidence when the provider has it. The model does not invent player-impact weights; `model_adjustment_applied` remains false.
+- The member page changes the T-2/T-15 button locally as kickoff approaches; the 15-second UI refresh does not call Supabase or the football API. T-2 is blue and T-15 is purple, with compact labels and the arrow retained.
+- The admin coverage table lists on-time captures separately from late recovery captures; late recovery is not counted in the official comparison or public record.
+- T-2 and T-15 collect injury and lineup evidence when the provider has it and show it in the member analysis. Probabilities are not adjusted for player impact until historical player-effect weights are calibrated; `model_adjustment_applied` remains false.
 - GPT/Claude shadow calls remain disabled; no model API key or recurring LLM spend is introduced.
 
 ## Files
