@@ -4,7 +4,7 @@ const BASE = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
 const ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SECRET_KEY") || "";
 const PUBLIC_KEY = Deno.env.get("SUPABASE_ANON_KEY") || ROLE;
 const PILOT_ACCOUNT = "google_2d3cef6b6e2d";
-const VERSION = "football-v2-poisson-shrinkage-0.2.1";
+const VERSION = "football-v2-poisson-player-impact-0.3.0";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -120,16 +120,20 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
   const lineups = Array.isArray(snapshot.lineup_evidence?.teams) ? snapshot.lineup_evidence.teams : [];
   const injurySummary = items.slice(0, 8).map((x: any) => `${String(x.player_name || "球員")}${x.reason || x.type ? `（${String(x.reason || x.type)}）` : ""}`).join("、") || "目前沒有可用傷停名單";
   const lineupSummary = lineups.map((x: any) => `${String(x?.team?.name || x?.team_name || "球隊")}：先發 ${Array.isArray(x?.startXI) ? x.startXI.length : 0} 人`).join("；") || "目前沒有可用先發名單";
+  const playerCoverage = (value: unknown) => value === "fresh" || value === "cached" ? "完整快取" : /partial/.test(String(value || "")) ? "名單部分資料" : String(value || "資料不足");
   const evidence = {
     stage, captured_at: snapshot.captured_at,
     availability: snapshot.availability_evidence || { status: "not_collected_at_this_stage", items: [] },
     lineups: snapshot.lineup_evidence || { status: "not_available", teams: [] },
-    player_adjustment_applied: false,
+    player_adjustment_applied: snapshot.source_meta?.player_adjustment_applied === true,
+    player_adjustment: snapshot.player_adjustment || null,
     capture_mode: snapshot.source_meta?.capture_mode || "scheduled",
     scheduled_target_at: snapshot.source_meta?.scheduled_target_at || null,
     note: snapshot.source_meta?.capture_mode === "late_pre_match_recovery"
-      ? `系統於 ${new Date(snapshot.captured_at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })} 賽前補抓資料；這不是原定 T-${stage === "t2" ? "2" : "15"} 的即時快照，不列入階段正式比對。傷停與先發僅作資訊呈現，模型尚無經歷史資料校準的球員影響係數。`
-      : "傷停與先發會列入本階段分析資訊；現有模型尚無經歷史資料校準的球員影響係數，因此不虛構 xG 數值調整。",
+      ? `系統於 ${new Date(snapshot.captured_at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })} 賽前補抓；這不是原定 T-${stage === "t2" ? "2" : "15"} 快照，不列入正式階段比對。球員調整狀態：${snapshot.source_meta?.player_adjustment_status || "未套用"}。`
+      : snapshot.source_meta?.player_adjustment_applied === true
+        ? `本階段已把球員資料納入預測：預估主隊 xG 修正 ${Number(snapshot.source_meta?.player_xg_delta?.home || 0) >= 0 ? "+" : ""}${Number(snapshot.source_meta?.player_xg_delta?.home || 0).toFixed(2)}，客隊 ${Number(snapshot.source_meta?.player_xg_delta?.away || 0) >= 0 ? "+" : ""}${Number(snapshot.source_meta?.player_xg_delta?.away || 0).toFixed(2)}（球員統計：主隊${playerCoverage(snapshot.player_adjustment?.player_data?.home)}／客隊${playerCoverage(snapshot.player_adjustment?.player_data?.away)}；傷停匹配主隊 ${Number(snapshot.player_adjustment?.home?.matched_injuries || 0)}/${Number(snapshot.player_adjustment?.home?.injury_count || 0)} 人、客隊 ${Number(snapshot.player_adjustment?.away?.matched_injuries || 0)}/${Number(snapshot.player_adjustment?.away?.injury_count || 0)} 人）。`
+        : `本階段球員資料不足，未套用球員修正（主隊：${snapshot.player_adjustment?.player_data?.home || "未知"}；客隊：${snapshot.player_adjustment?.player_data?.away || "未知"}）；基礎預測仍可查看。`,
   };
   const fixtureData = fixture && typeof fixture === "object" ? fixture : {};
   return {
@@ -149,7 +153,7 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
         btts: { pick: bttsPick ? "是" : "否", confidence: confidence(bttsPick ? bttsYes : 1-bttsYes), reason: "依模型雙方進球機率" },
       },
       summary: `${stage === "t2" ? "T-2 深度分析" : "T-15 最終分析"}：模型預估主隊 ${Number(snapshot.home_xg).toFixed(2)} 球、客隊 ${Number(snapshot.away_xg).toFixed(2)} 球。獨贏依勝和負機率最高項目；大小球與讓分使用本階段市場實際盤線。`,
-      market_analysis: `本階段市場盤線：大小球 ${totalLine === null ? "未取得" : totalLine}；讓分 ${handicapLine === null ? "未取得" : handicapLine}。傷停：${injurySummary}。先發：${lineupSummary}。`,
+      market_analysis: `本階段市場盤線：大小球 ${totalLine === null ? "未取得" : totalLine}；讓分 ${handicapLine === null ? "未取得" : handicapLine}。傷停：${injurySummary}。先發：${lineupSummary}。${evidence.note}`,
       predicted_scores: scoreRows,
       v2_stage_evidence: evidence,
       xg: { home: snapshot.home_xg, away: snapshot.away_xg },
@@ -208,7 +212,7 @@ Deno.serve(async (req) => {
       const saved = await rest<any>("football_v2_stage_member_claims", `account=eq.${encodeURIComponent(account)}&fixture_id=eq.${fixtureId}&stage=eq.${stage}&select=result_data&limit=1`);
       if (saved[0]?.result_data) return reply(200, { success: true, already_claimed: true, result: saved[0].result_data });
     }
-    const snapshots = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version,source_meta&limit=1`);
+    const snapshots = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,player_adjustment,data_quality,model_version,source_meta&limit=1`);
     let recovery: any = null;
     if (!snapshots[0]) {
       const recoverResponse = await fetch(`${BASE}/functions/v1/football-v2-shadow-stage-runner`, {
@@ -216,7 +220,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ action: "recover_stage", fixture_id: fixtureId, stage }), signal: AbortSignal.timeout(45000),
       });
       recovery = await recoverResponse.json().catch(() => ({ status: "invalid_recovery_response" }));
-      const refreshed = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,data_quality,model_version,source_meta&limit=1`);
+      const refreshed = await rest<any>("football_v2_shadow_stage_snapshots", `fixture_id=eq.${fixtureId}&stage=eq.${stage}&model_version=eq.${encodeURIComponent(VERSION)}&research_only=eq.true&select=fixture_id,stage,kickoff_at,captured_at,home_team_id,away_team_id,home_xg,away_xg,probabilities,fair_odds,market_context,availability_evidence,lineup_evidence,player_adjustment,data_quality,model_version,source_meta&limit=1`);
       snapshots.push(...refreshed);
     }
     if (!snapshots[0]) return reply(409, { success: false, error: "stage_snapshot_not_ready", recovery_status: recovery?.status || recovery?.error || "not_ready", can_retry: true });
@@ -271,3 +275,4 @@ Deno.serve(async (req) => {
     return reply(500, { success: false, error: safe(error) });
   }
 });
+

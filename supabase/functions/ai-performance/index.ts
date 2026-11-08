@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
       for (let i = 0; i < eligibleIds.length; i += 80) {
         const ids = eligibleIds.slice(i, i + 80);
         if (!ids.length) continue;
-        const stageUrl = `${SUPABASE_URL}/rest/v1/football_v2_shadow_stage_snapshots?fixture_id=in.(${ids.join(",")})&stage=in.(t2,t15)&model_version=eq.football-v2-poisson-shrinkage-0.2.1&research_only=eq.true&select=fixture_id,stage,kickoff_at,home_xg,away_xg,probabilities,market_context,model_version,source_meta&limit=1000`;
+        const stageUrl = `${SUPABASE_URL}/rest/v1/football_v2_shadow_stage_snapshots?fixture_id=in.(${ids.join(",")})&stage=in.(t2,t15)&model_version=eq.football-v2-poisson-player-impact-0.3.0&research_only=eq.true&select=fixture_id,stage,kickoff_at,home_xg,away_xg,probabilities,market_context,model_version,source_meta&limit=1000`;
         const stageResponse = await fetch(stageUrl, { headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` }, signal: AbortSignal.timeout(15000) });
         if (!stageResponse.ok) throw new Error(`public_stage_snapshot_read_${stageResponse.status}: ${await stageResponse.text()}`);
         const values = await stageResponse.json();
@@ -1378,3 +1378,4 @@ Deno.serve(async (req) => {
   }
 
 });
+
