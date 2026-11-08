@@ -2758,6 +2758,28 @@ h1{
   .bet-platform-go{padding:9px;font-size:10px}
 }
 
+/* Compact recommendation layout after removing the optional report panels. */
+.grid{
+  margin-bottom:14px;
+}
+
+.bet-action{
+  margin:0 0 20px;
+}
+
+@media(max-width:600px){
+  .bet-action{
+    gap:9px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    min-height:50px;
+    padding:12px 10px;
+    font-size:12px;
+  }
+}
+
 </style>
 </head>
 
@@ -4107,6 +4129,33 @@ function formatAsianPickText(
   );
 }
 
+function formatOverUnderPick(pick, line) {
+  const text = formatAsianPickText(pick).trim();
+  const rawLine = String(line ?? "").trim();
+  if (!rawLine) return text || analysisT("noRecommendation", "暫不推薦");
+
+  const lineText = formatAsianMarketLine(rawLine);
+  const directionMatch = text.match(/^(大|小|Over|Under)\s*[+-]?(?:\d+(?:\.\d+)?|\d+(?:\.5)?\/\d+(?:\.5)?)$/i);
+  if (directionMatch) {
+    const direction = directionMatch[1];
+    return /^(大|小)$/.test(direction)
+      ? `${direction}${lineText}`
+      : `${direction} ${lineText}`;
+  }
+
+  const directionOnly = text.match(/^(大|小|Over|Under)$/i);
+  if (directionOnly) {
+    return /^(大|小)$/.test(directionOnly[1])
+      ? `${directionOnly[1]}${lineText}`
+      : `${directionOnly[1]} ${lineText}`;
+  }
+
+  const noPick = ["暫不推薦", "暂不推荐", "No Recommendation"];
+  return text && !noPick.includes(text)
+    ? `${text} ${lineText}`
+    : text || analysisT("noRecommendation", "暫不推薦");
+}
+
 const timeText = gameDate
   ? gameDate.toLocaleString(
       analysisLocale,
@@ -4290,16 +4339,7 @@ ${getAnalysisLeagueName(
           <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
 
           <div class="pick-value">
-            ${formatAsianPickText(overUnder.pick) || analysisT("noRecommendation", "暫不推薦")}${
-              overUnder.line !== null &&
-              overUnder.line !== undefined &&
-              String(overUnder.line).trim() !== "" &&
-              overUnder.pick !== "暫不推薦" &&
-              overUnder.pick !== "暂不推荐" &&
-              overUnder.pick !== "No Recommendation"
-                ? ` ${formatAsianMarketLine(overUnder.line)}`
-                : ""
-            }
+            ${formatOverUnderPick(overUnder.pick, overUnder.line)}
           </div>
 
           <div class="confidence">
@@ -4333,51 +4373,6 @@ ${getAnalysisLeagueName(
       </div>
       </div>
 
-      <div class="v2-score-section">
-
-        <div class="v2-score-head">
-          <div>
-            <div class="v2-insight-label">SCORE PROJECTION</div>
-            <div class="v2-insight-title">
-              ${analysisT("predictedScore", "AI 預測比分")}
-            </div>
-          </div>
-
-          <div class="v2-score-tag">
-            ${isBasketballAnalysis ? "MODEL SCORE" : "TOP 3"}
-          </div>
-        </div>
-
-        <div class="v2-score-grid">
-
-          ${scores.slice(0,3).map((item, index) => `
-            <div class="v2-score-card">
-
-              <div class="v2-score-rank">
-                0${index + 1}
-              </div>
-
-              <div class="v2-score-number">
-                ${item.score || "-"}
-              </div>
-
-              <div class="v2-score-confidence">
-                ${analysisT("aiConfidence", "AI 信心")} ${item.confidence || 0}%
-              </div>
-
-              <div class="v2-score-bar">
-                <div
-                  style="width:${confidenceBar(item.confidence)}%"
-                ></div>
-              </div>
-
-            </div>
-          `).join("")}
-
-        </div>
-
-      </div>
-
       <div class="bet-action">
       
   <button
@@ -4395,58 +4390,6 @@ ${getAnalysisLeagueName(
   ${analysisT("expertAnalysis", "繼續分析 →")}
 </a>
 </div>
-      <div class="v2-analysis-detail">
-
-        <div class="v2-detail-head">
-          <div>
-            <div class="v2-detail-kicker">HABAO MATCH INTELLIGENCE</div>
-            <div class="v2-detail-title">${analysisT("intelligenceTitle", "深度賽事情報")}</div>
-          </div>
-
-          <div class="v2-detail-badge">
-            AI REPORT
-          </div>
-        </div>
-
-        <div class="v2-insight-card">
-          <div class="v2-insight-icon">01</div>
-
-          <div class="v2-insight-content">
-            <div class="v2-insight-label">MATCH INSIGHT</div>
-            <div class="v2-insight-title">${analysisT("analysisFocus", "AI 分析重點")}</div>
-
-            <p>
-              ${isBasketballAnalysis ? localizeAnalysisText(nbaDescription.focus) : (localizeAnalysisText(analysis.summary) || analysisT("noSummary", "目前沒有摘要資料。"))} 
-            </p>
-          </div>
-        </div>
-
-
-        <div class="v2-insight-card">
-          <div class="v2-insight-icon">02</div>
-
-          <div class="v2-insight-content">
-            <div class="v2-insight-label">MARKET INTELLIGENCE</div>
-            <div class="v2-insight-title">${analysisT("marketAnalysis", "市場與賠率分析")}</div>
-
-            <p>
-              ${
-                isBasketballAnalysis ? localizeAnalysisText(nbaDescription.market)
-                  : (
-                      localizeAnalysisText(
-                        analysis.market_analysis
-                      ) ||
-                      analysisT(
-                        "insufficientData",
-                        "資料不足"
-                      )
-                    )
-              } 
-            </p>
-          </div>
-        </div>
-
-      </div>
     `;
 
   } catch (error) {
