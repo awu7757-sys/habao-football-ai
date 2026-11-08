@@ -32,16 +32,18 @@ async function patchClaim(account: string, fixtureId: number, stage: string, val
   });
   if (!r.ok) throw new Error(`claim_update_${r.status}_${safe(await r.text())}`);
 }
-async function authenticatedUserId(req: Request): Promise<string | null> {
+async function authenticatedMemberAccount(req: Request): Promise<string | null> {
   const bearer = String(req.headers.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
   if (!bearer || !PUBLIC_KEY) return null;
-  const r = await fetch(`${BASE}/auth/v1/user`, {
-    headers: { apikey: PUBLIC_KEY, Authorization: `Bearer ${bearer}` },
-    signal: AbortSignal.timeout(10000),
+  const r = await fetch(`${BASE}/functions/v1/oauth-member-login?mode=refresh`, {
+    method: "POST",
+    headers: { apikey: PUBLIC_KEY, Authorization: `Bearer ${bearer}`, "Content-Type": "application/json", "Cache-Control": "no-store" },
+    body: JSON.stringify({ action: "refresh" }),
+    signal: AbortSignal.timeout(12000),
   });
   if (!r.ok) return null;
-  const user = await r.json().catch(() => null);
-  return user?.id ? String(user.id) : null;
+  const data = await r.json().catch(() => null);
+  return data?.success === true && data?.member?.account ? String(data.member.account) : null;
 }
 function scoreGrid(homeXg: number, awayXg: number) {
   const poisson = (lambda: number, k: number) => { let p = Math.exp(-lambda); for (let i = 1; i <= k; i++) p *= lambda / i; return p; };
@@ -173,12 +175,11 @@ Deno.serve(async (req) => {
     const settings = settingsRows[0] || { pilot_account: PILOT_ACCOUNT, all_members_enabled: false, public_stage: "t10" };
     const allowed = settings.all_members_enabled === true || account === String(settings.pilot_account || PILOT_ACCOUNT);
     if (!allowed) return reply(200, { success: true, enabled: false, stages: {} });
-    const members = await rest<any>("members", `account=eq.${encodeURIComponent(account)}&select=account,auth_user_id,is_active,analysis_unlimited&limit=1`);
+    const members = await rest<any>("members", `account=eq.${encodeURIComponent(account)}&select=account,is_active,analysis_unlimited&limit=1`);
     if (!members[0] || members[0].is_active !== true) return reply(403, { success: false, error: "member_inactive" });
-    if (members[0].auth_user_id || /^(google|line)_/i.test(account)) {
-      if (!members[0].auth_user_id) return reply(401, { success: false, error: "member_authentication_required" });
-      const userId = await authenticatedUserId(req);
-      if (!userId || userId !== String(members[0].auth_user_id)) return reply(401, { success: false, error: "member_authentication_required" });
+    const verifiedAccount = await authenticatedMemberAccount(req);
+    if ((/^(google|line)_/i.test(account) && verifiedAccount !== account) || (verifiedAccount && verifiedAccount !== account)) {
+      return reply(401, { success: false, error: "member_authentication_required" });
     }
     const ids = `(${fixtureIds.join(",")})`;
     const [claims, officialHistory, readyRows] = await Promise.all([
