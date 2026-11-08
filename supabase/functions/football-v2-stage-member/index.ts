@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const BASE = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
 const ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SECRET_KEY") || "";
+const PUBLIC_KEY = Deno.env.get("SUPABASE_ANON_KEY") || ROLE;
 const PILOT_ACCOUNT = "google_2d3cef6b6e2d";
 const VERSION = "football-v2-poisson-shrinkage-0.2.1";
 const CORS = {
@@ -30,6 +31,17 @@ async function patchClaim(account: string, fixtureId: number, stage: string, val
     method: "PATCH", headers: headers("return=minimal"), body: JSON.stringify(value), signal: AbortSignal.timeout(12000),
   });
   if (!r.ok) throw new Error(`claim_update_${r.status}_${safe(await r.text())}`);
+}
+async function authenticatedUserId(req: Request): Promise<string | null> {
+  const bearer = String(req.headers.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  if (!bearer || !PUBLIC_KEY) return null;
+  const r = await fetch(`${BASE}/auth/v1/user`, {
+    headers: { apikey: PUBLIC_KEY, Authorization: `Bearer ${bearer}` },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!r.ok) return null;
+  const user = await r.json().catch(() => null);
+  return user?.id ? String(user.id) : null;
 }
 function scoreGrid(homeXg: number, awayXg: number) {
   const poisson = (lambda: number, k: number) => { let p = Math.exp(-lambda); for (let i = 1; i <= k; i++) p *= lambda / i; return p; };
@@ -161,8 +173,13 @@ Deno.serve(async (req) => {
     const settings = settingsRows[0] || { pilot_account: PILOT_ACCOUNT, all_members_enabled: false, public_stage: "t10" };
     const allowed = settings.all_members_enabled === true || account === String(settings.pilot_account || PILOT_ACCOUNT);
     if (!allowed) return reply(200, { success: true, enabled: false, stages: {} });
-    const members = await rest<any>("members", `account=eq.${encodeURIComponent(account)}&select=account,is_active,analysis_unlimited&limit=1`);
+    const members = await rest<any>("members", `account=eq.${encodeURIComponent(account)}&select=account,auth_user_id,is_active,analysis_unlimited&limit=1`);
     if (!members[0] || members[0].is_active !== true) return reply(403, { success: false, error: "member_inactive" });
+    if (members[0].auth_user_id || /^(google|line)_/i.test(account)) {
+      if (!members[0].auth_user_id) return reply(401, { success: false, error: "member_authentication_required" });
+      const userId = await authenticatedUserId(req);
+      if (!userId || userId !== String(members[0].auth_user_id)) return reply(401, { success: false, error: "member_authentication_required" });
+    }
     const ids = `(${fixtureIds.join(",")})`;
     const [claims, officialHistory, readyRows] = await Promise.all([
       rest<any>("football_v2_stage_member_claims", `account=eq.${encodeURIComponent(account)}&fixture_id=in.${ids}&select=fixture_id,stage,claim_state,claimed_at&order=created_at.asc`),
