@@ -905,7 +905,7 @@ tr:last-child td{border-bottom:0}
 @media(max-width:900px){.fvc-cards{grid-template-columns:1fr}}
 
 /* unified NBA research */
-.nr-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.nr-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .nr-summary-tile,.nr-stat{min-width:0;border:1px solid rgba(154,182,212,.19);background:#102034;border-radius:13px;padding:15px}
 .nr-summary-tile>div{font-size:11px;color:#9cbbd3;font-weight:800}
 .nr-summary-tile strong{font-size:26px;color:#fff;display:block;margin:5px 0}
@@ -2041,43 +2041,34 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
         </div>
         <div id="footballV2StageMount"></div>
       </section>
-      <!-- NBA V1/V2 AND BACKTEST UNIFIED READ-ONLY RESEARCH -->
+      <!-- NBA V1 AND UNIFIED V2 READ-ONLY RESEARCH -->
       <section id="nbaModelBacktestPage" class="page">
         <div class="page-head"><div>
           <div class="page-kicker">NBA 模型分析研究</div>
-          <div class="page-title">NBA V1／V2 模型研究與比較</div>
-          <div class="page-desc">同場預測、獨贏、讓分、大小分與賽後驗證｜V1 正式快照不會被重新計算</div>
+          <div class="page-title">NBA V1 正式版／V2 統合模型比較</div>
+          <div class="page-desc">同場比較獨贏、讓分、大小分與賽後驗證｜V2 效率＋貝氏收縮；傷停資料尚未納入｜不影響 V1 正式推薦</div>
         </div><button class="ghost-btn" id="nrRefresh" onclick="loadNbaResearch()">↻ 更新研究資料</button></div>
         <div class="panel" style="margin-bottom:14px"><div class="toolbar"><div class="filters">
           <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="0">今日</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
           <select id="nrModel" class="input" onchange="renderNbaResearch()">
-            <option value="v2" selected>V1 對照 V2 貝氏模型</option>
-            <option value="v3">V1 對照 V3 回合效率模型</option>
-            <option value="market_anchored">V1 對照 市場校正</option>
-            <option value="rolling_corrected">V1 對照 滾動誤差修正</option>
-            <option value="hybrid">V1 對照 混合模型</option>
+            <option value="v2" selected>V1 正式版 vs V2 統合測試</option>
           </select>
           <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部賽事</option><option value="ready">V2 已建模</option><option value="missing">V2 尚未完成</option><option value="verified">已驗證賽果</option></select>
           <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="renderNbaResearch()">
-        </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入 V1／V2 與歷史研究</div></div>
+        </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入 V1 正式版與 V2 統合測試</div></div>
         <div class="panel" style="margin-bottom:16px">
-          <div class="panel-head"><div><div class="panel-title">近 2～3 天，哪個 NBA 模型比較好？</div><div class="panel-desc">先看命中率、再看有方向數及缺少多少資料</div></div>
+          <div class="panel-head"><div><div class="panel-title">近 2～3 天：V1 正式版 vs V2 統合測試</div><div class="panel-desc">只比較兩個模型的同場已結算結果</div></div>
           <select id="nrSimpleWindow" class="input" onchange="nrSimpleScoreboard()"><option value="48">近 2 天</option><option value="72" selected>近 3 天</option></select></div>
           <div id="nrSimpleMeta" class="page-desc" style="margin:0 0 12px">載入中…</div>
           <div id="nrSimpleTable" class="nr-simple-table"><div class="nr-empty">尚未取得資料</div></div>
           <div id="nrSimpleConclusion" class="page-desc" style="margin-top:12px">只計入實際有賽後結果的場次。</div>
-          <p class="page-desc" style="margin-top:8px">「有方向」包含研究傾向，不等於正式推薦；「未給方向」不包含尚未建立模型的場次。命中率排除走盤及尚未驗證。</p>
+          <p class="page-desc" style="margin-top:8px">V2 為後台影子研究，不是正式推薦；樣本不足時不判定哪個模型較好。</p>
         </div>
         <div id="nrSummary" class="nr-summary"></div>
         <div id="nrStats" class="nr-stats"></div>
         <div class="panel"><div class="panel-head">
           <div><div class="panel-title">同一場比賽：正式 V1 與研究模型</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
         </div><div id="nrRows" class="nr-games"><div class="nr-empty">目前尚無研究資料</div></div></div>
-        <div class="panel" style="margin-top:16px"><div class="panel-head"><div>
-          <div class="panel-title">四模型歷史回測摘要</div>
-          <div class="panel-desc">同批賽前快照回測，研究數據不等於正式推薦；有比分且符合條件才計入命中率</div>
-        </div></div><div id="nrHistory"></div>
-        <p class="page-desc" style="margin-top:12px">V2 獨立分析與另外三種歷史校正方法是不同研究來源。僅在相同賽事、同一市場盤口與已驗證時進行對照；未收集、未建模與缺少盤口不等於「暫不推薦」。</p></div>
       </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
@@ -7570,7 +7561,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=6" defer></script>
-<script src="./admin-nba-v2.js?v=6" defer></script>
+<script src="./admin-nba-v2.js?v=7" defer></script>
 
 
 </body>
