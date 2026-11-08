@@ -23,7 +23,7 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 - Public stage remains selected prospectively from the admin page. Late recovery is never eligible for the public results.
 - The member page changes the T-2/T-15 button locally as kickoff approaches; the 15-second UI refresh does not call Supabase or the football API. T-2 is blue and T-15 is purple, with compact labels and the arrow retained.
 - The admin coverage table lists on-time captures separately from late recovery captures; late recovery is not counted in the official comparison or public record.
-- T-2 and T-15 use injury and confirmed lineup data in the player-impact calculation when player statistics are available. The research-only model compares actual/projected XI output with the team regular XI and adjusts goalkeeper-related opponent xG. If key data is missing, it records the reason and leaves the base prediction intact. The provisional player-effect rule is not yet historically calibrated.
+- T-2 and T-15 use injury and confirmed lineup data in the player-impact calculation when player statistics are available. The research-only model compares actual/projected XI goal-involvement and defensive-action rates with the team regular XI; it also adjusts opponent xG when the goalkeeper changes. If key data is missing, it records the reason and leaves the base prediction intact. The provisional player-effect rule is not yet historically calibrated.
 - GPT/Claude shadow calls remain disabled; no model API key or recurring LLM spend is introduced.
 
 ## Files
