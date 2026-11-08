@@ -1,0 +1,33 @@
+/* MLB V1 formal vs V2 shadow comparison. Read only. */
+const B2_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-baseball-v2-compare";
+let b2Compare=null,b2Busy=false,b2Error="";
+const b2Markets={moneyline:"獨贏",spread:"讓分",totals:"大小分"};
+function b2Esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
+function b2Num(v,d=2){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?n.toFixed(d):"—";}
+function b2Pct(v){if(v===null||v===undefined||v==="")return"—";const n=Number(v);return Number.isFinite(n)?n.toFixed(1)+"%":"—";}
+function b2Team(v){return typeof zhTeam==="function"?zhTeam(v):String(v??"—");}
+function b2Date(v){const d=Date.parse(String(v||""));return Number.isFinite(d)?new Date(d).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}):"—";}
+function b2Result(v){return({win:"命中",loss:"未中",push:"走盤"})[v]||"待驗證";}
+function b2MarketPick(key,pick,line){if(!pick)return"沒有方向";if(key==="moneyline")return pick==="home"?"主勝":"客勝";if(key==="totals")return(pick==="over"?"大":"小")+" "+b2Num(line,1);const signed=pick==="home"?Number(line):-Number(line);return(pick==="home"?"主隊":"客隊")+" "+(signed>0?"+":"")+b2Num(signed,1);}
+async function b2Fetch(){
+ const msg=document.getElementById("b2Status"),button=document.getElementById("b2Refresh");if(b2Busy)return;b2Busy=true;b2Error="";if(msg)msg.textContent="正在讀取正式快照、V2 影子快照與已驗證比分…";if(button)button.disabled=true;
+ try{const payload={action:"compare",days:Number(document.getElementById("b2Days")?.value||365)};if(!adminSessionToken&&adminPassword)payload.admin_password=adminPassword;
+  const r=await fetch(B2_COMPARE_URL,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(payload),cache:"no-store"});const j=await r.json().catch(()=>({}));if(!r.ok||j.success===false){if(r.status===401&&adminSessionToken)clearAdminSession();throw Error([j.error||("HTTP "+r.status),j.detail].filter(Boolean).join("："));}b2Compare=j;
+ }catch(e){b2Error=String(e?.message||e);b2Compare=null;}finally{b2Busy=false;if(button)button.disabled=false;}
+ b2Render();
+}
+function b2Rows(){return(Array.isArray(b2Compare?.rows)?b2Compare.rows:[]).slice().sort((a,b)=>Date.parse(b.kickoff_at||0)-Date.parse(a.kickoff_at||0));}
+function b2Summary(){const el=document.getElementById("b2Summary"),stats=b2Compare?.markets||{};if(!el)return;
+ const tiles=[["正式 V1 快照",b2Compare?.v1_count??"—","只讀既有正式 T-10 快照"],["V2 影子快照",b2Compare?.v2_count??"—","研究模型，不影響正式推薦"],["已驗證比分",b2Compare?.verified??"—","僅已驗證完賽資料計算命中"]];
+ el.innerHTML=tiles.map(x=>'<div class="nr-summary-tile"><div>'+x[0]+'</div><strong>'+b2Esc(x[1])+'</strong><small>'+x[2]+'</small></div>').join("");
+ const box=document.getElementById("b2Stats");if(!box)return;box.innerHTML=Object.entries(b2Markets).map(([k,label])=>{const s=stats[k]||{};return'<div class="nr-stat"><b>'+label+'｜同盤同場比較</b><div><span>V1 '+b2Pct(s.paired_v1_hit_pct)+'</span><span>V2 '+b2Pct(s.paired_v2_hit_pct)+'</span></div><small>有效 '+(s.paired_count||0)+' 場｜已結算且盤口相同才計入'+(k==="moneyline"&&s.v2_brier!==null?"｜V2 Brier "+b2Num(s.v2_brier,4):"")+'</small></div>';}).join("");
+}
+function b2Card(c){const final=c.verified?b2Num(c.home_score,0)+"－"+b2Num(c.away_score,0):"尚未驗證比分";const v2Ready=c.v2_status==="available"&&c.v2_expected_home_runs!==null;
+ const cards=Object.entries(b2Markets).map(([k,name])=>{const m=c.markets?.[k]||{},one=b2MarketPick(k,m.v1_pick,m.v1_line),two=v2Ready?b2MarketPick(k,m.v2_pick,m.v2_line):"尚無 V2 結果";const res1=c.verified?b2Result(m.v1_result):"待驗證",res2=c.verified&&v2Ready?b2Result(m.v2_result):"待驗證";const prob=k==="moneyline"&&m.v2_probability!=null?'<div class="nr-note">V2 該方向機率 '+b2Pct(Number(m.v2_probability)*100)+'</div>':'';const mismatch=k!=="moneyline"&&m.v1_pick&&m.v2_pick&&!m.same_line?'<div class="nr-note">V1／V2 盤口不同，這場不納入同盤比較</div>':'';
+  return'<div class="nr-market"><div class="nr-market-name">'+name+'</div><div class="nr-pick-row"><span class="nr-tag nr-v1">V1 正式</span><strong>'+b2Esc(one)+'</strong><span class="nr-result">'+b2Esc(res1)+'</span></div><div class="nr-pick-row"><span class="nr-tag nr-v2">V2 影子</span><strong>'+b2Esc(two)+'</strong><span class="nr-result">'+b2Esc(res2)+'</span></div>'+prob+mismatch+'</div>';}).join("");
+ return'<article class="nr-game"><div class="nr-game-top"><div><div class="nr-meta"><span>'+b2Date(c.kickoff_at)+'</span><span>MLB #'+b2Esc(c.game_id)+'</span><span>V1 '+b2Esc(c.v1_version||"無")+'｜V2 '+b2Esc(c.v2_status==="available"?c.v2_version||"已建模":c.v2_status||"未收集")+'</span></div><div class="fvc-game-title">'+b2Esc(b2Team(c.home))+' <span>對戰</span> '+b2Esc(b2Team(c.away))+'</div></div><div class="nr-verified">'+b2Esc(final)+'</div></div><div class="nr-score-grid"><div class="nr-scorebox"><div><span class="nr-tag nr-v1">V1 正式</span>正式快照</div><strong>不改寫</strong><small>使用既有正式推薦</small></div><div class="nr-scorebox nr-scorebox-alt"><div><span class="nr-tag nr-v2">V2 影子</span>預估比分</div><strong>'+(v2Ready?b2Num(c.v2_expected_home_runs,2)+"－"+b2Num(c.v2_expected_away_runs,2):"尚未收集")+'</strong><small>預估總分 '+(v2Ready?b2Num(c.v2_expected_total_runs,2):"—")+'</small></div></div><div class="nr-market-grid">'+cards+'</div></article>';
+}
+function b2Render(){b2Summary();const status=document.getElementById("b2Status"),rows=b2Rows();if(status)status.textContent=b2Error?"比對資料讀取失敗："+b2Error:b2Compare?"只讀比對完成｜V1 "+b2Compare.v1_count+" 場、V2 "+b2Compare.v2_count+" 場、已驗證 "+b2Compare.verified+" 場":"尚未載入比對資料";
+ const filter=document.getElementById("b2Filter")?.value||"all",search=String(document.getElementById("b2Search")?.value||"").trim().toLowerCase();const visible=rows.filter(c=>{if(filter==="verified"&&!c.verified)return false;if(filter==="v2"&&!(c.v2_status==="available"&&c.v2_expected_home_runs!==null))return false;if(filter==="missing"&&c.v2_status==="available")return false;return !search||[c.game_id,c.home,c.away,b2Team(c.home),b2Team(c.away)].some(x=>String(x??"").toLowerCase().includes(search));});
+ const vis=document.getElementById("b2Visible");if(vis)vis.textContent="顯示 "+visible.length+" 場｜V1 正式資料唯讀；V2 僅作影子比較";const mount=document.getElementById("b2Rows");if(mount)mount.innerHTML=visible.length?visible.map(b2Card).join(""):'<div class="nr-empty">目前沒有符合條件的賽事資料。V2 尚未產生正式快照時，頁面會保留 V1 並顯示「尚未收集」。</div>';
+}

@@ -1073,6 +1073,7 @@ tr:last-child td{border-bottom:0}
         <span class="nav-icon">V2</span> 足球 V2 三階段比對
       </button>
       <button class="nav-btn" data-page="nbaModelBacktestPage" onclick="switchPage('nbaModelBacktestPage',this)"><span class="nav-icon">NBA</span> NBA 模型研究</button>
+      <button class="nav-btn" data-page="baseballV2ComparePage" onclick="switchPage('baseballV2ComparePage',this)"><span class="nav-icon">MLB</span> MLB 影子比對</button>
 
     </div>
 
@@ -2070,6 +2071,24 @@ Database Size、Storage Size 為系統自動取得；Edge、Egress、Logs 等目
           <div><div class="panel-title">同一場比賽：正式 V1 與研究模型</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
         </div><div id="nrRows" class="nr-games"><div class="nr-empty">目前尚無研究資料</div></div></div>
       </section>
+      <!-- MLB V1 FORMAL / V2 SHADOW COMPARISON (READ ONLY) -->
+      <section id="baseballV2ComparePage" class="page">
+        <div class="page-head"><div>
+          <div class="page-kicker">MLB V2 SHADOW RESEARCH</div>
+          <div class="page-title">MLB V1 正式版／V2 影子比對</div>
+          <div class="page-desc">只讀正式 T-10 快照、V2 影子快照與已驗證比分；不寫入正式資料、不影響會員推薦或公開戰績。</div>
+        </div><button class="ghost-btn" id="b2Refresh" onclick="b2Fetch()">↻ 更新比對</button></div>
+        <div class="panel" style="margin-bottom:14px"><div class="toolbar"><div class="filters">
+          <select id="b2Days" class="input" onchange="b2Fetch()"><option value="30">近 30 天</option><option value="90">近 90 天</option><option value="365" selected>近 365 天</option><option value="0">今日</option></select>
+          <select id="b2Filter" class="input" onchange="b2Render()"><option value="all">全部賽事</option><option value="v2">V2 已建模</option><option value="missing">V2 尚未收集</option><option value="verified">已驗證比分</option></select>
+          <input id="b2Search" class="input search" placeholder="球隊名稱、賽事 ID..." oninput="b2Render()">
+        </div></div><div id="b2Status" class="page-desc" aria-live="polite">切換到此頁載入只讀比較資料</div></div>
+        <div id="b2Summary" class="nr-summary"></div>
+        <div id="b2Stats" class="nr-stats"></div>
+        <div class="panel"><div class="panel-head"><div><div class="panel-title">同場比較：V1 正式版 vs V2 影子版</div><div id="b2Visible" class="panel-desc">尚未載入</div></div></div>
+          <div id="b2Rows" class="nr-games"><div class="nr-empty">尚未取得比較資料</div></div>
+        </div>
+      </section>
       <!-- PARTNERS -->
       <section id="partnersPage" class="page">
         <div class="page-head">
@@ -2515,6 +2534,7 @@ const PAGE_NAMES = {
   performanceAdminPage: "公開 AI 戰績",
   footballV2ComparePage: "足球 V2 三階段比對",
   nbaModelBacktestPage: "NBA 模型研究與比較",
+  baseballV2ComparePage: "MLB V1／V2 影子比對",
   partnersPage: "合作平台",
   adminUsersPage: "管理員管理",
   healthPage: "系統健康"
@@ -2532,6 +2552,7 @@ const PAGE_PERMISSIONS = {
   performanceAdminPage: "performance",
   footballV2ComparePage: "performance",
   nbaModelBacktestPage: "performance",
+  baseballV2ComparePage: "performance",
   partnersPage: "partners",
   healthPage: "health",
   adminUsersPage: "admin_users"
@@ -4397,6 +4418,7 @@ function ensurePageData(pageId) {
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
   else if (pageId === "footballV2ComparePage") loadFootballV2StageCompare(false);
   else if (pageId === "nbaModelBacktestPage") loadNbaResearch();
+  else if (pageId === "baseballV2ComparePage") b2Fetch();
   else if (pageId === "partnersPage") loadPartners(false);
   else if (pageId === "adminUsersPage") loadAdminUsers(false);
   else if (pageId === "healthPage") loadHealth(false);
@@ -4411,6 +4433,7 @@ function refreshPageData(pageId) {
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
   if (pageId === "footballV2ComparePage") return loadFootballV2StageCompare(true);
   if (pageId === "nbaModelBacktestPage") return loadNbaResearch();
+  if (pageId === "baseballV2ComparePage") return b2Fetch();
   if (pageId === "partnersPage") return loadPartners(true);
   if (pageId === "adminUsersPage") return loadAdminUsers(true);
   if (pageId === "healthPage") return loadHealth(true);
@@ -7562,6 +7585,7 @@ restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=6" defer></script>
 <script src="./admin-nba-v2.js?v=7" defer></script>
+<script src="./admin-baseball-v2.js?v=1" defer></script>
 
 
 </body>
