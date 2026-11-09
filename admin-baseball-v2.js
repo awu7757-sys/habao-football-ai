@@ -1,5 +1,5 @@
 /* MLB V1 formal vs V2 shadow comparison. Read only. */
-const B2_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-baseball-v2-compare";
+const B2_COMPARE_URL="https://oqtbsbohcfeghngkywxy.supabase.co/functions/v1/admin-baseball-v2-compare";
 let b2Compare=null,b2Busy=false,b2Error="";
 const b2Markets={moneyline:"獨贏",spread:"讓分",totals:"大小分"};
 function b2Esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
