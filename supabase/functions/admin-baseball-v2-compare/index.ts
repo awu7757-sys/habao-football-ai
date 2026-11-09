@@ -7,7 +7,7 @@ const reply=(status:number,x:unknown)=>new Response(JSON.stringify(x),{status,he
 const num=(x:unknown):number|null=>x===null||x===undefined||x===""||typeof x==="boolean"||!Number.isFinite(Number(x))?null:Number(x);
 const outcomeValue=(x:string|null)=>x==="win"?1:x==="loss"?0:null;
 const normPick=(x:unknown):string|null=>{const s=String(x??"").trim().toLowerCase();if(["home","away","over","under"].includes(s))return s;if(/暫不推薦|暂不推荐|no.?pick/.test(s))return null;return null;};
-const get=(o:any,path:string[])=>path.reduce((v,k)=>v&&typeof v==="object"?v[k]:null,o);
+const atPath=(o:any,path:string[])=>path.reduce((v,k)=>v&&typeof v==="object"?v[k]:null,o);
 function grade(market:string,pick:string|null,line:number|null,h:number,a:number):string|null{
  if(!pick)return null;
  let d:number;
@@ -19,7 +19,7 @@ function grade(market:string,pick:string|null,line:number|null,h:number,a:number
  return side?(d*side>0?"win":"loss"):null;
 }
 function v1market(snapshot:any,market:string){
- const m=get(snapshot?.analysis,["model","markets",market])||{};
+ const m=atPath(snapshot?.analysis,["model","markets",market])||{};
  return {pick:normPick(m.pick),line:market==="spread"?num(m.market_home_spread):market==="totals"?num(m.market_line):null,raw:m.pick??null};
 }
 function compare(v1:any,v2:any,result:any){
