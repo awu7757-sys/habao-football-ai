@@ -17,7 +17,7 @@ function reply(status: number, body: Record<string, unknown>) {
 }
 function safe(x: unknown) { return String(x ?? "").slice(0, 180).replace(/[\r\n]/g, " "); }
 function num(x: unknown): number | null {
-  if (x === null || x === undefined || x === "") return null;
+  if (x === null || x === undefined || typeof x === "boolean" || String(x).trim() === "") return null;
   const n = Number(x); return Number.isFinite(n) ? n : null;
 }
 function json(x: unknown): any {
@@ -49,10 +49,10 @@ function marketQuote(snapshot: any) {
   const oddsOkay = (x: unknown) => num(x) !== null && Number(x) > 1 && Number(x) <= 100;
   const totalRows = Array.isArray(context?.totals) ? context.totals : context?.total ? [context.total] : [];
   const handicapRows = Array.isArray(context?.handicaps) ? context.handicaps : context?.handicap ? [context.handicap] : [];
-  const totals = totalRows.filter((x: any) => num(x?.line) !== null && oddsOkay(x?.over_odds) && oddsOkay(x?.under_odds))
+  const totals = totalRows.filter((x: any) => num(x?.line) !== null && Math.abs(Number(x.line)*4-Math.round(Number(x.line)*4))<1e-6 && oddsOkay(x?.over_odds) && oddsOkay(x?.under_odds))
     .map((x: any) => ({ line: Number(x.line), over_odds: Number(x.over_odds), under_odds: Number(x.under_odds), bookmaker_count: Number(x.bookmaker_count)||0 }))
     .sort((a: any,b: any) => a.line-b.line);
-  const handicaps = handicapRows.filter((x: any) => num(x?.home_line) !== null && num(x?.away_line) !== null && oddsOkay(x?.home_odds) && oddsOkay(x?.away_odds))
+  const handicaps = handicapRows.filter((x: any) => num(x?.home_line) !== null && num(x?.away_line) !== null && Math.abs(Number(x.home_line)+Number(x.away_line))<1e-6 && Math.abs(Number(x.home_line)*4-Math.round(Number(x.home_line)*4))<1e-6 && oddsOkay(x?.home_odds) && oddsOkay(x?.away_odds))
     .map((x: any) => ({ home_line: Number(x.home_line), away_line: Number(x.away_line), home_odds: Number(x.home_odds), away_odds: Number(x.away_odds), bookmaker_count: Number(x.bookmaker_count)||0 }))
     .sort((a: any,b: any) => a.home_line-b.home_line);
   return { totals, handicaps, total: totals[0] || null, handicap: handicaps[0] || null };
@@ -97,8 +97,8 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
   for (const [id, result] of results) {
     const stages = byFixture.get(id);
     if (!stages || !STAGES.every(s => stages.has(s))) continue;
-    const hs = Number(result.home_score), as = Number(result.away_score);
-    if (!Number.isInteger(hs) || !Number.isInteger(as) || result.excluded_from_public === true) continue;
+    const hs = num(result.home_score), as = num(result.away_score);
+    if (!Number.isInteger(hs) || !Number.isInteger(as) || hs===null || as===null || hs<0 || as<0 || result.excluded_from_public === true) continue;
     const predictions: Record<string, any> = {};
     for (const stage of STAGES) {
       const snap = stages.get(stage), homeXg = num(snap.home_xg), awayXg = num(snap.away_xg), quote = marketQuote(snap);
@@ -308,4 +308,5 @@ Deno.serve(async req => {
     return reply(500, { success: false, error: safe(e) });
   }
 });
+
 
