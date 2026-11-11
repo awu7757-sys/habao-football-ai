@@ -37,7 +37,7 @@ WITH wanted(name) AS (
     FROM v1 WHERE (s->>'generated_at')::timestamptz NOT BETWEEN (s->>'fixture_time')::timestamptz-interval '10 hours 30 minutes' AND (s->>'fixture_time')::timestamptz-interval '8 hours'
   UNION ALL SELECT 50,'已驗證 NBA 比分',CASE WHEN count(*)=0 THEN 'PASS' ELSE 'CHECK' END,count(*)::text||' 筆缺少有效正整數比分或完賽平手'
     FROM v1 WHERE s->>'status'='verified' AND coalesce(s->>'excluded_from_public','false')<>'true' AND
-      (coalesce(s->>'home_score','')!~'^[1-9][0-9]*$' OR coalesce(s->>'away_score','')!~'^[1-9][0-9]*$' OR s->>'home_score'=s->>'away_score')
+      (coalesce(s->>'final_home','')!~'^[1-9][0-9]*$' OR coalesce(s->>'final_away','')!~'^[1-9][0-9]*$' OR s->>'final_home'=s->>'final_away')
   UNION ALL SELECT 60,'V2 狀態 '||coalesce(s->>'status','未標示'),'INFO',count(*)::text||' 筆' FROM v2 GROUP BY s->>'status'
   UNION ALL SELECT 61,'V2 沒有資料',CASE WHEN n2=0 THEN 'INFO' ELSE 'PASS' END,
     CASE WHEN n2=0 THEN '尚未取得統合 V2 快照；不能據此判定模型或排程成功' ELSE n2||' 筆統合 V2 快照' END FROM counts
@@ -70,7 +70,7 @@ WITH wanted(name) AS (
     FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname IN ('basketball_v2_unified_snapshots','basketball_v2_box_cache')
   UNION ALL SELECT 130,'排程 #'||j.jobid||' '||j.jobname,
     CASE WHEN NOT j.active THEN 'DISABLED' WHEN r.status='succeeded' THEN 'SQL_OK' ELSE 'CHECK' END,
-    j.schedule||'；最近 '||coalesce(r.start_time::text,'尚無紀錄')||'；'||coalesce(r.status,'尚無紀錄')||'（只證明 SQL，不代表 API 已成功）'
+    j.schedule||'；函式 '||coalesce(substring(j.command FROM '/functions/v1/([a-zA-Z0-9_-]+)'),'未直接指定，需查核')||'；最近 '||coalesce(r.start_time::text,'尚無紀錄')||'；'||coalesce(r.status,'尚無紀錄')||'（只證明 SQL，不代表 API 已成功）'
     FROM cron.job j LEFT JOIN LATERAL (SELECT status,start_time FROM cron.job_run_details WHERE jobid=j.jobid ORDER BY start_time DESC LIMIT 1) r ON true
     WHERE j.jobname ILIKE '%nba%' OR j.jobname ILIKE '%basketball%'
   UNION ALL SELECT 140,'統合 V2 排程',CASE WHEN count(*)=1 AND bool_and(active) THEN 'PASS' ELSE 'CHECK' END,
