@@ -2,7 +2,7 @@
 const URL_BASE=String(Deno.env.get('SUPABASE_URL')||'').replace(/\/$/,'');
 let SERVICE=String(Deno.env.get('SUPABASE_SECRET_KEY')||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'');
 if(!SERVICE){try{SERVICE=String(JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default||'')}catch{}}
-const API_VERSION='nba-v2-compare-audit-20261111';
+const API_VERSION='nba-v2-compare-audit-20261111-final-scores-v2';
 const HEAD={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-admin-session,authorization,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','X-Habao-Version':API_VERSION};
 const reply=(status,x)=>new Response(JSON.stringify(x),{status,headers:{...HEAD,'Content-Type':'application/json; charset=utf-8'}});
 const num=x=>x===undefined||x===null||typeof x==='boolean'||String(x).trim()===''?null:Number.isFinite(Number(x))?Number(x):null;
@@ -52,7 +52,9 @@ function normalizeStatus(s){return String(s||'').toLowerCase();}
 function compare(snapshot,shadow){
   const v1=snapshot?.prediction_data||{};
   const v2=shadow?.status==='ready'?shadow?.model_output:null;
-  const h=num(snapshot?.home_score),a=num(snapshot?.away_score);
+  // Database stores verified results in final_home/final_away.
+  // Keep home_score/away_score only as the existing dashboard response contract.
+  const h=num(snapshot?.final_home),a=num(snapshot?.final_away);
   const verified=normalizeStatus(snapshot?.status)==='verified'&&Number.isInteger(h)&&Number.isInteger(a)&&h>0&&a>0&&h!==a&&snapshot?.excluded_from_public!==true;
   const markets={};
   for(const key of ['moneyline','handicap','over_under']){
@@ -115,7 +117,7 @@ Deno.serve(async(req)=>{
     const now=Date.now(),dayStr=new Date(now).toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'});
     const since=days===0?new Date(`${dayStr}T00:00:00+08:00`).toISOString():new Date(now-days*86400000).toISOString();
     const until=days===0?new Date(`${dayStr}T23:59:59+08:00`).toISOString():new Date(now+14*86400000).toISOString();
-    const qs=new URLSearchParams({select:'game_id,fixture_time,home_team,away_team,generated_at,source,model_version,prediction_data,status,home_score,away_score,excluded_from_public',
+    const qs=new URLSearchParams({select:'game_id,fixture_time,home_team,away_team,generated_at,source,model_version,prediction_data,status,final_home,final_away,excluded_from_public',
       fixture_time:`gte.${since}`,and:`(fixture_time.lte.${until})`,order:'fixture_time.desc',limit:'200'});
     const original=await get('basketball_prediction_snapshots',qs.toString());
     const ids=original.map(x=>Number(x.game_id)).filter(Number.isSafeInteger);
