@@ -137,8 +137,10 @@ Deno.serve(async (req) => {
         `${SUPABASE_URL}/rest/v1/football_v2_rollout_settings?select=public_stage,public_stage_effective_at&id=eq.true&limit=1`,
         { headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` }, signal: AbortSignal.timeout(10000) },
       );
+      if (!settingResponse.ok) throw new Error(`public_stage_setting_read_${settingResponse.status}`);
       if (settingResponse.ok) {
         const settingRows: any[] = await settingResponse.json();
+        if(!Array.isArray(settingRows)||settingRows.length!==1||!["t10","t2","t15"].includes(settingRows[0]?.public_stage))throw new Error("invalid_public_stage_settings");
         publicStage = ["t10", "t2", "t15"].includes(settingRows?.[0]?.public_stage) ? settingRows[0].public_stage : "t10";
         publicStageEffectiveAt = settingRows?.[0]?.public_stage_effective_at || null;
       }
@@ -146,12 +148,15 @@ Deno.serve(async (req) => {
         `${SUPABASE_URL}/rest/v1/football_v2_public_stage_history?select=stage,effective_at&order=effective_at.asc&limit=200`,
         { headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` }, signal: AbortSignal.timeout(10000) },
       );
+      if (!historyResponse.ok) throw new Error(`public_stage_history_read_${historyResponse.status}`);
       if (historyResponse.ok) {
         const historyRows: any[] = await historyResponse.json();
+        if(!Array.isArray(historyRows)||!historyRows.length||historyRows.some(x=>!["t10","t2","t15"].includes(x.stage)||!Number.isFinite(Date.parse(x.effective_at))))throw new Error("invalid_public_stage_history");
         publicStageHistory = Array.isArray(historyRows) ? historyRows.filter(x => ["t10", "t2", "t15"].includes(x.stage) && Number.isFinite(Date.parse(x.effective_at))) : [];
       }
     } catch (settingError) {
-      console.warn("AI PERFORMANCE public stage setting unavailable; using T-10", settingError);
+      console.warn("AI PERFORMANCE public stage settings unavailable", settingError);
+      throw new Error("public_stage_settings_unavailable");
     }
 
     // Apply the stage that was active at each fixture's kickoff. This keeps
@@ -227,14 +232,14 @@ Deno.serve(async (req) => {
           let totalPick: any = null, handicapPick: any = null;
           const totalOptions = totalQuotes.flatMap((quote: any) => {
             const line = Number(quote?.line), overOdds = Number(quote?.over_odds), underOdds = Number(quote?.under_odds);
-            if (!Number.isFinite(line) || !(overOdds > 1) || !(underOdds > 1)) return [];
+            if (quote?.line==null || typeof quote.line==="boolean" || String(quote.line).trim()==="" || !Number.isFinite(line) || Math.abs(line*4-Math.round(line*4))>1e-6 || !(overOdds > 1) || !(underOdds > 1)) return [];
             const overEv = expected(scoreGrid,line,"over",overOdds), underEv = expected(scoreGrid,line,"under",underOdds), side = overEv >= underEv ? "over" : "under";
             return [{ pick:side === "over" ? "大" : "小", line, ev:Math.max(overEv,underEv) }];
           }).sort((a: any,b: any)=>b.ev-a.ev);
           if (totalOptions.length) { const best=totalOptions[0]; totalPick={pick:best.pick,line:best.line,reason:`比較所選階段所有實際大小球盤線後選出：${best.line}`}; }
           const handicapOptions = handicapQuotes.flatMap((quote: any) => {
             const homeLine = Number(quote?.home_line), awayLine = Number(quote?.away_line), homeOdds = Number(quote?.home_odds), awayOdds = Number(quote?.away_odds);
-            if (!Number.isFinite(homeLine) || !Number.isFinite(awayLine) || !(homeOdds > 1) || !(awayOdds > 1)) return [];
+            if (quote?.home_line==null || quote?.away_line==null || typeof quote.home_line==="boolean" || typeof quote.away_line==="boolean" || String(quote.home_line).trim()==="" || String(quote.away_line).trim()==="" || !Number.isFinite(homeLine) || !Number.isFinite(awayLine) || Math.abs(homeLine+awayLine)>1e-6 || Math.abs(homeLine*4-Math.round(homeLine*4))>1e-6 || !(homeOdds > 1) || !(awayOdds > 1)) return [];
             const homeEv = expected(scoreGrid,homeLine,"home",homeOdds), awayEv = expected(scoreGrid,awayLine,"away",awayOdds), home = homeEv >= awayEv;
             return [{ pick:home ? "主隊" : "客隊", line:home ? homeLine : awayLine, ev:Math.max(homeEv,awayEv) }];
           }).sort((a: any,b: any)=>b.ev-a.ev);
@@ -1378,4 +1383,5 @@ Deno.serve(async (req) => {
   }
 
 });
+
 
