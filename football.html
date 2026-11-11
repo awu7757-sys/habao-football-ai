@@ -4256,6 +4256,8 @@ const MATCH_ANALYSIS_URL =
 const FOOTBALL_V2_STAGE_MEMBER_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/football-v2-stage-member";
 const FOOTBALL_V2_STAGE_SEQUENCE = ["t10", "t2", "t15"];
+const footballV2StagePending=new Set();
+let footballV2StageStatusSerial=0;
 async function footballV2StageHeaders() {
   const headers = { "Content-Type": "application/json", apikey: FIXTURES_PUBLISHABLE_KEY };
   try {
@@ -4270,6 +4272,7 @@ async function refreshFootballV2StageButtons(fixtureIds) {
   try { member = JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch {}
   const account = String(member?.account || "").trim();
   if (!account || !fixtureIds?.length) return;
+  const serial=++footballV2StageStatusSerial;
   try {
     const response = await fetch(FOOTBALL_V2_STAGE_MEMBER_URL, {
       method: "POST", headers: await footballV2StageHeaders(),
@@ -4277,54 +4280,59 @@ async function refreshFootballV2StageButtons(fixtureIds) {
       cache: "no-store", signal: AbortSignal.timeout(15000),
     });
     const packet = await response.json().catch(() => ({}));
+    let latestAccount="";try{latestAccount=String(JSON.parse(sessionStorage.getItem("habao_member")||"null")?.account||"").trim();}catch{}
+    if(serial!==footballV2StageStatusSerial||latestAccount!==account)return;
     window.habaoFootballV2StageUiEnabled = response.ok && packet?.success === true && packet.enabled === true;
     window.habaoFootballV2StageMatches = window.habaoFootballV2StageUiEnabled ? (packet.stages || {}) : {};
-    if (!window.habaoFootballV2StageUiEnabled) return;
+    if (!window.habaoFootballV2StageUiEnabled) { resetFootballV2StageButtons(); return; }
     for (const fixtureId of fixtureIds) renderFootballV2StageButton(fixtureId, window.habaoFootballV2StageMatches[String(fixtureId)] || {});
   } catch (error) {
+    if(serial===footballV2StageStatusSerial){window.habaoFootballV2StageUiEnabled=false;window.habaoFootballV2StageMatches={};resetFootballV2StageButtons();}
     console.warn("FOOTBALL_V2_STAGE_STATUS_UNAVAILABLE", error?.message || error);
   }
 }
+function resetFootballV2StageButtons(){
+  document.querySelectorAll("[data-v2-stage-actions]").forEach(host=>{
+    const primary=host.parentElement?.querySelector(".analysis-btn.v2-analysis-btn"),old=primary?._v2OriginalState;
+    host.replaceChildren();host.classList.remove("is-visible");
+    if(primary&&old){primary.innerHTML=old.html;primary.disabled=old.disabled;primary.onclick=old.onclick;primary.className=old.className;primary.setAttribute("aria-label",old.ariaLabel||"開始分析");delete primary.dataset.stage;delete primary._v2OriginalState;}
+  });
+}
 function renderFootballV2StageButton(fixtureId, match = {}) {
-  const host = document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
-  const primary = host?.parentElement?.querySelector(".analysis-btn.v2-analysis-btn");
-  if (!host || !primary) return;
-  const fixture = window.habaoFixtureMap?.[String(fixtureId)];
-  const kickoff = Date.parse(fixture?.time || "");
-  const minutes = (kickoff - Date.now()) / 60000;
-  if (!Number.isFinite(minutes)) return;
-  if (minutes <= 0) {
-    if (primary.classList.contains("football-v2-stage-btn")) {
-      primary.classList.remove("stage-t2", "stage-t15", "football-v2-stage-btn");
-      primary.classList.add("finished");
-      primary.disabled = true;
-      primary.onclick = null;
-      primary.innerHTML = "<span>分析已截止</span>";
-      delete primary.dataset.stage;
-    }
+  const host=document.querySelector(`[data-v2-stage-actions="${fixtureId}"]`);
+  const primary=host?.parentElement?.querySelector(".analysis-btn.v2-analysis-btn");
+  if(!host||!primary)return;
+  if([...footballV2StagePending].some(key=>key.startsWith(`${fixtureId}:`)))return;
+  const kickoff=Date.parse(window.habaoFixtureMap?.[String(fixtureId)]?.time||"");
+  const minutes=(kickoff-Date.now())/60000;
+  if(!Number.isFinite(minutes))return;
+  host.replaceChildren();host.classList.remove("is-visible");
+  if(minutes<=0){
+    primary.classList.remove("stage-t2","stage-t15","football-v2-stage-btn");
+    primary.classList.add("finished");primary.disabled=true;primary.onclick=null;
+    primary.innerHTML="<span>分析已截止</span>";delete primary.dataset.stage;return;
+  }
+  const stage=minutes<=15?"t15":minutes<=120?"t2":null;
+  if(!stage){
+    const old=primary._v2OriginalState;
+    if(old){primary.innerHTML=old.html;primary.disabled=old.disabled;primary.onclick=old.onclick;primary.className=old.className;delete primary.dataset.stage;delete primary._v2OriginalState;}
     return;
   }
-  const stage = minutes <= 15 ? "t15" : minutes <= 120 ? "t2" : null;
-  if (!stage) {
-    if (primary.classList.contains("football-v2-stage-btn")) {
-      primary.classList.remove("stage-t2", "stage-t15", "football-v2-stage-btn");
-      primary.disabled = false;
-      primary.onclick = () => openMatch(fixtureId, primary);
-      primary.innerHTML = "<span>開始分析</span><strong>→</strong>";
-      delete primary.dataset.stage;
-    }
-    return;
-  }
-  if (primary.dataset.stage === stage) return;
-  const label = stage === "t2" ? "深度分析" : "最終分析";
-  const style = stage === "t2" ? "stage-t2" : "stage-t15";
-  primary.classList.remove("stage-t2", "stage-t15", "locked", "finished");
-  primary.classList.add("football-v2-stage-btn", style);
-  primary.disabled = false;
-  primary.dataset.stage = stage;
-  primary.onclick = () => openFootballV2Stage(fixtureId, stage, primary);
-  primary.innerHTML = `<span>${label}</span><strong>→</strong>`;
-  primary.setAttribute("aria-label", label);
+  if(!primary._v2OriginalState)primary._v2OriginalState={html:primary.innerHTML,disabled:primary.disabled,onclick:primary.onclick,className:primary.className,ariaLabel:primary.getAttribute("aria-label")};
+  const label=stage==="t2"?"深度分析":"最終分析",claimed=match.claimed?.[stage]===true;
+  primary.classList.remove("stage-t2","stage-t15","locked","finished");
+  primary.classList.add("football-v2-stage-btn",stage==="t2"?"stage-t2":"stage-t15");
+  primary.disabled=claimed;primary.dataset.stage=stage;
+  primary.onclick=claimed?null:()=>openFootballV2Stage(fixtureId,stage,primary);
+  primary.innerHTML=`<span>${claimed?"已領取":""}${label}</span><strong>→</strong>`;
+  primary.setAttribute("aria-label",claimed?"已領取"+label:label);
+  const addCatchup=(prior,text,ready)=>{
+    const b=document.createElement("button");b.type="button";b.className="v2-analysis-btn football-v2-stage-btn"+(prior==="t2"?" stage-t2":"");
+    b.disabled=!ready;b.textContent=text;b.setAttribute("aria-label",text);
+    b.onclick=()=>prior==="t10"?openMatch(fixtureId,b):openFootballV2Stage(fixtureId,prior,b);host.appendChild(b);host.classList.add("is-visible");
+  };
+  if(match.claimed?.t10!==true)addCatchup("t10","補領 T-10 分析",true);
+  if(stage==="t15"&&match.claimed?.t2!==true)addCatchup("t2",match.ready?.t2?"補領 T-2 深度分析":"T-2 快照尚未取得",match.ready?.t2===true);
 }
 // Stage changes are local clock updates; this does not poll Supabase.
 window.setInterval(() => {
@@ -4337,7 +4345,8 @@ window.setInterval(() => {
 async function openFootballV2Stage(fixtureId, stage, button) {
   const id = Number(fixtureId);
   const member = (() => { try { return JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch { return null; } })();
-  if (!member?.account || !id || !["t2", "t15"].includes(stage)) { alert("請重新登入會員後再查看賽前分析"); return; }
+  if (!member?.account || !Number.isSafeInteger(id) || id<=0 || !["t2", "t15"].includes(stage)) { alert("請重新登入會員後再查看賽前分析"); return; }
+  const key=`${id}:${stage}`;if(footballV2StagePending.has(key))return;footballV2StagePending.add(key);
   const oldText = button?.innerHTML || "";
   if (button) { button.disabled = true; button.innerHTML = `<span>${stage === "t2" ? "載入深度分析…" : "載入最終分析…"}</span>`; }
   try {
@@ -4355,12 +4364,14 @@ async function openFootballV2Stage(fixtureId, stage, button) {
       if (packet?.error === "stage_not_open") throw new Error("目前尚未進入這個分析階段，請稍後再試。 ");
       throw new Error(packet?.error || `HTTP ${response.status}`);
     }
+    if(Number(packet.result?.fixture?.id)!==id||packet.result?.v2_stage!==stage||packet.result?.success!==true||!packet.result?.analysis)throw new Error("階段分析回傳不完整，請重新讀取。");
+    const status=window.habaoFootballV2StageMatches?.[String(id)];if(status){status.claimed={...status.claimed,[stage]:true};}
     sessionStorage.setItem("matchAnalysis", JSON.stringify(packet.result));
     window.location.href = `analysis.html?v=2&v2stage=${encodeURIComponent(stage)}`;
   } catch (error) {
     alert(error?.message || "階段分析失敗，請稍後再試");
     if (button) { button.disabled = false; button.innerHTML = oldText; }
-  }
+  } finally {footballV2StagePending.delete(key);}
 }
 
 const ANALYSIS_JOB_URL =
@@ -11626,4 +11637,5 @@ analysisResultNotFound: "Analysis result not found"
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 </body>
 </html>
+
 
