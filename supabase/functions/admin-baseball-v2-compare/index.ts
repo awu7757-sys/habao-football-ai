@@ -1,8 +1,9 @@
 // MLB V1 vs V2 shadow comparison. Read-only; requires an admin performance session.
 const BASE=String(Deno.env.get("SUPABASE_URL")||"").replace(/\/$/,"");
-let SERVICE=String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"");
-if(!SERVICE){try{SERVICE=String(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}").default||"")}catch{}}
-const HEAD={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"content-type,x-admin-session,authorization,apikey","Access-Control-Allow-Methods":"POST,OPTIONS","Cache-Control":"no-store"};
+let SERVICE=String(Deno.env.get("SUPABASE_SECRET_KEY")||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"");
+if(!SERVICE){try{const keys=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}");SERVICE=String(keys.default||Object.values(keys)[0]||"")}catch{}}
+const VERSION="habao-mlb-compare-0.1.2";
+const HEAD={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"content-type,x-admin-session,authorization,apikey,x-client-info","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Expose-Headers":"x-mlb-compare-version","X-MLB-Compare-Version":VERSION,"Cache-Control":"no-store"};
 const reply=(status:number,x:unknown)=>new Response(JSON.stringify(x),{status,headers:{...HEAD,"Content-Type":"application/json; charset=utf-8"}});
 const num=(x:unknown):number|null=>x===null||x===undefined||x===""||typeof x==="boolean"||!Number.isFinite(Number(x))?null:Number(x);
 const outcomeValue=(x:string|null)=>x==="win"?1:x==="loss"?0:null;
@@ -48,7 +49,7 @@ function compare(v1:any,v2:any,result:any){
      same_line:sameLine,comparable:verified&&sameLine&&outcomeValue(v1Result)!==null&&outcomeValue(v2Result)!==null};
  }
  return {game_id:Number(v1?.game_id??v2?.game_id),kickoff_at:v1?.kickoff_at??v2?.kickoff_at,
-   home:v1?.home_team??v2?.home_team??null,away:v1?.away_team??v2?.away_team??null,
+   home:v1?.home_team??v1?.analysis?.fixture?.home?.name??v2?.home_team??null,away:v1?.away_team??v1?.analysis?.fixture?.away?.name??v2?.away_team??null,
    home_score:homeScore,away_score:awayScore,verified,
    v1_version:v1?.model_version??null,v1_status:v1?"available":"not_found",
    v2_version:v2?.model_version??null,v2_status:v2?.status??"not_collected",
@@ -61,7 +62,7 @@ function rate(rows:any[]){
      if(outcomeValue(m.v1_result)!==null){v1n++;v1w+=outcomeValue(m.v1_result)!;}
      if(outcomeValue(m.v2_result)!==null){v2n++;v2w+=outcomeValue(m.v2_result)!;}
      if(m.comparable){pn++;p1w+=outcomeValue(m.v1_result)!;p2w+=outcomeValue(m.v2_result)!;}
-     if(key==="moneyline"&&r.verified&&m.v2_probability!==null){const y=r.home_score>r.away_score?(m.v2_pick==="home"?1:0):(m.v2_pick==="away"?1:0);brierSum+=(m.v2_probability-y)**2;brierN++;}
+     if(key==="moneyline"&&outcomeValue(m.v2_result)!==null&&m.v2_probability!==null){const y=outcomeValue(m.v2_result)!;brierSum+=(m.v2_probability-y)**2;brierN++;}
    }
    const pct=(w:number,n:number)=>n?Math.round(w/n*10000)/100:null;
    stats[key]={v1_count:v1n,v1_hit_pct:pct(v1w,v1n),v2_count:v2n,v2_hit_pct:pct(v2w,v2n),paired_count:pn,paired_v1_hit_pct:pct(p1w,pn),paired_v2_hit_pct:pct(p2w,pn),push_count:push,v2_brier:key==="moneyline"&&brierN?Math.round(brierSum/brierN*10000)/10000:null};
@@ -69,12 +70,20 @@ function rate(rows:any[]){
  return stats;
 }
 async function get(table:string,params:URLSearchParams){const r=await fetch(`${BASE}/rest/v1/${table}?${params}`,{headers:{apikey:SERVICE,Authorization:`Bearer ${SERVICE}`},signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error(`db_${table}_${r.status}: ${(await r.text()).slice(0,160)}`);return await r.json();}
-async function isAdmin(session:string){if(!session||session.length>400)return false;const r=await fetch(`${BASE}/functions/v1/admin-center`,{method:"POST",headers:{"Content-Type":"application/json","x-admin-session":session},body:JSON.stringify({action:"auth_me"}),signal:AbortSignal.timeout(12000)});if(!r.ok)return false;const x=await r.json().catch(()=>null);return x?.success===true&&Boolean(x?.admin&&(x.admin.is_super_admin===true||x.admin.permissions?.includes("performance")));}
+async function isAdmin(session:string){
+ if(!session||session.length>400)return false;
+ const r=await fetch(`${BASE}/functions/v1/admin-center`,{method:"POST",headers:{"Content-Type":"application/json","x-admin-session":session},body:JSON.stringify({action:"auth_me"}),signal:AbortSignal.timeout(12000)});
+ if(r.status>=500)throw Error(`admin_auth_unavailable_${r.status}`);
+ if(!r.ok)return false;
+ const x=await r.json();
+ return x?.success===true&&Boolean(x?.admin&&(x.admin.is_super_admin===true||x.admin.permissions?.includes("performance")));
+}
 Deno.serve(async(req:Request)=>{
- if(req.method==="OPTIONS")return new Response("",{status:204,headers:HEAD});if(req.method!=="POST")return reply(405,{success:false,error:"POST_only"});if(!BASE||!SERVICE)return reply(503,{success:false,error:"backend_not_configured"});
- try{if(!(await isAdmin(req.headers.get("x-admin-session")||"")))return reply(401,{success:false,error:"admin_unauthorized"});const body=await req.json().catch(()=>({}));if(body?.action!=="compare")return reply(400,{success:false,error:"invalid_action"});
+ // A 204 response must have a null body; even an empty string throws at runtime.
+ if(req.method==="OPTIONS")return new Response(null,{status:204,headers:HEAD});if(req.method!=="POST")return reply(405,{success:false,error:"POST_only"});if(!BASE||!SERVICE)return reply(503,{success:false,error:"backend_not_configured"});
+ try{if(!(await isAdmin(req.headers.get("x-admin-session")||"")))return reply(401,{success:false,error:"admin_unauthorized"});let body:any;try{body=await req.json()}catch{return reply(400,{success:false,error:"invalid_json"})}if(body?.action!=="compare")return reply(400,{success:false,error:"invalid_action"});
    const days=[0,30,90,365].includes(Number(body.days))?Number(body.days):365;const now=Date.now(),tw=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Taipei"});const since=days===0?new Date(`${tw}T00:00:00+08:00`).toISOString():new Date(now-days*86400000).toISOString();const until=days===0?new Date(`${tw}T23:59:59+08:00`).toISOString():new Date(now+14*86400000).toISOString();
-   const baseParams=new URLSearchParams({select:"game_id,kickoff_at,home_team,away_team,model_version,analysis",kickoff_at:`gte.${since}`,and:`(kickoff_at.lte.${until})`,order:"kickoff_at.desc",limit:"500"});
+   const baseParams=new URLSearchParams({select:"game_id,kickoff_at,model_version,analysis",kickoff_at:`gte.${since}`,and:`(kickoff_at.lte.${until})`,order:"kickoff_at.desc",limit:"500"});
    const v1=await get("baseball_t10_snapshots",baseParams);const v2=await get("baseball_v2_shadow_snapshots",new URLSearchParams({select:"game_id,kickoff_at,model_version,status,as_of,home_team,away_team,inputs,prediction",kickoff_at:`gte.${since}`,and:`(kickoff_at.lte.${until})`,order:"kickoff_at.desc",limit:"500"}));
    const ids=[...new Set([...v1,...v2].map((x:any)=>Number(x.game_id)).filter(Number.isSafeInteger))];const results:any[]=[];
    for(let i=0;i<ids.length;i+=80){const part=ids.slice(i,i+80);results.push(...await get("baseball_verified_results",new URLSearchParams({select:"game_id,home_score,away_score",game_id:`in.(${part.join(",")})`,limit:String(part.length)})));}
@@ -83,3 +92,4 @@ Deno.serve(async(req:Request)=>{
    return reply(200,{success:true,research_only:true,read_only:true,uncalibrated:true,days,count:rows.length,v1_count:v1.length,v2_count:v2.length,verified:rows.filter(x=>x.verified).length,markets:rate(rows),note:"MLB V2 shadow comparison only. Reads baseball_t10_snapshots, baseball_v2_shadow_snapshots, and baseball_verified_results; writes no rows and does not alter V1, member quotas, or public records.",rows});
  }catch(e){console.error("MLB_V2_COMPARE",String(e));return reply(500,{success:false,error:"compare_failed",detail:String(e instanceof Error?e.message:e).slice(0,220)});}
 });
+
