@@ -358,14 +358,20 @@ async function captureDueStageUnlocked(
     const awayDelta=applied?Number((playerAdjustment.away.attack_delta+playerAdjustment.home.keeper_conceded_delta+playerAdjustment.home.defense_opponent_xg_delta).toFixed(4)):0;
     const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season),homeDelta,awayDelta);
     const quality=feature.data_quality==='research_ready'?'research_ready_uncalibrated':'low_sample_uncalibrated';
-    const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date().toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
+    const finishedAt=Date.now(),completedDelta=(officialKickoff-finishedAt)/MINUTE;
+    if(completedDelta<=0||(stage.key==='t2'&&completedDelta<=15)){
+      await audit(f,stage,'expired','capture_completed_after_stage_closed',attempt,true,{api_football_calls:calls});
+      return {fixture_id:id,stage:stage.key,status:'expired'};
+    }
+    captureMode=Math.abs(completedDelta-stage.target)<=1.5?'scheduled':'late_pre_match_recovery';
+    const payload={fixture_id:id,stage:stage.key,kickoff_at:new Date(officialKickoff).toISOString(),captured_at:new Date(finishedAt).toISOString(),home_team_id:feature.home_team_id,away_team_id:feature.away_team_id,
       home_xg:prediction.home_xg,away_xg:prediction.away_xg,probabilities:prediction.probabilities,fair_odds:prediction.fair_odds,
       market_context:marketContext,availability_evidence:availabilityEvidence,lineup_evidence:lineups,data_quality:quality,
       player_adjustment:playerAdjustment,
       source_meta:{provider:'api_football',feature_snapshot_stage:feature.stage,feature_captured_at:feature.captured_at,feature_quality:feature.data_quality,api_football_calls:calls,odds_api_requests:marketContext.odds_api_requests||0,market_capture_status:marketContext.status,
         model_inputs:'opponent-adjusted recent form shrunk toward league average; season standings contribution discounted by overlap with recent-history matches; T-2/T-15 player goal-involvement, defensive-action and goalkeeper evidence adjusts expected goals when player statistics are available',
         shrinkage_prior:`API-Football league average from season ${feature.league_baseline?.source_season}`,shrinkage_k:5,venue_adjustment:'recency-weighted venue attack ratio shrunk toward neutral; clipped 0.85-1.15',
-        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:applied,player_adjustment_status:playerAdjustment.status,player_xg_delta:{home:homeDelta,away:awayDelta},capture_mode:captureMode,scheduled_target_at:new Date(officialKickoff-stage.target*MINUTE).toISOString(),capture_lag_minutes:Number(Math.max(0,Math.abs((officialKickoff-stage.target*MINUTE-now)/MINUTE)).toFixed(2)),eligible_for_stage_metrics:captureMode==='scheduled'},model_version:VERSION,research_only:true};
+        score_grid_max:18,xg_bounds:[0.15,4],post_match_backfill:false,player_adjustment_applied:applied,player_adjustment_status:playerAdjustment.status,player_xg_delta:{home:homeDelta,away:awayDelta},capture_mode:captureMode,scheduled_target_at:new Date(officialKickoff-stage.target*MINUTE).toISOString(),capture_lag_minutes:Number(Math.max(0,Math.abs((officialKickoff-stage.target*MINUTE-finishedAt)/MINUTE)).toFixed(2)),eligible_for_stage_metrics:captureMode==='scheduled'},model_version:VERSION,research_only:true};
     await dbWrite('football_v2_shadow_stage_snapshots',payload,'fixture_id,stage','resolution=ignore-duplicates,return=minimal');
     await audit(f,stage,'ready','shadow_prediction_saved',attempt,true,{feature_stage:feature.stage,feature_captured_at:feature.captured_at,api_football_calls:calls});
     if(stage.key==='t10'){
@@ -555,3 +561,4 @@ try {
   });
 }
 });
+
