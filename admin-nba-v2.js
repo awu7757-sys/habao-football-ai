@@ -1,6 +1,6 @@
 /* HABAO NBA V1 vs single unified V2 research dashboard */
 const NR_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
-let nrCompare=null,nrErrors={},nrLoading=false;
+let nrCompare=null,nrErrors={},nrLoading=false,nrRequestSerial=0,nrRequestController=null;
 const nrNames={v2:"V2 統合測試模型"};
 const nrMarkets={moneyline:"獨贏",handicap:"讓分",over_under:"大小分"};
 function nrEsc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");}
@@ -20,25 +20,31 @@ function nrPick(k,p,line){
  const n=Number(line);
  return name+" "+(Number.isFinite(n)?(k==="handicap"&&n>0?"+":"")+n:String(line));
 }
-async function nrFetch(url,payload){
+async function nrFetch(url,payload,signal){
  const req={...payload};
  if(!adminSessionToken&&adminPassword)req.admin_password=adminPassword;
- const response=await fetch(url,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(req),cache:"no-store"});
- const data=await response.json().catch(()=>({}));
- if(!response.ok||data.success===false){
+ const response=await fetch(url,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify(req),cache:"no-store",signal});
+ const data=await response.json().catch(()=>null);
+ if(!response.ok||data?.success!==true||!Array.isArray(data?.rows)){
   if(response.status===401&&adminSessionToken)clearAdminSession();
-  throw Error([data.error||("HTTP "+response.status),data.detail].filter(Boolean).join("："));
+  throw Error([data?.error||(response.ok?"比較 API 回傳格式不完整":"HTTP "+response.status),data?.detail].filter(Boolean).join("："));
  }
  return data;
 }
 async function loadNbaResearch(){
- const msg=document.getElementById("nrStatus");if(!msg||nrLoading)return;
+ const msg=document.getElementById("nrStatus");if(!msg)return;
+ const serial=++nrRequestSerial;
+ nrRequestController?.abort();
+ const controller=new AbortController();nrRequestController=controller;
+ const timeout=setTimeout(()=>controller.abort(),60000);
  nrLoading=true;msg.textContent="正在取得 V1 正式版與 V2 統合測試資料…";
  const refresh=document.getElementById("nrRefresh");if(refresh)refresh.disabled=true;
  const days=Number(document.getElementById("nrDays")?.value||30);
  let result;
- try{result=await nrFetch(NR_COMPARE_URL,{action:"compare",days});}
- catch(error){nrCompare=null;nrErrors={compare:String(error?.message||error)};nrLoading=false;if(refresh)refresh.disabled=false;renderNbaResearch();return;}
+ try{result=await nrFetch(NR_COMPARE_URL,{action:"compare",days},controller.signal);}
+ catch(error){if(serial!==nrRequestSerial)return;nrCompare=null;nrErrors={compare:controller.signal.aborted?"讀取逾時，請重試":String(error?.message||error)};nrLoading=false;if(refresh)refresh.disabled=false;renderNbaResearch();return;}
+ finally{clearTimeout(timeout);}
+ if(serial!==nrRequestSerial)return;
  nrErrors={};
  nrCompare=result;
  nrLoading=false;if(refresh)refresh.disabled=false;
@@ -148,6 +154,7 @@ function nrSimpleResult(result){
 function nrSimpleScoreboard(){
  const el=document.getElementById("nrSimpleTable"),meta=document.getElementById("nrSimpleMeta");
  if(!el)return;
+ if(nrErrors.compare){el.innerHTML='<div class="nr-empty">比較資料讀取失敗，暫時無法統計。</div>';if(meta)meta.textContent="";const note=document.getElementById("nrSimpleConclusion");if(note)note.textContent="請重新讀取比較資料。";return;}
  const hours=nrSimpleWindowHours(),now=Date.now(),start=now-hours*3600*1000;
  const games=nrRows().filter(row=>{
   const t=Date.parse(row.compare?.kickoff_at||"");
@@ -203,5 +210,6 @@ function renderNbaResearch(){
  });
  const summary=document.getElementById("nrVisible");if(summary)summary.textContent="顯示 "+rows.length+" 場｜左 V1 正式、右 "+(nrNames[model]||"V2")+"｜研究結果不影響會員推薦";
  const cards=document.getElementById("nrRows");if(!cards)return;
- cards.innerHTML=rows.length?rows.map(r=>nrCards(r,model)).join(""):'<div class="nr-empty">目前沒有符合條件的賽事資料</div>';
+ cards.innerHTML=rows.length?rows.map(r=>nrCards(r,model)).join(""):nrErrors.compare?'<div class="nr-empty">比較資料讀取失敗，請按「更新比對」重試。</div>':'<div class="nr-empty">目前沒有符合條件的賽事資料</div>';
 }
+
