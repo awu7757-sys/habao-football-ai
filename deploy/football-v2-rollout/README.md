@@ -4,7 +4,7 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 
 ## Deploy order
 
-1. `01_rollout_tables.sql` and `02_stage_recovery_leases.sql` were already applied. In Supabase SQL Editor, now run `03_player_impact.sql` before deploying the updated functions. It adds the player-stat cache and snapshot adjustment evidence column.
+1. `01_rollout_tables.sql` and `02_stage_recovery_leases.sql` were already applied. In Supabase SQL Editor, run `03_player_impact.sql` if not already applied, then run `04_atomic_stage_claim.sql` before deploying the updated member function. It adds the player-stat cache and snapshot adjustment evidence column.
 2. Replace and deploy `football-v2-shadow-stage-runner/index.ts`. Keep its existing **Verify JWT OFF** setting, once-per-minute scheduled invocation, and `FOOTBALL_V2_STAGE_CRON_KEY`. The function still uses the existing `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `API_FOOTBALL_KEY`, odds key, and daily API-call cap.
 3. Replace and deploy `football-v2-stage-member/index.ts`. Keep **Verify JWT OFF**, as in the existing setup. The function verifies Supabase Auth identity for OAuth-backed accounts, including the pilot Google account. When a member selects T-2 or T-15 and its snapshot is missing, it asks the runner to recover it. It acquires the same database lock before calling the football data API, so concurrent clicks do not duplicate recovery calls. It charges no analysis credit unless a snapshot is available and the claim succeeds.
 4. Replace and deploy `ai-performance/index.ts` and `admin-football-v2-stage-compare/index.ts`. Public results and official paired-stage metrics ignore late recovery snapshots. The admin coverage row reports them separately as `late_recovery_snapshots`.
@@ -38,3 +38,7 @@ This package includes the T-2 and T-15 member analysis flow, admin rollout/publi
 - Player statistics are cached per team/league/season for 24 hours. On a cold cache, only the first 20-player page is requested (at most one extra API-Football call per team); if the team roster spans pages, the snapshot records partial coverage. T-15 generally reuses the T-2 cache. All football API calls still pass through the configured daily-call cap. GPT/Claude shadow calls remain disabled.
 - `supabase/functions/member-analysis-history/index.ts` and `supabase/functions/admin-center/index.ts` — unchanged companion functions for reference.
 
+
+## 2026-11-11 functional audit follow-up
+
+Read [the functional audit and deployment steps](../football-functional-audit-20261111/README.md) before retesting. Member claims now commit the debit and saved result atomically. Existing saved T-2 can be claimed in the T-15 window. Capture completion times and public settings failures are handled explicitly. The read-only audit also flags an older settlement-direction mismatch for fixture 1557418; no historical snapshot or settlement is rewritten by this release.
