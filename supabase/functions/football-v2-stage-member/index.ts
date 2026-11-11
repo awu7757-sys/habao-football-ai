@@ -10,8 +10,9 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+const REVISION = "football-v2-functional-audit-20261111";
 const reply = (status: number, body: Record<string, unknown>) => new Response(JSON.stringify(body), {
-  status, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  status, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Habao-Version": REVISION },
 });
 const safe = (value: unknown) => String(value ?? "").slice(0, 220).replace(/[\r\n]/g, " ");
 const headers = (prefer?: string) => ({ apikey: ROLE, Authorization: `Bearer ${ROLE}`, "Content-Type": "application/json", ...(prefer ? { Prefer: prefer } : {}) });
@@ -23,15 +24,6 @@ async function rest<T>(table: string, query: string): Promise<T[]> {
   if (!Array.isArray(rows)) throw new Error(`bad_rows_${table}`);
   return rows as T[];
 }
-async function post(table: string, value: Record<string, unknown>, prefer: string) {
-  return await fetch(`${BASE}/rest/v1/${table}`, { method: "POST", headers: headers(prefer), body: JSON.stringify(value), signal: AbortSignal.timeout(12000) });
-}
-async function patchClaim(account: string, fixtureId: number, stage: string, value: Record<string, unknown>) {
-  const r = await fetch(`${BASE}/rest/v1/football_v2_stage_member_claims?account=eq.${encodeURIComponent(account)}&fixture_id=eq.${fixtureId}&stage=eq.${stage}`, {
-    method: "PATCH", headers: headers("return=minimal"), body: JSON.stringify(value), signal: AbortSignal.timeout(12000),
-  });
-  if (!r.ok) throw new Error(`claim_update_${r.status}_${safe(await r.text())}`);
-}
 async function authenticatedMemberAccount(req: Request): Promise<string | null> {
   const bearer = String(req.headers.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
   if (!bearer || !PUBLIC_KEY) return null;
@@ -41,6 +33,7 @@ async function authenticatedMemberAccount(req: Request): Promise<string | null> 
     body: JSON.stringify({ action: "refresh" }),
     signal: AbortSignal.timeout(12000),
   });
+  if (r.status>=500) throw new Error("member_identity_service_unavailable");
   if (!r.ok) return null;
   const data = await r.json().catch(() => null);
   return data?.success === true && data?.member?.account ? String(data.member.account) : null;
@@ -74,14 +67,16 @@ function expectedReturn(grid: Array<{h:number;a:number;p:number}>, line: number,
 }
 function probabilities(snapshot: any, grid: Array<{h:number;a:number;p:number}>) {
   const p = snapshot.probabilities || {};
-  if (Number.isFinite(Number(p.home_win)) && Number.isFinite(Number(p.draw)) && Number.isFinite(Number(p.away_win))) {
-    return { home: Number(p.home_win), draw: Number(p.draw), away: Number(p.away_win), btts: Number(p.btts_yes) };
-  }
   let home = 0, draw = 0, away = 0, btts = 0;
   for (const x of grid) { if (x.h > x.a) home += x.p; else if (x.h === x.a) draw += x.p; else away += x.p; if (x.h > 0 && x.a > 0) btts += x.p; }
+  if ([p.home_win,p.draw,p.away_win].every(x=>typeof x==="number"&&Number.isFinite(x)&&x>=0&&x<=1)&&Math.abs(p.home_win+p.draw+p.away_win-1)<1e-3) {
+    home=p.home_win;draw=p.draw;away=p.away_win;
+  }
+  if(typeof p.btts_yes==="number"&&Number.isFinite(p.btts_yes)&&p.btts_yes>=0&&p.btts_yes<=1)btts=p.btts_yes;
   return { home, draw, away, btts };
 }
 function toAnalysis(snapshot: any, fixture: any, stage: string) {
+  if ([snapshot.home_xg,snapshot.away_xg].some(x=>typeof x!=="number"||!Number.isFinite(x)||x<=0||x>8)) throw new Error("invalid_stage_model");
   const grid = scoreGrid(Number(snapshot.home_xg), Number(snapshot.away_xg));
   const probs = probabilities(snapshot, grid), context = snapshot.market_context || {};
   const home = Number(probs.home), draw = Number(probs.draw), away = Number(probs.away);
@@ -92,7 +87,7 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
   let totalPick = "暫不推薦", totalLine: number | null = null, totalConfidence = 0, totalReason = "此階段沒有可用的實際大小球盤線";
   const totalOptions = totalQuotes.flatMap((quote: any) => {
     const line = Number(quote?.line), overOdds = Number(quote?.over_odds), underOdds = Number(quote?.under_odds);
-    if (!Number.isFinite(line) || !(overOdds > 1) || !(underOdds > 1)) return [];
+    if (quote?.line==null || typeof quote.line==="boolean" || String(quote.line).trim()==="" || !Number.isFinite(line) || Math.abs(line*4-Math.round(line*4))>1e-6 || !(overOdds > 1) || !(underOdds > 1)) return [];
     const overEv = expectedReturn(grid, line, "over", overOdds), underEv = expectedReturn(grid, line, "under", underOdds);
     const over = overEv >= underEv;
     return [{ line, pick: over ? "大" : "小", ev: Math.max(overEv, underEv), probability: over ? grid.filter(x => x.h+x.a > line).reduce((s,x)=>s+x.p,0) : grid.filter(x => x.h+x.a < line).reduce((s,x)=>s+x.p,0) }];
@@ -105,7 +100,7 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
   let handicapPick = "暫不推薦", handicapLine: number | null = null, handicapConfidence = 0, handicapReason = "此階段沒有可用的實際讓分盤線";
   const handicapOptions = handicapQuotes.flatMap((quote: any) => {
     const homeLine = Number(quote?.home_line), awayLine = Number(quote?.away_line), homeOdds = Number(quote?.home_odds), awayOdds = Number(quote?.away_odds);
-    if (!Number.isFinite(homeLine) || !Number.isFinite(awayLine) || !(homeOdds > 1) || !(awayOdds > 1)) return [];
+    if (quote?.home_line==null || quote?.away_line==null || typeof quote.home_line==="boolean" || typeof quote.away_line==="boolean" || String(quote.home_line).trim()==="" || String(quote.away_line).trim()==="" || !Number.isFinite(homeLine) || !Number.isFinite(awayLine) || Math.abs(homeLine+awayLine)>1e-6 || Math.abs(homeLine*4-Math.round(homeLine*4))>1e-6 || !(homeOdds > 1) || !(awayOdds > 1)) return [];
     const homeEv = expectedReturn(grid, homeLine, "home", homeOdds), awayEv = expectedReturn(grid, awayLine, "away", awayOdds), onHome = homeEv >= awayEv;
     const line = onHome ? homeLine : awayLine, probability = grid.filter(x => onHome ? x.h-x.a+homeLine > 0 : x.a-x.h+awayLine > 0).reduce((s,x)=>s+x.p,0);
     return [{ line, pick: onHome ? "主隊" : "客隊", ev: Math.max(homeEv, awayEv), probability }];
@@ -226,53 +221,34 @@ Deno.serve(async (req) => {
     if (!snapshots[0]) return reply(409, { success: false, error: "stage_snapshot_not_ready", recovery_status: recovery?.status || recovery?.error || "not_ready", can_retry: true });
     const model = snapshots[0];
     const minutesToKickoff = (Date.parse(model.kickoff_at) - Date.now()) / 60000;
+    if (!Number.isFinite(minutesToKickoff) || !Number.isFinite(Date.parse(model.captured_at)) || Date.parse(model.captured_at)>=Date.parse(model.kickoff_at)) return reply(503,{success:false,error:"invalid_stage_snapshot_time"});
     if (minutesToKickoff <= 0) return reply(410, { success: false, error: "match_already_started" });
     const stageIsOpen = stage === "t2"
-      ? minutesToKickoff > 15 && minutesToKickoff <= 120
+      ? minutesToKickoff > 0 && minutesToKickoff <= 120
       : minutesToKickoff <= 15;
     if (!stageIsOpen) return reply(409, { success: false, error: "stage_not_open" });
     const fixtureData = body?.fixture && typeof body.fixture === "object" ? body.fixture : {};
-    let claimId: number | null = null;
-    const reserve = await post("football_v2_stage_member_claims", {
-      account, fixture_id: fixtureId, stage, claim_state: "processing", fixture_data: fixtureData, model_version: VERSION,
-    }, "return=representation");
-    if (!reserve.ok) {
-      const duplicate = await rest<any>("football_v2_stage_member_claims", `account=eq.${encodeURIComponent(account)}&fixture_id=eq.${fixtureId}&stage=eq.${stage}&select=claim_state,result_data,created_at,fixture_data&limit=1`);
-      if (duplicate[0]?.claim_state === "claimed" && duplicate[0]?.result_data) return reply(200, { success: true, already_claimed: true, result: duplicate[0].result_data });
-      if (duplicate[0]?.claim_state === "processing" && Date.now() - Date.parse(duplicate[0].created_at || "") > 120000) {
-        const recovered = toAnalysis(model, duplicate[0].fixture_data || fixtureData, stage);
-        await patchClaim(account, fixtureId, stage, { claim_state: "claimed", claimed_at: new Date().toISOString(), result_data: recovered });
-        return reply(200, { success: true, already_claimed: true, recovered_stale_claim: true, result: recovered });
-      }
-      return reply(409, { success: false, error: duplicate[0]?.claim_state === "processing" ? "stage_claim_processing" : "stage_claim_reservation_failed" });
+    // Prepare the result before the database transaction can consume a credit.
+    const preparedResult = toAnalysis(model, fixtureData, stage);
+    const claim = await fetch(`${BASE}/rest/v1/rpc/claim_football_v2_stage_analysis_atomic`, {
+      method:"POST",headers:headers(),
+      body:JSON.stringify({p_account:account,p_fixture_id:fixtureId,p_stage:stage,p_result_data:preparedResult,p_fixture_data:fixtureData,p_model_version:VERSION}),
+      signal:AbortSignal.timeout(20000),
+    });
+    const packet=await claim.json().catch(()=>null);
+    if(!claim.ok){
+      const reason=String(packet?.message||packet?.error||"stage_claim_transaction_failed");
+      const error=["analysis_credits_empty","stage_snapshot_not_ready","stage_not_open","match_already_started","member_inactive","stage_access_disabled","legacy_stage_claim_requires_reconciliation"].find(x=>reason.includes(x))||"stage_claim_transaction_failed";
+      const status=error==="analysis_credits_empty"?429:error==="match_already_started"?410:error==="member_inactive"||error==="stage_access_disabled"?403:503;
+      return reply(status,{success:false,error});
     }
-    const reserved = await reserve.json().catch(() => []);
-    claimId = Array.isArray(reserved) ? Number(reserved[0]?.id) || null : null;
-    let creditConsumed = false;
-    try {
-      if (members[0].analysis_unlimited !== true) {
-        const credit = await fetch(`${BASE}/rest/v1/rpc/consume_member_analysis_credit`, {
-          method: "POST", headers: headers(), body: JSON.stringify({ p_account: account }), signal: AbortSignal.timeout(12000),
-        });
-        if (!credit.ok) throw new Error(`analysis_credit_consume_${credit.status}_${safe(await credit.text())}`);
-        const raw = await credit.json(), value = Array.isArray(raw) ? raw[0] : raw;
-        if (value?.success !== true) throw new Error("analysis_credits_empty");
-        creditConsumed = true;
-      }
-      const result = toAnalysis(model, fixtureData, stage);
-      await patchClaim(account, fixtureId, stage, { claim_state: "claimed", claimed_at: new Date().toISOString(), result_data: result });
-      return reply(200, { success: true, already_claimed: false, result });
-    } catch (error) {
-      if (claimId && !creditConsumed) {
-        const del = await fetch(`${BASE}/rest/v1/football_v2_stage_member_claims?id=eq.${claimId}&claim_state=eq.processing`, { method: "DELETE", headers: headers("return=minimal"), signal: AbortSignal.timeout(10000) });
-        if (!del.ok) console.error("stage_claim_cleanup_failed", del.status);
-      }
-      const message = safe(error);
-      return reply(message.includes("analysis_credits_empty") ? 429 : 503, { success: false, error: message.includes("analysis_credits_empty") ? "analysis_credits_empty" : message });
-    }
+    if(packet?.success!==true||!packet?.result)return reply(503,{success:false,error:"invalid_stage_claim_response"});
+    return reply(200,packet);
+
   } catch (error) {
     console.error("FOOTBALL_V2_STAGE_MEMBER_ERROR", safe(error));
     return reply(500, { success: false, error: safe(error) });
   }
 });
+
 
