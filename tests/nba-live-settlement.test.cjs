@@ -5,7 +5,7 @@ const live=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../live-basketball
 const counts={moneyline:0,handicap:0,over_under:0},issues=[];
 for(const g of live.matches){
  const score=String(g.final_score).split('-').map(Number);assert.equal(score.length,2);
- const snap={game_id:g.game_id,home_score:score[0],away_score:score[1],status:'verified',prediction_data:{analysis:g.prediction,model:g.model}};
+ const snap={game_id:g.game_id,final_home:score[0],final_away:score[1],status:'verified',prediction_data:{analysis:g.prediction,model:g.model}};
  const out=c.compare(snap,null);
  for(const key of Object.keys(counts)){
   const saved=g.settlement?.[key];if(!saved?.decided)continue;
