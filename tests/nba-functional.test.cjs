@@ -13,7 +13,7 @@ function load(name,fetchImpl=async()=>{throw Error('unexpected fetch')}){
  vm.runInContext(stripTypeScriptTypes(code),c);if(name==='nba-v2-unified-runner')c.boxNumber=vm.runInContext('boxNumber',c);return c;
 }
 const request=(body,key='private-cron',method='POST')=>new Request('https://test/',{method,headers:{'Content-Type':'application/json','x-habao-cron-key':key,'x-admin-session':'test-session'},...(method==='POST'?{body:typeof body==='string'?body:JSON.stringify(body)}:{})});
-const snap={game_id:17079,fixture_time:iso(now+5*3600000),generated_at:iso(now-5*3600000),home_team:'Home',away_team:'Away',source:'SYSTEM_AUTO',prediction_data:{fixture:{season:2026,home:{id:1},away:{id:2}},market_data:{market:{available:true,primary:{home_spread:-3.5,away_spread:3.5,total:225.5}}},analysis:{recommendations:{moneyline:{pick:'home'},handicap:{pick:'home',line:-3.5},over_under:{pick:'over',line:225.5}}}},status:'verified',home_score:110,away_score:108};
+const snap={game_id:17079,fixture_time:iso(now+5*3600000),generated_at:iso(now-5*3600000),home_team:'Home',away_team:'Away',source:'SYSTEM_AUTO',prediction_data:{fixture:{season:2026,home:{id:1},away:{id:2}},market_data:{market:{available:true,primary:{home_spread:-3.5,away_spread:3.5,total:225.5}}},analysis:{recommendations:{moneyline:{pick:'home'},handicap:{pick:'home',line:-3.5},over_under:{pick:'over',line:225.5}}}},status:'verified',final_home:110,final_away:108};
 function game(id,team,days=4){return {id,league:'standard',date:{start:iso(now-days*86400000)},status:{short:3},teams:{home:{id:team},visitors:{id:team+10}},scores:{home:{points:114},visitors:{points:106}}};}
 const hg=[101,102,103,104].map((id,i)=>game(id,1,i+3)),ag=[201,202,203,204].map((id,i)=>game(id,2,i+3));
 function statistics(g){return [{team:g.teams.home,statistics:[{fga:89,fta:24,offReb:9,turnovers:13,points:g.scores.home.points}]},{team:g.teams.visitors,statistics:[{fga:88,fta:23,offReb:8,turnovers:14,points:g.scores.visitors.points}]}];}
@@ -36,7 +36,13 @@ function backendMock(opts={}){
   }
   if(u.pathname.startsWith('/rest/v1/')){
    const table=u.pathname.split('/').at(-1);
-   if(table==='basketball_prediction_snapshots'){assert.equal(method,'GET','formal snapshots must remain read-only');return json(snapshots);}
+   if(table==='basketball_prediction_snapshots'){
+    assert.equal(method,'GET','formal snapshots must remain read-only');
+    // Column names supplied by the user's live information_schema result.
+    const columns=new Set(['id','game_id','fixture_time','home_team','away_team','model_version','prediction_data','generated_at','source','league_name','status','final_home','final_away','final_score','game_status','settlement','verified_at','verification_error','excluded_from_public','excluded_at']);
+    for(const field of (u.searchParams.get('select')||'*').split(','))assert.ok(field==='*'||columns.has(field),'unknown live DB column '+field);
+    return json(snapshots);
+   }
    assert.ok(['basketball_v2_unified_snapshots','basketball_v2_box_cache'].includes(table),'write allowlist');
    const db=table==='basketball_v2_box_cache'?cache:unified;
    if(method==='GET'){
@@ -78,9 +84,14 @@ test('strict box numbers reject booleans and blank data',()=>{assert.equal(r.box
 test('opposite spread picks on same market are comparable',()=>{const x=c.compare(snap,ready);assert.equal(x.markets.handicap.same_line,true);assert.equal(x.markets.handicap.comparable,true);assert.equal(x.markets.handicap.v1_result,'loss');assert.equal(x.markets.handicap.v2_result,'win')});
 test('away V1 line converted back to underlying home line',()=>{const s=clone(snap);s.prediction_data.analysis.recommendations.handicap={pick:'away',line:3.5};const v=clone(ready);v.model_output.shadow_directions.handicap='home';assert.equal(c.compare(s,v).markets.handicap.comparable,true)});
 test('different spread lines do not enter paired sample',()=>{const x=clone(ready);x.model_output.market.home_spread=-4.5;assert.equal(c.compare(snap,x).markets.handicap.comparable,false)});
-test('unverified excluded missing negative and tied scores not graded',()=>{for(const patch of [{status:'pending'},{excluded_from_public:true},{home_score:null},{home_score:-1},{home_score:108},{home_score:true}]){const row=c.compare({...snap,...patch},ready);assert.equal(row.verified,false);assert.equal(row.markets.moneyline.v1_result,null)}});
+test('unverified excluded missing negative and tied scores not graded',()=>{for(const patch of [{status:'pending'},{excluded_from_public:true},{final_home:null},{final_home:-1},{final_home:108},{final_home:true}]){const row=c.compare({...snap,...patch},ready);assert.equal(row.verified,false);assert.equal(row.markets.moneyline.v1_result,null)}});
 test('whole-line pushes and quarter-line split settlements',()=>{assert.equal(c.settleTotal('over',220,110,110),'push');assert.equal(c.settleTotal('over',219.75,110,110),'half_win');assert.equal(c.settleTotal('under',219.75,110,110),'half_loss');assert.equal(c.settleSpread('away',2,110,108),'push');assert.equal(c.settleSpread('home',-2.25,110,108),'half_loss')});
 test('source-error row never contributes V2 result',()=>{const v={...ready,status:'source_error'};assert.equal(c.compare(snap,v).markets.moneyline.v2_result,null)});
+test('live final_home/final_away map to existing dashboard score fields',()=>{
+ const row=c.compare({...snap,home_score:999,away_score:998},ready);
+ assert.equal(row.home_score,110);assert.equal(row.away_score,108);assert.equal(row.verified,true);
+ assert.equal(c.compare({...snap,final_home:null,home_score:110},ready).verified,false);
+});
 test('paired stats retain differing picks with same market',()=>{const x=c.rate([c.compare(snap,ready)]).handicap;assert.equal(x.paired_count,1);assert.equal(x.paired_v1_rate,0);assert.equal(x.paired_v2_rate,100)});
 test('admin auth outage is 500 and not false expired-session 401',async()=>{const m=backendMock({authError:true}),x=load('admin-nba-v2-compare',m.fetchImpl);assert.equal((await x.handler(request({action:'compare'}))).status,500)});
 test('compare API is read-only and returns shape frontend expects',async()=>{const m=backendMock(),x=load('admin-nba-v2-compare',m.fetchImpl);const response=await x.handler(request({action:'compare',days:30}));const body=await response.json();assert.equal(response.status,200);assert.ok(Array.isArray(body.rows));assert.equal(body.read_only,true);assert.equal(m.calls.filter(v=>v.url.includes('/rest/')&&v.method!=='GET').length,0)});
