@@ -6197,6 +6197,8 @@ function getBasketballTeamName(
   return traditional;
 }
 
+let habaoNbaFixtureRequestSerial=0;
+const habaoNbaPendingGames=new Set();
 async function loadBasketballFixtures(
   offset = 1
 ) {
@@ -6206,6 +6208,8 @@ async function loadBasketballFixtures(
     );
 
   if (!container) return;
+  const requestSerial=++habaoNbaFixtureRequestSerial;
+  const stillCurrent=()=>requestSerial===habaoNbaFixtureRequestSerial&&currentHabaoSport==="basketball"&&Number(currentFixtureOffset)===Number(offset);
 
   const requestDate =
     getBasketballRequestDate(
@@ -6228,7 +6232,7 @@ async function loadBasketballFixtures(
       cached.time <
       HABAO_FIXTURE_CACHE_TTL
   ) {
-    renderBasketballFixtureData(
+    if(stillCurrent())renderBasketballFixtureData(
       cached.data,
       offset,
       container
@@ -6297,6 +6301,7 @@ async function loadBasketballFixtures(
       }
     );
 
+    if(!stillCurrent())return;
     renderBasketballFixtureData(
       data,
       offset,
@@ -6304,6 +6309,7 @@ async function loadBasketballFixtures(
     );
 
   } catch (error) {
+    if(!stillCurrent())return;
     console.error(
       "BASKETBALL FIXTURES ERROR:",
       error
@@ -6341,6 +6347,13 @@ function isHabaoNbaPreviewTester() {
   }
 }
 
+function habaoNbaMemberResponseValid(data,gameId){
+  const fixture=data?.fixture,analysis=data?.analysis;
+  const id=data?.game_id??fixture?.game_id??fixture?.id;
+  return data?.success===true&&!!fixture&&typeof fixture==="object"&&!Array.isArray(fixture)&&
+    !!analysis&&typeof analysis==="object"&&!Array.isArray(analysis)&&
+    (id==null||Number(String(id).replace(/^nba:/,""))===Number(gameId));
+}
 async function openBasketballMatch(
   gameId,
   button
@@ -6352,7 +6365,7 @@ async function openBasketballMatch(
   const normalizedGameId =
     Number(gameId || 0);
 
-  if (!normalizedGameId) {
+  if (!Number.isSafeInteger(normalizedGameId)||normalizedGameId<=0) {
     alert(
       "找不到這場 NBA 賽事資料"
     );
@@ -6386,6 +6399,8 @@ async function openBasketballMatch(
     alert("比賽已經開賽，不能建立新的分析。既有結果請至「我的分析」查看。");
     return;
   }
+  if(habaoNbaPendingGames.has(normalizedGameId))return;
+  habaoNbaPendingGames.add(normalizedGameId);
 
   if (button) {
     button.disabled = true;
@@ -6472,6 +6487,8 @@ async function openBasketballMatch(
 
       throw error;
     }
+
+    if(!habaoNbaMemberResponseValid(data,normalizedGameId))throw new Error("NBA 正式快照回傳不完整，請重新讀取此場分析。");
 
     if (
       !previewTest &&
@@ -6605,6 +6622,8 @@ async function openBasketballMatch(
         button.dataset.originalText ||
         "開始分析";
     }
+  } finally {
+    habaoNbaPendingGames.delete(normalizedGameId);
   }
 }
 
@@ -8723,6 +8742,7 @@ async function startHabaoSportBatchAnalysis(){
   if(habaoSportBatchRunning)return;
   const sport=currentHabaoSport;
   if(sport!=="basketball"&&sport!=="baseball")return;
+  if(sport==="basketball"&&habaoNbaPendingGames.size){alert("單場 NBA 分析執行中，請完成後再批次分析。");return;}
   const inputs=Array.from(document.querySelectorAll(".batch-analysis-checkbox:checked"))
     .filter(input=>input.dataset.sport===sport&&input.closest("#matchesContainer"));
   const ids=inputs.map(input=>Number(input.value));
@@ -8798,6 +8818,7 @@ async function startHabaoSportBatchAnalysis(){
         if(sport==="baseball"&&(data?.sport!=="baseball"||!data?.snapshot?.id)){
           throw new Error("MLB 正式快照回傳不完整");
         }
+        if(sport==="basketball"&&!habaoNbaMemberResponseValid(data,ids[i]))throw new Error("NBA 正式快照回傳不完整");
         results.push(data);
         if(sport==="basketball"&&data?.member_access){
           const access=data.member_access;
@@ -11605,3 +11626,4 @@ analysisResultNotFound: "Analysis result not found"
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 </body>
 </html>
+
