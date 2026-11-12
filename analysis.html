@@ -3919,7 +3919,7 @@ const nbaDescription=(()=>{
   }else if(valid(basketballFairTotal))market.push("模型預估總分 "+basketballFairTotal+" 分，但市場大小分盤口未取得。");
   if(basketballMarket?.consensus?.home_spread!=null)
     market.push("市場主隊讓分 "+basketballMarket.consensus.home_spread+"，此為市場盤口而非模型公平線。");
-  market.push("正式推薦：獨贏 "+format(moneyline)+"；讓分 "+format(handicap)+"；大小分 "+format(overUnder)+"。");
+  market.push((data?.v2_stage ? "本階段分析：獨贏 " : "正式推薦：獨贏 ")+format(moneyline)+"；讓分 "+format(handicap)+"；大小分 "+format(overUnder)+"。");
   if(basketballInjuries?.available!==true)market.push("目前沒有完整傷病資料，因此不對缺陣影響作推斷。");
   return {focus:focus.join(" "),market:market.join(" ")};
 })();
@@ -4207,14 +4207,14 @@ const timeText = gameDate
 
   <h1>${
     isBasketballAnalysis
-      ? "NBA 賽事深度分析"
+      ? (data?.v2_stage === "t2" ? "NBA T-2 深度分析" : data?.v2_stage === "t15" ? "NBA T-15 最終分析" : "NBA 賽事深度分析")
       : analysisT(
           "analysisTitle",
           "賽事深度分析"
         )
   }</h1>
 
-  ${footballV2Stage ? `<div class="v2-detail-badge" style="display:inline-flex;margin-top:10px">足球 V2｜${escapePartnerHtml(data.v2_stage_label || (footballV2Stage === "t2" ? "深度分析" : "最終分析"))}｜${footballV2Stage === "t2" ? "T-2 小時" : "T-15 分鐘"}</div>` : ""}
+  ${footballV2Stage ? `<div class="v2-detail-badge" style="display:inline-flex;margin-top:10px">${isBasketballAnalysis ? "NBA V2 測試" : "足球 V2"}｜${escapePartnerHtml(data.v2_stage_label || (footballV2Stage === "t2" ? "深度分析" : "最終分析"))}｜${footballV2Stage === "t2" ? "T-2 小時" : "T-15 分鐘"}</div>` : ""}
 
   <div class="sub">
     ${
@@ -4809,3 +4809,4 @@ window.addEventListener(
 
 </body>
 </html>
+

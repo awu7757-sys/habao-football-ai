@@ -6938,7 +6938,7 @@ function renderBasketballFixtureData(
         <article
           class="match-card v2-match-card" data-sport="basketball"
           data-basketball-fixture-id="${escapeBasketballHTML(match?.fixture_id)}"
-          data-nba-status="${nbaStatusKey}"
+          data-nba-status="${nbaStatusKey}" data-nba-kickoff="${escapeBasketballHTML(match?.kickoff_at || "")}"
           data-nba-league="NBA"
           data-nba-search="${escapeBasketballHTML([gameId,match?.home?.name,match?.away?.name,homeName,awayName,leagueText,venueText].join(" "))}"
         >
@@ -7038,6 +7038,7 @@ function renderBasketballFixtureData(
       `;
     }).join("");
   habaoApplyNbaFixtureFilters();
+  void window.habaoNbaStages?.refresh(fixtures);
 }
 
 function renderFixtureData(
@@ -9336,6 +9337,13 @@ const basketballMatches =
       )
   }));
 
+// Add isolated claimed NBA stages without replacing official T-10 history rows.
+window.habaoNbaStageHistoryError=false;
+try {
+  const stageMatches=await window.habaoNbaStages?.history();
+  if(Array.isArray(stageMatches))basketballMatches.push(...stageMatches);
+} catch(error) { window.habaoNbaStageHistoryError=true;console.warn('NBA_STAGE_HISTORY_UNAVAILABLE',error?.message||error); }
+
 // Load real MLB member records (game_id is not the football history id).
 const baseballMatches = await (async () => {
   window.habaoBaseballHistoryLoadError="";
@@ -9525,6 +9533,8 @@ function renderAnalysisHistory(
     </div>
   `;
 
+  const nbaStageHistoryWarning=normalizedSport==="basketball"&&window.habaoNbaStageHistoryError
+    ? '<div class="ai-note">NBA 階段分析紀錄暫時讀取失敗，請稍後重新整理；下方仍顯示已讀取的 T-10 紀錄。</div>' : '';
   const displayMatches =
     allMatches.filter(
       match =>
@@ -9556,7 +9566,7 @@ function renderAnalysisHistory(
       : "";
 
     container.innerHTML =
-      historyTabsHtml +
+      historyTabsHtml + nbaStageHistoryWarning +
       `
         <div class="history-sport-empty">
           <div class="history-sport-empty-icon">${emptyIcon}</div>
@@ -9888,7 +9898,7 @@ function renderAnalysisHistory(
         : "zh-TW";
 
   container.innerHTML =
-    historyTabsHtml +
+    historyTabsHtml + nbaStageHistoryWarning +
     displayMatches
       .map(match => {
 
@@ -10040,7 +10050,7 @@ const historyKey=String(match.history_key||
             <div class="history-match-top">
 
               <span class="history-league">
-                ${leagueName}
+                ${leagueName}${isBasketballHistory ? (match.v2_stage==="t2" ? " · T-2 深度分析" : match.v2_stage==="t15" ? " · T-15 最終分析" : " · T-10 分析") : ""}
               </span>
 
               <span class="history-time">
@@ -11646,8 +11656,10 @@ analysisResultNotFound: "Analysis result not found"
 
 <script src="mlb-match-center.js?v=12"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
+<script src="./nba-stages.js?v=20261113-1"></script>
 </body>
 </html>
+
 
 
 

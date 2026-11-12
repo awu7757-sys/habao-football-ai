@@ -1,0 +1,66 @@
+PASS same game repeated/concurrent stage claim debits one point
+PASS same game T-15 is a separate point and immutable result
+PASS write failure rolls credit debit back in same transaction
+PASS empty balance creates no claim
+PASS T-15 early request rejected without debit
+PASS saved T-2 can be claimed during T-15
+PASS new claim blocked after tipoff; old claim remains free
+PASS missing snapshot cannot debit
+PASS ordinary member cannot enter pilot stages
+PASS inactive member blocked
+PASS unlimited membership does not consume points
+PASS browser roles cannot execute financial or capture RPCs
+PASS API budget reservation is capped and repeat-safe
+PASS capture lease cannot double capture or rewrite ready stage
+PASS missed T-2 is not reconstructed during T-15
+PASS ready snapshot cannot be stored after tipoff
+PASS NBA stage capture windows have exact boundaries
+PASS stage uses actual paired betting lines
+PASS wrong teams, stale or conflicting markets are rejected
+PASS away cover keeps positive original line; missing line stays null
+PASS runner unauthorized calls cannot read DB or spend API
+PASS member spoofing cannot read claims or spend points
+PASS OPTIONS succeeds without authentication for both functions
+PASS full scheduled capture stores a fresh model, actual lines and late-capture marker
+PASS provider started/changed fixture never stores a ready stage
+PASS member repeat read uses saved stage before time or capture requests
+PASS after T-10 claim button immediately waits for blue T-2
+PASS T-2 opens without requiring earlier claim; T-15 follows
+PASS completed current stage is disabled; tipoff always closes
+PASS all updated page scripts and both function bundles parse
+{"suite":"NBA stage financial, capture, frontend tests","passed":30,"failed":0}
+PASS latest NBA day wins when old response arrives last
+PASS old NBA failure cannot replace selected-day list
+PASS switching sport blocks late NBA response
+PASS NBA fixture cache avoids duplicate network call
+PASS NBA same-game double click produces one member request
+NBA ANALYSIS ERROR: Error: analysis_credits_empty
+    at Object.openBasketballMatch (evalmachine.<anonymous>:127:9)
+    at async Object.fn (/workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:13:192)
+    at async /workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:22:51 {
+  code: 'analysis_credits_empty',
+  data: { success: false, error: 'analysis_credits_empty' }
+}
+NBA ANALYSIS ERROR: Error: analysis_credits_empty
+    at Object.openBasketballMatch (evalmachine.<anonymous>:127:9)
+    at async Object.fn (/workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:13:325)
+    at async /workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:22:51 {
+  code: 'analysis_credits_empty',
+  data: { success: false, error: 'analysis_credits_empty' }
+}
+PASS NBA failed member request restores button and permits retry
+PASS invalid member IDs never reach endpoint
+PASS running batch blocks new single NBA request
+PASS malformed HTTP200 comparison is visible failure, not fake zero games
+PASS latest NBA comparison range wins when first response arrives late
+PASS backend 500 does not clear admin session
+PASS backend 401 clears invalid admin session
+PASS all inline JS and changed admin script parse successfully
+{"suite":"NBA frontend regression","passed":13,"failed":0}
+PASS mixed batch retains successes and failures without pretending all completed
+PASS quota error stops all remaining member calls
+PASS inactive account stops remaining calls
+PASS invalid duplicate and over-five selections never call backend
+PASS started and outside T10 games are rejected before billing endpoint
+PASS empty-success and wrong-game responses never enter batch results
+{"suite":"NBA batch regression","passed":6,"failed":0}
