@@ -25,6 +25,7 @@ function setup(options={}){
   footballV2StageHeaders:async()=>({'Content-Type':'application/json'}),updateBatchSelection(){},openBasketballMatch(){},alert:x=>alerts.push(x),showQuotaLimitModal:x=>alerts.push(x),resetBatchAnalysisUI(){},
   fetch:async(url,init)=>{const b=JSON.parse(init.body);calls.push({url,body:b});if(url==='legacy-member')return json(saved(b.game_id,'t10'));
    if(b.action==='status')return json({success:true,enabled:true,stages:Object.fromEntries(fixtures.map(f=>[f.fixture_id,{claimed:{t10:true,t2:claims.has(f.fixture_id+':t2'),t15:claims.has(f.fixture_id+':t15')},ready:{t2:true,t15:true}}]))});
+   if(b.action==='history')return json({success:true,enabled:true,matches:[...claims].map(key=>{const [id,stage]=key.split(':');return {id:'stage-'+key,game_id:Number(id),sport:'basketball',v2_stage:stage,fixture_time:fixtures.find(x=>x.fixture_id===Number(id)).kickoff_at,history_key:'basketball:stage:'+key,result_data:saved(Number(id),stage)};})});
    if(b.action==='claim'){
     if(options.fail?.[b.game_id])return json({success:false,error:options.fail[b.game_id]});
     if(options.deferred)await options.deferred.promise;
@@ -52,6 +53,33 @@ test('presentation keeps raw stored picks unchanged and localizes status without
  const data={v2_stage:'t2',analysis:{recommendations:{moneyline:{pick:'暫不推薦',confidence:50,reason:'模型優勢未達門檻'}},v2_stage_evidence:{captured_at:'2026-11-12T22:53:00Z',availability:{status:'not_available'},lineups:{status:'not_available'}}}};
  const before=JSON.stringify(data),a=render(data);assert.match(a.badge,/data-stage="t2"/);assert.match(a.badge,/06:53/);assert.equal(a.evidence.includes('not_available'),false);assert.equal(a.label,'模型優勢不足');assert.equal(a.bar,0);assert.equal(JSON.stringify(data),before);
  const b=render({...data,v2_stage:'t15'});assert.match(b.badge,/data-stage="t15"/);
+});
+test('same NBA fixture is grouped into one card with independent immutable stage records',()=>{
+ const x=setup(),a={id:'v1',sport:'basketball',game_id:1,result_data:x.saved(1,'t10')},b={id:'v2',sport:'basketball',fixture_id:'nba:1',v2_stage:'t2',result_data:x.saved(1,'t2')},football={id:1,sport:'football',fixture_id:1,result_data:{success:true}};
+ const original=JSON.stringify([a,b,football]),groups=x.api().groupHistory([a,b,football]);assert.equal(groups.length,2);assert.equal(groups[0].nba_history_latest,'t2');assert.deepEqual(Object.keys(groups[0].nba_history_stages),['t10','t2']);assert.equal(groups[0].nba_history_stages.t10,a);assert.equal(groups[0].nba_history_stages.t2,b);assert.equal(groups[1],football);assert.equal(JSON.stringify([a,b,football]),original);
+});
+test('latest claimed stage is T-15 even when T-2 catch-up was claimed later',()=>{
+ const x=setup(),a={id:'t15',game_id:1,sport:'basketball',v2_stage:'t15',updated_at:'2026-11-12T23:50:00Z',result_data:x.saved(1,'t15')},b={id:'t2',game_id:1,sport:'basketball',v2_stage:'t2',updated_at:'2026-11-12T23:55:00Z',result_data:x.saved(1,'t2')};assert.equal(x.api().groupHistory([a,b])[0].nba_history_latest,'t15');
+});
+test('ambiguous fixture IDs are not merged and ordinary member display is preserved',()=>{
+ const x=setup(),a={id:'a',sport:'basketball',game_id:1,result_data:x.saved(2,'t10')},b={id:'b',sport:'basketball',game_id:1,result_data:x.saved(1,'t2')};assert.equal(x.api().groupHistory([a,b]).length,2);x.stored.set('habao_member',JSON.stringify({account:'ordinary'}));const rows=[a,b];assert.equal(x.api().groupHistory(rows),rows);
+});
+test('batch stage claim is returned by history and immediately advances fixture button',async()=>{
+ const x=setup();await x.ready();x.inputs[0].checked=true;await x.c.startHabaoSportBatchAnalysis();const history=await x.api().history();assert.equal(history.length,1);assert.equal(history[0].v2_stage,'t2');assert.equal(x.cards.get(1).button.disabled,true);assert.match(x.cards.get(1).button.textContent,/07:45 開放/);assert.match(x.cards.get(1).label.textContent,/重看 T-2/);
+});
+test('grouped history keeps both stage keys viewable without new API calls or points',async()=>{
+ const x=setup();await x.ready();const start=html.indexOf('function renderAnalysisHistory('),end=html.indexOf('\n</script>',html.indexOf('function viewAnalysisHistory(',start));
+ x.c.getBasketballTeamLogoData=()=>({src:'https://example.test/logo.svg',fallback:'',backup:''});x.c.escapeBasketballHTML=s=>String(s).replaceAll('"','&quot;');x.c.getBasketballTeamName=s=>s;
+ vm.runInContext(html.slice(start,end),x.c);
+ const a={id:'v1',history_key:'basketball:v1',sport:'basketball',game_id:1,fixture_time:x.fixtures[0].kickoff_at,result_data:x.saved(1,'t10')},b={id:'v2',history_key:'basketball:v2',sport:'basketball',game_id:1,v2_stage:'t2',fixture_time:x.fixtures[0].kickoff_at,result_data:x.saved(1,'t2')};
+ const before=x.calls.length;x.c.renderAnalysisHistory([a,b],'basketball');const container=x.c.document.getElementById('matchesContainer');assert.equal((container.innerHTML.match(/class="history-match-card"/g)||[]).length,1);assert.equal((container.innerHTML.match(/class="nba-history-stage"/g)||[]).length,3);assert.match(container.innerHTML,/已領取 2\/3/);assert.match(container.innerHTML,/data-stage="t15" disabled/);
+ x.c.viewAnalysisHistory('basketball:v1');assert.deepEqual(JSON.parse(x.stored.get('matchAnalysis')),a.result_data);x.c.viewAnalysisHistory('basketball:v2');assert.deepEqual(JSON.parse(x.stored.get('matchAnalysis')),b.result_data);assert.equal(x.calls.length,before);assert.equal(x.credits(),10);
+});
+test('stage client loads before automatic My Analyses and deep-link startup',()=>{
+ const asset=html.indexOf('src="./nba-stages.js?v=20261113-3"');assert.ok(asset>0);assert.ok(asset<html.indexOf('const habaoViewParams'));assert.equal(html.match(/src="\.\/nba-stages.js/g).length,1);
+});
+test('Phoenix history logo resolves from Chinese name and has NBA fallback',()=>{
+ const c=vm.createContext({NBA_TEAM_NAME_ZH:{'Phoenix Suns':'鳳凰城太陽'},NBA_OFFICIAL_TEAM_ID:{'phoenix suns':'1610612756'},safeBasketballImageURL:x=>x||''});const start=html.indexOf('function normalizeBasketballTeamKey('),end=html.indexOf('function handleBasketballLogoError(',start);vm.runInContext(html.slice(start,end),c);const data=c.getBasketballTeamLogoData('鳳凰城太陽','https://example.test/old-logo.svg');assert.match(data.src,/espncdn.*phx\.png/);assert.match(data.fallback,/1610612756/);
 });
 test('inline scripts and updated stage asset parse',()=>{for(const s of [html,analysis])for(const m of s.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){if(/src\s*=|application\/ld\+json|application\/json/.test(m[1])||!m[2].trim())continue;new vm.Script(m[2]);}new vm.Script(read('nba-stages.js'));});
 (async()=>{let failed=0;for(const[n,f]of tests){try{await f();console.log('PASS '+n)}catch(e){failed++;console.error('FAIL '+n+'\n'+e.stack);}}console.log(JSON.stringify({suite:'NBA stage-aware batch and presentation regression',passed:tests.length-failed,failed}));process.exitCode=failed?1:0;})();

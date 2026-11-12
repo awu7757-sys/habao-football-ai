@@ -6088,10 +6088,8 @@ function getBasketballTeamLogoData(
   teamName,
   apiLogo
 ) {
-  const teamKey =
-    normalizeBasketballTeamKey(
-      teamName
-    );
+  const apiName=Object.entries(NBA_TEAM_NAME_ZH).find(([,translated])=>String(translated)===String(teamName))?.[0]||teamName;
+  const teamKey = normalizeBasketballTeamKey(apiName);
 
   const officialTeamId =
     NBA_OFFICIAL_TEAM_ID[
@@ -6110,8 +6108,8 @@ function getBasketballTeamLogoData(
 
   // The Sacramento SVG/provider image can fail on mobile browsers.
   // Use the recognized NBA team logo as primary, retain two safe fallbacks.
-  const reliableLogo = officialTeamId === "1610612758"
-    ? "https://a.espncdn.com/i/teamlogos/nba/500/sac.png" : "";
+  const espnFallback={"1610612758":"sac","1610612756":"phx"}[officialTeamId];
+  const reliableLogo=espnFallback?`https://a.espncdn.com/i/teamlogos/nba/500/${espnFallback}.png`:"";
   const candidates = [reliableLogo, officialLogo, providerLogo]
     .filter((url, index, list) => url && list.indexOf(url) === index);
   return {
@@ -9364,6 +9362,7 @@ const basketballMatches =
 // Add isolated claimed NBA stages without replacing official T-10 history rows.
 window.habaoNbaStageHistoryError=false;
 try {
+  if(String(member.account)==="google_2d3cef6b6e2d"&&!window.habaoNbaStages?.history)throw new Error("NBA 階段功能尚未載入，請重新整理後再試");
   const stageMatches=await window.habaoNbaStages?.history();
   if(Array.isArray(stageMatches))basketballMatches.push(...stageMatches);
 } catch(error) { window.habaoNbaStageHistoryError=true;console.warn('NBA_STAGE_HISTORY_UNAVAILABLE',error?.message||error); }
@@ -9514,10 +9513,8 @@ function renderAnalysisHistory(
       );
   }
 
-  const allMatches =
-    Array.isArray(matches)
-      ? matches
-      : [];
+  const rawMatches = Array.isArray(matches) ? matches : [];
+  const allMatches = window.habaoNbaStages?.groupHistory(rawMatches) || rawMatches;
 
   const normalizedSport =
     [
@@ -9602,7 +9599,7 @@ function renderAnalysisHistory(
 
     window.habaoAnalysisHistory =
       Object.fromEntries(
-        allMatches.map(
+        rawMatches.map(
           match => {
             const sport =
               String(
@@ -9957,6 +9954,9 @@ function renderAnalysisHistory(
         const historySport=String(match?.sport||"").toLowerCase();
         const isBasketballHistory=historySport==="basketball";
         const isBaseballHistory=historySport==="baseball";
+        const nbaHistoryStage=match.nba_history_latest||match.v2_stage||match.result_data?.v2_stage||"t10";
+        const nbaOwnedStages=match.nba_history_stages;
+
 
         const leagueName = isBasketballHistory
           ? (lang==="en"?"NBA":"🏀 NBA")
@@ -10068,13 +10068,23 @@ const historyKey=String(match.history_key||
   (isBaseballHistory?"baseball:":isBasketballHistory?"basketball:":"football:")+
   String(isBaseballHistory?(match.game_id??match.id):match.id));
 
+        const stageHistoryButtons=isBasketballHistory&&nbaOwnedStages ? `<div class="nba-history-stages">${["t10","t2","t15"].map(stage=>{
+          const row=nbaOwnedStages[stage],label=stage==="t10"?"T-10 賽前分析":stage==="t2"?"T-2 深度分析":"T-15 最終分析";
+          const key=row?String(row.history_key||"basketball:"+String(row.id)):"";
+          return `<button type="button" class="nba-history-stage" data-stage="${stage}" ${row?`data-history-key="${escapeBasketballHTML(key)}" onclick="viewAnalysisHistory(this.dataset.historyKey)"`:"disabled"}>${label}<small>${row?"免費重看":"尚未領取"}</small></button>`;
+        }).join("")}</div><div class="nba-history-hint">已領取的階段可免費重看；新增分析請回賽事中心。</div>` : "";
+        const historyLogo=(side,name,src)=>{
+          if(!isBasketballHistory)return `<img src="${src}" alt="${name}">`;
+          const team=historyFixture?.[side]||{},data=getBasketballTeamLogoData(team.api_name||team.name||name,src);
+          return `<div class="v2-team-logo-box nba-history-logo"><img src="${data.src}" data-fallback-logo="${data.fallback}" data-backup-logo="${data.backup}" alt="${escapeBasketballHTML(name)}" onerror="handleBasketballLogoError(this)"></div>`;
+        };
         return `
-          <div class="history-match-card" data-nba-history-stage="${isBasketballHistory ? (match.v2_stage==="t2"?"t2":match.v2_stage==="t15"?"t15":"t10") : ""}">
+          <div class="history-match-card" data-nba-history-stage="${isBasketballHistory ? nbaHistoryStage : ""}">
 
             <div class="history-match-top">
 
               <span class="history-league">
-                ${leagueName}${isBasketballHistory ? (match.v2_stage==="t2" ? " · T-2 深度分析" : match.v2_stage==="t15" ? " · T-15 最終分析" : " · T-10 分析") : ""}
+                ${leagueName}${nbaOwnedStages ? ` <span class="nba-history-count">· 已領取 ${Object.keys(nbaOwnedStages).length}/3 階段</span>` : isBasketballHistory ? (nbaHistoryStage==="t2" ? " · T-2 深度分析" : nbaHistoryStage==="t15" ? " · T-15 最終分析" : " · T-10 分析") : ""}
               </span>
 
               <span class="history-time">
@@ -10094,10 +10104,7 @@ const historyKey=String(match.history_key||
                   )}
                 </div>
 
-                <img
-                  src="${homeLogo}"
-                  alt="${homeTeam}"
-                >
+${historyLogo("home",homeTeam,homeLogo)}
 
                 <div class="history-team-name">
                   ${homeTeam}
@@ -10121,10 +10128,7 @@ const historyKey=String(match.history_key||
                   )}
                 </div>
 
-                <img
-                  src="${awayLogo}"
-                  alt="${awayTeam}"
-                >
+${historyLogo("away",awayTeam,awayLogo)}
 
                 <div class="history-team-name">
                   ${awayTeam}
@@ -10134,15 +10138,7 @@ const historyKey=String(match.history_key||
 
             </div>
 
-            <button
-              class="history-view-btn"
-              onclick='viewAnalysisHistory(${JSON.stringify(historyKey)})'
-            >
-              ${t(
-                "viewAnalysis",
-                "查看分析 →"
-              )}
-            </button>
+            ${stageHistoryButtons || `<button class="history-view-btn" data-history-key="${escapeBasketballHTML(historyKey)}" onclick="viewAnalysisHistory(this.dataset.historyKey)">${t("viewAnalysis","查看分析 →")}</button>`}
 
           </div>
         `;
@@ -10151,7 +10147,7 @@ const historyKey=String(match.history_key||
 
   window.habaoAnalysisHistory =
     Object.fromEntries(
-      allMatches.map(
+      rawMatches.map(
         match => {
           const sport =
             String(
@@ -10246,6 +10242,9 @@ if (
       : "analysis.html";
 }  
 
+</script>
+<script src="./nba-stages.js?v=20261113-3"></script>
+<script>
 // =========================================
 // HABAO｜首頁「我的分析」直達分析紀錄
 // football.html?view=history
@@ -11680,7 +11679,7 @@ analysisResultNotFound: "Analysis result not found"
 
 <script src="mlb-match-center.js?v=12"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
-<script src="./nba-stages.js?v=20261113-2"></script>
+
 </body>
 </html>
 
