@@ -18,5 +18,14 @@ test('wrong fixture/stage response never enters result storage',async()=>{const 
 test('stale pilot status cannot enable another account',async()=>{const d=deferred(),x=setup(100,()=>d.promise),p=x.c.refreshFootballV2StageButtons([10]);await Promise.resolve();x.stored.set('habao_member',JSON.stringify({account:'ordinary'}));d.resolve(json({success:true,enabled:true,stages:{}}));await p;assert.notEqual(x.c.window.habaoFootballV2StageUiEnabled,true)});
 test('15-second stage clock update makes no API call',()=>{let calls=0;const x=setup(16,async()=>{calls++;return json({})});x.c.window.habaoFootballV2StageUiEnabled=true;x.clock.now+=2*60000;x.timers[0]();assert.equal(x.primary.dataset.stage,'t15');assert.equal(calls,0)});
 test('invalid fixture IDs are rejected before HTTP request',async()=>{let calls=0;const x=setup(100,async()=>{calls++;return json({})});for(const id of [-1,0,1.2,'bad'])await x.c.openFootballV2Stage(id,'t2',x.primary);assert.equal(calls,0)});
+test('stage claim updates displayed paid and daily balances from actual credit RPC fields',async()=>{
+ const x=setup(100,async()=>json({success:true,member_access:{analysis_unlimited:false,paid_remaining:0,daily_free_remaining:2},result:{success:true,fixture:{id:10},v2_stage:'t2',analysis:{}}}));
+ x.stored.set('habao_member',JSON.stringify({account:'google_2d3cef6b6e2d',analysis_credits:5,daily_free_credits:3}));await x.c.openFootballV2Stage(10,'t2',x.primary);
+ const member=JSON.parse(x.stored.get('habao_member'));assert.equal(member.analysis_credits,0);assert.equal(member.daily_free_credits,2);
+});
+test('old account claim response cannot overwrite new account balance or results',async()=>{
+ const d=deferred(),x=setup(100,()=>d.promise),p=x.c.openFootballV2Stage(10,'t2',x.primary);await Promise.resolve();x.stored.set('habao_member',JSON.stringify({account:'other',analysis_credits:9}));d.resolve(json({success:true,member_access:{paid_remaining:0},result:{success:true,fixture:{id:10},v2_stage:'t2',analysis:{}}}));await p;
+ assert.equal(JSON.parse(x.stored.get('habao_member')).analysis_credits,9);assert.equal(x.stored.has('matchAnalysis'),false);
+});
 test('all inline scripts parse',()=>{for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){if(/src\s*=|application\/ld\+json|application\/json/.test(m[1])||!m[2].trim())continue;new vm.Script(m[2])}});
 (async()=>{let fail=0;for(const[n,f]of tests){try{await f();console.log('PASS '+n)}catch(e){fail++;console.error('FAIL '+n+'\n'+e.stack)}}console.log(JSON.stringify({suite:'Football stage UI state regression',passed:tests.length-fail,failed:fail}));process.exitCode=fail?1:0})();
