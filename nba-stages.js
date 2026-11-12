@@ -8,6 +8,12 @@
   const member=()=>{try{return JSON.parse(sessionStorage.getItem('habao_member')||'null');}catch{return null;}};
   const account=()=>String(member()?.account||'');
   const pilot=()=>account()===PILOT;
+  const running=()=>typeof habaoSportBatchRunning!=='undefined'&&habaoSportBatchRunning;
+  const phase=(kickoff,now=Date.now())=>{
+    const m=(Date.parse(kickoff)-now)/60000;
+    return !Number.isFinite(m)||m<=0||m>600?null:m<=15?'t15':m<=120?'t2':'t10';
+  };
+  const openingTime=(kickoff,stage)=>new Date(Date.parse(kickoff)-(stage==='t2'?120:15)*60000).toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',hour12:false});
   async function headers(){return footballV2StageHeaders();}
   async function request(body,timeout=20000){
     const response=await fetch(ENDPOINT,{method:'POST',headers:await headers(),body:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(timeout)});
@@ -20,8 +26,8 @@
     if(!Number.isFinite(minutes))return {stage:null,label:'賽事時間未確認',disabled:true,status:'尚未開放分析'};
     if(minutes<=0)return {stage:null,label:'分析已截止',disabled:true,status:'比賽已開賽'};
     if(minutes>600)return {stage:'t10',label:'賽前 10 小時開放',disabled:true,status:'尚未開放分析'};
-    if(minutes>120)return claimed.t10?{stage:'t2',label:'深度分析（T-2 開放）',disabled:true,status:'已領取 T-10・等待 T-2'}:{stage:'t10',label:'開始分析',disabled:false,status:'可分析'};
-    if(minutes>15)return claimed.t2?{stage:'t15',label:'最終分析（T-15 開放）',disabled:true,status:'已領取 T-2・等待 T-15'}:{stage:'t2',label:'深度分析',disabled:false,status:'T-2 可分析'};
+    if(minutes>120)return claimed.t10?{stage:'t2',label:'深度分析・'+openingTime(kickoff,'t2')+' 開放',disabled:true,status:'已領取 T-10・等待 T-2'}:{stage:'t10',label:'開始分析',disabled:false,status:'T-10 可分析'};
+    if(minutes>15)return claimed.t2?{stage:'t15',label:'最終分析・'+openingTime(kickoff,'t15')+' 開放',disabled:true,status:'已領取 T-2・等待 T-15'}:{stage:'t2',label:'深度分析',disabled:false,status:'T-2 可分析'};
     return claimed.t15?{stage:'t15',label:'已領取最終分析',disabled:true,status:'已領取 T-15'}:{stage:'t15',label:'最終分析',disabled:false,status:'T-15 可分析'};
   }
   function render(id){
@@ -43,11 +49,17 @@
     if(d.stage==='t2'||d.stage==='t15')button.classList.add('football-v2-stage-btn','stage-'+d.stage);
     if(d.disabled)button.classList.add('locked');
     button.disabled=d.disabled;button.textContent=d.label;button.setAttribute('aria-label',d.label);
+    button.classList.toggle('nba-stage-waiting',d.disabled&&d.stage!==null);
     button.onclick=d.disabled?null:()=>d.stage==='t10'?openBasketballMatch(Number(id),button):claim(Number(id),d.stage,button);
-    if(status){status.textContent=d.status;status.classList.toggle('ready',!d.disabled);status.classList.toggle('locked',d.disabled);}
+    if(status){status.textContent=d.status;status.classList.toggle('ready',!d.disabled);status.classList.toggle('locked',d.disabled);status.classList.toggle('nba-stage-waiting-status',d.disabled&&d.stage!==null);status.dataset.nbaStage=d.stage||'';}
     const minutes=(Date.parse(match.kickoff_at)-Date.now())/60000;
-    // Batch remains the existing official T-10 flow; label it explicitly when viewing a later stage.
-    const batch=card.querySelector('.v2-batch-select span');if(batch)batch.textContent=minutes<=120?'加入 T-10 批次分析':'加入批次分析';
+    // Pin the billed stage at selection time. Crossing a boundary requires reselecting.
+    const batch=card.querySelector('.v2-batch-select span'),input=card.querySelector('.batch-analysis-checkbox'),current=phase(match.kickoff_at);
+    if(input&&!running()){
+      if(input.checked&&input.dataset.nbaStage&&input.dataset.nbaStage!==current){input.checked=false;if(typeof updateBatchSelection==='function')updateBatchSelection();}
+      input.dataset.nbaStage=current||'';input.disabled=!current;
+    }
+    if(batch)batch.textContent=current?(state.claimed?.[current]===true?'重看 '+current.toUpperCase().replace('T','T-')+' 分析':'加入 '+current.toUpperCase().replace('T','T-')+' 批次分析'):'分析已截止';
     if(minutes<=0)return;
     const extra=(stage,label,canClaim)=>{
       const b=document.createElement('button');b.type='button';b.className='v2-analysis-btn nba-stage-catchup'+(stage==='t2'?' football-v2-stage-btn stage-t2':'');b.textContent=label;b.disabled=!canClaim;
@@ -70,20 +82,39 @@
     }catch(e){if(serial!==token||account()!==active)return;enabled=false;unavailable=true;}
     matches.forEach((_,id)=>render(id));
   }
+  async function loadStage(id,stage,expectedAccount){
+    if(!pilot()||!Number.isSafeInteger(id)||id<=0||!['t2','t15'].includes(stage))throw Error('無效的 NBA 階段分析');
+    const active=account();if(expectedAccount&&active!==expectedAccount)throw Error('帳號已變更，請重新選取分析');
+    const p=await request({action:'claim',account:active,game_id:id,stage},90000),result=p.result;
+    if(account()!==active)throw Error('帳號已變更，請重新讀取');
+    if(!result||result.success!==true||Number(result.game_id)!==id||result.v2_stage!==stage||result.sport!=='basketball'||!result.analysis)throw Error('階段分析回傳不完整');
+    const access=p.member_access,m=member();
+    if(access&&access.analysis_unlimited!==true){for(const [key,field]of [['paid_remaining','analysis_credits'],['daily_free_remaining','daily_free_credits']]){const value=access[key];if(value!=null&&typeof value!=='boolean'&&String(value).trim()!==''&&Number.isInteger(Number(value))&&Number(value)>=0)m[field]=Number(value);}sessionStorage.setItem('habao_member',JSON.stringify(m));}
+    states[String(id)]={...states[String(id)],claimed:{...states[String(id)]?.claimed,[stage]:true}};
+    return p;
+  }
+  function batchSpec(input){
+    const id=Number(input.value),stage=input.dataset.nbaStage,current=phase(input.dataset.kickoffAt);
+    if(!pilot()||!enabled||unavailable||owner!==account())throw Error('階段狀態尚未就緒，請重新整理賽事');
+    if(!Number.isSafeInteger(id)||id<=0||!current||stage!==current)throw Error('分析階段已更新，請重新勾選賽事');
+    return {game_id:id,stage,kickoff_at:input.dataset.kickoffAt,account:account()};
+  }
+  async function claimForBatch(spec){
+    if(account()!==spec.account||phase(spec.kickoff_at)!==spec.stage)throw Error('分析階段或帳號已更新，請重新勾選賽事');
+    if(!['t2','t15'].includes(spec.stage))throw Error('無效的階段批次請求');
+    const id=Number(spec.game_id);if(pending.has(id)||typeof habaoNbaPendingGames!=='undefined'&&habaoNbaPendingGames.has(id))throw Error('這場分析正在處理中');
+    pending.add(id);if(typeof habaoNbaPendingGames!=='undefined')habaoNbaPendingGames.add(id);
+    try{return await loadStage(id,spec.stage,spec.account);}finally{pending.delete(id);if(typeof habaoNbaPendingGames!=='undefined')habaoNbaPendingGames.delete(id);}
+  }
   async function claim(id,stage,button){
     if(!pilot()||!['t2','t15'].includes(stage)||pending.has(id))return;
     if(typeof habaoSportBatchRunning!=='undefined'&&habaoSportBatchRunning){alert('批次分析執行中，請等完成後再領取階段分析。');return;}
-    const active=account(),m=member(),old=button?.textContent||'';
+    const active=account(),old=button?.textContent||'';
     if(typeof habaoNbaPendingGames!=='undefined'&&habaoNbaPendingGames.has(id))return;
     pending.add(id);if(typeof habaoNbaPendingGames!=='undefined')habaoNbaPendingGames.add(id);
-    if(button){button.disabled=true;button.textContent='階段資料準備中…';button.classList.add('loading');}
+    if(button){button.disabled=true;button.textContent='讀取'+(stage==='t2'?'深度':'最終')+'分析…';button.classList.add('loading');}
     try{
-      const p=await request({action:'claim',account:active,game_id:id,stage},90000),result=p.result;
-      if(account()!==active)throw Error('帳號已變更，請重新讀取');
-      if(!result||result.success!==true||Number(result.game_id)!==id||result.v2_stage!==stage||result.sport!=='basketball'||!result.analysis)throw Error('階段分析回傳不完整');
-      const access=p.member_access;
-      if(access&&access.analysis_unlimited!==true){for(const [key,field]of [['paid_remaining','analysis_credits'],['daily_free_remaining','daily_free_credits']]){const value=access[key];if(value!=null&&typeof value!=='boolean'&&String(value).trim()!==''&&Number.isInteger(Number(value))&&Number(value)>=0)m[field]=Number(value);}sessionStorage.setItem('habao_member',JSON.stringify(m));}
-      states[String(id)]={...states[String(id)],claimed:{...states[String(id)]?.claimed,[stage]:true}};
+      const p=await loadStage(id,stage,active),result=p.result;
       sessionStorage.setItem('matchAnalysis',JSON.stringify(result));sessionStorage.setItem('habao_analysis_sport','basketball');
       window.location.href='analysis.html?sport=basketball&v2stage='+stage;
     }catch(e){
@@ -98,10 +129,10 @@
     if(p.enabled!==true||!Array.isArray(p.matches))return [];
     return p.matches;
   }
-  window.habaoNbaStages={refresh,claim,history,decision};
+  window.habaoNbaStages={refresh,claim,history,decision,phase,batchSpec,claimForBatch,isPilot:pilot,reconcile:()=>matches.forEach((_,id)=>render(id))};
   window.setInterval(()=>{if(pilot()&&enabled)matches.forEach((_,id)=>render(id));},10000);
   window.setInterval(()=>{if(pilot()&&document.querySelector('[data-basketball-fixture-id]')&&document.visibilityState==='visible')void refresh();},60000);
   window.addEventListener('pageshow',()=>{if(pilot())void refresh();});
-  const style=document.createElement('style');style.textContent='.nba-stage-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;width:100%}.nba-stage-actions:empty{display:none}.nba-stage-catchup{font-size:12px!important;min-width:0!important;padding:10px 14px!important}.nba-stage-history-label{color:#a6cbff;font-size:12px;margin-top:6px}.v2-match-card[data-sport=basketball] .v2-analysis-btn.stage-t15{background:linear-gradient(135deg,#d9c8ff,#9874ed)!important;color:#180c32!important;border-color:#c0a5ff!important;box-shadow:0 7px 18px rgba(132,91,223,.24)!important}.v2-match-card[data-sport=basketball] .v2-analysis-btn.stage-t2{background:linear-gradient(135deg,#c5e9ff,#52b7ed)!important;color:#062238!important}';document.head.appendChild(style);
+  const style=document.createElement('style');style.textContent='.nba-stage-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;width:100%}.nba-stage-actions:empty{display:none}.nba-stage-catchup{font-size:12px!important;min-width:0!important;padding:10px 14px!important}.nba-stage-history-label{color:#a6cbff;font-size:12px;margin-top:6px}.v2-match-card[data-sport=basketball] .v2-analysis-btn.stage-t15{background:linear-gradient(135deg,#d9c8ff,#9874ed)!important;color:#180c32!important;border-color:#c0a5ff!important;box-shadow:0 7px 18px rgba(132,91,223,.24)!important}.v2-match-card[data-sport=basketball] .v2-analysis-btn.stage-t2{background:linear-gradient(135deg,#c5e9ff,#52b7ed)!important;color:#062238!important}.v2-match-card[data-sport=basketball] .v2-analysis-btn.nba-stage-waiting{opacity:.58!important;box-shadow:none!important;cursor:not-allowed}.v2-match-card[data-sport=basketball] .ai-status.nba-stage-waiting-status{color:#a3afbc!important}.v2-match-card[data-sport=basketball] .ai-status.ready[data-nba-stage=t2]{color:#8bd4ff!important}.v2-match-card[data-sport=basketball] .ai-status.ready[data-nba-stage=t15]{color:#bea2ff!important}.v2-match-card[data-sport=basketball] .analysis-btn.loading::before{content:"";position:static;display:inline-block;width:12px;height:12px;background:transparent;box-shadow:none;transition:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;margin-right:7px;vertical-align:-2px;animation:nba-stage-spin .8s linear infinite}.history-match-card[data-nba-history-stage=t2] .history-league{color:#8bd4ff}.history-match-card[data-nba-history-stage=t15] .history-league{color:#bea2ff}.history-match-card[data-nba-history-stage=t2] .history-view-btn{background:linear-gradient(135deg,#c5e9ff,#52b7ed);color:#062238}.history-match-card[data-nba-history-stage=t15] .history-view-btn{background:linear-gradient(135deg,#d9c8ff,#9874ed);color:#180c32}@keyframes nba-stage-spin{to{transform:rotate(360deg)}}';document.head.appendChild(style);
   if(pilot())void refresh();
 })();
