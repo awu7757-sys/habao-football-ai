@@ -4365,6 +4365,17 @@ async function openFootballV2Stage(fixtureId, stage, button) {
       throw new Error(packet?.error || `HTTP ${response.status}`);
     }
     if(Number(packet.result?.fixture?.id)!==id||packet.result?.v2_stage!==stage||packet.result?.success!==true||!packet.result?.analysis)throw new Error("階段分析回傳不完整，請重新讀取。");
+    let activeAccount="";try{activeAccount=String(JSON.parse(sessionStorage.getItem("habao_member")||"null")?.account||"");}catch{}
+    if(activeAccount!==String(member.account))throw new Error("帳號已變更，請以目前帳號重新讀取分析。");
+    const access=packet.member_access;
+    if(access&&access.analysis_unlimited!==true){
+      let changed=false;
+      for(const [field,localField] of [["paid_remaining","analysis_credits"],["daily_free_remaining","daily_free_credits"]]){
+        const value=access[field];
+        if(value!==null&&value!==undefined&&typeof value!=="boolean"&&String(value).trim()!==""&&Number.isInteger(Number(value))&&Number(value)>=0){member[localField]=Number(value);changed=true;}
+      }
+      if(changed)sessionStorage.setItem("habao_member",JSON.stringify(member));
+    }
     const status=window.habaoFootballV2StageMatches?.[String(id)];if(status){status.claimed={...status.claimed,[stage]:true};}
     sessionStorage.setItem("matchAnalysis", JSON.stringify(packet.result));
     window.location.href = `analysis.html?v=2&v2stage=${encodeURIComponent(stage)}`;
@@ -11637,5 +11648,6 @@ analysisResultNotFound: "Analysis result not found"
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 </body>
 </html>
+
 
 
