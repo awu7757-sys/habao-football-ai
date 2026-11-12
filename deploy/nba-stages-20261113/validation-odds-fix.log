@@ -1,0 +1,35 @@
+PASS same game repeated/concurrent stage claim debits one point
+PASS same game T-15 is a separate point and immutable result
+PASS write failure rolls credit debit back in same transaction
+PASS empty balance creates no claim
+PASS T-15 early request rejected without debit
+PASS saved T-2 can be claimed during T-15
+PASS new claim blocked after tipoff; old claim remains free
+PASS missing snapshot cannot debit
+PASS ordinary member cannot enter pilot stages
+PASS inactive member blocked
+PASS unlimited membership does not consume points
+PASS browser roles cannot execute financial or capture RPCs
+PASS API budget reservation is capped and repeat-safe
+PASS capture lease cannot double capture or rewrite ready stage
+PASS missed T-2 is not reconstructed during T-15
+PASS ready snapshot cannot be stored after tipoff
+PASS odds repair requeues only observed legacy failures once, preserving ready rows and usage
+PASS NBA stage capture windows have exact boundaries
+PASS stage uses actual paired betting lines
+PASS wrong teams, stale or conflicting markets are rejected
+PASS away cover keeps positive original line; missing line stays null
+PASS runner unauthorized calls cannot read DB or spend API
+PASS odds time filters use UTC whole seconds and never milliseconds
+PASS odds HTTP status and safe provider code remain distinguishable
+PASS malformed error bodies and network errors cannot leak request keys
+PASS member spoofing cannot read claims or spend points
+PASS OPTIONS succeeds without authentication for both functions
+PASS full scheduled capture stores a fresh model, actual lines and late-capture marker
+PASS provider started/changed fixture never stores a ready stage
+PASS member repeat read uses saved stage before time or capture requests
+PASS after T-10 claim button immediately waits for blue T-2
+PASS T-2 opens without requiring earlier claim; T-15 follows
+PASS completed current stage is disabled; tipoff always closes
+PASS all updated page scripts and both function bundles parse
+{"suite":"NBA stage financial, capture, frontend tests","passed":34,"failed":0}

@@ -169,8 +169,9 @@ async function dbGet(table, params){
 
 // Isolated NBA T-2/T-15 capture. Never rewrites official T-10 or public results.
 const STAGE_VERSION='nba-v2-stages-efficiency-shrinkage-v0.1';
-const ODDS_KEY=String(Deno.env.get('THE_ODDS_API_KEY')||Deno.env.get('ODDS_API_KEY')||'');
-const stageHeaders={...HEADERS,'X-Habao-Version':'nba-stages-20261113'};
+const ODDS_KEY=String(Deno.env.get('THE_ODDS_API_KEY')||Deno.env.get('ODDS_API_KEY')||'').trim();
+const STAGE_REVISION='nba-stages-oddsfix-20261113-1';
+const stageHeaders={...HEADERS,'X-Habao-Version':STAGE_REVISION};
 const stageReply=(status,data)=>new Response(JSON.stringify(data),{status,headers:{...stageHeaders,'Content-Type':'application/json'}});
 const roleHeaders=()=>({apikey:ROLE,Authorization:'Bearer '+ROLE,'Content-Type':'application/json'});
 async function rpc(name,body){
@@ -217,10 +218,20 @@ function parseMarket(events,snapshot,now){
 }
 async function currentMarket(s,context){
  if(!ODDS_KEY)return {available:false,home_spread:null,total:null,reason:'odds_key_not_configured',origin:'current_stage_market'};
+ const kickoff=parseMs(s.fixture_time);if(kickoff===null)throw Error('odds_invalid_fixture_time');
+ // Use the documented UTC seconds format for both filter parameters.
+ const secondsIso=ms=>new Date(ms).toISOString().replace(/\.\d{3}Z$/,'Z');
  await reserve('odds',2);context.odds_calls++;
- const params=new URLSearchParams({apiKey:ODDS_KEY,regions:'us',markets:'spreads,totals',oddsFormat:'decimal',dateFormat:'iso',commenceTimeFrom:new Date(Date.parse(s.fixture_time)-15*60000).toISOString(),commenceTimeTo:new Date(Date.parse(s.fixture_time)+15*60000).toISOString()});
- const r=await fetch('https://api.the-odds-api.com/v4/sports/basketball_nba/odds?'+params,{signal:AbortSignal.timeout(12000)});
- if(!r.ok)throw Error('current_odds_source_unavailable');const b=await r.json();if(!Array.isArray(b))throw Error('invalid_current_odds');
+ const params=new URLSearchParams({apiKey:ODDS_KEY,regions:'us',markets:'spreads,totals',oddsFormat:'decimal',dateFormat:'iso',commenceTimeFrom:secondsIso(kickoff-15*60000),commenceTimeTo:secondsIso(kickoff+15*60000)});
+ let r;try{r=await fetch('https://api.the-odds-api.com/v4/sports/basketball_nba/odds?'+params,{signal:AbortSignal.timeout(12000)});}catch{throw Error('odds_network_error');}
+ const b=await r.json().catch(()=>null);
+ if(!r.ok){
+  // Store only status and an allowlisted code, never provider messages, URLs or keys.
+  const raw=String(b?.error_code||b?.code||'UNSPECIFIED');
+  const code=/^[A-Za-z0-9_]{1,80}$/.test(raw)?raw:'UNSPECIFIED';
+  throw Error('odds_http_'+r.status+'_'+code);
+ }
+ if(!Array.isArray(b))throw Error('invalid_current_odds');
  return parseMarket(b,s,Date.now());
 }
 async function stageModel(s,market,context,cutoff){
@@ -285,10 +296,10 @@ async function captureStage(s,stage){
   if(!stageWindow(s.fixture_time,stage))throw Error('stage_window_closed_during_capture');
   const captured_at=new Date().toISOString(),target=Date.parse(s.fixture_time)-(stage==='t2'?120:15)*60000;
   const scheduled=Date.parse(captured_at)-target<=90000;
-  const meta={captured_at,feature_as_of:captured_at,history_cutoff:new Date(cutoff).toISOString(),scheduled_target_at:new Date(target).toISOString(),capture_mode:scheduled?'scheduled':'late_pre_match_recovery',include_in_stage_comparison:scheduled,nba_calls:context.nba_calls,odds_calls:context.odds_calls,injury_adjustment_applied:false,availability_status:'not_available',lineup_status:'not_available',history_counts:out.history_counts};
+  const meta={captured_at,runner_revision:STAGE_REVISION,feature_as_of:captured_at,history_cutoff:new Date(cutoff).toISOString(),scheduled_target_at:new Date(target).toISOString(),capture_mode:scheduled?'scheduled':'late_pre_match_recovery',include_in_stage_comparison:scheduled,nba_calls:context.nba_calls,odds_calls:context.odds_calls,injury_adjustment_applied:false,availability_status:'not_available',lineup_status:'not_available',history_counts:out.history_counts};
   await patchStage(s.game_id,stage,token,{status:out.status,captured_at:out.status==='ready'?captured_at:null,model_output:out.model||null,result_data:out.model?stageResult(s,stage,out.model,meta):null,source_meta:{...meta,reason:out.reason||null}});
   return {game_id:s.game_id,stage,status:out.status,capture_mode:meta.capture_mode,nba_calls:context.nba_calls,odds_calls:context.odds_calls};
- }catch(e){const reason=String(e?.message||e).slice(0,150);await patchStage(s.game_id,stage,token,{status:'source_error',source_meta:{reason,nba_calls:context.nba_calls,odds_calls:context.odds_calls}}).catch(()=>{});return {game_id:s.game_id,stage,status:'source_error',reason};}
+ }catch(e){const reason=String(e?.message||e).slice(0,150);await patchStage(s.game_id,stage,token,{status:'source_error',source_meta:{reason,runner_revision:STAGE_REVISION,nba_calls:context.nba_calls,odds_calls:context.odds_calls}}).catch(()=>{});return {game_id:s.game_id,stage,status:'source_error',reason};}
 }
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:stageHeaders});

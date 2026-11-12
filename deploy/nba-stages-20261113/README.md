@@ -55,3 +55,11 @@
 - 保持 `all_members_enabled=false`；這次只開測試帳號。
 
 測試程式與驗證紀錄一併保留在本部署目錄。實際 Supabase 部署結果與會員實場點擊仍須部署後確認。
+
+## 06:48 盤口請求錯誤修補
+
+針對畫面中的 `current_odds_source_unavailable`：時間篩選改為秒級 UTC 格式，API 失敗保留 HTTP 狀態與安全錯誤代碼。尚未從原錯誤得知上游實際原因，不先假定金鑰失效或配額不足。
+
+1. 只重新部署本目錄 `nba-v2-stage-runner.index.txt` 至同名函式；member 與前台不需重部署。
+2. 執行 `04_retry_odds_format_fix.sql`，只將 17111／17112 尚在 T-2 窗口且仍是舊錯誤的失敗快照重新排隊；不動 ready 快照、會員領取、API 用量。
+3. 約 60 秒後查 `03_readonly_audit.sql`。若仍失敗，`reason` 會顯示如 `odds_http_401_INVALID_KEY`、`odds_http_422_INVALID_COMMENCE_TIME_FROM` 或 `odds_http_429_EXCEEDED_FREQ_LIMIT`。請提供代碼即可，不要提供 API 金鑰。
