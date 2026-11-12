@@ -9513,7 +9513,7 @@ function renderAnalysisHistory(
       );
   }
 
-  const rawMatches = Array.isArray(matches) ? matches : [];
+  const rawMatches = (Array.isArray(matches) ? matches : []).flatMap(row=>row?.nba_history_stages?Object.values(row.nba_history_stages):[row]);
   const allMatches = window.habaoNbaStages?.groupHistory(rawMatches) || rawMatches;
 
   const normalizedSport =
@@ -10243,7 +10243,7 @@ if (
 }  
 
 </script>
-<script src="./nba-stages.js?v=20261113-3"></script>
+<script src="./nba-stages.js?v=20261113-4"></script>
 <script>
 // =========================================
 // HABAO｜首頁「我的分析」直達分析紀錄

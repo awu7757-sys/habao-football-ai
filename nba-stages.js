@@ -137,7 +137,8 @@
   function groupHistory(rows){
     if(!Array.isArray(rows)||!pilot())return rows;
     const groups=new Map(),ordered=[];
-    for(const row of rows){
+    const records=rows.flatMap(row=>row?.nba_history_stages?Object.values(row.nba_history_stages):[row]);
+    for(const row of records){
       const id=String(row?.sport||'').toLowerCase()==='basketball'?historyGameId(row):null;
       const stage=row?.v2_stage||row?.result_data?.v2_stage||'t10';
       if(id===null||!['t10','t2','t15'].includes(stage)||!row?.result_data){ordered.push(row);continue;}
