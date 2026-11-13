@@ -2,6 +2,16 @@
 
 會員前台採 T-10／T-2／T-15 三階段，不顯示測試或研究版標籤、不限制特定帳號。
 
+## 不等賽事的模板重播
+
+入口：根目錄 `qa/nba-stages.html`。這是獨立頁面，不在正式會員入口加入測試開關。可切換 T-10 前／T-10／等待 T-2／T-2／等待 T-15／T-15／全領取／開賽後／額度不足；單場、批次、結果分頁、同場三階段歷史與手機寬度沿用正式模板和階段腳本。
+
+- 時鐘、來源、扣點與 Storage 全在 sandbox 內模擬；禁止同源存取、外部網路、表單和正式導航。不讀登入資訊，不呼叫 Supabase，不影響會員點數或快照。
+- 預設數字是明示的合成球隊基準與歷史球員名單重播，不能冒稱正式分析結果。先用它檢查全部 UI 分支。
+- 要核對今天保存的真實數字，執行 [11_export_saved_replay.sql](11_export_saved_replay.sql)，Export JSON 後在重播頁匯入。資料只留瀏覽器記憶體。頁面核對 T-2／T-15 的分差、總分、常態分布機率、推薦盤線、信心及會員領取與快照一致性。
+- T-10 僅顯示保存結果，不假裝用新 V2 模型重算正式 V1；完整模型回算仍須原始輸入。重播不驗證當時 API 可用性、實際資料庫扣點、隊徽來源持續可用性或預測準確率。
+- 產生方式：`node lab/generate-demo.cjs`、`python3 lab/build.py`；模板 SHA-256 顯示在頁面。來源為 `football.html`／`analysis.html`／`nba-stages.js`，只替換隔離導航與資料介面。
+
 ## 傷停／確認先發更新
 
 已完成舊版三階段部署的專案，此次只需將 **[nba-v2-stage-runner.index.txt](nba-v2-stage-runner.index.txt)** 全文覆蓋同名 Supabase Edge Function 的 `index.ts`，再按 Deploy updates。版本為 `nba-stages-player-context-20261113-1`；沿用現有 Secrets、JWT OFF、排程、會員開放設定及扣點函式，不需重新執行 01／02／07。
