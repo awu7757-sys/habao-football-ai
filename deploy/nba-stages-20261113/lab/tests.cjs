@@ -14,7 +14,7 @@ test('virtual storage replaces inaccessible native storage without reading real 
  Object.defineProperty(c,'sessionStorage',{get(){realStorageReads++;throw Error('real storage forbidden')},configurable:true});
  Object.defineProperty(c,'localStorage',{get(){realStorageReads++;throw Error('real storage forbidden')},configurable:true});
  const seed={token:1,now:Date.now(),credits:10,ledger:[],claims:{},storage:{habao_member:'{"account":"qa_isolated_member"}'},games:clone(payload.demo.games),logos:{}};
- vm.runInContext('('+boot+')('+JSON.stringify(seed)+')',c);assert.equal(realStorageReads,0);
+ vm.runInContext('('+boot+')('+JSON.stringify(seed)+')',c);assert.equal(realStorageReads,0);assert.equal(typeof c.HabaoI18n.registerTranslations,'function');
  const id=seed.games[0].game_id;await c.fetch('https://example.com',{method:'POST',body:'{}'});assert.equal(nativeFetchCalls,0);
  const req={method:'POST',body:JSON.stringify({action:'claim',game_id:id,stage:'t2'})};let r=await(await c.fetch('https://qa.invalid/nba-v2-stage-member',req)).json();assert.equal(r.member_access.paid_remaining,9);r=await(await c.fetch('https://qa.invalid/nba-v2-stage-member',req)).json();assert.equal(r.already_claimed,true);assert.equal(messages.filter(p=>p.kind==='state').at(-1).credits,9);assert.equal(nativeFetchCalls,0);
 });

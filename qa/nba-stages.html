@@ -35,7 +35,7 @@ function bootstrap(seed){
  window.Date=ReplayDate;window.__qaSearch=seed.search;
  const memory={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k),clear:()=>storage.clear(),key:i=>[...storage.keys()][i]??null,get length(){return storage.size;}};
  Object.defineProperty(window,'sessionStorage',{value:memory});Object.defineProperty(window,'localStorage',{value:{getItem:()=>null,setItem(){},removeItem(){}}});
- window.HabaoI18n={t:(k,f)=>f,getLanguage:()=> 'zh-Hant',toSimplified:x=>x};
+ window.HabaoI18n={t:(k,f)=>f,getLanguage:()=> 'zh-Hant',toSimplified:x=>x,registerTranslations(){}};
  window.setInterval=()=>0;window.open=()=>null;
  window.alert=x=>send('alert',{message:String(x)});
  window.footballV2StageHeaders=async()=>({'Content-Type':'application/json'});
