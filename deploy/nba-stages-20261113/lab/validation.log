@@ -1,0 +1,9 @@
+PASS all generated parent and child scripts parse with actual production template code
+PASS opaque sandbox and connect/form restrictions accompany every renderer
+PASS virtual storage replaces inaccessible native storage without reading real account
+PASS synthetic examples are explicitly labeled and no T-10 model recalculation is claimed
+PASS changing saved line, confidence or model arithmetic produces CHECK
+PASS import supports Supabase array export and rejects empty or unsupported data
+PASS display escaping prevents imported text becoming executable markup without altering saved values
+PASS all eight boundaries, zero credits and explicitly synthetic confirmed-lineup branch are available
+{"suite":"NBA isolated replay safety and data audit","passed":8,"failed":0}

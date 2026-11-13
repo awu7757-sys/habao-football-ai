@@ -1,0 +1,23 @@
+{
+  "source_commit": "2ca322abad8eb773c05e768a14013b779ac71c1c",
+  "browser": "Chrome cloud browser",
+  "verified": [
+    "eight stage/time button scenarios",
+    "T-10, T-2, T-15 result headings",
+    "two-game T-2 batch: two virtual credits",
+    "batch pagination retains fixture and stage",
+    "grouped stage history",
+    "history replay: zero additional virtual credits",
+    "373px result viewport: no horizontal overflow",
+    "zero-credit rejection: zero virtual credits",
+    "synthetic confirmed lineup branch",
+    "missing-market no-recommendation branch"
+  ],
+  "limits": [
+    "Default numeric data is synthetic display data, not a new production prediction",
+    "Actual database balance not exercised",
+    "Source provider availability not validated by replay",
+    "T-10 formal model not recalculated",
+    "Real results require importing read-only saved snapshot export"
+  ]
+}
