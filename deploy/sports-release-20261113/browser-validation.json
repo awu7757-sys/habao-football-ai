@@ -139,5 +139,9 @@
     "viewport": 373,
     "content": 373
   },
-  "production_source_probe_report": "backend-source-validation.json"
+  "production_source_probe_report": "backend-source-validation.json",
+  "confirmed_nba_lineup_public_single_batch_match": true,
+  "public_source_commit": "46125533089fd63a34203e2318017834660b9dd8",
+  "public_screenshot": "verified-public-browser.jpg",
+  "mlb_atomic_passed": 8
 }

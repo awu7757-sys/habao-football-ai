@@ -50,3 +50,5 @@ PASS T-2 cannot be captured inside T-15
 PASS previously claimed result remains free after kickoff
 PASS anonymous cannot call atomic claim RPC
 RESULT 7 passed
+
+Final production checks: 41 contract + 8 atomic (including membership expiry) + 2 queue checks passed. Public browser: 24 state checks, 9 single/batch pairs, confirmed NBA lineup pair, mobile 373/373, free rewatch, unavailable stage zero virtual debits. Seven deployed function bodies match release sources exactly.
