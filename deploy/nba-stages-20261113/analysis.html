@@ -1,0 +1,4843 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<script src="./habao-loading.js?v=1" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI 賽事分析｜HABAO 賽事預測 AI</title>
+   
+<script src="./opencc.js"></script>
+<script src="./habao-i18n.js"></script>
+   
+<style>   
+
+/* ========================================
+   HABAO V2 - MATCH INTELLIGENCE FINAL
+======================================== */
+
+.v2-analysis-detail{
+  position:relative;
+  margin-top:30px;
+  padding-bottom:12px;
+}
+
+
+/* ===== 標題 ===== */
+
+.v2-detail-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+
+  margin-bottom:16px;
+  padding:0 2px;
+}
+
+.v2-detail-kicker{
+  margin-bottom:6px;
+
+  color:#dca82e;
+
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:2.1px;
+}
+
+.v2-detail-title{
+  color:#fff;
+
+  font-size:23px;
+  font-weight:1000;
+  line-height:1.2;
+}
+
+.v2-detail-badge{
+  flex:0 0 auto;
+
+  padding:8px 11px;
+
+  border:1px solid rgba(245,196,81,.35);
+  border-radius:10px;
+
+  background:rgba(245,196,81,.055);
+
+  color:#f5c451;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+
+/* ========================================
+   情報卡
+======================================== */
+
+.v2-insight-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  margin-bottom:12px;
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.06),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(12,31,43,.99),
+      rgba(7,22,32,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-card::before{
+  content:"";
+
+  position:absolute;
+  left:0;
+  top:18px;
+
+  width:2px;
+  height:38px;
+
+  border-radius:0 3px 3px 0;
+
+  background:linear-gradient(
+    #ffe078,
+    #c78c20
+  );
+
+  box-shadow:
+    0 0 12px rgba(245,196,81,.28);
+}
+
+.v2-insight-icon{
+  width:44px;
+  height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:13px;
+
+  color:#f5c451;
+
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.5px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(245,196,81,.13),
+      rgba(245,196,81,.035)
+    );
+
+  border:1px solid rgba(245,196,81,.20);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-content{
+  min-width:0;
+}
+
+.v2-insight-label{
+  margin-bottom:6px;
+
+  color:#dca82e;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.6px;
+}
+
+.v2-insight-title{
+  color:#fff;
+
+  font-size:16px;
+  font-weight:1000;
+  line-height:1.35;
+}
+
+.v2-insight-card p,
+.v2-final-card p{
+  margin-top:11px;
+
+  color:#8fa4af;
+
+  font-size:11px;
+  line-height:1.9;
+
+  letter-spacing:.1px;
+
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+}
+
+
+/* ========================================
+   SCORE PROJECTION
+======================================== */
+
+.v2-score-section{
+  position:relative;
+  overflow:hidden;
+
+  margin-bottom:12px;
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11,29,41,.99),
+      rgba(7,21,31,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.v2-score-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.v2-score-tag{
+  padding:6px 9px;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  background:rgba(245,196,81,.07);
+
+  border:1px solid rgba(245,196,81,.20);
+}
+
+.v2-score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+}
+
+.v2-score-card{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+  padding:15px 10px 13px;
+
+  text-align:center;
+
+  border-radius:14px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(245,196,81,.07),
+      transparent 48%
+    ),
+    rgba(255,255,255,.025);
+
+  border:1px solid rgba(245,196,81,.11);
+}
+
+.v2-score-rank{
+  margin-bottom:8px;
+
+  color:#79642e;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+}
+
+.v2-score-number{
+  color:#fff;
+
+  font-size:25px;
+  font-weight:1000;
+  line-height:1.15;
+  letter-spacing:.4px;
+}
+
+.v2-score-confidence{
+  margin-top:7px;
+
+  color:#c69a43;
+
+  font-size:8px;
+  font-weight:850;
+}
+
+.v2-score-bar{
+  height:4px;
+
+  margin-top:10px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.055);
+}
+
+.v2-score-bar > div{
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #b77b16,
+      #f5c451,
+      #ffe180
+    );
+
+  box-shadow:
+    0 0 8px rgba(245,196,81,.25);
+}
+
+
+/* ========================================
+   RISK ASSESSMENT
+======================================== */
+
+.v2-risk-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+
+  margin-bottom:12px;
+  padding:18px 19px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(12,30,42,.99),
+      rgba(7,22,32,.99)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 13px 30px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.v2-risk-left{
+  min-width:0;
+}
+
+.v2-risk-value{
+  flex:0 0 auto;
+
+  min-width:66px;
+
+  padding:9px 13px;
+
+  text-align:center;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:11px;
+  font-weight:1000;
+
+  background:rgba(245,196,81,.07);
+
+  border:1px solid rgba(245,196,81,.24);
+
+  box-shadow:
+    0 0 16px rgba(245,196,81,.05);
+}
+
+
+/* ========================================
+   FINAL NOTE
+======================================== */
+
+.v2-final-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  padding:19px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(245,196,81,.08),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(15,34,45,.99),
+      rgba(8,23,33,.99)
+    );
+
+  border:1px solid rgba(245,196,81,.16);
+
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-final-mark{
+  width:44px;
+  height:44px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:13px;
+
+  color:#171208;
+
+  font-size:15px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe078,
+      #d99d27
+    );
+
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.22);
+}
+
+.v2-final-content{
+  min-width:0;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media(max-width:600px){
+
+  .v2-analysis-detail{
+    margin-top:26px;
+  }
+
+  .v2-detail-title{
+    font-size:21px;
+  }
+
+  .v2-detail-badge{
+    padding:7px 9px;
+    font-size:7px;
+  }
+
+  .v2-insight-card,
+  .v2-final-card{
+    grid-template-columns:40px minmax(0,1fr);
+    gap:12px;
+
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-insight-icon,
+  .v2-final-mark{
+    width:38px;
+    height:38px;
+
+    border-radius:11px;
+  }
+
+  .v2-insight-title{
+    font-size:14px;
+  }
+
+  .v2-insight-card p,
+  .v2-final-card p{
+    margin-top:9px;
+
+    font-size:10px;
+    line-height:1.85;
+  }
+
+  .v2-score-section{
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-score-grid{
+    gap:6px;
+  }
+
+  .v2-score-card{
+    padding:13px 5px 11px;
+  }
+
+  .v2-score-number{
+    font-size:21px;
+  }
+
+  .v2-score-confidence{
+    font-size:7px;
+  }
+
+  .v2-risk-card{
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .v2-risk-value{
+    min-width:58px;
+
+    padding:8px 10px;
+
+    font-size:10px;
+  }
+}
+  
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  color:#fff;
+  background:
+  radial-gradient(
+    circle at 12% 5%,
+    rgba(245,196,81,.055),
+    transparent 25%
+  ),
+  radial-gradient(
+    circle at 90% 35%,
+    rgba(20,76,91,.08),
+    transparent 30%
+  ),
+  linear-gradient(
+    135deg,
+    #050f17 0%,
+    #071722 52%,
+    #06131d 100%
+  );
+}
+
+/* ========================================
+   HABAO V2 - ANALYSIS HEADER
+======================================== */
+
+.header{
+position:relative;
+z-index:1000;
+
+  height:72px;
+
+  border-bottom:1px solid rgba(245,196,81,.10);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(5,15,23,.97),
+      rgba(4,14,22,.93)
+    );
+
+  backdrop-filter:blur(18px);
+
+  box-shadow:
+    0 10px 35px rgba(0,0,0,.18);
+}
+
+.header-inner{
+  width:min(1120px,calc(100% - 32px));
+  height:100%;
+
+  margin:auto;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+
+  color:inherit;
+  text-decoration:none;
+}
+
+.logo{
+  position:relative;
+
+  width:39px;
+  height:39px;
+  flex:0 0 39px;
+
+  background:
+    url("./habao-hb-logo.png")
+    center / contain no-repeat;
+
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,.38))
+    drop-shadow(0 0 10px rgba(214,181,111,.10));
+}
+
+.brand-copy{
+  min-width:0;
+}
+
+.brand-title{
+  color:#fff;
+
+  font-size:15px;
+  font-weight:950;
+
+  line-height:1.15;
+}
+
+.brand-sub{
+  margin-top:4px;
+
+  color:#b88a2c;
+
+  font-size:7px;
+  font-weight:900;
+
+  letter-spacing:1.5px;
+}
+
+.back{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  padding:9px 12px;
+
+  border-radius:10px;
+
+  color:#e5edf1;
+  text-decoration:none;
+
+  font-size:11px;
+  font-weight:850;
+
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+}
+
+.back-arrow{
+  color:#f5c451;
+
+  font-size:15px;
+  line-height:1;
+}
+
+.back:active{
+  transform:scale(.97);
+}
+
+@media(max-width:600px){
+
+  .header{
+    height:66px;
+  }
+
+  .header-inner{
+    width:calc(100% - 24px);
+  }
+
+.logo{
+  width:36px;
+  height:36px;
+  flex-basis:36px;
+}
+
+  .brand-title{
+    font-size:14px;
+  }
+
+  .brand-sub{
+    font-size:6px;
+    letter-spacing:1.2px;
+  }
+
+  .back{
+    padding:8px 10px;
+    font-size:10px;
+  }
+}
+
+/* ========================================
+   HABAO V2 - ANALYSIS HERO
+======================================== */
+
+main{
+  width:min(1120px,calc(100% - 32px));
+  margin:30px auto 80px;
+}
+
+.analysis-hero{
+  position:relative;
+  overflow:hidden;
+
+  margin-bottom:18px;
+  padding:24px 25px;
+
+  border-radius:20px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.10),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,29,43,.98),
+      rgba(6,18,28,.98)
+    );
+
+  border:1px solid rgba(245,196,81,.14);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.analysis-hero::after{
+  content:"";
+  position:absolute;
+
+  width:180px;
+  height:180px;
+
+  right:-90px;
+  top:-110px;
+
+  border-radius:50%;
+
+  border:1px solid rgba(245,196,81,.12);
+}
+
+.analysis-engine{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  margin-bottom:17px;
+
+  padding:6px 9px;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.4px;
+
+  background:rgba(245,196,81,.06);
+  border:1px solid rgba(245,196,81,.16);
+}
+
+.engine-dot{
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+
+  background:#f5c451;
+
+  box-shadow:0 0 10px rgba(245,196,81,.65);
+}
+
+.eyebrow{
+  margin-bottom:7px;
+
+  color:#b88a2c;
+
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:2px;
+}
+
+h1{
+  margin-bottom:8px;
+
+  color:#fff;
+
+  font-size:29px;
+  font-weight:1000;
+  letter-spacing:-.5px;
+}
+
+.sub{
+  max-width:600px;
+
+  margin:0;
+
+  color:#8093a0;
+
+  font-size:12px;
+  line-height:1.7;
+}
+
+
+/* ========================================
+   HABAO V2 - MATCH HERO CARD
+======================================== */
+
+.match-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    70px
+    minmax(0,1fr);
+
+  align-items:center;
+  gap:18px;
+
+  min-height:230px;
+
+  padding:27px 24px;
+
+  border-radius:22px;
+
+  background:
+    radial-gradient(
+      circle at 50% 110%,
+      rgba(245,196,81,.06),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(12,30,43,.98),
+      rgba(7,20,31,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.075);
+
+  box-shadow:
+    0 22px 55px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.match-card::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:15%;
+  right:15%;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #f5c451,
+      transparent
+    );
+}
+
+.team{
+  position:relative;
+  z-index:2;
+
+  min-width:0;
+
+  text-align:center;
+}
+
+.team-side{
+  margin-bottom:13px;
+
+  color:#9b782d;
+
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:2px;
+}
+
+.team-logo-box{
+  width:86px;
+  height:86px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:0 auto 14px;
+  padding:12px;
+
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.09),
+      rgba(255,255,255,.025)
+    );
+
+  border:1px solid rgba(255,255,255,.09);
+
+  box-shadow:
+    0 14px 30px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.team img{
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+
+  margin:0;
+}
+
+.team-name{
+  min-height:26px;
+
+  color:#fff;
+
+  font-size:17px;
+  font-weight:950;
+  line-height:1.4;
+
+  overflow-wrap:anywhere;
+}
+
+.match-vs{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:9px;
+}
+
+.vs{
+  width:42px;
+  height:42px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  color:#f5c451;
+
+  font-size:10px;
+  font-weight:1000;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(245,196,81,.14),
+      rgba(6,18,28,.98)
+    );
+
+  border:1px solid rgba(245,196,81,.30);
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.22);
+}
+
+.vs-line{
+  width:1px;
+  height:24px;
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(245,196,81,.28),
+      transparent
+    );
+}
+
+
+/* ===== MATCH META ===== */
+
+.meta{
+  position:relative;
+
+  margin:14px 0 25px;
+  padding:12px 15px;
+
+  text-align:center;
+
+  color:#8397a3;
+
+  font-size:11px;
+  font-weight:650;
+  line-height:1.8;
+
+  border-radius:12px;
+
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.055);
+}
+
+
+/* ===== MOBILE ===== */
+
+@media(max-width:600px){
+
+  main{
+    width:calc(100% - 24px);
+    margin-top:18px;
+  }
+
+  .analysis-hero{
+    padding:20px 18px;
+    border-radius:18px;
+  }
+
+  h1{
+    font-size:25px;
+  }
+
+  .sub{
+    font-size:11px;
+  }
+
+  .match-card{
+    grid-template-columns:
+      minmax(0,1fr)
+      48px
+      minmax(0,1fr);
+
+    gap:7px;
+
+    min-height:205px;
+
+    padding:22px 9px;
+
+    border-radius:19px;
+  }
+
+  .team-logo-box{
+    width:67px;
+    height:67px;
+
+    padding:9px;
+
+    border-radius:18px;
+  }
+
+  .team-name{
+    font-size:13px;
+  }
+
+  .team-side{
+    font-size:7px;
+  }
+
+  .vs{
+    width:35px;
+    height:35px;
+
+    font-size:8px;
+  }
+
+  .vs-line{
+    height:18px;
+  }
+
+  .meta{
+    margin-top:11px;
+    font-size:10px;
+  }
+}
+
+/* ========================================
+   HABAO V2 - AI PICKS
+======================================== */
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:22px;
+}
+
+.pick-card{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+  min-height:160px;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:18px 17px 16px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.065),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(12,31,43,.98),
+      rgba(7,22,32,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.07);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.pick-card::before{
+  content:"";
+
+  position:absolute;
+  top:0;
+  left:18px;
+  right:18px;
+
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(245,196,81,.75),
+      transparent
+    );
+}
+
+.pick-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  margin-bottom:14px;
+
+  color:#b88a2c;
+
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:1.3px;
+}
+
+.pick-label::before{
+  content:"";
+
+  width:6px;
+  height:6px;
+
+  flex:0 0 auto;
+
+  border-radius:50%;
+
+  background:#f5c451;
+
+  box-shadow:0 0 9px rgba(245,196,81,.50);
+}
+
+.pick-value{
+  min-height:32px;
+
+  margin-bottom:12px;
+
+  color:#fff;
+
+  font-size:22px;
+  font-weight:1000;
+  line-height:1.35;
+
+  overflow-wrap:anywhere;
+}
+
+.confidence{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:3px;
+
+  margin-bottom:9px;
+
+  color:#9cafb9;
+
+  font-size:10px;
+  font-weight:800;
+}
+
+.bar{
+  height:5px;
+
+  margin-bottom:13px;
+
+  overflow:hidden;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.055);
+}
+
+.bar > div{
+  height:100%;
+
+  border-radius:inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #b47a17,
+      #f5c451,
+      #ffe180
+    );
+
+  box-shadow:
+    0 0 9px rgba(245,196,81,.25);
+}
+
+.reason{
+  color:#81939e;
+
+  font-size:11px;
+  line-height:1.7;
+}
+
+
+/* ===== 分析重點卡｜精簡版 ===== */
+.pick-card{
+  justify-content:flex-start;
+}
+
+.pick-card .pick-value{
+  min-height:34px;
+  margin-bottom:14px;
+  font-size:22px;
+  line-height:1.2;
+}
+
+.pick-card .confidence{
+  width:max-content;
+  max-width:100%;
+  margin-top:auto;
+  margin-bottom:10px;
+  padding:5px 8px;
+  border:1px solid rgba(245,196,81,.12);
+  border-radius:999px;
+  background:rgba(245,196,81,.055);
+  color:#aebbc3;
+}
+
+.pick-card .bar{
+  margin-bottom:0;
+}
+
+.pick-card .reason{
+  display:none !important;
+}
+
+@media(max-width:800px){
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+
+  .pick-card{
+    min-height:132px;
+    padding:14px 12px 13px;
+  }
+
+  .pick-card:nth-child(5){
+    grid-column:auto;
+  }
+
+  .pick-card .pick-value{
+    min-height:28px;
+    margin-bottom:11px;
+    font-size:19px;
+  }
+
+  .pick-card .confidence{
+    margin-bottom:8px;
+    padding:4px 7px;
+    font-size:9px;
+  }
+
+  .pick-card .bar{
+    height:4px;
+    margin-bottom:0;
+  }
+}
+
+/* ========================================
+   HABAO V2 - ACTION BUTTONS
+======================================== */
+
+.bet-action{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+
+  margin:4px 0 26px;
+}
+
+.bet-btn,
+.expert-btn{
+  position:relative;
+  overflow:hidden;
+
+  width:100%;
+  max-width:none;
+
+  min-height:52px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:14px 18px;
+
+  border-radius:13px;
+
+  text-decoration:none;
+
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:.4px;
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+
+/* ===== 立即投注 ===== */
+
+.bet-btn{
+  border:0;
+  cursor:pointer;
+  color:#171208;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe076,
+      #e4a92e
+    );
+
+  border:1px solid rgba(255,225,118,.42);
+
+  box-shadow:
+    0 11px 25px rgba(216,155,36,.18),
+    inset 0 1px 0 rgba(255,255,255,.38);
+}
+
+.bet-btn::after{
+  content:"";
+
+  position:absolute;
+
+  width:80px;
+  height:140%;
+
+  top:-20%;
+  left:-110px;
+
+  transform:rotate(18deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.22),
+      transparent
+    );
+
+  transition:left .45s ease;
+}
+
+.bet-btn:hover::after{
+  left:110%;
+}
+
+.bet-btn:hover{
+  transform:translateY(-2px);
+
+  filter:brightness(1.04);
+
+  box-shadow:
+    0 14px 30px rgba(216,155,36,.24),
+    inset 0 1px 0 rgba(255,255,255,.38);
+}
+
+
+/* ===== 專人分析 ===== */
+
+.expert-btn{
+  color:#f5c451;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(14,32,44,.98),
+      rgba(8,23,33,.98)
+    );
+
+  border:1px solid rgba(245,196,81,.30);
+
+  box-shadow:
+    0 11px 25px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.expert-btn:hover{
+  transform:translateY(-2px);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,41,54,.98),
+      rgba(10,27,38,.98)
+    );
+
+  box-shadow:
+    0 14px 30px rgba(0,0,0,.25);
+}
+
+.bet-btn:active,
+.expert-btn:active{
+  transform:scale(.98);
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media(max-width:800px){
+
+  .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  .pick-card{
+    min-height:0;
+    padding:14px 12px;
+    border-radius:15px;
+  }
+
+  /* 第五張：雙重機會橫跨整列 */
+  .pick-card:nth-child(5){
+    grid-column:1 / -1;
+  }
+
+  .pick-card::before{
+    left:12px;
+    right:12px;
+  }
+
+  .pick-label{
+    margin-bottom:8px;
+    font-size:8px;
+    letter-spacing:1px;
+  }
+
+  .pick-label::before{
+    width:5px;
+    height:5px;
+  }
+
+  .pick-value{
+    min-height:0;
+    margin-bottom:8px;
+    font-size:17px;
+    line-height:1.25;
+  }
+
+  .market-line{
+    margin:2px 0 7px;
+    padding:4px 7px;
+    font-size:8px;
+  }
+
+  .confidence{
+    margin-bottom:7px;
+    font-size:9px;
+  }
+
+  .bar{
+    height:4px;
+    margin-bottom:9px;
+  }
+
+  .reason{
+    font-size:9px;
+    line-height:1.55;
+
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    overflow:hidden;
+  }
+
+  /* 雙重機會橫卡保留較完整說明 */
+  .pick-card:nth-child(5) .reason{
+    -webkit-line-clamp:2;
+  }
+
+  .bet-action{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    min-height:50px;
+    width:100%;
+  }
+}
+
+/* ========================================
+   HABAO V2 - ANALYSIS DETAIL SECTIONS
+======================================== */
+
+.section{
+  position:relative;
+  overflow:hidden;
+
+  margin-top:14px;
+  padding:20px 19px;
+
+  border-radius:18px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,196,81,.045),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(11,29,41,.98),
+      rgba(7,21,31,.98)
+    );
+
+  border:1px solid rgba(255,255,255,.065);
+
+  box-shadow:
+    0 14px 35px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.section::before{
+  content:"";
+
+  position:absolute;
+  left:0;
+  top:18px;
+
+  width:2px;
+  height:28px;
+
+  border-radius:0 3px 3px 0;
+
+  background:
+    linear-gradient(
+      #ffe078,
+      #c78c20
+    );
+
+  box-shadow:
+    0 0 10px rgba(245,196,81,.25);
+}
+
+.section-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  margin-bottom:13px;
+
+  color:#fff;
+
+  font-size:14px;
+  font-weight:950;
+}
+
+.section-title::before{
+  content:"H";
+
+  width:22px;
+  height:22px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  flex:0 0 auto;
+
+  border-radius:7px;
+
+  color:#171208;
+
+  font-size:9px;
+  font-weight:1000;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe078,
+      #d79b26
+    );
+
+  box-shadow:
+    0 5px 12px rgba(0,0,0,.20);
+}
+
+.section p{
+  color:#91a5b0;
+
+  font-size:12px;
+  line-height:2;
+
+  letter-spacing:.15px;
+  white-space:pre-line;
+
+  overflow-wrap:anywhere;
+}
+
+.section p + p{
+  margin-top:10px;
+}  
+
+/* ========================================
+   HABAO V2 - PREDICTED SCORES
+======================================== */
+
+.score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+
+  margin-top:4px;
+}
+
+.score{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+
+  padding:19px 12px;
+
+  text-align:center;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(17,39,52,.96),
+      rgba(9,26,37,.96)
+    );
+
+  border:1px solid rgba(245,196,81,.10);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.score::after{
+  content:"";
+
+  position:absolute;
+
+  left:25%;
+  right:25%;
+  bottom:0;
+
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(245,196,81,.55),
+      transparent
+    );
+}
+
+.score-num{
+  color:#fff;
+
+  font-size:25px;
+  font-weight:1000;
+  letter-spacing:.5px;
+}
+
+.score-confidence{
+  margin-top:6px;
+
+  color:#c69a43;
+
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.3px;
+}
+
+
+/* ========================================
+   HABAO V2 - RISK
+======================================== */
+
+.risk{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  padding:8px 12px;
+
+  border-radius:999px;
+
+  color:#f5c451;
+
+  font-size:10px;
+  font-weight:900;
+
+  background:rgba(245,196,81,.07);
+
+  border:1px solid rgba(245,196,81,.20);
+}
+
+.risk::before{
+  content:"";
+
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+
+  background:#f5c451;
+
+  box-shadow:
+    0 0 9px rgba(245,196,81,.50);
+}
+
+
+/* ========================================
+   DETAIL MOBILE
+======================================== */
+
+@media(max-width:600px){
+
+  .section{
+    padding:18px 16px;
+    border-radius:16px;
+  }
+
+  .section-title{
+    font-size:13px;
+  }
+
+  .section p{
+    font-size:11px;
+    line-height:1.85;
+  }
+
+  .score-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+  }
+
+  .score{
+    padding:16px 6px;
+  }
+
+  .score-num{
+    font-size:21px;
+  }
+
+  .score-confidence{
+    font-size:8px;
+  }
+}
+
+.empty{
+  text-align:center;
+  padding:80px 20px;
+  color:#8ba0a9;
+}
+
+.empty a{
+  display:inline-block;
+  margin-top:18px;
+  color:#2ce9a5;
+}
+
+@media(max-width:800px){
+
+  h1{
+    font-size:26px;
+  }
+}
+
+.confidence-fire{
+  display:inline-block;
+  margin-left:6px;
+  transform-origin:center bottom;
+  animation:firePulse 1.05s ease-in-out infinite;
+  filter:drop-shadow(0 0 5px rgba(255,120,30,.65));
+}
+
+@keyframes firePulse{
+  0%{
+    transform:translateY(1px) scale(.94);
+    filter:drop-shadow(0 0 3px rgba(255,120,30,.45));
+  }
+
+  50%{
+    transform:translateY(-2px) scale(1.10);
+    filter:drop-shadow(0 0 9px rgba(255,150,40,.9));
+  }
+
+  100%{
+    transform:translateY(1px) scale(.94);
+    filter:drop-shadow(0 0 3px rgba(255,120,30,.45));
+  }
+}
+
+/* =========================================
+   HABAO V2 - DEEP MATCH INTELLIGENCE
+========================================= */
+
+.v2-analysis-detail{
+  margin-top:28px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* ===== 區塊標題 ===== */
+
+.v2-detail-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding:4px 2px 8px;
+}
+
+.v2-detail-kicker,
+.v2-insight-label{
+  color:#d9a92f;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.8px;
+  line-height:1.4;
+}
+
+.v2-detail-title{
+  margin-top:6px;
+  color:#fff;
+  font-size:24px;
+  font-weight:950;
+  letter-spacing:.3px;
+}
+
+.v2-detail-badge{
+  flex-shrink:0;
+  padding:8px 11px;
+  border:1px solid rgba(235,181,47,.32);
+  border-radius:10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(235,181,47,.12),
+      rgba(235,181,47,.03)
+    );
+
+  color:#f0c34d;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+
+/* ===== 分析情報卡 ===== */
+
+.v2-insight-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  gap:15px;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(230,177,47,.10),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(13,31,42,.98),
+      rgba(6,22,32,.98)
+    );
+
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-insight-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:18px;
+  bottom:18px;
+  width:2px;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      #e8b432,
+      transparent
+    );
+
+  box-shadow:0 0 12px rgba(232,180,50,.35);
+}
+
+.v2-insight-icon{
+  width:48px;
+  height:48px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:14px;
+
+  border:1px solid rgba(232,180,50,.24);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(232,180,50,.14),
+      rgba(232,180,50,.035)
+    );
+
+  color:#f2c14a;
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:1px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 20px rgba(0,0,0,.18);
+}
+
+.v2-insight-content{
+  min-width:0;
+}
+
+.v2-insight-title{
+  margin-top:4px;
+
+  color:#fff;
+  font-size:18px;
+  font-weight:950;
+  line-height:1.35;
+}
+
+.v2-insight-content p,
+.v2-final-content p{
+  margin:11px 0 0;
+
+  color:#9bb2c1;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.9;
+}
+
+
+/* ===== 預測比分 ===== */
+
+.v2-score-section{
+  position:relative;
+  overflow:hidden;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(232,180,50,.22);
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(232,180,50,.10),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14,32,43,.98),
+      rgba(7,22,32,.98)
+    );
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-score-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:17px;
+}
+
+.v2-score-tag{
+  padding:7px 10px;
+
+  border-radius:9px;
+  border:1px solid rgba(232,180,50,.24);
+
+  background:rgba(232,180,50,.08);
+
+  color:#e8b432;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:1.4px;
+}
+
+.v2-score-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+
+.v2-score-card{
+  position:relative;
+  overflow:hidden;
+
+  min-width:0;
+  padding:16px 12px 14px;
+
+  text-align:center;
+
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.07);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.045),
+      rgba(255,255,255,.015)
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 10px 25px rgba(0,0,0,.16);
+}
+
+.v2-score-rank{
+  color:#687f8e;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.5px;
+}
+
+.v2-score-number{
+  margin:7px 0 5px;
+
+  color:#fff;
+  font-size:27px;
+  font-weight:950;
+  line-height:1;
+
+  text-shadow:0 0 20px rgba(255,255,255,.08);
+}
+
+.v2-score-confidence{
+  color:#91a9b8;
+  font-size:9px;
+  font-weight:800;
+}
+
+.v2-score-bar{
+  height:3px;
+  margin-top:11px;
+
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+}
+
+.v2-score-bar > div{
+  height:100%;
+  max-width:100%;
+  border-radius:999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #d99f20,
+      #f4d36b
+    );
+
+  box-shadow:0 0 8px rgba(238,187,61,.35);
+}
+
+
+/* ===== 風險評估 ===== */
+
+.v2-risk-card{
+  position:relative;
+  overflow:hidden;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+
+  padding:19px 20px;
+
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,30,41,.98),
+      rgba(7,22,31,.98)
+    );
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.v2-risk-value{
+  flex-shrink:0;
+
+  min-width:78px;
+  padding:10px 14px;
+
+  text-align:center;
+
+  border-radius:11px;
+  border:1px solid rgba(232,180,50,.30);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(232,180,50,.16),
+      rgba(232,180,50,.05)
+    );
+
+  color:#f1c34c;
+  font-size:14px;
+  font-weight:950;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+
+/* ===== 最終提醒 ===== */
+
+.v2-final-card{
+  position:relative;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr);
+  gap:15px;
+
+  padding:20px;
+
+  border-radius:20px;
+  border:1px solid rgba(232,180,50,.25);
+
+  background:
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(232,180,50,.11),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(15,32,42,.98),
+      rgba(7,21,30,.98)
+    );
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.27),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.v2-final-mark{
+  width:50px;
+  height:50px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f4cb58,
+      #d99d20
+    );
+
+  color:#07141c;
+  font-size:21px;
+  font-weight:1000;
+
+  box-shadow:
+    0 8px 22px rgba(218,160,33,.20),
+    inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+.v2-final-content{
+  min-width:0;
+}
+
+
+/* ===== 手機版 ===== */
+
+@media(max-width:600px){
+
+  .v2-analysis-detail{
+    margin-top:22px;
+    gap:13px;
+  }
+
+  .v2-detail-title{
+    font-size:21px;
+  }
+
+  .v2-detail-badge{
+    padding:7px 9px;
+    font-size:8px;
+  }
+
+  .v2-insight-card{
+    grid-template-columns:40px minmax(0,1fr);
+    gap:12px;
+    padding:17px 15px;
+    border-radius:18px;
+  }
+
+  .v2-insight-icon{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    font-size:11px;
+  }
+
+  .v2-insight-title{
+    font-size:16px;
+  }
+
+  .v2-insight-content p,
+  .v2-final-content p{
+    font-size:12px;
+    line-height:1.85;
+  }
+
+  .v2-score-section{
+    padding:17px 14px;
+    border-radius:18px;
+  }
+
+  .v2-score-grid{
+    gap:7px;
+  }
+
+  .v2-score-card{
+    padding:14px 6px 12px;
+    border-radius:14px;
+  }
+
+  .v2-score-number{
+    font-size:22px;
+  }
+
+  .v2-score-confidence{
+    font-size:8px;
+  }
+
+  .v2-risk-card{
+    padding:17px 15px;
+  }
+
+  .v2-risk-value{
+    min-width:68px;
+    padding:9px 11px;
+    font-size:13px;
+  }
+
+  .v2-final-card{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:12px;
+    padding:17px 15px;
+    border-radius:18px;
+  }
+
+  .v2-final-mark{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    font-size:18px;
+  }
+
+}
+
+/* =========================================
+   HABAO V2 - ANALYSIS ACTION BUTTONS
+========================================= */
+
+.bet-action{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+
+  margin:20px 0 26px;
+}
+
+.bet-btn,
+.expert-btn{
+  position:relative;
+  overflow:hidden;
+
+  min-height:54px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:0 18px;
+
+  border-radius:15px;
+
+  text-decoration:none;
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:.3px;
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+/* 立即投注 */
+
+.bet-btn{
+  color:#07141c;
+
+  border:1px solid rgba(255,218,107,.65);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6d365 0%,
+      #e5a824 55%,
+      #ca8c12 100%
+    );
+
+  box-shadow:
+    0 12px 28px rgba(214,155,31,.20),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.bet-btn::before{
+  content:"";
+  position:absolute;
+
+  width:70px;
+  height:160%;
+
+  top:-30%;
+  left:-100px;
+
+  transform:rotate(20deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.28),
+      transparent
+    );
+
+  transition:left .55s ease;
+}
+
+.bet-btn:hover::before{
+  left:120%;
+}
+
+
+/* 專人分析 */
+
+.expert-btn{
+  color:#f2c34b;
+
+  border:1px solid rgba(232,180,50,.28);
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(232,180,50,.11),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(16,34,44,.98),
+      rgba(7,22,31,.98)
+    );
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.bet-btn:hover,
+.expert-btn:hover{
+  transform:translateY(-2px);
+}
+
+.bet-btn:active,
+.expert-btn:active{
+  transform:scale(.98);
+}
+
+
+/* 手機 */
+
+@media(max-width:600px){
+
+  .bet-action{
+    gap:9px;
+    margin:17px 0 22px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    min-height:50px;
+    padding:0 10px;
+
+    border-radius:13px;
+
+    font-size:13px;
+  }
+
+}
+
+/* ===== 五市場｜讓分盤口 ===== */
+
+.market-line{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  width:max-content;
+  margin:7px 0 2px;
+  padding:5px 9px;
+
+  border:1px solid rgba(244,195,75,.24);
+  border-radius:8px;
+
+  background:rgba(244,195,75,.07);
+
+  color:#d9b657;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.4px;
+}
+
+/* ===== 批次分析結果切換 ===== */
+
+.batch-result-nav{
+  display:none;
+
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:16px;
+  padding:12px 14px;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(13,31,42,.98),
+      rgba(7,22,32,.98)
+    );
+
+  border:
+    1px solid
+    rgba(245,196,81,.20);
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.20);
+}
+
+.batch-result-nav.show{
+  display:flex;
+}
+
+.batch-result-info{
+  min-width:0;
+  text-align:center;
+}
+
+.batch-result-count{
+  color:#f5c451;
+  font-size:12px;
+  font-weight:950;
+}
+
+.batch-result-team{
+  margin-top:3px;
+
+  color:#91a5b0;
+  font-size:9px;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.batch-nav-btn{
+  flex:0 0 auto;
+
+  min-width:74px;
+  min-height:36px;
+
+  padding:0 10px;
+
+  border-radius:9px;
+
+  border:
+    1px solid
+    rgba(245,196,81,.22);
+
+  background:
+    rgba(245,196,81,.06);
+
+  color:#f5c451;
+
+  font-size:10px;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.batch-nav-btn:disabled{
+  opacity:.3;
+  cursor:not-allowed;
+}
+
+@media(max-width:600px){
+  .batch-result-nav{
+    gap:7px;
+    padding:10px;
+  }
+
+  .batch-nav-btn{
+    min-width:62px;
+    font-size:9px;
+  }
+}
+
+/* ===== HABAO Language Selector ===== */
+
+.habao-language-selector {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 9998;
+}
+
+.habao-language-selector select {
+  min-width: 126px;
+  height: 36px;
+  padding: 0 30px 0 11px;
+
+  border: 1px solid rgba(214, 184, 106, 0.28);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: rgba(5, 13, 18, 0.88);
+  color: #f1d991;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .habao-language-selector {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+  }
+
+  .habao-language-selector select {
+    min-width: 118px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
+   
+
+/* ========================================
+   BET PLATFORM SELECT MODAL
+======================================== */
+.bet-platform-overlay{
+  position:fixed; inset:0; z-index:99999;
+  display:none; align-items:center; justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.bet-platform-overlay.show{display:flex}
+.bet-platform-modal{
+  position:relative;
+  width:min(100%,420px);
+  padding:28px 20px 22px;
+  border:1px solid rgba(233,198,111,.25);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at top,rgba(233,198,111,.09),transparent 42%),
+    #111315;
+  box-shadow:0 28px 80px rgba(0,0,0,.55);
+}
+.bet-platform-close{
+  position:absolute; top:12px; right:14px;
+  width:34px; height:34px;
+  border:0; background:transparent;
+  color:rgba(255,255,255,.52);
+  font-size:27px; line-height:1; cursor:pointer;
+}
+.bet-platform-badge{
+  width:fit-content; margin:0 auto 12px; padding:5px 12px;
+  border:1px solid rgba(233,198,111,.42);
+  border-radius:999px;
+  background:rgba(233,198,111,.1);
+  color:#f0d48b;
+  font-size:12px; font-weight:900; letter-spacing:1.6px;
+}
+.bet-platform-title{color:#fff;font-size:22px;font-weight:900;text-align:center}
+.bet-platform-subtitle{
+  max-width:330px;margin:9px auto 20px;
+  color:rgba(255,255,255,.53);
+  font-size:12px;line-height:1.65;text-align:center;
+}
+.bet-platform-list{display:grid;gap:10px}
+.bet-platform-card{
+  display:flex;align-items:center;gap:12px;padding:13px;
+  border:1px solid rgba(233,198,111,.22);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(233,198,111,.08),rgba(255,255,255,.025));
+}
+.bet-platform-card.is-live{
+  border-color:rgba(233,198,111,.38);
+  box-shadow:inset 0 0 0 1px rgba(233,198,111,.04);
+}
+
+.bet-platform-logo{
+  width:54px;height:54px;flex:0 0 54px;object-fit:cover;
+  border:1px solid rgba(233,198,111,.22);border-radius:13px;
+}
+.bet-platform-info{min-width:0;flex:1}
+.bet-platform-info strong{
+  display:block;margin-bottom:4px;color:#fff;font-size:14px;font-weight:900;
+}
+.bet-platform-info span{
+  display:block;color:rgba(255,255,255,.46);font-size:10px;line-height:1.45;
+}
+.bet-platform-go{
+  flex:0 0 auto;padding:9px 11px;
+  border:1px solid rgba(233,198,111,.42);border-radius:10px;
+  background:rgba(233,198,111,.1);color:#f0d48b;
+  font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;
+}
+.bet-platform-go:active{transform:scale(.97)}
+.bet-platform-note{
+  margin-top:15px;color:rgba(255,255,255,.34);
+  font-size:10px;line-height:1.55;text-align:center;
+}
+@media(max-width:480px){
+  .bet-platform-modal{padding:26px 16px 18px}
+  .bet-platform-card{gap:10px;padding:11px}
+  .bet-platform-logo{width:48px;height:48px;flex-basis:48px}
+  .bet-platform-go{padding:9px;font-size:10px}
+}
+
+/* Compact recommendation layout after removing the optional report panels. */
+.grid{
+  margin-bottom:14px;
+}
+
+.bet-action{
+  margin:0 0 20px;
+}
+
+@media(max-width:600px){
+  .bet-action{
+    gap:9px;
+  }
+
+  .bet-btn,
+  .expert-btn{
+    min-height:50px;
+    padding:12px 10px;
+    font-size:12px;
+  }
+}
+
+
+/* NBA stages: gold / blue / purple, shared by single, batch and history results. */
+.nba-stage-badge{display:inline-flex;margin-top:10px;font-size:11px;letter-spacing:.4px;gap:5px}
+.nba-stage-badge[data-stage=t2]{color:#a5dfff;border-color:#579ac4;background:#102c3e}
+.nba-stage-badge[data-stage=t15]{color:#d7c0ff;border-color:#8e6ec1;background:#261b3c}
+.nba-stage-evidence{margin:14px 0;padding:14px 18px;border:1px solid #294957;border-radius:14px;background:#0b1c28;font-size:12px;line-height:1.75;color:#a8bac9}
+.nba-stage-evidence strong{color:#a5dfff}.nba-stage-evidence[data-stage=t15] strong{color:#d7c0ff}
+.nba-stage-evidence p{margin-top:3px}
+.nba-stage-evidence details{margin-top:9px}.nba-stage-evidence summary{cursor:pointer;color:#b7d4e8}.nba-stage-evidence .nba-evidence-team{margin-top:8px}.nba-stage-evidence .nba-evidence-source{color:#8ba2b5;font-size:11px;margin-top:8px}
+
+</style>
+</head>
+
+<body>
+   
+<header class="header">
+  <div class="header-inner">
+
+<a href="home-v2.html" class="brand">
+  <div class="logo" aria-label="HABAO"></div>
+
+  <div class="brand-copy">
+    <div class="brand-title">HABAO 賽事預測 AI</div>
+    <div class="brand-sub">SPORTS INTELLIGENCE</div>
+  </div>
+</a>
+
+    <a class="back" href="football.html">
+      <span class="back-arrow">←</span>
+      <span>賽事中心</span>
+    </a>
+
+  </div>
+</header>
+
+<div
+  id="batchResultNav"
+  class="batch-result-nav"
+  style="
+    width:min(1120px,calc(100% - 32px));
+    margin:18px auto 0;
+  "
+>
+  <button
+    id="batchPrevBtn"
+    class="batch-nav-btn"
+    type="button"
+    onclick="showPreviousBatchResult()"
+  >
+    ← 上一場
+  </button>
+
+  <div class="batch-result-info">
+    <div
+      id="batchResultCount"
+      class="batch-result-count"
+    >
+      第 1 / 1 場
+    </div>
+
+    <div
+      id="batchResultTeam"
+      class="batch-result-team"
+    ></div>
+  </div>
+
+  <button
+    id="batchNextBtn"
+    class="batch-nav-btn"
+    type="button"
+    onclick="showNextBatchResult()"
+  >
+    下一場 →
+  </button>
+</div>
+   
+<main id="app"></main>
+
+<!-- ========================================
+     立即投注｜合作平台選擇
+========================================= -->
+<div
+  class="bet-platform-overlay"
+  id="betPlatformOverlay"
+  onclick="closeBetPlatformModal(event)"
+>
+  <div
+    class="bet-platform-modal"
+    onclick="event.stopPropagation()"
+  >
+    <button
+      type="button"
+      class="bet-platform-close"
+      id="betPlatformClose"
+      onclick="closeBetPlatformModal()"
+      aria-label="關閉"
+    >×</button>
+
+    <div class="bet-platform-badge">PARTNER</div>
+
+    <div class="bet-platform-title" id="betPlatformTitle">
+      選擇合作平台
+    </div>
+
+    <div class="bet-platform-subtitle" id="betPlatformSubtitle">
+      選擇您要前往的娛樂平台
+    </div>
+
+    <div class="bet-platform-list">
+      <div class="bet-platform-card">
+        <img
+          src="hd-logo.png"
+          alt="HD 皇鼎"
+          class="bet-platform-logo"
+        >
+
+        <div class="bet-platform-info">
+          <strong>HD 皇鼎</strong>
+          <span id="betPlatformHdText">合作平台</span>
+        </div>
+
+        <a
+          href="https://hd5957.com/?aff=uy09zj"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bet-platform-go"
+          id="betPlatformHdButton"
+        >前往投注 ↗</a>
+      </div>
+    </div>
+
+    <div class="bet-platform-note" id="betPlatformNote">
+      目前僅開放 HD 皇鼎，其他合作平台將陸續新增。
+    </div>
+  </div>
+</div>
+
+   
+<script>
+
+
+const PARTNER_PLATFORMS_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/partner-platforms";
+
+let betPartnerPlatforms = [];
+
+function escapePartnerHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderBetPartnerPlatforms() {
+  const list =
+    document.querySelector(
+      ".bet-platform-list"
+    );
+
+  const note =
+    document.getElementById(
+      "betPlatformNote"
+    );
+
+  if (
+    !list ||
+    !betPartnerPlatforms.length
+  ) {
+    return;
+  }
+
+  list.innerHTML =
+    betPartnerPlatforms
+      .map(platform => {
+        const displayName =
+          platform.display_name ||
+          platform.name ||
+          "合作平台";
+
+        const logo =
+          platform.logo_url ||
+          "habao-hb-logo.png";
+
+        const available=platform.enabled!==false;
+        const waiting=!available&&platform.show_when_disabled===true;
+        if(!available&&!waiting)return "";
+        const url =
+          platform.bet_url ||
+          platform.register_url ||
+          "#";
+
+        return `
+          <div class="bet-platform-card ${available?"is-live":"is-pending"}">
+            <img
+              src="${escapePartnerHtml(logo)}"
+              alt="${escapePartnerHtml(displayName)}"
+              class="bet-platform-logo"
+            >
+
+            <div class="bet-platform-info">
+              <strong>
+                ${escapePartnerHtml(displayName)}
+              </strong>
+              <span>
+                ${waiting?"待開放":analysisT("betPlatformPartner","合作平台")}
+              </span>
+            </div>
+
+            ${available?`<a href="${escapePartnerHtml(url)}" target="_blank" rel="noopener noreferrer" class="bet-platform-go">${analysisT("betPlatformGo","前往投注 ↗")}</a>`:
+            '<span class="bet-platform-go" style="opacity:.58;cursor:not-allowed" aria-disabled="true">待開放</span>'}
+          </div>
+        `;
+      })
+      .join("");
+
+  if (note) {
+    note.textContent =
+      betPartnerPlatforms.length <= 1
+        ? analysisT(
+            "betPlatformNote",
+            "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。"
+          )
+        : `目前共有 ${betPartnerPlatforms.length} 個合作平台可選擇。`;
+  }
+}
+
+async function loadBetPartnerPlatforms() {
+  try {
+    const response =
+      await fetch(
+        PARTNER_PLATFORMS_URL,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data?.success ||
+      !Array.isArray(
+        data?.platforms
+      ) ||
+      !data.platforms.length
+    ) {
+      return;
+    }
+
+    betPartnerPlatforms =
+      data.platforms;
+
+    renderBetPartnerPlatforms();
+
+  } catch (error) {
+    console.error(
+      "PARTNER PLATFORM LOAD ERROR:",
+      error
+    );
+  }
+}
+
+/* =====================================
+   HABAO ANALYSIS I18N
+===================================== */
+
+const analysisTranslations = {
+  "zh-Hant": {
+    pageTitle: "AI 賽事分析｜HABAO 賽事預測 AI",
+    matchCenter: "賽事中心",
+
+    previousMatch: "← 上一場",
+    nextMatch: "下一場 →",
+    batchCountPrefix: "第",
+    batchCountMiddle: "/",
+    batchCountSuffix: "場",
+
+    noAnalysisData: "找不到賽事分析資料",
+    noAnalysisText: "請先從足球賽事列表選擇一場比賽進行分析。",
+    backFootball: "返回足球賽事分析",
+
+    analysisTitle: "賽事深度分析",
+    analysisSubtitle: "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析",
+
+    homeTeam: "主隊",
+    awayTeam: "客隊",
+    timeUnavailable: "時間未提供",
+
+    moneyline: "獨贏",
+    handicap: "讓分",
+    overUnder: "大小球",
+    btts: "BTTS",
+
+    noRecommendation: "暫不推薦",
+    insufficientData: "資料不足",
+    aiConfidence: "AI 信心",
+    marketLine: "盤口",
+
+    betNow: "立即投注 →",
+    expertAnalysis: "繼續分析 →",
+
+    betPlatformTitle: "選擇合作平台",
+    betPlatformSubtitle: "選擇您要前往的娛樂平台",
+    betPlatformPartner: "合作平台",
+    betPlatformGo: "前往投注 ↗",
+    betPlatformNote: "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。",
+    close: "關閉",
+
+    intelligenceTitle: "深度賽事情報",
+    analysisFocus: "AI 分析重點",
+    noSummary: "目前沒有摘要資料。",
+    marketAnalysis: "市場與賠率分析",
+    predictedScore: "AI 預測比分",
+    risk: "本場風險",
+    notEvaluated: "未評估",
+    finalNote: "AI 最終提醒",
+    finalFallback: "請綜合即時資訊判斷。",
+
+    analysisReadFailed: "分析資料讀取失敗",
+    analysisReadFailedText: "請返回賽事列表重新進行分析。"
+  },
+
+  "zh-Hans": {
+    pageTitle: "AI 赛事分析｜HABAO 赛事预测 AI",
+    matchCenter: "赛事中心",
+
+    previousMatch: "← 上一场",
+    nextMatch: "下一场 →",
+    batchCountPrefix: "第",
+    batchCountMiddle: "/",
+    batchCountSuffix: "场",
+
+    noAnalysisData: "找不到赛事分析资料",
+    noAnalysisText: "请先从足球赛事列表选择一场比赛进行分析。",
+    backFootball: "返回足球赛事分析",
+
+    analysisTitle: "赛事深度分析",
+    analysisSubtitle: "整合近期数据、赛事资讯与市场资料，提供多维赛事量化分析",
+
+    homeTeam: "主队",
+    awayTeam: "客队",
+    timeUnavailable: "时间未提供",
+
+    moneyline: "独赢",
+    handicap: "让分",
+    overUnder: "大小球",
+    btts: "BTTS",
+
+    noRecommendation: "暂不推荐",
+    insufficientData: "资料不足",
+    aiConfidence: "AI 信心",
+    marketLine: "盘口",
+
+    betNow: "立即投注 →",
+    expertAnalysis: "继续分析 →",
+
+    betPlatformTitle: "选择合作平台",
+    betPlatformSubtitle: "选择您要前往的娱乐平台",
+    betPlatformPartner: "合作平台",
+    betPlatformGo: "前往投注 ↗",
+    betPlatformNote: "目前仅开放 HD 皇鼎，其他合作平台将陆续新增。",
+    close: "关闭",
+
+    intelligenceTitle: "深度赛事情报",
+    analysisFocus: "AI 分析重点",
+    noSummary: "目前没有摘要资料。",
+    marketAnalysis: "市场与赔率分析",
+    predictedScore: "AI 预测比分",
+    risk: "本场风险",
+    notEvaluated: "未评估",
+    finalNote: "AI 最终提醒",
+    finalFallback: "请综合即时资讯判断。",
+
+    analysisReadFailed: "分析资料读取失败",
+    analysisReadFailedText: "请返回赛事列表重新进行分析。"
+  },
+
+  "en": {
+    pageTitle: "AI Match Analysis | HABAO Sports Prediction AI",
+    matchCenter: "Match Center",
+
+    previousMatch: "← Previous",
+    nextMatch: "Next →",
+    batchCountPrefix: "Match",
+    batchCountMiddle: "of",
+    batchCountSuffix: "",
+
+    noAnalysisData: "Analysis Data Not Found",
+    noAnalysisText: "Please select a match from the football match list to start an analysis.",
+    backFootball: "Back to Match Center",
+
+    analysisTitle: "In-Depth Match Analysis",
+    analysisSubtitle: "Combining recent performance, match information and market data for multidimensional quantitative analysis.",
+
+    homeTeam: "HOME",
+    awayTeam: "AWAY",
+    timeUnavailable: "Time unavailable",
+
+    moneyline: "Moneyline",
+    handicap: "Handicap",
+    overUnder: "Over / Under",
+    btts: "BTTS",
+
+    noRecommendation: "No Recommendation",
+    insufficientData: "Insufficient data",
+    aiConfidence: "AI Confidence",
+    marketLine: "Line",
+
+    betNow: "Bet Now →",
+    expertAnalysis: "Continue Analysis →",
+
+    betPlatformTitle: "Choose a Partner Platform",
+    betPlatformSubtitle: "Select the platform you would like to visit",
+    betPlatformPartner: "Partner Platform",
+    betPlatformGo: "Go to Platform ↗",
+    betPlatformNote: "HD Huang Ding is currently available. More partner platforms will be added soon.",
+    close: "Close",
+
+    intelligenceTitle: "Match Intelligence",
+    analysisFocus: "AI Analysis Highlights",
+    noSummary: "No summary is currently available.",
+    marketAnalysis: "Market & Odds Analysis",
+    predictedScore: "AI Score Prediction",
+    risk: "Match Risk",
+    notEvaluated: "Not Evaluated",
+    finalNote: "AI Final Note",
+    finalFallback: "Please consider the latest available information before making a decision.",
+
+    analysisReadFailed: "Failed to Load Analysis",
+    analysisReadFailedText: "Please return to the match list and run the analysis again."
+  }
+};
+
+window.HabaoI18n?.registerTranslations(
+  analysisTranslations
+);
+
+const analysisT = (
+  key,
+  fallback
+) =>
+  window.HabaoI18n?.t(
+    key,
+    fallback
+  ) || fallback;
+   
+
+function syncBetPlatformModalLanguage() {
+  const title = document.getElementById("betPlatformTitle");
+  const subtitle = document.getElementById("betPlatformSubtitle");
+  const hdText = document.getElementById("betPlatformHdText");
+  const hdButton = document.getElementById("betPlatformHdButton");
+  const note = document.getElementById("betPlatformNote");
+  const close = document.getElementById("betPlatformClose");
+
+  if (title) {
+    title.textContent =
+      analysisT("betPlatformTitle", "選擇合作平台");
+  }
+
+  if (subtitle) {
+    subtitle.textContent =
+      analysisT("betPlatformSubtitle", "選擇您要前往的娛樂平台");
+  }
+
+  if (hdText) {
+    hdText.textContent =
+      analysisT("betPlatformPartner", "合作平台");
+  }
+
+  if (hdButton) {
+    hdButton.textContent =
+      analysisT("betPlatformGo", "前往投注 ↗");
+  }
+
+  if (note) {
+    note.textContent =
+      analysisT(
+        "betPlatformNote",
+        "目前僅開放 HD 皇鼎，其他合作平台將陸續新增。"
+      );
+  }
+
+  if (close) {
+    close.setAttribute(
+      "aria-label",
+      analysisT("close", "關閉")
+    );
+  }
+}
+
+function openBetPlatformModal() {
+  syncBetPlatformModalLanguage();
+  renderBetPartnerPlatforms();
+  loadBetPartnerPlatforms();
+
+  const overlay =
+    document.getElementById("betPlatformOverlay");
+
+  if (overlay) {
+    overlay.classList.add("show");
+  }
+}
+
+function closeBetPlatformModal(event) {
+  if (
+    event &&
+    event.target !== event.currentTarget
+  ) {
+    return;
+  }
+
+  const overlay =
+    document.getElementById("betPlatformOverlay");
+
+  if (overlay) {
+    overlay.classList.remove("show");
+  }
+}
+
+const app =
+  document.getElementById("app");
+
+const batchRaw =
+  sessionStorage.getItem(
+    "matchAnalysisBatch"
+  );
+
+const isBatchMode =
+  new URLSearchParams(
+    window.location.search
+  ).get("batch") === "1";
+
+let batchResults = [];
+let batchIndex = 0;
+
+if (
+  isBatchMode &&
+  batchRaw
+) {
+  try {
+    const batchData =
+      JSON.parse(batchRaw);
+
+    batchResults =
+      Array.isArray(
+        batchData?.results
+      )
+        ? batchData.results
+        : [];
+
+  } catch (error) {
+    console.error(
+      "批次結果解析失敗：",
+      error
+    );
+  }
+}
+
+let raw =
+  batchResults.length
+    ? JSON.stringify(
+        batchResults[0]
+      )
+    : sessionStorage.getItem(
+        "matchAnalysis"
+      );
+
+   
+
+function updateBatchResultNav() {
+  const nav =
+    document.getElementById(
+      "batchResultNav"
+    );
+
+  if (
+    !nav ||
+    !batchResults.length
+  ) {
+    return;
+  }
+
+  nav.classList.add("show");
+
+  const data =
+    batchResults[batchIndex];
+
+  const fixture =
+    data?.fixture || {};
+
+  const count =
+    document.getElementById(
+      "batchResultCount"
+    );
+
+  const team =
+    document.getElementById(
+      "batchResultTeam"
+    );
+
+  const prev =
+    document.getElementById(
+      "batchPrevBtn"
+    );
+
+  const next =
+    document.getElementById(
+      "batchNextBtn"
+    );
+
+  const lang =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (count) {
+    if (lang === "en") {
+      count.textContent =
+        `${analysisT("batchCountPrefix", "Match")} ` +
+        `${batchIndex + 1} ` +
+        `${analysisT("batchCountMiddle", "of")} ` +
+        `${batchResults.length}`;
+    } else {
+      count.textContent =
+        `${analysisT("batchCountPrefix", "第")} ` +
+        `${batchIndex + 1} ` +
+        `${analysisT("batchCountMiddle", "/")} ` +
+        `${batchResults.length} ` +
+        `${analysisT("batchCountSuffix", "場")}`;
+    }
+  }
+
+  const home =
+    getAnalysisLocalizedName(
+      fixture.home,
+      analysisT(
+        "homeTeam",
+        "主隊"
+      )
+    );
+
+  const away =
+    getAnalysisLocalizedName(
+      fixture.away,
+      analysisT(
+        "awayTeam",
+        "客隊"
+      )
+    );
+
+  if (team) {
+    team.textContent =
+      `${home} vs ${away}`+(isBasketballAnalysisData(data)?" · "+(data.v2_stage==="t2"?"T-2 深度分析":data.v2_stage==="t15"?"T-15 最終分析":"T-10 賽前分析"):"");
+  }
+
+  if (prev) {
+    prev.textContent =
+      analysisT(
+        "previousMatch",
+        "← 上一場"
+      );
+
+    prev.disabled =
+      batchIndex === 0;
+  }
+
+  if (next) {
+    next.textContent =
+      analysisT(
+        "nextMatch",
+        "下一場 →"
+      );
+
+    next.disabled =
+      batchIndex ===
+      batchResults.length - 1;
+  }
+}
+
+
+function showBatchResult(index) {
+  if (
+    index < 0 ||
+    index >= batchResults.length
+  ) {
+    return;
+  }
+
+  batchIndex = index;
+
+  sessionStorage.setItem(
+    "matchAnalysis",
+    JSON.stringify(
+      batchResults[batchIndex]
+    )
+  );
+
+  window.location.href =
+    `analysis.html?v=2&batch=1&item=${batchIndex}`;
+}
+
+
+function showPreviousBatchResult() {
+  showBatchResult(
+    batchIndex - 1
+  );
+}
+
+
+function showNextBatchResult() {
+  showBatchResult(
+    batchIndex + 1
+  );
+}
+
+function getAnalysisLocalizedName(
+  item,
+  fallback = ""
+) {
+  if (!item) {
+    return fallback;
+  }
+
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  if (lang === "en") {
+    return (
+      item?.api_name ||
+      item?.name ||
+      (typeof item === "string" ? item : "") ||
+      fallback
+    );
+  }
+
+  const traditionalName =
+    item?.name_zh ||
+    item?.name ||
+    item?.api_name ||
+    (typeof item === "string" ? item : "") ||
+    fallback;
+
+  if (lang === "zh-Hans") {
+    return window.HabaoI18n?.toSimplified
+      ? window.HabaoI18n.toSimplified(
+          traditionalName
+        )
+      : traditionalName;
+  }
+
+  return traditionalName;
+}
+
+
+function getAnalysisLeagueName(
+  league,
+  fixtureCountry = ""
+) {
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  const apiName =
+    league?.api_name ||
+    (typeof league === "string" ? league : "") ||
+    league?.name ||
+    "";
+
+  const leagueId =
+    Number(league?.id || 0);
+
+  const leagueCountry =
+    String(
+      league?.country ||
+      fixtureCountry ||
+      ""
+    ).toLowerCase();
+
+  const isBrazilSerieA =
+    leagueId === 71 ||
+    (
+      /serie a/i.test(apiName) &&
+      (
+        leagueCountry.includes("brazil") ||
+        leagueCountry.includes("brasil")
+      )
+    );
+
+  /*
+    舊的「我的分析」紀錄有一部分曾把巴甲 Serie A
+    存成義大利甲級聯賽。這裡除 league id 外，再用 country
+    做 fallback，讓既有歷史紀錄不用重新分析也能顯示正確。
+  */
+  const traditionalById = {
+    2: "歐洲冠軍聯賽",
+    3: "歐霸盃",
+    39: "英格蘭超級聯賽",
+    140: "西班牙甲級聯賽",
+    78: "德國甲級聯賽",
+    135: "義大利甲級聯賽",
+    61: "法國甲級聯賽",
+    98: "日本職業足球甲級聯賽",
+    292: "韓國職業足球甲級聯賽",
+    169: "中國足球超級聯賽",
+    88: "荷蘭甲級聯賽",
+    71: "巴西甲級聯賽"
+  };
+
+  const englishById = {
+    2: "UEFA Champions League",
+    3: "UEFA Europa League",
+    39: "Premier League",
+    140: "La Liga",
+    78: "Bundesliga",
+    135: "Serie A",
+    61: "Ligue 1",
+    98: "J1 League",
+    292: "K League 1",
+    169: "Chinese Super League",
+    88: "Eredivisie",
+    71: "Brazil Serie A"
+  };
+
+  const traditionalMap = {
+    "UEFA Champions League": "歐洲冠軍聯賽",
+    "UEFA Europa League": "歐霸盃",
+    "Premier League": "英格蘭超級聯賽",
+    "La Liga": "西班牙甲級聯賽",
+    "Bundesliga": "德國甲級聯賽",
+    "Serie A": "義大利甲級聯賽",
+    "Ligue 1": "法國甲級聯賽",
+    "J1 League": "日本職業足球甲級聯賽",
+    "K League 1": "韓國職業足球甲級聯賽",
+    "Chinese Super League": "中國足球超級聯賽",
+    "Eredivisie": "荷蘭甲級聯賽",
+    "Serie A Brazil": "巴西甲級聯賽",
+    "Brazil Serie A": "巴西甲級聯賽",
+    "Liga Profesional Argentina": "阿根廷甲級聯賽",
+    "KNVB Beker": "荷蘭盃",
+    "Copa Chile": "智利盃",
+    "Primera A": "哥倫比亞甲級聯賽"
+  };
+
+  if (lang === "en") {
+    if (isBrazilSerieA) {
+      return "Brazil Serie A";
+    }
+
+    return (
+      englishById[leagueId] ||
+      apiName ||
+      league?.name ||
+      ""
+    );
+  }
+
+  const traditional =
+    isBrazilSerieA
+      ? "巴西甲級聯賽"
+      : traditionalById[leagueId] ||
+        (league?.name && /[\u3400-\u9fff]/.test(league.name)
+          ? league.name
+          : traditionalMap[apiName] ||
+            league?.name ||
+            apiName ||
+            "");
+
+  if (lang === "zh-Hans") {
+    return window.HabaoI18n?.toSimplified
+      ? window.HabaoI18n.toSimplified(traditional)
+      : traditional;
+  }
+
+  return traditional;
+}
+
+function isBasketballAnalysisData(
+  data
+) {
+  return (
+    String(
+      data?.fixture?.sport ||
+      data?.sport ||
+      ""
+    ).toLowerCase() ===
+      "basketball" ||
+    new URLSearchParams(
+      window.location.search
+    ).get("sport") ===
+      "basketball"
+  );
+}
+
+function getAnalysisVenueText(venue) {
+  if (!venue) return "";
+
+  const lang =
+    window.HabaoI18n?.getLanguage?.() ||
+    "zh-Hant";
+
+  const name = String(venue?.name || "").trim();
+  const city = String(venue?.city || "").trim();
+
+  if (lang === "en") {
+    return [name, city].filter(Boolean).join(" · ");
+  }
+
+  // 中文介面只顯示已有中文資料的場地資訊，避免整塊混入英文專有名詞。
+  const cjk = /[\u3400-\u9fff]/;
+  const parts = [name, city].filter(part => cjk.test(part));
+  let value = parts.join("・");
+
+  if (
+    lang === "zh-Hans" &&
+    value &&
+    window.HabaoI18n?.toSimplified
+  ) {
+    value = window.HabaoI18n.toSimplified(value);
+  }
+
+  return value;
+}   
+
+if (
+  isBatchMode &&
+  batchResults.length
+) {
+  const requestedIndex =
+    Number(
+      new URLSearchParams(
+        window.location.search
+      ).get("item") || 0
+    );
+
+  if (
+    Number.isInteger(
+      requestedIndex
+    ) &&
+    requestedIndex >= 0 &&
+    requestedIndex <
+      batchResults.length
+  ) {
+    batchIndex =
+      requestedIndex;
+  }
+
+  raw =
+    JSON.stringify(
+      batchResults[batchIndex]
+    );
+
+  setTimeout(
+    updateBatchResultNav,
+    0
+  );
+}
+
+
+if (!raw) {
+
+app.innerHTML = `
+  <div class="empty">
+    <h2>${analysisT(
+      "noAnalysisData",
+      "找不到賽事分析資料"
+    )}</h2>
+
+    <p>${analysisT(
+      "noAnalysisText",
+      "請先從足球賽事列表選擇一場比賽進行分析。"
+    )}</p>
+
+    <a href="football.html">
+      ${analysisT(
+        "backFootball",
+        "返回足球賽事分析"
+      )}
+    </a>
+  </div>
+`;
+
+} else {
+
+  try {
+
+    const data = JSON.parse(raw);
+
+    const fixture = data.fixture || {};
+    const analysis = data.analysis || {};
+    const rec = analysis.recommendations || {};
+    const footballV2Stage = String(data?.v2_stage || "");
+    const footballV2Evidence = analysis?.v2_stage_evidence || null;
+    const footballV2InjuryText = (Array.isArray(footballV2Evidence?.availability?.items) ? footballV2Evidence.availability.items : []).slice(0, 8).map(item => `${escapePartnerHtml(item?.player_name || "球員")}${item?.reason || item?.type ? `（${escapePartnerHtml(item.reason || item.type)}）` : ""}`).join("、") || "目前沒有可用傷停名單";
+    const footballV2LineupText = (Array.isArray(footballV2Evidence?.lineups?.teams) ? footballV2Evidence.lineups.teams : []).map(item => `${escapePartnerHtml(item?.team?.name || item?.team_name || "球隊")}：先發 ${Array.isArray(item?.startXI) ? item.startXI.length : 0} 人`).join("；") || "目前沒有可用先發名單";
+
+const isBasketballAnalysis =
+  isBasketballAnalysisData(
+    data
+  );
+
+const basketballModel =
+  data?.model || {};
+
+const basketballMarket =
+  data?.market_data
+    ?.market || {};
+
+const basketballInjuries =
+  data?.market_data
+    ?.injuries || {};
+
+/* Canonical member selection: the T-10 snapshot's original three
+   market picks and lines always win. display_* is derivative metadata,
+   never an alternate recommendation or a substitute betting line. */
+const habaoDisplayMarket = (market) => {
+  const r = market || {};
+  return {
+    ...r,
+    pick: r.pick ?? "暫不推薦",
+    line: r.line ?? null,
+    confidence: r.confidence ?? 0,
+    reason: r.reason ?? ""
+  };
+};
+const moneyline = habaoDisplayMarket(rec.moneyline);
+const handicap = habaoDisplayMarket(rec.handicap);
+const overUnder = habaoDisplayMarket(rec.over_under);
+const btts = rec.btts || {};
+
+const basketballPredictedScore =
+  basketballModel
+    ?.predicted_score || {};
+
+const scores =
+  isBasketballAnalysis
+    ? (
+        basketballPredictedScore
+          ?.home !== undefined &&
+        basketballPredictedScore
+          ?.away !== undefined
+          ? [
+              {
+                score:
+                  `${basketballPredictedScore.home}-${basketballPredictedScore.away}`,
+                confidence:
+                  basketballModel
+                    ?.confidence || 0
+              }
+            ]
+          : []
+      )
+    : (
+        analysis
+          .predicted_scores ||
+        []
+      );
+
+const basketballFairSpread =
+  basketballModel
+    ?.fair_spread
+    ?.display ||
+  "-";
+
+const basketballFairTotal =
+  basketballModel
+    ?.fair_total ?? "-";
+
+const basketballHomeWin =
+  basketballModel
+    ?.win_probability
+    ?.home ?? "-";
+
+const basketballAwayWin =
+  basketballModel
+    ?.win_probability
+    ?.away ?? "-";
+
+const basketballMarketText =
+  basketballMarket
+    ?.available === true
+    ? (
+        "真實市場盤口｜主隊讓分 " +
+        (
+          basketballMarket
+            ?.consensus
+            ?.home_spread ?? "—"
+        ) +
+        "｜大小分 " +
+        (
+          basketballMarket
+            ?.consensus
+            ?.total ?? "—"
+        ) +
+        "｜樣本 " +
+        Math.max(
+          Number(
+            basketballMarket
+              ?.consensus
+              ?.spread_bookmakers || 0
+          ),
+          Number(
+            basketballMarket
+              ?.consensus
+              ?.total_bookmakers || 0
+          )
+        ) +
+        " 家"
+      )
+    : (
+        Array.isArray(
+          data?.warnings
+        ) &&
+        data.warnings.length
+          ? String(
+              data.warnings[0]
+            )
+          : "目前沒有真實市場讓分 / 大小分盤口，僅顯示模型公平線。"
+      );
+
+/* NBA analysis copy is derived from saved T-10 predictions, not new picks. */
+const nbaDescription=(()=>{
+  const valid=x=>x!==null&&x!==undefined&&x!==""&&Number.isFinite(Number(x));
+  const home=getAnalysisLocalizedName(fixture.home,"主隊"),away=getAnalysisLocalizedName(fixture.away,"客隊");
+  const ph=basketballPredictedScore?.home,pa=basketballPredictedScore?.away;
+  const format=r=>String(r?.pick||"暫不推薦")+(r?.line==null?"":"，原始盤口 "+r.line);
+  const focus=[];
+  if(valid(ph)&&valid(pa)){
+    const diff=Number(ph)-Number(pa);
+    focus.push("模型預估"+home+" "+ph+" 分、"+away+" "+pa+" 分。"+
+      (diff>0?"主隊預估領先 "+diff+" 分。":diff<0?"客隊預估領先 "+Math.abs(diff)+" 分。":"兩隊預估得分相同。"));
+  }
+  if(valid(basketballHomeWin)&&valid(basketballAwayWin))
+    focus.push("主隊模型勝率 "+basketballHomeWin+"%、客隊 "+basketballAwayWin+"%；勝率僅是模型估計。");
+  focus.push("獨贏方向："+format(moneyline)+"；讓分方向："+format(handicap)+"；大小分方向："+format(overUnder)+"。");
+  const mt=basketballMarket?.consensus?.total;
+  const market=[];
+  if(valid(mt)&&valid(basketballFairTotal)){
+    const d=Number(basketballFairTotal)-Number(mt);
+    market.push("市場總分盤口 "+mt+" 分，模型預估總分 "+basketballFairTotal+" 分。"+
+      (d>0?"模型比市場高 "+d.toFixed(1)+" 分。":d<0?"模型比市場低 "+Math.abs(d).toFixed(1)+" 分。":"模型與市場總分一致。"));
+  }else if(valid(basketballFairTotal))market.push("模型預估總分 "+basketballFairTotal+" 分，但市場大小分盤口未取得。");
+  if(basketballMarket?.consensus?.home_spread!=null)
+    market.push("市場主隊讓分 "+basketballMarket.consensus.home_spread+"，此為市場盤口而非模型公平線。");
+  market.push((data?.v2_stage ? "本階段分析：獨贏 " : "正式推薦：獨贏 ")+format(moneyline)+"；讓分 "+format(handicap)+"；大小分 "+format(overUnder)+"。");
+  if(basketballInjuries?.available!==true)market.push("目前沒有完整傷病資料，因此不對缺陣影響作推斷。");
+  return {focus:focus.join(" "),market:market.join(" ")};
+})();
+const basketballInjuryText =
+  basketballInjuries
+    ?.available === true
+    ? (
+        "傷病資訊｜主隊 " +
+        Number(
+          basketballInjuries
+            ?.home
+            ?.summary
+            ?.total || 0
+        ) +
+        " 人（Out " +
+        Number(
+          basketballInjuries
+            ?.home
+            ?.summary
+            ?.out || 0
+        ) +
+        "）｜客隊 " +
+        Number(
+          basketballInjuries
+            ?.away
+            ?.summary
+            ?.total || 0
+        ) +
+        " 人（Out " +
+        Number(
+          basketballInjuries
+            ?.away
+            ?.summary
+            ?.out || 0
+        ) +
+        "）"
+      )
+    : "傷病資訊目前尚未取得。";
+
+    const gameDate = fixture.date
+      ? new Date(fixture.date)
+      : null;
+
+const currentAnalysisLang =
+  window.HabaoI18n
+    ?.getLanguage?.() ||
+  "zh-Hant";
+
+const analysisLocale =
+  currentAnalysisLang === "en"
+    ? "en-US"
+    : currentAnalysisLang === "zh-Hans"
+      ? "zh-CN"
+      : "zh-TW";
+
+const localizeAnalysisText = value => {
+  let text =
+    value === null || value === undefined
+      ? ""
+      : String(value);
+
+  if (!text) {
+    return "";
+  }
+
+  if (currentAnalysisLang === "en") {
+    const exact = {
+      "主隊": "Home Team",
+      "主胜": "Home Team",
+      "主勝": "Home Team",
+      "客隊": "Away Team",
+      "客队": "Away Team",
+      "客勝": "Away Team",
+      "客胜": "Away Team",
+      "和局": "Draw",
+      "暫不推薦": "No Recommendation",
+      "暂不推荐": "No Recommendation",
+      "是": "Yes",
+      "否": "No",
+      "低": "Low",
+      "中": "Medium",
+      "中等": "Medium",
+      "高": "High"
+    };
+
+    if (exact[text]) {
+      return exact[text];
+    }
+
+    text = text
+      .replace(/^大\s*([0-9.]+)$/i, "Over $1")
+      .replace(/^小\s*([0-9.]+)$/i, "Under $1")
+      .replace(/^主隊或和局$|^主队或和局$/i, "Home or Draw")
+      .replace(/^主隊或客隊$|^主队或客队$/i, "Home or Away")
+      .replace(/^和局或客隊$|^和局或客队$/i, "Draw or Away");
+
+    return text;
+  }
+
+  if (
+    currentAnalysisLang === "zh-Hans" &&
+    window.HabaoI18n?.toSimplified
+  ) {
+    return window.HabaoI18n.toSimplified(text);
+  }
+
+  return text;
+};
+
+function formatAsianMarketLine(
+  value,
+  forcePlus = false
+) {
+  const raw =
+    String(
+      value ?? ""
+    )
+      .trim()
+      .replace(/−/g, "-")
+      .replace(/＋/g, "+");
+
+  if (!raw) {
+    return "";
+  }
+
+  if (raw.includes("/")) {
+    return raw;
+  }
+
+  const n =
+    Number(raw);
+
+  if (!Number.isFinite(n)) {
+    return raw;
+  }
+
+  const rounded =
+    Math.round(
+      Math.abs(n) * 4
+    ) / 4;
+
+  const base =
+    Math.floor(rounded);
+
+  const fraction =
+    Number(
+      (
+        rounded -
+        base
+      ).toFixed(2)
+    );
+
+  let body = "";
+
+  if (fraction === 0.25) {
+    body =
+      `${base}/${base + 0.5}`;
+  } else if (fraction === 0.75) {
+    body =
+      `${base + 0.5}/${base + 1}`;
+  } else {
+    body =
+      String(rounded)
+        .replace(/\.0$/, "");
+  }
+
+  const sign =
+    n < 0
+      ? "-"
+      : (
+          n > 0 &&
+          (
+            forcePlus ||
+            raw.startsWith("+")
+          )
+        )
+        ? "+"
+        : "";
+
+  return sign + body;
+}
+
+function formatAsianPickText(
+  value
+) {
+  const localized =
+    localizeAnalysisText(
+      value
+    );
+
+  return localized.replace(
+    /\b(Over|Under)\s*([+-]?\d+(?:\.\d+)?|[+-]?\d+(?:\.5)?\/\d+(?:\.5)?)/gi,
+    (
+      _match,
+      side,
+      line
+    ) =>
+      `${side} ${formatAsianMarketLine(line)}`
+  ).replace(
+    /(大|小)\s*([+-]?\d+(?:\.\d+)?|[+-]?\d+(?:\.5)?\/\d+(?:\.5)?)/g,
+    (
+      _match,
+      side,
+      line
+    ) =>
+      `${side}${formatAsianMarketLine(line)}`
+  );
+}
+
+function formatOverUnderPick(pick, line) {
+  const text = formatAsianPickText(pick).trim();
+  const rawLine = String(line ?? "").trim();
+  if (!rawLine) return text || analysisT("noRecommendation", "暫不推薦");
+
+  const lineText = formatAsianMarketLine(rawLine);
+  const directionMatch = text.match(/^(大|小|Over|Under)\s*[+-]?(?:\d+(?:\.\d+)?|\d+(?:\.5)?\/\d+(?:\.5)?)$/i);
+  if (directionMatch) {
+    const direction = directionMatch[1];
+    return /^(大|小)$/.test(direction)
+      ? `${direction}${lineText}`
+      : `${direction} ${lineText}`;
+  }
+
+  const directionOnly = text.match(/^(大|小|Over|Under)$/i);
+  if (directionOnly) {
+    return /^(大|小)$/.test(directionOnly[1])
+      ? `${directionOnly[1]}${lineText}`
+      : `${directionOnly[1]} ${lineText}`;
+  }
+
+  const noPick = ["暫不推薦", "暂不推荐", "No Recommendation"];
+  return text && !noPick.includes(text)
+    ? `${text} ${lineText}`
+    : text || analysisT("noRecommendation", "暫不推薦");
+}
+
+const timeText = gameDate
+  ? gameDate.toLocaleString(
+      analysisLocale,
+      {
+        timeZone: "Asia/Taipei",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }
+    )
+  : analysisT(
+      "timeUnavailable",
+      "時間未提供"
+    );
+
+    const confidenceBar = value =>
+      Math.max(0, Math.min(100, Number(value || 0)));
+    
+    const confidenceFire = (value, pick) => {
+  if (!pick || pick === "暫不推薦") return "";
+
+  const confidence = Number(value || 0);
+
+  if (confidence >= 90) return '<span class="confidence-fire">🔥🔥🔥</span>';
+  if (confidence >= 80) return '<span class="confidence-fire">🔥🔥</span>';
+  if (confidence >= 70) return '<span class="confidence-fire">🔥</span>';
+
+  return "";
+};
+    
+    const nbaStage=["t2","t15"].includes(data.v2_stage)?data.v2_stage:"t10";
+    const nbaCapturedAt=data.stage_capture?.captured_at||footballV2Evidence?.captured_at||data.generated_at||null;
+    const nbaCaptureMs=Date.parse(nbaCapturedAt||"");
+    const nbaCaptureLabel=Number.isFinite(nbaCaptureMs)?new Date(nbaCaptureMs).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false})+" 封存":"已封存";
+    const nbaLate=data.stage_capture?.capture_mode==="late_pre_match_recovery"||footballV2Evidence?.capture_mode==="late_pre_match_recovery";
+    const nbaStageBadgeHtml=`<div class="v2-detail-badge nba-stage-badge" data-stage="${nbaStage}">${nbaStage==="t10"?"T-10 快照":"階段快照"} · ${escapePartnerHtml(nbaCaptureLabel)}${nbaLate?" · 賽前補抓":""}</div>`;
+    const evidenceStatus=value=>({not_available:"資料未取得",source_unavailable:"來源暫不可用",not_collected_at_this_stage:"本階段未取得資料",no_rows_returned:"來源未列出傷停",data_returned:"已取得資料",partial:"部分資料已取得",confirmed:"已確認",expected:"預估名單，尚未確認",partial_confirmed:"部分球隊已確認"}[String(value)]||"資料待確認");
+    const injuryStatus=value=>({out:"缺陣",inactive:"未列入出賽名單",suspended:"停賽",suspension:"停賽",doubtful:"出賽機會低",questionable:"出賽待定",daytoday:"每日觀察",probable:"預計可出賽"}[String(value)]||"狀態待確認");
+    const evidenceTeam=side=>side==="home"?"主隊":"客隊";
+    const nbaInjuryRows=(footballV2Evidence?.availability?.teams||[]).map(team=>{
+      const rows=(footballV2Evidence.availability.items||[]).filter(p=>p.side===team.side);
+      return `<p class="nba-evidence-team">${evidenceTeam(team.side)}傷停：${rows.length?rows.map(p=>escapePartnerHtml(p.name)+"（"+escapePartnerHtml(injuryStatus(p.status))+"）").join("、"):escapePartnerHtml(evidenceStatus(team.status))}</p>`;
+    }).join("");
+    const nbaLineupRows=(footballV2Evidence?.lineups?.teams||[]).map(team=>`<p class="nba-evidence-team">${evidenceTeam(team.side)}先發：${escapePartnerHtml(evidenceStatus(team.status))}${team.starters?.length?"｜"+team.starters.map(p=>escapePartnerHtml(p.name)).join("、"):""}</p>`).join("");
+    const nbaAdjustment=footballV2Evidence?.player_adjustment;
+    const nbaAdjustmentLabel=!nbaAdjustment||nbaAdjustment.status==="not_applied"?"尚未套用球員修正；出賽狀態未確認或球員歷史不足。":
+      (nbaAdjustment.injury_adjustment_applied&&nbaAdjustment.lineup_adjustment_applied?"傷停與確認先發已納入分差評估。":nbaAdjustment.injury_adjustment_applied?"確認缺陣已納入分差評估；未確認先發不套用。":nbaAdjustment.lineup_adjustment_applied?"確認先發已納入分差評估。":"本階段無可套用的球員變動。")+(nbaAdjustment.status==="partial"?"部分資料不足或有來源差異，僅套用可驗證部分。":"");
+    const evidenceTime=value=>{const ms=Date.parse(value||"");return Number.isFinite(ms)?new Date(ms).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false}):"";};
+    const nbaSourceLabel=[footballV2Evidence?.availability?.source?"傷停 "+footballV2Evidence.availability.source+" "+evidenceTime(footballV2Evidence.availability.fetched_at):"",footballV2Evidence?.lineups?.source?"先發 "+footballV2Evidence.lineups.source+" "+evidenceTime(footballV2Evidence.lineups.fetched_at):""].filter(Boolean).join("｜");
+    const nbaEvidenceHtml=footballV2Evidence?`<div class="nba-stage-evidence" data-stage="${nbaStage}"><strong>本階段資料狀態</strong><p>傷停：${escapePartnerHtml(evidenceStatus(footballV2Evidence.availability?.status))}；先發：${footballV2Evidence.lineups?.status==="data_returned"?"雙方已確認":escapePartnerHtml(evidenceStatus(footballV2Evidence.lineups?.status))}。</p><p>${escapePartnerHtml(nbaAdjustmentLabel)}${nbaLate?"本次為賽前補抓，依實際封存時間提供分析。":""}</p>${nbaInjuryRows||nbaLineupRows?`<details><summary>查看傷停與先發名單</summary>${nbaInjuryRows}${nbaLineupRows}</details>`:""}${nbaSourceLabel?`<p class="nba-evidence-source">${escapePartnerHtml(nbaSourceLabel)}（台灣時間）</p>`:""}</div>`:"";
+    const nbaNoPick=r=>isBasketballAnalysis&&(!r?.pick||["暫不推薦","暂不推荐","No Recommendation","no recommendation"].includes(String(r.pick).trim()));
+    const recommendationConfidenceHtml=r=>nbaNoPick(r)?(/優勢|門檻/.test(r.reason||"")?"模型優勢不足":"未提供推薦"):`${analysisT("aiConfidence", "AI 信心")} ${r.confidence||0}% ${confidenceFire(r.confidence,r.pick)}`;
+    const recommendationBar=r=>nbaNoPick(r)?0:confidenceBar(r.confidence);
+
+    const resultTeamLogo=team=>{
+      const key=String(team?.api_name||team?.name||"").toLowerCase();
+      if(isBasketballAnalysis&&/sacramento|沙加緬度/.test(key))
+        return "https://a.espncdn.com/i/teamlogos/nba/500/sac.png";
+      return String(team?.logo||"");
+    };
+    app.innerHTML = `
+
+<div class="analysis-hero">
+
+  <div class="analysis-engine">
+    <span class="engine-dot"></span>
+    HABAO ENGINE
+  </div>
+
+  <div class="eyebrow">AI MATCH ANALYSIS</div>
+
+  <h1>${
+    isBasketballAnalysis
+      ? (data?.v2_stage === "t2" ? "NBA T-2 深度分析" : data?.v2_stage === "t15" ? "NBA T-15 最終分析" : "NBA T-10 賽前分析")
+      : analysisT(
+          "analysisTitle",
+          "賽事深度分析"
+        )
+  }</h1>
+
+  ${isBasketballAnalysis ? nbaStageBadgeHtml : (footballV2Stage ? `<div class="v2-detail-badge" style="display:inline-flex;margin-top:10px">足球 V2｜${escapePartnerHtml(data.v2_stage_label || (footballV2Stage === "t2" ? "深度分析" : "最終分析"))}｜${footballV2Stage === "t2" ? "T-2 小時" : "T-15 分鐘"}</div>` : "")}
+
+  <div class="sub">
+    ${
+      isBasketballAnalysis
+        ? "依本階段封存的球隊數據與市場盤口，提供 NBA 賽前分析"
+        : analysisT(
+            "analysisSubtitle",
+            "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析"
+          )
+    }
+  </div>
+
+</div>
+
+     <div class="match-card">
+
+  <div class="team">
+    <div class="team-side">${analysisT("homeTeam", "主隊")}</div>
+
+    <div class="team-logo-box">
+      <img src="${resultTeamLogo(fixture.home)}" alt="" onerror="this.onerror=null;this.style.display='none'">
+    </div>
+
+    <div class="team-name">
+      ${getAnalysisLocalizedName(
+  fixture.home,
+  analysisT("homeTeam", "主隊")
+)}
+    </div>
+  </div>
+
+  <div class="match-vs">
+    <div class="vs-line"></div>
+    <div class="vs">VS</div>
+    <div class="vs-line"></div>
+  </div>
+
+  <div class="team">
+    <div class="team-side">${analysisT("awayTeam", "客隊")}</div>
+
+    <div class="team-logo-box">
+      <img src="${resultTeamLogo(fixture.away)}" alt="" onerror="this.onerror=null;this.style.display='none'">
+    </div>
+
+    <div class="team-name">
+      ${getAnalysisLocalizedName(
+  fixture.away,
+  analysisT("awayTeam", "客隊")
+)}
+    </div>
+  </div>
+
+</div>
+
+      <div class="meta">
+${getAnalysisLeagueName(
+  fixture.league || "",
+  fixture.country || ""
+)}
+<br>
+        ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
+      </div>
+
+      ${isBasketballAnalysis ? nbaEvidenceHtml : footballV2Evidence ? `<div class="v2-insight-card" style="margin-top:16px"><div class="v2-insight-icon">V2</div><div class="v2-insight-content"><div class="v2-insight-label">賽前最新資訊</div><div class="v2-insight-title">傷停與先發資料</div><p>傷停（${escapePartnerHtml(footballV2Evidence.availability?.status || "尚無資料")}）：${footballV2InjuryText}<br>先發（${escapePartnerHtml(footballV2Evidence.lineups?.status || "尚無資料")}）：${footballV2LineupText}<br>${escapePartnerHtml(footballV2Evidence.note || "")}</p></div></div>` : ""}
+
+      <div class="grid">
+
+        <!-- 獨贏 -->
+        <div class="pick-card">
+          <div class="pick-label">${analysisT("moneyline", "獨贏")}</div>
+
+          <div class="pick-value">
+            ${localizeAnalysisText(moneyline.pick) || analysisT("noRecommendation", "暫不推薦")}
+          </div>
+
+          <div class="confidence">
+            ${recommendationConfidenceHtml(moneyline)}
+          </div>
+
+          <div class="bar">
+            <div style="width:${recommendationBar(moneyline)}%"></div>
+          </div>
+
+        </div>
+
+
+        <!-- 讓分 -->
+        <div class="pick-card">
+          <div class="pick-label">${analysisT("handicap", "讓分")}</div>
+
+          <div class="pick-value">
+            ${localizeAnalysisText(handicap.pick) || analysisT("noRecommendation", "暫不推薦")}${
+              handicap.line !== null &&
+              handicap.line !== undefined &&
+              String(handicap.line).trim() !== "" &&
+              handicap.pick !== "暫不推薦" &&
+              handicap.pick !== "暂不推荐" &&
+              handicap.pick !== "No Recommendation"
+                ? ` ${formatAsianMarketLine(
+                    handicap.line,
+                    Number(handicap.line) > 0
+                  )}`
+                : ""
+            }
+          </div>
+
+          <div class="confidence">
+            ${recommendationConfidenceHtml(handicap)}
+          </div>
+
+          <div class="bar">
+            <div style="width:${recommendationBar(handicap)}%"></div>
+          </div>
+
+        </div>
+
+
+        <!-- 大小球 -->
+        <div class="pick-card">
+          <div class="pick-label">${analysisT("overUnder", "大小球")}</div>
+
+          <div class="pick-value">
+            ${formatOverUnderPick(overUnder.pick, overUnder.line)}
+          </div>
+
+          <div class="confidence">
+            ${recommendationConfidenceHtml(overUnder)}
+          </div>
+
+          <div class="bar">
+            <div style="width:${recommendationBar(overUnder)}%"></div>
+          </div>
+
+        </div>
+
+
+        ${isBasketballAnalysis ? "" : `
+        <!-- Football-only BTTS: NBA has exactly three recommendation markets. -->
+        <div class="pick-card">
+          <div class="pick-label">BTTS</div>
+          <div class="pick-value">
+            ${localizeAnalysisText(btts.pick) || analysisT("noRecommendation", "暫不推薦")}
+          </div>
+          <div class="confidence">
+            ${analysisT("aiConfidence", "AI 信心")} ${btts.confidence || 0}%
+            ${confidenceFire(btts.confidence, btts.pick)}
+          </div>
+          <div class="bar"><div style="width:${confidenceBar(btts.confidence)}%"></div></div>
+        </div>`}
+
+</div>
+
+      </div>
+      </div>
+
+      <div class="bet-action">
+      
+  <button
+    type="button"
+    class="bet-btn"
+    onclick="openBetPlatformModal()"
+  >
+    ${analysisT("betNow", "立即投注 →")}
+  </button>
+
+<a
+  href="football.html"
+  class="expert-btn"
+>
+  ${analysisT("expertAnalysis", "繼續分析 →")}
+</a>
+</div>
+    `;
+
+  } catch (error) {
+
+    console.error(error);
+
+app.innerHTML = `
+  <div class="empty">
+    <h2>${analysisT(
+      "analysisReadFailed",
+      "分析資料讀取失敗"
+    )}</h2>
+
+    <p>${analysisT(
+      "analysisReadFailedText",
+      "請返回賽事列表重新進行分析。"
+    )}</p>
+
+    <a href="football.html">
+      ${analysisT(
+        "backFootball",
+        "返回足球賽事分析"
+      )}
+    </a>
+  </div>
+`;
+  }
+}
+
+function applyAnalysisStaticLanguage() {
+  document.title =
+    analysisT(
+      "pageTitle",
+      "AI 賽事分析｜哈寶足球 AI"
+    );
+
+  const backText =
+    document.querySelector(
+      ".back span:last-child"
+    );
+
+  if (backText) {
+    backText.textContent =
+      analysisT(
+        "matchCenter",
+        "賽事中心"
+      );
+  }
+
+  const prev =
+    document.getElementById(
+      "batchPrevBtn"
+    );
+
+  if (prev) {
+    prev.textContent =
+      analysisT(
+        "previousMatch",
+        "← 上一場"
+      );
+  }
+
+  const next =
+    document.getElementById(
+      "batchNextBtn"
+    );
+
+  if (next) {
+    next.textContent =
+      analysisT(
+        "nextMatch",
+        "下一場 →"
+      );
+  }
+}
+
+applyAnalysisStaticLanguage();   
+
+async function refreshAnalysisLanguage(
+  options = {}
+) {
+  const {
+    reload = false
+  } = options;
+
+  try {
+
+    const language =
+      window.HabaoI18n
+        ?.getLanguage?.() ||
+      "zh-Hant";
+
+
+    // =====================================
+    // 找目前正在看的分析
+    // 單場：matchAnalysis
+    // 批量：matchAnalysisBatch 目前這一場
+    // =====================================
+
+    let current = null;
+
+    if (
+      isBatchMode &&
+      Array.isArray(
+        batchResults
+      ) &&
+      batchResults.length
+    ) {
+      current =
+        batchResults[
+          batchIndex
+        ] || null;
+    } else {
+
+      const rawCurrent =
+        sessionStorage.getItem(
+          "matchAnalysis"
+        );
+
+      current =
+        rawCurrent
+          ? JSON.parse(
+              rawCurrent
+            )
+          : null;
+    }
+
+
+    const fixtureId =
+      Number(
+        current?.fixture?.id ||
+        current?.fixture_id ||
+        0
+      );
+
+
+    const member =
+      JSON.parse(
+        sessionStorage.getItem(
+          "habao_member"
+        ) ||
+        "null"
+      );
+
+
+    if (
+      !fixtureId ||
+      !member?.account
+    ) {
+      return false;
+    }
+
+    if (
+      isBasketballAnalysisData(
+        current
+      )
+    ) {
+      return false;
+    }
+
+
+    // 已經是目前語言，不重抓
+    if (
+      String(
+        current?.language || ""
+      ) === language
+    ) {
+      return false;
+    }
+
+
+    const response =
+      await fetch(
+        "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/match-analysis",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            fixture_id:
+              fixtureId,
+
+            account:
+              member.account,
+
+            language
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data?.success
+    ) {
+      console.error(
+        "ANALYSIS LANGUAGE REFRESH FAILED:",
+        data
+      );
+
+      return false;
+    }
+
+
+    // =====================================
+    // 單場目前資料
+    // =====================================
+
+    sessionStorage.setItem(
+      "matchAnalysis",
+      JSON.stringify(
+        data
+      )
+    );
+
+
+    // =====================================
+    // 批量分析也必須同步更新
+    //
+    // 舊版只更新 matchAnalysis，
+    // reload 後 batchResults 又把中文資料覆蓋回來。
+    // =====================================
+
+    if (
+      isBatchMode &&
+      Array.isArray(
+        batchResults
+      ) &&
+      batchResults.length
+    ) {
+
+      batchResults[
+        batchIndex
+      ] = data;
+
+
+      const storedBatchRaw =
+        sessionStorage.getItem(
+          "matchAnalysisBatch"
+        );
+
+
+      let storedBatch = {};
+
+      try {
+        storedBatch =
+          storedBatchRaw
+            ? JSON.parse(
+                storedBatchRaw
+              )
+            : {};
+      } catch {
+        storedBatch = {};
+      }
+
+
+      storedBatch.results =
+        batchResults;
+
+
+      sessionStorage.setItem(
+        "matchAnalysisBatch",
+        JSON.stringify(
+          storedBatch
+        )
+      );
+    }
+
+
+    if (reload) {
+      window.location.reload();
+    }
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "ANALYSIS LANGUAGE REFRESH ERROR:",
+      error
+    );
+
+    return false;
+  }
+}
+
+
+// =========================================
+// 第一次進分析頁時就確認分析內容語言
+//
+// 解決：
+// 1. 我的分析 -> 英文分析仍出現中文
+// 2. 舊分析紀錄換成簡體
+// 3. 批量分析完成頁混入其他語言
+// =========================================
+
+async function ensureAnalysisLanguageOnLoad() {
+
+  const language =
+    window.HabaoI18n
+      ?.getLanguage?.() ||
+    "zh-Hant";
+
+
+  let current = null;
+
+
+  if (
+    isBatchMode &&
+    Array.isArray(
+      batchResults
+    ) &&
+    batchResults.length
+  ) {
+
+    current =
+      batchResults[
+        batchIndex
+      ] || null;
+
+  } else {
+
+    const rawCurrent =
+      sessionStorage.getItem(
+        "matchAnalysis"
+      );
+
+    try {
+
+      current =
+        rawCurrent
+          ? JSON.parse(
+              rawCurrent
+            )
+          : null;
+
+    } catch {
+
+      current = null;
+
+    }
+  }
+
+
+  if (!current) {
+    return;
+  }
+
+  if (
+    isBasketballAnalysisData(
+      current
+    )
+  ) {
+    return;
+  }
+
+
+  // 已是目前語言
+  if (
+    String(
+      current?.language || ""
+    ) === language
+  ) {
+    return;
+  }
+
+
+  const changed =
+    await refreshAnalysisLanguage();
+
+
+  if (changed) {
+    window.location.reload();
+  }
+}
+
+
+// 頁面第一次開啟就檢查
+ensureAnalysisLanguageOnLoad();
+
+
+// 使用者在分析頁切換語言
+window.addEventListener(
+  "habao:languagechange",
+  async () => {
+
+    renderBetPartnerPlatforms();
+
+    const changed =
+      await refreshAnalysisLanguage();
+
+    if (changed) {
+      window.location.reload();
+      return;
+    }
+
+    // 即使不需要重新抓分析，
+    // 靜態介面仍重新套用語言。
+    window.location.reload();
+  }
+);
+   
+</script>
+
+<script>
+
+</script>   
+
+</body>
+</html>
+

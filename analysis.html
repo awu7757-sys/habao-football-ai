@@ -2788,6 +2788,7 @@ h1{
 .nba-stage-evidence{margin:14px 0;padding:14px 18px;border:1px solid #294957;border-radius:14px;background:#0b1c28;font-size:12px;line-height:1.75;color:#a8bac9}
 .nba-stage-evidence strong{color:#a5dfff}.nba-stage-evidence[data-stage=t15] strong{color:#d7c0ff}
 .nba-stage-evidence p{margin-top:3px}
+.nba-stage-evidence details{margin-top:9px}.nba-stage-evidence summary{cursor:pointer;color:#b7d4e8}.nba-stage-evidence .nba-evidence-team{margin-top:8px}.nba-stage-evidence .nba-evidence-source{color:#8ba2b5;font-size:11px;margin-top:8px}
 
 </style>
 </head>
@@ -4203,8 +4204,20 @@ const timeText = gameDate
     const nbaCaptureLabel=Number.isFinite(nbaCaptureMs)?new Date(nbaCaptureMs).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false})+" 封存":"已封存";
     const nbaLate=data.stage_capture?.capture_mode==="late_pre_match_recovery"||footballV2Evidence?.capture_mode==="late_pre_match_recovery";
     const nbaStageBadgeHtml=`<div class="v2-detail-badge nba-stage-badge" data-stage="${nbaStage}">${nbaStage==="t10"?"T-10 快照":"階段快照"} · ${escapePartnerHtml(nbaCaptureLabel)}${nbaLate?" · 賽前補抓":""}</div>`;
-    const evidenceStatus=value=>({not_available:"資料未取得",not_collected_at_this_stage:"本階段未取得資料",no_rows_returned:"來源未回傳名單",data_returned:"已取得資料"}[String(value)]||"資料待確認");
-    const nbaEvidenceHtml=footballV2Evidence?`<div class="nba-stage-evidence" data-stage="${nbaStage}"><strong>本階段資料狀態</strong><p>傷停：${escapePartnerHtml(evidenceStatus(footballV2Evidence.availability?.status))}；先發：${escapePartnerHtml(evidenceStatus(footballV2Evidence.lineups?.status))}。</p><p>${footballV2Evidence.availability?.status!=="data_returned"?"尚未套用傷停與先發修正。":""}${nbaLate?"本次為賽前補抓，依實際封存時間提供分析。":""}</p></div>`:"";
+    const evidenceStatus=value=>({not_available:"資料未取得",source_unavailable:"來源暫不可用",not_collected_at_this_stage:"本階段未取得資料",no_rows_returned:"來源未列出傷停",data_returned:"已取得資料",partial:"部分資料已取得",confirmed:"已確認",expected:"預估名單，尚未確認",partial_confirmed:"部分球隊已確認"}[String(value)]||"資料待確認");
+    const injuryStatus=value=>({out:"缺陣",inactive:"未列入出賽名單",suspended:"停賽",suspension:"停賽",doubtful:"出賽機會低",questionable:"出賽待定",daytoday:"每日觀察",probable:"預計可出賽"}[String(value)]||"狀態待確認");
+    const evidenceTeam=side=>side==="home"?"主隊":"客隊";
+    const nbaInjuryRows=(footballV2Evidence?.availability?.teams||[]).map(team=>{
+      const rows=(footballV2Evidence.availability.items||[]).filter(p=>p.side===team.side);
+      return `<p class="nba-evidence-team">${evidenceTeam(team.side)}傷停：${rows.length?rows.map(p=>escapePartnerHtml(p.name)+"（"+escapePartnerHtml(injuryStatus(p.status))+"）").join("、"):escapePartnerHtml(evidenceStatus(team.status))}</p>`;
+    }).join("");
+    const nbaLineupRows=(footballV2Evidence?.lineups?.teams||[]).map(team=>`<p class="nba-evidence-team">${evidenceTeam(team.side)}先發：${escapePartnerHtml(evidenceStatus(team.status))}${team.starters?.length?"｜"+team.starters.map(p=>escapePartnerHtml(p.name)).join("、"):""}</p>`).join("");
+    const nbaAdjustment=footballV2Evidence?.player_adjustment;
+    const nbaAdjustmentLabel=!nbaAdjustment||nbaAdjustment.status==="not_applied"?"尚未套用球員修正；出賽狀態未確認或球員歷史不足。":
+      (nbaAdjustment.injury_adjustment_applied&&nbaAdjustment.lineup_adjustment_applied?"傷停與確認先發已納入分差評估。":nbaAdjustment.injury_adjustment_applied?"確認缺陣已納入分差評估；未確認先發不套用。":nbaAdjustment.lineup_adjustment_applied?"確認先發已納入分差評估。":"本階段無可套用的球員變動。")+(nbaAdjustment.status==="partial"?"部分資料不足或有來源差異，僅套用可驗證部分。":"");
+    const evidenceTime=value=>{const ms=Date.parse(value||"");return Number.isFinite(ms)?new Date(ms).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false}):"";};
+    const nbaSourceLabel=[footballV2Evidence?.availability?.source?"傷停 "+footballV2Evidence.availability.source+" "+evidenceTime(footballV2Evidence.availability.fetched_at):"",footballV2Evidence?.lineups?.source?"先發 "+footballV2Evidence.lineups.source+" "+evidenceTime(footballV2Evidence.lineups.fetched_at):""].filter(Boolean).join("｜");
+    const nbaEvidenceHtml=footballV2Evidence?`<div class="nba-stage-evidence" data-stage="${nbaStage}"><strong>本階段資料狀態</strong><p>傷停：${escapePartnerHtml(evidenceStatus(footballV2Evidence.availability?.status))}；先發：${footballV2Evidence.lineups?.status==="data_returned"?"雙方已確認":escapePartnerHtml(evidenceStatus(footballV2Evidence.lineups?.status))}。</p><p>${escapePartnerHtml(nbaAdjustmentLabel)}${nbaLate?"本次為賽前補抓，依實際封存時間提供分析。":""}</p>${nbaInjuryRows||nbaLineupRows?`<details><summary>查看傷停與先發名單</summary>${nbaInjuryRows}${nbaLineupRows}</details>`:""}${nbaSourceLabel?`<p class="nba-evidence-source">${escapePartnerHtml(nbaSourceLabel)}（台灣時間）</p>`:""}</div>`:"";
     const nbaNoPick=r=>isBasketballAnalysis&&(!r?.pick||["暫不推薦","暂不推荐","No Recommendation","no recommendation"].includes(String(r.pick).trim()));
     const recommendationConfidenceHtml=r=>nbaNoPick(r)?(/優勢|門檻/.test(r.reason||"")?"模型優勢不足":"未提供推薦"):`${analysisT("aiConfidence", "AI 信心")} ${r.confidence||0}% ${confidenceFire(r.confidence,r.pick)}`;
     const recommendationBar=r=>nbaNoPick(r)?0:confidenceBar(r.confidence);

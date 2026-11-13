@@ -2,6 +2,24 @@
 
 會員前台採 T-10／T-2／T-15 三階段，不顯示測試或研究版標籤、不限制特定帳號。
 
+## 傷停／確認先發更新
+
+已完成舊版三階段部署的專案，此次只需將 **[nba-v2-stage-runner.index.txt](nba-v2-stage-runner.index.txt)** 全文覆蓋同名 Supabase Edge Function 的 `index.ts`，再按 Deploy updates。版本為 `nba-stages-player-context-20261113-1`；沿用現有 Secrets、JWT OFF、排程、會員開放設定及扣點函式，不需重新執行 01／02／07。
+
+GitHub 前台 `analysis.html` 會同步更新名單與來源顯示。函式部署後，可執行 **[09_probe_player_context.sql](09_probe_player_context.sql)**，再執行 **[10_check_player_context.sql](10_check_player_context.sql)** 匯出完整 JSON。09 只排入來源核對請求，不領取、不扣會員點數、不新增／覆寫階段快照。沒有下一場 T-10 快照時回傳 WAIT；等新快照出現再核對。10 是唯讀查詢；QUEUED 只代表請求排入佇列，不能當成來源成功。
+
+- 傷停取自 ESPN 單場 NBA 資料，先核對雙方球隊、主客、日期時間與賽季；保存球員、狀態、原回報時間、實際取得時間及來源。空名單不等於確認全員健康。
+- 確認先發取自 NBA 官方當日名單。每隊需有五名不同球員、五個有效位置、Active，且每人都明確標為 Confirmed。Expected 保留為「預估、尚未確認」，不套用先發修正。新鮮度與美東夏令／標準時間均檢查。
+- 確認缺陣採 Out／停賽，或 NBA 確認的 Inactive；Questionable／Probable 不猜出賽機率。NBA 已確認 Active 與 ESPN 缺陣衝突時，保留差異並排除該筆缺陣修正。
+- 球員影響以兩隊近五場已完賽球員上場時間及正負值，估計目前缺陣／確認先發造成的輪替差異。需至少三場有效資料，檢查球隊、時間、賽季、上場分鐘與正負值；不足時沿用原球隊模型並標明未套用。
+- 估算採球員上場分鐘對 450 分鐘先驗縮減、相對隊內基準的 on-court 正負值及 240 分鐘輪替重分配；每隊分差修正上限 1.5 分，兩隊合計上限 3 分。新確認先發最多增加 6×(1−近期先發率) 分鐘，轉替補則減少 6×近期先發率分鐘，再重新正規化。長期缺陣且近期沒有出場的球員不再重扣影響。
+- 這是保守的輪替估算，未經賽後準確度校準，不代表因果 on/off 或 RAPM。**目前只調整分差／獨贏與讓分機率；球員對總分的修正尚未估計，大小分保留原球隊模型結果。**所有計算與基準會保存供賽後核對。
+- 每階段新增最多 13 次公開來源請求（當日賽程、單場資料、官方先發、兩隊各最多五場已完賽球員 box score）；每次逾時 8 秒、資料上限 2 MB。暖執行個體最多保留 48 筆快取，當前資料 TTL 45 秒、歷史資料 TTL 24 小時。不新增付費 API 或會員扣點；原有 API-NBA／盤口配額上限不變。公開來源可用性須在正式 Supabase 執行環境以 09／10 實際核對，無法取得時明示缺資料。
+- 只影響部署後尚未封存的 T-2／T-15。舊 ready 快照、既有會員領取結果、T-10 與公開戰績來源保留，不以賽後資料補造賽前結果。
+- `source_meta.player_context_features` 保存當時的正規化來源資料，`model_output.player_context_adjustment` 保存估算及每位受影響球員的計算；會員結果保留來源、名單與實際套用狀態。來源顯示已開賽時拒絕封存。
+
+驗證檔案：`player-context-tests.cjs` 與 `fixtures/player-context-pregame-20261113.json`。樣本由當時 08:51–08:55 取得的賽前來源及已完賽資料縮減而成；重播驗證不代表在 Supabase 已部署或已產生新版正式快照。需要退回時，以 commit `d27d6ad14cddf4ec979ddaca09bd6baa9ca2724d` 的 runner 覆蓋同名函式，保留所有快照及會員領取。
+
 ## 已完成前面部署的專案：只做這一步
 
 在 Supabase SQL Editor 執行 **[07_enable_all_members.sql](07_enable_all_members.sql)**。

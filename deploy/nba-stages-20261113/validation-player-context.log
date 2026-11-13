@@ -1,0 +1,124 @@
+PASS observed pregame feeds yield four injury names, expected lineups and five completed boxes per team
+PASS source cache avoids repeat calls and records original fetch time
+PASS fixture ID mapping requires both teams, exact date, home/away and matching season
+PASS an expected five is never labeled confirmed or applied as confirmed starters
+PASS exactly five explicitly confirmed active positions unlock lineup adjustment
+PASS incomplete, duplicate, wrong-team and future lineup rows cannot confirm a team
+PASS NBA timestamps respect Eastern daylight and standard time rather than server timezone
+PASS fresh game report retains old-onset injuries and rejects future reports
+PASS questionable and probable do not become confirmed absences
+PASS confirmed active lineup overrides conflicting secondary injury status without hiding conflict
+PASS long-term absence already absent from recent boxes causes no second penalty
+PASS real historical appearances yield reproducible bounded margin correction and unchanged totals
+PASS too few completed player boxes never silently substitute invented ratings
+PASS unfinished, wrong-date, wrong-season and malformed historical boxes are rejected
+PASS missing feed does not imply a clean injury report or suppress available independent injuries
+PASS started fixtures never fetch or masquerade as pregame evidence
+PASS conflicting duplicate injury rows are excluded rather than choosing the first status
+PASS source probe is cron authenticated, read-only and consumes no member credits
+PASS bounded public requests reject arbitrary domains and oversized bodies
+PASS full T-15 capture persists source features, actual flags and adjusted result atomically by lease
+PASS source signaling in-play prevents even an otherwise successful base-model capture
+PASS result presentation distinguishes names, confirmation and actually applied context, escaping provider text
+{"suite":"NBA pregame player context","passed":22,"failed":0}
+
+PASS same game repeated/concurrent stage claim debits one point
+PASS same game T-15 is a separate point and immutable result
+PASS write failure rolls credit debit back in same transaction
+PASS empty balance creates no claim
+PASS T-15 early request rejected without debit
+PASS saved T-2 can be claimed during T-15
+PASS new claim blocked after tipoff; old claim remains free
+PASS missing snapshot cannot debit
+PASS ordinary member cannot enter pilot stages
+PASS inactive member blocked
+PASS unlimited membership does not consume points
+PASS browser roles cannot execute financial or capture RPCs
+PASS API budget reservation is capped and repeat-safe
+PASS capture lease cannot double capture or rewrite ready stage
+PASS missed T-2 is not reconstructed during T-15
+PASS ready snapshot cannot be stored after tipoff
+PASS odds repair requeues only observed legacy failures once, preserving ready rows and usage
+PASS NBA stage capture windows have exact boundaries
+PASS stage uses actual paired betting lines
+PASS wrong teams, stale or conflicting markets are rejected
+PASS away cover keeps positive original line; missing line stays null
+PASS runner unauthorized calls cannot read DB or spend API
+PASS odds time filters use UTC whole seconds and never milliseconds
+PASS odds HTTP status and safe provider code remain distinguishable
+PASS malformed error bodies and network errors cannot leak request keys
+PASS member spoofing cannot read claims or spend points
+PASS OPTIONS succeeds without authentication for both functions
+PASS full scheduled capture stores a fresh model, actual lines and late-capture marker
+PASS provider started/changed fixture never stores a ready stage
+PASS member repeat read uses saved stage before time or capture requests
+PASS after T-10 claim button immediately waits for blue T-2
+PASS T-2 opens without requiring earlier claim; T-15 follows
+PASS completed current stage is disabled; tipoff always closes
+PASS all updated page scripts and both function bundles parse
+PASS read-only live-evidence SQL compares member results with their frozen stage snapshot
+PASS production SQL opens ordinary members and preserves atomic debit and replay rules
+PASS all-member release still authenticates the account and blocks disabled members
+{"suite":"NBA stage financial, capture, frontend tests","passed":37,"failed":0}
+
+PASS batch labels match actual stage and waiting buttons show the opening time
+PASS mixed-stage batch calls t2/t15 stage endpoint and t10 legacy endpoint
+PASS two new T-2 games cost two points; history, status and batch replay cost none
+PASS single and batch return byte-equivalent frozen stage result and charge only once
+PASS already claimed T-15 batch rewatch remains free
+PASS T-2 selection cannot silently become a T-15 charge
+PASS clock reconciliation deselects a stale stage and updates checkbox stage
+PASS stage quota error stops batch without falling back to T-10
+PASS wrong-stage success packet is never packaged as a batch result
+PASS two simultaneous single clicks send one stage request and keep waiting spinner
+PASS account change during stage response cannot replace the next account balance or result
+PASS presentation keeps raw stored picks unchanged and localizes status without 50-percent no-pick confidence
+PASS same NBA fixture is grouped into one card with independent immutable stage records
+PASS latest claimed stage is T-15 even when T-2 catch-up was claimed later
+PASS ambiguous fixture IDs are not merged and ordinary members receive the same grouped history
+PASS batch stage claim is returned by history and immediately advances fixture button
+PASS grouped history keeps both stage keys viewable without new API calls or points
+PASS stage client loads before automatic My Analyses and deep-link startup
+PASS Phoenix history logo resolves from Chinese name and has NBA fallback
+PASS regular Google and LINE members receive all three stages without an account allowlist
+PASS server release switch stays authoritative before activation
+PASS production pages remove NBA test labels and ignore historical preview mode
+PASS inline scripts and updated stage asset parse
+{"suite":"NBA stage-aware batch and presentation regression","passed":23,"failed":0}
+
+PASS latest NBA day wins when old response arrives last
+PASS old NBA failure cannot replace selected-day list
+PASS switching sport blocks late NBA response
+PASS NBA fixture cache avoids duplicate network call
+PASS NBA same-game double click produces one member request
+PASS NBA failed member request restores button and permits retry
+PASS invalid member IDs never reach endpoint
+PASS running batch blocks new single NBA request
+PASS malformed HTTP200 comparison is visible failure, not fake zero games
+PASS latest NBA comparison range wins when first response arrives late
+PASS backend 500 does not clear admin session
+PASS backend 401 clears invalid admin session
+PASS all inline JS and changed admin script parse successfully
+{"suite":"NBA frontend regression","passed":13,"failed":0}
+NBA ANALYSIS ERROR: Error: analysis_credits_empty
+    at Object.openBasketballMatch (evalmachine.<anonymous>:127:9)
+    at async Object.fn (/workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:13:192)
+    at async /workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:22:51 {
+  code: 'analysis_credits_empty',
+  data: { success: false, error: 'analysis_credits_empty' }
+}
+NBA ANALYSIS ERROR: Error: analysis_credits_empty
+    at Object.openBasketballMatch (evalmachine.<anonymous>:127:9)
+    at async Object.fn (/workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:13:325)
+    at async /workspace/scratch/5c7504ea24e7/nba-stages/regression-nba-frontend.test.cjs:22:51 {
+  code: 'analysis_credits_empty',
+  data: { success: false, error: 'analysis_credits_empty' }
+}
+
+PASS mixed batch retains successes and failures without pretending all completed
+PASS quota error stops all remaining member calls
+PASS inactive account stops remaining calls
+PASS invalid duplicate and over-five selections never call backend
+PASS started and outside T10 games are rejected before billing endpoint
+PASS empty-success and wrong-game responses never enter batch results
+{"suite":"NBA batch regression","passed":6,"failed":0}
