@@ -1,0 +1,24 @@
+PASS batch labels match actual stage and waiting buttons show the opening time
+PASS mixed-stage batch calls t2/t15 stage endpoint and t10 legacy endpoint
+PASS two new T-2 games cost two points; history, status and batch replay cost none
+PASS single and batch return byte-equivalent frozen stage result and charge only once
+PASS already claimed T-15 batch rewatch remains free
+PASS T-2 selection cannot silently become a T-15 charge
+PASS clock reconciliation deselects a stale stage and updates checkbox stage
+PASS stage quota error stops batch without falling back to T-10
+PASS wrong-stage success packet is never packaged as a batch result
+PASS two simultaneous single clicks send one stage request and keep waiting spinner
+PASS account change during stage response cannot replace the next account balance or result
+PASS presentation keeps raw stored picks unchanged and localizes status without 50-percent no-pick confidence
+PASS same NBA fixture is grouped into one card with independent immutable stage records
+PASS latest claimed stage is T-15 even when T-2 catch-up was claimed later
+PASS ambiguous fixture IDs are not merged and ordinary members receive the same grouped history
+PASS batch stage claim is returned by history and immediately advances fixture button
+PASS grouped history keeps both stage keys viewable without new API calls or points
+PASS stage client loads before automatic My Analyses and deep-link startup
+PASS Phoenix history logo resolves from Chinese name and has NBA fallback
+PASS regular Google and LINE members receive all three stages without an account allowlist
+PASS server release switch stays authoritative before activation
+PASS production pages remove NBA test labels and ignore historical preview mode
+PASS inline scripts and updated stage asset parse
+{"suite":"NBA stage-aware batch and presentation regression","passed":23,"failed":0}

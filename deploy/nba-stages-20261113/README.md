@@ -59,6 +59,7 @@
 
 ## 核對資料
 
+- [08_readonly_credit_audit.sql](08_readonly_credit_audit.sql)：針對 2026-11-13 批次兩場疑似扣三點，列出指定會員餘額、當日 T-10／T-2／T-15 領取時間、正式扣點與階段領取函式定義、相關觸發器及既有流水表結構。唯讀，不呼叫扣點函式、不補扣或退款；領取筆數與目前餘額不能單獨還原當時扣點差額。
 - [05_verify_stage_results.sql](05_verify_stage_results.sql)：唯讀核對模型輸出、原始盤口、保存推薦與會員領取結果；`claim_snapshot_mismatches` 應為 0。
 - `04_retry_odds_format_fix.sql` 只處理當時指定兩場的舊錯誤，不需在正常運作時重跑。
 - 程式驗證紀錄見 `validation-production.log`；涵蓋一般會員、身分核對、停權、單次扣點、重看、混合階段批次與歷史分組。實機畫面持續由實際登入的會員流程確認。
