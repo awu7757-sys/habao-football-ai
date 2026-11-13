@@ -49,6 +49,7 @@
     });
   }
   function render(id){
+    if(window.HabaoSportsStages)return;
     if(!hasMember()||owner!==account())return;
     const card=document.querySelector(`[data-basketball-fixture-id="${id}"]`),match=matches.get(Number(id));
     if(!card||!match)return;

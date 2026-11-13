@@ -1,0 +1,763 @@
+{
+  "checked_at": "2026-11-13T07:44:12.196Z",
+  "actual_project_edge_requests": true,
+  "creates_stage_snapshot": false,
+  "member_debits": 0,
+  "results": [
+    {
+      "sport": "baseball",
+      "request_id": 74859,
+      "status_code": 200,
+      "error_msg": null,
+      "response": {
+        "scope": "source_reachability_and_schema_only",
+        "sport": "baseball",
+        "game_id": 849805,
+        "success": true,
+        "evidence": {
+          "note": "名單按本次來源回覆顯示；歷史賽事不代表當時已於賽前取得。",
+          "teams": [
+            {
+              "side": "home",
+              "team_id": 158,
+              "batting_order": [
+                {
+                  "id": 694192,
+                  "name": "Jackson Chourio"
+                },
+                {
+                  "id": 641343,
+                  "name": "Jake Bauers"
+                },
+                {
+                  "id": 592885,
+                  "name": "Christian Yelich"
+                },
+                {
+                  "id": 661388,
+                  "name": "William Contreras"
+                },
+                {
+                  "id": 668930,
+                  "name": "Brice Turang"
+                },
+                {
+                  "id": 669003,
+                  "name": "Garrett Mitchell"
+                },
+                {
+                  "id": 806198,
+                  "name": "Cooper Pratt"
+                },
+                {
+                  "id": 800325,
+                  "name": "Luis Lara"
+                },
+                {
+                  "id": 687401,
+                  "name": "Joey Ortiz"
+                }
+              ],
+              "probable_pitcher": {
+                "id": 694819,
+                "link": "/api/v1/people/694819",
+                "fullName": "Jacob Misiorowski",
+                "nameSlug": "jacob-misiorowski-694819"
+              }
+            },
+            {
+              "side": "away",
+              "team_id": 139,
+              "batting_order": [
+                {
+                  "id": 650490,
+                  "name": "Yandy Díaz"
+                },
+                {
+                  "id": 622761,
+                  "name": "Jorge Mateo"
+                },
+                {
+                  "id": 802415,
+                  "name": "Chandler Simpson"
+                },
+                {
+                  "id": 691406,
+                  "name": "Junior Caminero"
+                },
+                {
+                  "id": 689414,
+                  "name": "Liam Hicks"
+                },
+                {
+                  "id": 676356,
+                  "name": "Jonny DeLuca"
+                },
+                {
+                  "id": 683748,
+                  "name": "Victor Mesa Jr."
+                },
+                {
+                  "id": 810938,
+                  "name": "Ben Williamson"
+                },
+                {
+                  "id": 668723,
+                  "name": "Ryan Vilade"
+                }
+              ],
+              "probable_pitcher": {
+                "id": 607259,
+                "link": "/api/v1/people/607259",
+                "fullName": "Nick Martinez",
+                "nameSlug": "nick-martinez-607259"
+              }
+            }
+          ],
+          "source": "mlb_official_statsapi",
+          "status": "data_returned",
+          "rosters": [
+            {
+              "side": "home",
+              "status": "data_returned",
+              "injured": [
+                {
+                  "id": 672582,
+                  "name": "Angel Zerpa",
+                  "status": "Injured 60-Day"
+                },
+                {
+                  "id": 702153,
+                  "name": "Brian Fitzpatrick",
+                  "status": "Injured 60-Day"
+                },
+                {
+                  "id": 682990,
+                  "name": "Quinn Priester",
+                  "status": "Injured 60-Day"
+                }
+              ]
+            },
+            {
+              "side": "away",
+              "status": "data_returned",
+              "injured": []
+            }
+          ]
+        },
+        "revision": "sports-release-20261113-1",
+        "source_read_at": "2026-11-13T07:40:32.482Z",
+        "creates_stage_snapshot": false
+      }
+    },
+    {
+      "sport": "basketball",
+      "request_id": 74874,
+      "status_code": 200,
+      "error_msg": null,
+      "response": {
+        "scope": "source_reachability_and_schema_only",
+        "sport": "basketball",
+        "game_id": 17114,
+        "success": true,
+        "evidence": {
+          "note": "歷史 boxscore 先發只驗證來源與欄位；不冒充賽前已確認先發，也不寫入階段快照。",
+          "source": "espn_nba_summary",
+          "status": "data_returned",
+          "event_id": "401909979",
+          "injuries": [
+            {
+              "team": {
+                "id": "21",
+                "uid": "s:40~l:46~t:21",
+                "logo": "https://a.espncdn.com/i/teamlogos/nba/500/phx.png",
+                "links": [
+                  {
+                    "href": "https://www.espn.com/nba/team/_/name/phx/phoenix-suns",
+                    "text": "Clubhouse"
+                  },
+                  {
+                    "href": "https://www.espn.com/nba/team/schedule/_/name/phx",
+                    "text": "Schedule"
+                  }
+                ],
+                "logos": [
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "default"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500/phx.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:17Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "dark"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/phx.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:13Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "scoreboard"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phx.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:18Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "scoreboard",
+                      "dark"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/phx.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:14Z"
+                  }
+                ],
+                "displayName": "Phoenix Suns",
+                "abbreviation": "PHX"
+              },
+              "injuries": [
+                {
+                  "date": "2026-09-11T16:03Z",
+                  "type": {
+                    "id": "4",
+                    "name": "INJURY_STATUS_OUT",
+                    "description": "out",
+                    "abbreviation": "O"
+                  },
+                  "status": "Out",
+                  "athlete": {
+                    "id": "4701232",
+                    "uid": "s:40~l:46~a:4701232",
+                    "guid": "93b211a2-3229-3b90-8529-f7f39ce5374d",
+                    "links": [
+                      {
+                        "rel": [
+                          "playercard",
+                          "desktop",
+                          "athlete"
+                        ],
+                        "href": "https://www.espn.com/nba/player/_/id/4701232/mark-williams",
+                        "text": "Player Card"
+                      }
+                    ],
+                    "jersey": "25",
+                    "status": {
+                      "id": "1",
+                      "name": "Active",
+                      "type": "active",
+                      "abbreviation": "Active"
+                    },
+                    "fullName": "Mark Williams",
+                    "headshot": {
+                      "alt": "Mark Williams",
+                      "href": "https://a.espncdn.com/i/headshots/nba/players/full/4701232.png"
+                    },
+                    "lastName": "Williams",
+                    "position": {
+                      "name": "Center",
+                      "displayName": "Center",
+                      "abbreviation": "C"
+                    },
+                    "shortName": "M. Williams",
+                    "displayName": "Mark Williams",
+                    "collegeAthlete": {
+                      "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/4701232?lang=en&region=us"
+                    }
+                  },
+                  "details": {
+                    "side": "Left",
+                    "type": "Shoulder",
+                    "detail": "Surgery",
+                    "location": "Arm",
+                    "returnDate": "2027-02-03",
+                    "fantasyStatus": {
+                      "description": "OUT",
+                      "abbreviation": "OUT",
+                      "displayDescription": "Out"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "team": {
+                "id": "30",
+                "uid": "s:40~l:46~t:30",
+                "logo": "https://a.espncdn.com/i/teamlogos/nba/500/cha.png",
+                "links": [
+                  {
+                    "href": "https://www.espn.com/nba/team/_/name/cha/charlotte-hornets",
+                    "text": "Clubhouse"
+                  },
+                  {
+                    "href": "https://www.espn.com/nba/team/schedule/_/name/cha",
+                    "text": "Schedule"
+                  }
+                ],
+                "logos": [
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "default"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500/cha.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:17Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "dark"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/cha.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:13Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "scoreboard"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/cha.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:18Z"
+                  },
+                  {
+                    "alt": "",
+                    "rel": [
+                      "full",
+                      "scoreboard",
+                      "dark"
+                    ],
+                    "href": "https://a.espncdn.com/i/teamlogos/nba/500-dark/scoreboard/cha.png",
+                    "width": 500,
+                    "height": 500,
+                    "lastUpdated": "2024-06-25T21:13Z"
+                  }
+                ],
+                "displayName": "Charlotte Hornets",
+                "abbreviation": "CHA"
+              },
+              "injuries": [
+                {
+                  "date": "2026-11-13T04:46Z",
+                  "type": {
+                    "id": "6",
+                    "name": "INJURY_STATUS_DAYTODAY",
+                    "description": "day-to-day",
+                    "abbreviation": "DD"
+                  },
+                  "status": "Day-To-Day",
+                  "athlete": {
+                    "id": "4433287",
+                    "uid": "s:40~l:46~a:4433287",
+                    "guid": "b5998278-e957-3116-b87e-0e0bbc518dc5",
+                    "links": [
+                      {
+                        "rel": [
+                          "playercard",
+                          "desktop",
+                          "athlete"
+                        ],
+                        "href": "https://www.espn.com/nba/player/_/id/4433287/brandon-miller",
+                        "text": "Player Card"
+                      }
+                    ],
+                    "jersey": "24",
+                    "status": {
+                      "id": "1",
+                      "name": "Active",
+                      "type": "active",
+                      "abbreviation": "Active"
+                    },
+                    "fullName": "Brandon Miller",
+                    "headshot": {
+                      "alt": "Brandon Miller",
+                      "href": "https://a.espncdn.com/i/headshots/nba/players/full/4433287.png"
+                    },
+                    "lastName": "Miller",
+                    "position": {
+                      "name": "Forward",
+                      "displayName": "Forward",
+                      "abbreviation": "F"
+                    },
+                    "shortName": "B. Miller",
+                    "displayName": "Brandon Miller",
+                    "collegeAthlete": {
+                      "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/4433287?lang=en&region=us"
+                    }
+                  },
+                  "details": {
+                    "side": "Right",
+                    "type": "Groin",
+                    "detail": "Soreness",
+                    "location": "Groin",
+                    "returnDate": "2026-11-15",
+                    "fantasyStatus": {
+                      "description": "GTD",
+                      "abbreviation": "GTD",
+                      "displayDescription": "GTD"
+                    }
+                  }
+                },
+                {
+                  "date": "2026-11-08T22:31Z",
+                  "type": {
+                    "id": "4",
+                    "name": "INJURY_STATUS_OUT",
+                    "description": "out",
+                    "abbreviation": "O"
+                  },
+                  "status": "Out",
+                  "athlete": {
+                    "id": "5061575",
+                    "uid": "s:40~l:46~a:5061575",
+                    "guid": "d706a855-1bca-34f6-9dd7-6684dd22c3ee",
+                    "links": [
+                      {
+                        "rel": [
+                          "playercard",
+                          "desktop",
+                          "athlete"
+                        ],
+                        "href": "https://www.espn.com/nba/player/_/id/5061575/kon-knueppel",
+                        "text": "Player Card"
+                      }
+                    ],
+                    "jersey": "7",
+                    "status": {
+                      "id": "1",
+                      "name": "Active",
+                      "type": "active",
+                      "abbreviation": "Active"
+                    },
+                    "fullName": "Kon Knueppel",
+                    "headshot": {
+                      "alt": "Kon Knueppel",
+                      "href": "https://a.espncdn.com/i/headshots/nba/players/full/5061575.png"
+                    },
+                    "lastName": "Knueppel",
+                    "position": {
+                      "name": "Guard",
+                      "displayName": "Guard",
+                      "abbreviation": "G"
+                    },
+                    "shortName": "K. Knueppel",
+                    "displayName": "Kon Knueppel",
+                    "collegeAthlete": {
+                      "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/5061575?lang=en&region=us"
+                    }
+                  },
+                  "details": {
+                    "side": "Left",
+                    "type": "Hamstring",
+                    "detail": "Strain",
+                    "location": "Leg",
+                    "returnDate": "2026-12-12",
+                    "fantasyStatus": {
+                      "description": "OUT",
+                      "abbreviation": "OUT",
+                      "displayDescription": "Out"
+                    }
+                  }
+                },
+                {
+                  "date": "2026-11-08T22:26Z",
+                  "type": {
+                    "id": "4",
+                    "name": "INJURY_STATUS_OUT",
+                    "description": "out",
+                    "abbreviation": "O"
+                  },
+                  "status": "Out",
+                  "athlete": {
+                    "id": "3032979",
+                    "uid": "s:40~l:46~a:3032979",
+                    "guid": "ed50e972-a95d-6b5c-3fcd-0d75616d1159",
+                    "links": [
+                      {
+                        "rel": [
+                          "playercard",
+                          "desktop",
+                          "athlete"
+                        ],
+                        "href": "https://www.espn.com/nba/player/_/id/3032979/dennis-schroder",
+                        "text": "Player Card"
+                      }
+                    ],
+                    "jersey": "17",
+                    "status": {
+                      "id": "1",
+                      "name": "Active",
+                      "type": "active",
+                      "abbreviation": "Active"
+                    },
+                    "fullName": "Dennis Schroder",
+                    "headshot": {
+                      "alt": "Dennis Schroder",
+                      "href": "https://a.espncdn.com/i/headshots/nba/players/full/3032979.png"
+                    },
+                    "lastName": "Schroder",
+                    "position": {
+                      "name": "Guard",
+                      "displayName": "Guard",
+                      "abbreviation": "G"
+                    },
+                    "shortName": "D. Schroder",
+                    "displayName": "Dennis Schroder",
+                    "collegeAthlete": {
+                      "$ref": "http://sports.core.api.espn.pvt/v2/sports/basketball/leagues/mens-college-basketball/athletes/3032979?lang=en&region=us"
+                    }
+                  },
+                  "details": {
+                    "side": "Left",
+                    "type": "Hamstring",
+                    "detail": "Strain",
+                    "location": "Leg",
+                    "returnDate": "2026-11-25",
+                    "fantasyStatus": {
+                      "description": "OUT",
+                      "abbreviation": "OUT",
+                      "displayDescription": "Out"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "game_completed": true,
+          "official_nba_lineups": {
+            "games": [
+              {
+                "game_id": "0022600227",
+                "game_status": 3,
+                "away_roster_count": 17,
+                "home_roster_count": 17
+              },
+              {
+                "game_id": "0022600228",
+                "game_status": 3,
+                "away_roster_count": 18,
+                "home_roster_count": 18
+              },
+              {
+                "game_id": "0022600229",
+                "game_status": 3,
+                "away_roster_count": 18,
+                "home_roster_count": 16
+              },
+              {
+                "game_id": "0022600230",
+                "game_status": 3,
+                "away_roster_count": 18,
+                "home_roster_count": 17
+              }
+            ],
+            "scope": "historical_source_schema_only",
+            "status": "data_returned"
+          },
+          "historical_boxscore_starters": [
+            {
+              "name": "Charlotte Hornets",
+              "starters": [
+                {
+                  "id": "4433249",
+                  "name": "Moussa Diabate"
+                },
+                {
+                  "id": "4396971",
+                  "name": "Naz Reid"
+                },
+                {
+                  "id": "3135045",
+                  "name": "Grayson Allen"
+                },
+                {
+                  "id": "4395651",
+                  "name": "Coby White"
+                },
+                {
+                  "id": "4602025",
+                  "name": "Sion James"
+                }
+              ]
+            },
+            {
+              "name": "Phoenix Suns",
+              "starters": [
+                {
+                  "id": "3155526",
+                  "name": "Dillon Brooks"
+                },
+                {
+                  "id": "4066383",
+                  "name": "Miles Bridges"
+                },
+                {
+                  "id": "4601023",
+                  "name": "Oso Ighodaro"
+                },
+                {
+                  "id": "3136193",
+                  "name": "Devin Booker"
+                },
+                {
+                  "id": "4437244",
+                  "name": "Jalen Green"
+                }
+              ]
+            }
+          ]
+        },
+        "revision": "sports-release-20261113-1",
+        "source_read_at": "2026-11-13T07:43:06.182Z",
+        "creates_stage_snapshot": false
+      }
+    },
+    {
+      "sport": "football",
+      "request_id": 74857,
+      "status_code": 200,
+      "error_msg": null,
+      "response": {
+        "scope": "source_reachability_and_schema_only",
+        "sport": "football",
+        "game_id": 1647392,
+        "success": true,
+        "evidence": {
+          "teams": [
+            {
+              "name": "FC Anyang",
+              "team_id": 2748,
+              "starters": [
+                {
+                  "id": 34371,
+                  "name": "Kim Jeong-Hoon"
+                },
+                {
+                  "id": 34670,
+                  "name": "Kang Ji-Hoon"
+                },
+                {
+                  "id": 550366,
+                  "name": "J. h. Kim"
+                },
+                {
+                  "id": 2899,
+                  "name": "Kwon Kyung-Won"
+                },
+                {
+                  "id": 99201,
+                  "name": "Kim Dong-Jin"
+                },
+                {
+                  "id": 263017,
+                  "name": "B. Knežević"
+                },
+                {
+                  "id": 37928,
+                  "name": "D. Bakker"
+                },
+                {
+                  "id": 9718,
+                  "name": "Matheus Oliveira"
+                },
+                {
+                  "id": 463586,
+                  "name": "Chae Hyun-Woo"
+                },
+                {
+                  "id": 146429,
+                  "name": "Woon Kim"
+                },
+                {
+                  "id": 40211,
+                  "name": "I. Jukić"
+                }
+              ]
+            },
+            {
+              "name": "Bucheon FC 1995",
+              "team_id": 2745,
+              "starters": [
+                {
+                  "id": 404919,
+                  "name": "Kim Hyeon-Yeob"
+                },
+                {
+                  "id": 203476,
+                  "name": "Jeong Ho-Jin"
+                },
+                {
+                  "id": 34531,
+                  "name": "Baek Dong-Gyu"
+                },
+                {
+                  "id": 237093,
+                  "name": "Hong Sung-Wook"
+                },
+                {
+                  "id": 237732,
+                  "name": "Thiaguinho"
+                },
+                {
+                  "id": 669129,
+                  "name": "S. Ye-Geon"
+                },
+                {
+                  "id": 34694,
+                  "name": "Kim Jong-Woo"
+                },
+                {
+                  "id": 34273,
+                  "name": "An Tae-Hyun"
+                },
+                {
+                  "id": 143639,
+                  "name": "Rodrigo Bassani"
+                },
+                {
+                  "id": 34443,
+                  "name": "Park Jeong-In"
+                },
+                {
+                  "id": 265776,
+                  "name": "Kim Seung-Bin"
+                }
+              ]
+            }
+          ],
+          "source": "api_football",
+          "injuries": [],
+          "injury_status": "no_rows_returned",
+          "lineup_status": "data_returned"
+        },
+        "revision": "sports-release-20261113-1",
+        "source_read_at": "2026-11-13T07:40:31.057Z",
+        "creates_stage_snapshot": false
+      }
+    }
+  ]
+}

@@ -106,6 +106,7 @@ async function loadFixtures(now:number,allowFetch:boolean){
 }
 async function availability(fixtureId:number):Promise<Record<string,unknown>>{
   const rows=await football(`/injuries?fixture=${fixtureId}`);
+  if(rows.some(x=>x?.fixture?.id!=null&&Number(x.fixture.id)!==fixtureId))throw Error("injury_fixture_mismatch");
   const entries=rows.map(x=>({player_id:Number(x?.player?.id)||null,player_name:String(x?.player?.name||''),team_id:Number(x?.team?.id)||null,type:String(x?.player?.type||x?.type||''),reason:String(x?.player?.reason||x?.reason||''),status:String(x?.player?.status||'')}));
   return {source:'api_football_injuries',status:entries.length?'data_returned':'no_rows_returned',items:entries,captured_at:new Date().toISOString(),documented_update_interval:'4 hours'};
 }
@@ -129,7 +130,7 @@ async function teamPlayerStats(teamId:number,leagueId:number,season:number):Prom
 }
 function lineupPlayerIds(rows:any[],teamId:number):number[]{
   const team=rows.find((x:any)=>Number(x?.team?.id||x?.team_id)===teamId);const xi=Array.isArray(team?.startXI)?team.startXI:[];
-  return xi.map((x:any)=>Number(x?.player?.id||x?.id)).filter((id:number)=>Number.isSafeInteger(id)&&id>0);
+  const ids=xi.map((x:any)=>Number(x?.player?.id||x?.id)).filter((id:number)=>Number.isSafeInteger(id)&&id>0);return ids.length===11&&new Set(ids).size===11?ids:[];
 }
 function playerTeamAdjustment(players:PlayerImpactRow[],injuries:any[],lineups:any[],teamId:number,opponentBaseXg:number):{status:string;attack_delta:number;keeper_conceded_delta:number;defense_opponent_xg_delta:number;injury_count:number;lineup_count:number;matched_injuries:number} {
   const valid=players.filter(p=>p.minutes>=270&&p.starts>=1);
@@ -353,7 +354,7 @@ async function captureDueStageUnlocked(
       :{status:'not_collected_at_this_stage',model_adjustment_applied:false,home:{attack_delta:0,keeper_conceded_delta:0,defense_opponent_xg_delta:0},away:{attack_delta:0,keeper_conceded_delta:0,defense_opponent_xg_delta:0},additional_api_calls:0,method:'not applied at T-10'};
     const applied=playerAdjustment.model_adjustment_applied===true;
     availabilityEvidence={...availabilityEvidence,model_adjustment_applied:applied,adjustment_status:playerAdjustment.status};
-    const lineups={source:'api_football_fixtures',status:lineupRows.length?'data_returned':lineupCollectionFailed?'collection_failed':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:applied,adjustment_status:playerAdjustment.status};
+    const lineups={source:'api_football_fixtures',status:lineupPlayerIds(lineupRows,Number(live.teams.home.id)).length===11&&lineupPlayerIds(lineupRows,Number(live.teams.away.id)).length===11?'data_returned':lineupRows.length?'partial_confirmed':lineupCollectionFailed?'collection_failed':'not_available',teams:lineupRows,captured_at:new Date().toISOString(),documented_availability:'20-40 minutes before kickoff when league coverage supports it',model_adjustment_applied:applied,adjustment_status:playerAdjustment.status};
     const homeDelta=applied?Number((playerAdjustment.home.attack_delta+playerAdjustment.away.keeper_conceded_delta+playerAdjustment.away.defense_opponent_xg_delta).toFixed(4)):0;
     const awayDelta=applied?Number((playerAdjustment.away.attack_delta+playerAdjustment.home.keeper_conceded_delta+playerAdjustment.home.defense_opponent_xg_delta).toFixed(4)):0;
     const prediction=predict(feature.home_features,feature.away_features,feature.league_baseline,Number(feature.season),homeDelta,awayDelta);

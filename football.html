@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+<script src="habao-page-runtime.js?v=20261113-1"></script>
 <script src="./habao-loading.js?v=1" defer></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>足球分析｜哈寶足球 AI</title>
+<title>賽事中心｜HABAO 賽事預測 AI</title>
+<link rel="stylesheet" href="sports-stages.css?v=20261113-1">
 
 <style>
 *{
@@ -4097,7 +4099,7 @@ async function verifyMember() {
   const saved = sessionStorage.getItem("habao_member");
 
   if (!saved) {
-    window.location.href = "index.html";
+    window.HabaoPageRuntime.navigate("index.html");
     return;
   }
 
@@ -4108,13 +4110,13 @@ async function verifyMember() {
   } catch (error) {
     console.error("會員資料解析失敗：", error);
     sessionStorage.removeItem("habao_member");
-    window.location.href = "index.html";
+    window.HabaoPageRuntime.navigate("index.html");
     return;
   }
 
   if (!member || !member.account) {
     sessionStorage.removeItem("habao_member");
-    window.location.href = "index.html";
+    window.HabaoPageRuntime.navigate("index.html");
     return;
   }
 
@@ -4215,7 +4217,7 @@ if (isOAuthMember) {
 
     if (!data.success) {
       sessionStorage.removeItem("habao_member");
-      window.location.href = "index.html";
+      window.HabaoPageRuntime.navigate("index.html");
       return;
     }
 
@@ -4331,13 +4333,14 @@ function renderFootballV2StageButton(fixtureId, match = {}) {
 }
 // Stage changes are local clock updates; this does not poll Supabase.
 window.setInterval(() => {
-  if (window.habaoFootballV2StageUiEnabled !== true) return;
+  if (window.HabaoSportsStages || window.habaoFootballV2StageUiEnabled !== true) return;
   document.querySelectorAll("[data-v2-stage-actions]").forEach(host => {
     const id = Number(host.getAttribute("data-v2-stage-actions"));
     if (Number.isSafeInteger(id) && id > 0) renderFootballV2StageButton(id, window.habaoFootballV2StageMatches?.[String(id)] || {});
   });
 }, 15000);
 async function openFootballV2Stage(fixtureId, stage, button) {
+  if(window.habaoStageReleasePending){alert("正在確認分析狀態，請稍候。");return;}
   const id = Number(fixtureId);
   const member = (() => { try { return JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch { return null; } })();
   if (!member?.account || !Number.isSafeInteger(id) || id<=0 || !["t2", "t15"].includes(stage)) { alert("請重新登入會員後再查看賽前分析"); return; }
@@ -4373,7 +4376,7 @@ async function openFootballV2Stage(fixtureId, stage, button) {
     }
     const status=window.habaoFootballV2StageMatches?.[String(id)];if(status){status.claimed={...status.claimed,[stage]:true};}
     sessionStorage.setItem("matchAnalysis", JSON.stringify(packet.result));
-    window.location.href = `analysis.html?v=2&v2stage=${encodeURIComponent(stage)}`;
+    window.HabaoPageRuntime.navigate(`analysis.html?v=2&v2stage=${encodeURIComponent(stage)}`);
   } catch (error) {
     alert(error?.message || "階段分析失敗，請稍後再試");
     if (button) { button.disabled = false; button.innerHTML = oldText; }
@@ -5167,8 +5170,7 @@ alert(
       )
     );
 
-    window.location.href =
-      "analysis.html?v=2&batch=1";
+    window.HabaoPageRuntime.navigate("analysis.html?v=2&batch=1");
 
     return;
   }
@@ -5183,8 +5185,7 @@ alert(
     )
   );
 
-  window.location.href =
-    "analysis.html?v=2";
+  window.HabaoPageRuntime.navigate("analysis.html?v=2");
 }
   
 async function pollAnalysisJob(
@@ -5262,6 +5263,7 @@ async function openMatch(
   fixtureId,
   button
 ) {
+  if(window.habaoStageReleasePending){alert("正在確認分析狀態，請稍候。");return;}
   
 if (!fixtureId) {
   alert(
@@ -6349,6 +6351,7 @@ async function openBasketballMatch(
   gameId,
   button
 ) {
+  if(window.habaoStageReleasePending){alert("正在確認分析狀態，請稍候。");return;}
   if(habaoSportBatchRunning){
     alert("批次分析執行中，請等全部場次完成後再進行單場分析。");
     return;
@@ -6540,10 +6543,9 @@ async function openBasketballMatch(
       "basketball"
     );
 
-    window.location.href =
-      previewTest
+    window.HabaoPageRuntime.navigate(previewTest
         ? "analysis.html?sport=basketball&nba_preview=1"
-        : "analysis.html?sport=basketball";
+        : "analysis.html?sport=basketball");
 
   } catch (error) {
     console.error(
@@ -8598,22 +8600,12 @@ async function saveBatchAnalysisHistory(
       return;
     }
 
-    await fetch(
+    const response=await fetch(
       "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/member-analysis-history",
       {
         method: "POST",
 
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          "apikey":
-            FIXTURES_PUBLISHABLE_KEY,
-
-          "Authorization":
-            "Bearer " +
-            FIXTURES_PUBLISHABLE_KEY
-        },
+        headers: await footballV2StageHeaders(),
 
         body: JSON.stringify({
           account:
@@ -8656,11 +8648,15 @@ async function saveBatchAnalysisHistory(
       }
     );
 
+    const saved=await response.json().catch(()=>null);
+    if(!response.ok||saved?.success!==true)throw Error('分析已取得，但紀錄同步未完成，請重新讀取。');
+
   } catch (error) {
     console.error(
       "批次分析紀錄寫入失敗：",
       error
     );
+    throw error;
   }
 }
 
@@ -8731,6 +8727,7 @@ body: JSON.stringify({
    member endpoint responsible for its own credits, histories and T-10 data.
    Store only successful member responses for the paginated result view. */
 async function startHabaoSportBatchAnalysis(){
+  if(window.habaoStageReleasePending){alert("正在確認分析狀態，請稍候。");return;}
   if(habaoSportBatchRunning)return;
   const sport=currentHabaoSport;
   if(sport!=="basketball"&&sport!=="baseball")return;
@@ -8876,9 +8873,9 @@ async function startHabaoSportBatchAnalysis(){
     }));
     sessionStorage.setItem("matchAnalysis",JSON.stringify(results[0]));
     sessionStorage.setItem("habao_analysis_sport",sport);
-    window.location.href=sport==="baseball"
+    window.HabaoPageRuntime.navigate(sport==="baseball"
       ?"mlb-analysis.html?batch=1&item=0"
-      :"analysis.html?v=2&sport=basketball&batch=1&item=0";
+      :"analysis.html?v=2&sport=basketball&batch=1&item=0");
     return;
   }
 
@@ -8899,6 +8896,7 @@ window.addEventListener("beforeunload",event=>{
 });
 
 async function startBatchAnalysis() {
+  if(window.habaoStageReleasePending){alert("正在確認分析狀態，請稍候。");return;}
   if(currentHabaoSport==="basketball"||currentHabaoSport==="baseball"){
     return startHabaoSportBatchAnalysis();
   }
@@ -9095,7 +9093,7 @@ function resetAnalysisButtons() {
 
       // NBA 按鈕的狀態已由賽事時間與後端 status 判定；
       // 通用足球按鈕重設流程不可將其重新啟用。
-      if (card?.hasAttribute("data-basketball-fixture-id")) {
+      if (card?.dataset.stageSport || card?.hasAttribute("data-basketball-fixture-id")) {
         return;
       }
 
@@ -9187,7 +9185,7 @@ window.addEventListener(
 // 若由首頁「我的分析」進入，先不要載入一般賽事，避免覆蓋分析紀錄畫面
 const habaoInitialView =
   new URLSearchParams(
-    window.location.search
+    window.HabaoPageRuntime.search()
   ).get("view");
 
 if (habaoInitialView !== "history") {
@@ -9225,16 +9223,11 @@ async function openAnalysisHistory() {
   ) ||
   "找不到會員登入資料，請重新登入"
 );
-      window.location.href = "index.html";
+      window.HabaoPageRuntime.navigate("index.html");
       return;
     }
 
-const historyHeaders = {
-  "apikey": FIXTURES_PUBLISHABLE_KEY,
-  "Authorization":
-    "Bearer " +
-    FIXTURES_PUBLISHABLE_KEY
-};
+const historyHeaders = await footballV2StageHeaders();
 
 const historyQuery =
   "?account=" +
@@ -9354,7 +9347,10 @@ const baseballMatches = await (async () => {
     const data=await response.json();
     if(!response.ok||data?.success!==true||!Array.isArray(data.matches))
       throw new Error(data?.error||"MLB 歷史紀錄 API 未正常回傳");
-    return data.matches.map(match=>{
+    const stageResponse=await fetch(SUPABASE_URL+"/functions/v1/baseball-v2-stage-member",{method:"POST",headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify({action:"history",account:member.account})});
+    const stagePacket=await stageResponse.json();
+    if(!stageResponse.ok||stagePacket.success!==true)throw new Error("MLB 階段紀錄未就緒");
+    return [...data.matches,...(stagePacket.matches||[])].map(match=>{
       const gameId=match?.game_id??match?.fixture_id??match?.game?.id??match?.snapshot?.game_id??match?.id;
       if(!Number.isSafeInteger(Number(gameId))||Number(gameId)<=0)return null;
       const rawKey=String(match?.history_key||(
@@ -10164,7 +10160,7 @@ function viewAnalysisHistory(historyKey) {
       const j=await r.json();
       if(!r.ok||!j.success)return alert("MLB 歷史讀取失敗："+String(j.error||r.status));
       sessionStorage.setItem("matchAnalysis",JSON.stringify(j));
-      window.location.href="mlb-analysis.html";
+      window.HabaoPageRuntime.navigate("mlb-analysis.html");
     })().catch(e=>alert("MLB 歷史讀取失敗："+String(e.message||e)));
     return;
   }
@@ -10210,14 +10206,13 @@ if (
     sport
   );
 
-  window.location.href =
-    sport === "basketball"
+  window.HabaoPageRuntime.navigate(sport === "basketball"
       ? "analysis.html?sport=basketball"
-      : "analysis.html";
+      : "analysis.html");
 }  
 
 </script>
-<script src="./nba-stages.js?v=20261113-5"></script>
+
 <script>
 // =========================================
 // HABAO｜首頁「我的分析」直達分析紀錄
@@ -10226,7 +10221,7 @@ if (
 
 const habaoViewParams =
   new URLSearchParams(
-    window.location.search
+    window.HabaoPageRuntime.search()
   );
 
 if (
@@ -10844,7 +10839,7 @@ function closeQuotaLimitModal() {
 
   I18N.registerTranslations({
     "zh-Hant": {
-      footballTitle: "足球分析｜哈寶足球 AI",
+      footballTitle: "賽事中心｜HABAO 賽事預測 AI",
 
       loggedIn: "已登入",
       backHome: "← 返回首頁",
@@ -10982,7 +10977,7 @@ analysisResultNotFound: "找不到這場分析結果"
     },
 
     "zh-Hans": {
-      footballTitle: "足球分析｜哈宝足球 AI",
+      footballTitle: "赛事中心｜HABAO 赛事预测 AI",
 
       loggedIn: "已登录",
       backHome: "← 返回首页",
@@ -11651,7 +11646,10 @@ analysisResultNotFound: "Analysis result not found"
 
 </script>
 
-<script src="mlb-match-center.js?v=12"></script>
+<script src="nba-stages.js?v=20261113-5"></script>
+<script src="sports-stage-core.js?v=20261113-1"></script>
+<script src="sports-stages.js?v=20261113-1"></script>
+<script src="mlb-match-center.js?v=20261113-13"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 
 </body>

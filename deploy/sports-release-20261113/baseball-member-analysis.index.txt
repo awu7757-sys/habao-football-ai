@@ -1,0 +1,121 @@
+/** HABAO MLB v1 — single official snapshot, verified OAuth membership, one first-view claim.
+ * Member rerun only updates its personal cooldown metadata, NEVER model/odds/snapshot.
+ * Safe default: HABAO_MLB_MEMBER_WRITE_ENABLED must be exactly "true".
+ */
+import {createClient} from 'npm:@supabase/supabase-js@2';
+const H={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',
+ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info',
+ 'Access-Control-Allow-Methods':'POST,OPTIONS'};
+const send=(code:number,body:unknown)=>new Response(JSON.stringify(body),{status:code,headers:H});
+const BASE=Deno.env.get('SUPABASE_URL')||'';
+const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
+const ENABLED=Deno.env.get('HABAO_MLB_MEMBER_WRITE_ENABLED')==='true';
+const sb=BASE&&SERVICE?createClient(BASE,SERVICE,{auth:{persistSession:false,autoRefreshToken:false}}):null;
+const id=(v:unknown)=>{const s=String(v??'');const n=Number(s);return /^[1-9]\d{0,11}$/.test(s)&&Number.isSafeInteger(n)?n:null;};
+const number=(x:unknown)=>x===null||x===undefined||x===''?null:Number.isFinite(Number(x))?Number(x):null;
+const valid=(x:any,gameId:number)=>x?.sport==='baseball'&&Number(x?.fixture?.game_id)===gameId&&
+ x?.model?.status==='candidate_projection_available'&&number(x?.model?.projection?.home_runs)!==null&&number(x?.model?.projection?.away_runs)!==null;
+async function serialize(snap:any,member:any,access:any,history:any){
+ const {data:balance}=await sb!.from('members').select('analysis_credits,daily_free_credits,analysis_unlimited').eq('account',member.account).maybeSingle();
+ const remaining=balance?{remaining_paid_credits:balance.analysis_credits,remaining_daily_credits:balance.daily_free_credits,analysis_unlimited:balance.analysis_unlimited}:{};
+ const data=snap.analysis||{},m=data.model?.markets||{},sp=number(m.spread?.market_home_spread);
+ const spreadPick=m.spread?.pick||null;
+ const home=data.fixture?.home||{name:snap.home_team},away=data.fixture?.away||{name:snap.away_team};
+ return {success:true,version:'mlb-member-v3-stage-unified',sport:'baseball',game_id:snap.game_id,
+  fixture:{...data.fixture,home,away,sport:'baseball',game_id:snap.game_id,kickoff_at:snap.kickoff_at},
+  model:data.model,odds:data.odds,
+  analysis:{recommendations:{moneyline:{pick:m.moneyline?.pick||null,line:null,confidence:null},
+    handicap:{pick:spreadPick,line:sp===null?null:spreadPick==='away'?-sp:sp,confidence:null},
+    over_under:{pick:m.totals?.pick||null,line:number(m.totals?.market_line),confidence:null}}},
+  snapshot:{id:snap.id,model_version:snap.model_version,scheduled_t10_at:snap.scheduled_t10_at,
+    analyzed_at:snap.analyzed_at,record_source:snap.record_source||'SYSTEM_AUTO',created_at:snap.created_at},
+  member_access:{...remaining,account:member.account,first_view:access?.first_view===true,rerun:access?.rerun===true,
+    credit_charged:access?.credit_charged===true,consumed_type:access?.consumed_credit_type||null,
+    next_rerun_at:access?.next_rerun_at||history?.next_rerun_at||null},
+  summary:'同場唯一正式 T-10 快照；重看及六小時後重跑均不產生第二個結果。'};
+}
+function err(e:any){return String(e?.message||'');}
+async function readSnapshot(gameId:number){
+ const {data,error}=await sb!.from('baseball_t10_snapshots').select('*').eq('game_id',gameId).limit(2);
+ if(error)throw Error('snapshot_lookup_failed');
+ if((data?.length||0)>1)throw Error('MLB_SNAPSHOT_DUPLICATE');
+ return data?.[0]||null;
+}
+async function assistMissing(){
+ // System-only real clock runner; member identity was verified already.
+ // Never pass simulated test_now / date. Unique(game_id) preserves a single official snapshot.
+ const token=Deno.env.get('HABAO_MLB_TEST_TOKEN');
+ if(Deno.env.get('HABAO_MLB_T10_WRITE_ENABLED')!=='true'||!token||token.length<32)return false;
+ try{
+  const anon=Deno.env.get('SUPABASE_ANON_KEY')||'';
+  if(!anon) return false;
+  const r=await fetch(BASE.replace(/\/$/,'')+'/functions/v1/baseball-t10-job',
+    {method:'GET',headers:{'x-habao-mlb-token':token,apikey:anon,Authorization:'Bearer '+anon},
+      signal:AbortSignal.timeout(80000)});
+  return r.ok;
+ }catch{return false;}
+}
+Deno.serve(async req=>{
+ if(req.method==='OPTIONS')return new Response(null,{status:204,headers:H});
+ if(req.method!=='POST')return send(405,{success:false,error:'POST_only'});
+ if(!sb)return send(503,{success:false,error:'backend_not_configured'});
+ const jwt=(req.headers.get('authorization')||'').match(/^Bearer\s+(\S+)$/i)?.[1];
+ if(!jwt)return send(401,{success:false,error:'member_session_required'});
+ const {data:auth,error:ae}=await sb.auth.getUser(jwt);
+ if(ae||!auth?.user?.id)return send(401,{success:false,error:'member_session_invalid'});
+ const {data:member,error:me}=await sb.from('members').select('id,account,auth_user_id,is_active,expire_at')
+   .eq('auth_user_id',auth.user.id).maybeSingle();
+ if(me||!member?.account)return send(403,{success:false,error:'oauth_member_not_found'});
+ if(member.is_active!==true||(member.expire_at&&Date.parse(member.expire_at)<=Date.now()))
+   return send(403,{success:false,error:'member_inactive_or_expired'});
+ const body=await req.json().catch(()=>({})),gameId=id(body?.game_id),action=body?.action||'view';
+ if(!gameId||!['view','rerun'].includes(action))return send(400,{success:false,error:'invalid_request'});
+ try{
+  // Existing completed member histories remain viewable even after a fixture starts.
+  const {data:history,error:he}=await sb.from('member_baseball_analysis_history')
+    .select('id,game_id,snapshot_id,status,created_at,result_data').eq('account',member.account)
+    .eq('game_id',gameId).maybeSingle();
+  if(he)throw Error('history_lookup_failed');
+  let snap=await readSnapshot(gameId);
+  if(!snap&&!history){
+    // First verified member may help the auto-runner; only at REAL T-10 and with write gate on.
+    await assistMissing();
+    snap=await readSnapshot(gameId);
+  }
+  if(!snap)return send(202,{success:false,error:'t10_snapshot_missing',processing:true});
+  if(!valid(snap.analysis,gameId)||snap.analysis.fixture?.kickoff_at!==snap.kickoff_at)
+    return send(422,{success:false,error:'invalid_official_snapshot'});
+  if(history){
+    if(history.snapshot_id!==snap.id||history.status!=='completed')return send(409,{success:false,error:'history_not_completed'});
+    // Authoritative cooldown read; viewing a snapshot never resets the 6-hour clock.
+    const {data:refresh,error:fe}=await sb.from('baseball_member_refresh_state')
+      .select('last_rerun_at').eq('account',member.account).eq('game_id',gameId).maybeSingle();
+    if(fe)throw Error('rerun_state_lookup_failed');
+    const lastAt=Date.parse(refresh?.last_rerun_at||history.created_at);
+    const nextRerunAt=Number.isFinite(lastAt)?new Date(lastAt+6*3600000).toISOString():null;
+    if(action==='rerun'){
+      if(!ENABLED)return send(423,{success:false,error:'mlb_member_writes_disabled'});
+      const {data:rerun,error:re}=await sb.rpc('baseball_rerun_member_snapshot',
+        {p_account:member.account,p_game_id:gameId,p_snapshot_id:snap.id});
+      if(re)throw Error(err(re).includes('MLB_')?err(re):'mlb_rerun_failed');
+      if(rerun?.success!==true)return send(429,{success:false,error:rerun?.error||'MLB_RERUN_COOLDOWN',next_rerun_at:rerun?.next_rerun_at});
+      return send(200,await serialize(snap,member,rerun,history));
+    }
+    // Normal repeated view has NO cooldown and NO charge.
+    return send(200,await serialize(snap,member,{first_view:false,credit_charged:false,next_rerun_at:nextRerunAt},history));
+  }
+  // No first claim before T-10, after kickoff, or while admin write gate is disabled.
+  if(Date.now()>=Date.parse(snap.kickoff_at))return send(409,{success:false,error:'MLB_MATCH_STARTED'});
+  if(!ENABLED)return send(423,{success:false,error:'mlb_member_writes_disabled',snapshot_available:true});
+  const {data:claim,error:ce}=await sb.rpc('baseball_claim_member_snapshot',
+    {p_account:member.account,p_game_id:gameId,p_snapshot_id:snap.id});
+  if(ce)throw Error(err(ce).includes('MLB_')?err(ce):'member_claim_failed');
+  if(claim?.success!==true)throw Error('member_claim_incomplete');
+  return send(200,await serialize(snap,member,{...claim,next_rerun_at:claim?.next_rerun_at||new Date(Date.now()+6*3600000).toISOString()},null));
+ }catch(e){
+  const code=(err(e).match(/MLB_[A-Z_]+/)||[])[0]||err(e)||'mlb_member_failed';
+  console.error('MLB MEMBER REQUEST FAILED',code);
+  return send(code==='MLB_DAILY_LIMIT_REACHED'||code==='MLB_NO_MEMBER_CREDITS'||code==='MLB_RERUN_COOLDOWN'?429:409,
+   {success:false,error:code});
+ }
+});

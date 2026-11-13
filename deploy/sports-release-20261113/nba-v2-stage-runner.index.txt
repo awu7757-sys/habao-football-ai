@@ -1,0 +1,546 @@
+// HABAO NBA unified V2 shadow model: Bayesian-shrunk possession efficiency with a scoring fallback.
+// Uses immutable V1 fixture metadata and completed history known before current capture.
+// Writes isolated stage snapshots and box cache; never modifies official T-10 snapshots.
+const URL_BASE = String(Deno.env.get('SUPABASE_URL') || '').replace(/\/$/, '');
+const ROLE = String(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SECRET_KEY') || (()=>{try{return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default||''}catch{return ''}})());
+const NBA_KEY = String(Deno.env.get('API_NBA_KEY') || Deno.env.get('API_FOOTBALL_KEY') || '');
+const CRON_KEY = String(Deno.env.get('BASKETBALL_T10_CRON_KEY') || '');
+const NBA_ENDPOINT = 'https://v2.nba.api-sports.io';
+const VERSION = 'nba-v2-unified-efficiency-shrinkage-v0.2';
+const RUNNER_REVISION='nba-v2-runner-audit-20261111';
+const HEADERS = {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type,x-habao-cron-key,authorization,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','X-Habao-Version':RUNNER_REVISION};
+const response = (status,data) => new Response(JSON.stringify(data),{status,headers:{...HEADERS,'Content-Type':'application/json; charset=utf-8'}});
+const asNumber = (value) => value===null || value===undefined || typeof value==='boolean' || String(value).trim()==='' ? null : (Number.isFinite(Number(value)) ? Number(value) : null);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const round=(x,n=3)=>Number(x.toFixed(n));
+const parseMs=(x)=>{const n=Date.parse(String(x||''));return Number.isFinite(n)?n:null};
+const nbaSeasonStart=(year)=>Date.parse(`${year}-10-20T00:00:00.000Z`); // same safety boundary as NBA V1, not stage-based
+function validLeagueGame(g, teamId, season, cutoff){
+  if(!g || String(g.league||'').toLowerCase()!=='standard'||!Number.isSafeInteger(Number(g.id))||Number(g.id)<=0)return null;
+  const start=parseMs(g?.date?.start);
+  if(start===null || start >= cutoff - 4*3600000 || start < nbaSeasonStart(season))return null;
+  if(Number(g?.status?.short)!==3)return null;
+  const home=Number(g?.teams?.home?.id),away=Number(g?.teams?.visitors?.id);
+  if(home!==teamId && away!==teamId)return null;
+  const h=asNumber(g?.scores?.home?.points),a=asNumber(g?.scores?.visitors?.points);
+  if(h===null||a===null || h<50 || a<50 || h>200 || a>200)return null;
+  return {id:Number(g.id),team_id:teamId,start,season,for:home===teamId?h:a,against:home===teamId?a:h,venue:home===teamId?'home':'away'};
+}
+function historicalGames(current,previous,teamId,season,cutoff){
+  const seen=new Set();const all=[];
+  for(const [games,y] of [[current,season],[previous,season-1]]){
+    for(const g of games){const x=validLeagueGame(g,teamId,y,cutoff);if(!x||seen.has(x.id))continue;seen.add(x.id);all.push(x)}
+  }
+  return all.sort((a,b)=>b.start-a.start).slice(0,24);
+}
+function posteriorGames(games, cutoff, desiredVenue,targetSeason){
+  const prior=113.5,priorGames=5.5;
+  let w=0,attack=0,defense=0,venueW=0,venuePoints=0;
+  let margins=[];let totals=[];let currentCount=0;
+  for(const [i,g] of games.entries()){
+    const age=(cutoff-g.start)/86400000;
+    const weight=(g.season===targetSeason?1:0.62)*Math.pow(0.5,age/110)*Math.pow(0.98,i);
+    if(!(weight>0))continue;
+    w+=weight;attack+=weight*g.for;defense+=weight*g.against;
+    margins.push({v:g.for-g.against,w:weight}); totals.push({v:g.for+g.against,w:weight});
+    if(g.venue===desiredVenue){venueW+=weight;venuePoints+=weight*g.for;}
+    if(g.season===targetSeason)currentCount++;
+  }
+  const of=(prior*priorGames+attack)/(priorGames+w);
+  const against=(prior*priorGames+defense)/(priorGames+w);
+  const venueAdj=venueW>=1.5?clamp((venuePoints/venueW-of)*0.22*(venueW/(venueW+5)),-2,2):0;
+  const variance=(parts,average,priorVar,priorWeight)=>{
+    const sum=parts.reduce((a,x)=>a+x.w*(x.v-average)**2,0);
+    return (priorVar*priorWeight+sum)/(priorWeight+parts.reduce((a,x)=>a+x.w,0));
+  };
+  const empiricalMargin=w?margins.reduce((a,x)=>a+x.v*x.w,0)/w:0;
+  const empiricalTotal=w?totals.reduce((a,x)=>a+x.v*x.w,0)/w:227;
+  return {games:games.length,effective_sample:round(w,2),offense:of,defense:against,venue_adjustment:venueAdj,
+    var_margin:variance(margins,empiricalMargin,185,7),var_total:variance(totals,empiricalTotal,300,7)};
+}
+// Abramowitz & Stegun normal CDF approximation. Research-only, not a sportsbook pricing engine.
+function normalCdf(x){
+  const z=Math.abs(x),t=1/(1+0.2316419*z);
+  const d=0.3989422804014327*Math.exp(-z*z/2);
+  const r=1-d*t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  return x>=0?r:1-r;
+}
+
+// Unified V2 uses real box scores when valid, otherwise its scoring fallback.
+const boxNumber=asNumber;
+function teamBox(record, expectedScore) {
+ const x=record?.statistics?.[0]||{};
+ const fga=boxNumber(x.fga),fta=boxNumber(x.fta),oreb=boxNumber(x.offReb),tov=boxNumber(x.turnovers);
+ if([fga,fta,oreb,tov].some(v=>v===null)||fga<30||fga>150||fta<0||fta>90||oreb<0||oreb>45||tov<0||tov>50) return null;
+ const poss=.976*(fga+.44*fta-oreb+tov);
+ const points=boxNumber(expectedScore),reported=boxNumber(x.points);
+ if(points===null||points<50||points>200||(reported!==null&&Math.abs(points-reported)>1)||poss<70||poss>155) return null;
+ return {pace:poss,ortg:100*points/poss};
+}
+function completedBox(game,apiResponse) {
+ if(!Array.isArray(apiResponse)||apiResponse.length!==2)return null;
+ const homeId=Number(game?.teams?.home?.id),awayId=Number(game?.teams?.visitors?.id);
+ const home=apiResponse.find(v=>Number(v?.team?.id)===homeId),away=apiResponse.find(v=>Number(v?.team?.id)===awayId);
+ const h=teamBox(home,game?.scores?.home?.points),a=teamBox(away,game?.scores?.visitors?.points);
+ if(!h||!a||Math.abs(h.pace-a.pace)>22)return null;
+ return {home_id:homeId,away_id:awayId,pace:(h.pace+a.pace)/2,home_ortg:h.ortg,away_ortg:a.ortg};
+}
+function efficiencyResearch(homeGames,awayGames,boxes,cutoff,market,season,scorePrior) {
+ function teamStats(games){let sumW=0,p=0,of=0,df=0,count=0;
+   for(const g of games){const box=boxes.get(g.id);if(!box)continue;
+    const isHome=g.venue==='home', teamId=Number(g.team_id);
+    if((isHome?box.home_id:box.away_id)!==teamId)continue;
+    const days=(cutoff-g.start)/86400000;
+    const w=(g.season===season?1:.6)*Math.pow(.5,days/110);
+    p+=w*box.pace;of+=w*(isHome?box.home_ortg:box.away_ortg);
+    df+=w*(isHome?box.away_ortg:box.home_ortg);sumW+=w;count++;
+   }
+   return {count,w:sumW,pace:(6*99+p)/(6+sumW),ortg:(6*114+of)/(6+sumW),drtg:(6*114+df)/(6+sumW)};
+ }
+ const h=teamStats(homeGames),a=teamStats(awayGames);
+ if(h.count<3||a.count<3)return null;
+ const possessions=clamp((h.pace+a.pace)/2,90,108);
+ const homePoints=clamp(possessions*(h.ortg+a.drtg)/200+1.8,85,143);
+ const awayPoints=clamp(possessions*(a.ortg+h.drtg)/200,85,143);
+ const margin=homePoints-awayPoints,total=homePoints+awayPoints;
+ const sigmaMargin=clamp(Number(scorePrior?.margin_sigma)||16.3,10.5,22);
+ const sigmaTotal=clamp(Number(scorePrior?.total_sigma)||20,13,27);
+ const hWin=normalCdf(margin/sigmaMargin),hCover=market.home_spread===null?null:normalCdf((margin+market.home_spread)/sigmaMargin);
+ const over=market.total===null?null:normalCdf((total-market.total)/sigmaTotal);
+ const direction=p=>p===null?null:p>=.55?'home':p<=.45?'away':null;
+ return {version:VERSION,model_family:'possession_efficiency_with_bayesian_shrinkage',research_only:true,formal_recommendation:false,uncalibrated:true,
+   expected_home_points:round(homePoints,2),expected_away_points:round(awayPoints,2),expected_margin:round(margin,2),expected_total:round(total,2),
+   home_win_probability:round(hWin,5),home_cover_probability:hCover===null?null:round(hCover,5),over_probability:over===null?null:round(over,5),
+   margin_sigma:round(sigmaMargin,2),total_sigma:round(sigmaTotal,2),
+   shadow_directions:{moneyline:direction(hWin),handicap:direction(hCover),over_under:over===null?null:over>=.55?'over':over<=.45?'under':null},
+   market,pace_metrics:{expected_possessions:round(possessions,2),home_ortg:round(h.ortg,2),home_drtg:round(h.drtg,2),away_ortg:round(a.ortg,2),away_drtg:round(a.drtg,2)},
+   sample:{home_box_games:h.count,away_box_games:a.count,score_games_home:scorePrior?.sample?.home||0,score_games_away:scorePrior?.sample?.away||0},
+   component_models:{efficiency:'possession-adjusted offense/defense with Bayesian league priors',uncertainty:'Bayesian-shrunk historical scoring variance'},
+   note:'Unified research model; uncalibrated and not an official recommendation.'};
+}
+// Cache is isolated from official V1/V2 snapshots. A failed cache write is reported,
+// not silently hidden; the caller can still inspect the in-memory computation.
+async function boxCacheGet(ids){
+ if(!ids.length)return [];
+ return dbGet('basketball_v2_box_cache',new URLSearchParams({select:'game_id,status,box_data,reason',game_id:`in.(${ids.join(',')})`,limit:'50'}));
+}
+async function boxCachePut(gameId,record){
+ const res=await fetch(URL_BASE+'/rest/v1/basketball_v2_box_cache?on_conflict=game_id',{
+  method:'POST',headers:{apikey:ROLE,Authorization:`Bearer ${ROLE}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},
+  body:JSON.stringify({game_id:gameId,status:record.box?'valid':'invalid',box_data:record.box||null,reason:record.reason||null,updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(15000)
+ });
+ if(!res.ok)throw new Error('BOX_CACHE_WRITE_'+res.status+':'+(await res.text()).slice(0,100));
+}
+function researchModel(home,away,cutoff,market,targetSeason){
+  if(home.length<3||away.length<3)return {status:'insufficient_data',reason:'min_3_completed_games_per_team',counts:{home:home.length,away:away.length},model:null};
+  const hs=posteriorGames(home,cutoff,'home',targetSeason),as=posteriorGames(away,cutoff,'away',targetSeason);
+  const homePts=clamp((hs.offense+as.defense)/2+2.2+hs.venue_adjustment,88,138);
+  const awayPts=clamp((as.offense+hs.defense)/2+as.venue_adjustment,88,138);
+  const expectedMargin=homePts-awayPts,expectedTotal=homePts+awayPts;
+  const sigmaMargin=clamp(Math.sqrt((hs.var_margin+as.var_margin)/2+12),10.5,22);
+  const sigmaTotal=clamp(Math.sqrt((hs.var_total+as.var_total)/2+20),13,27);
+  const homeWin=normalCdf(expectedMargin/sigmaMargin);
+  const cover=market.home_spread===null?null:normalCdf((expectedMargin+market.home_spread)/sigmaMargin);
+  const over=market.total===null?null:normalCdf((expectedTotal-market.total)/sigmaTotal);
+  const choose=(p)=>p===null?null:p>=.55?'home':p<=.45?'away':null;
+  const totalPick=over===null?null:over>=.55?'over':over<=.45?'under':null;
+  const moneyline=choose(homeWin);
+  const spread=choose(cover);
+  return {status:'ready',reason:null,counts:{home:home.length,away:away.length},model:{
+    version:VERSION,research_only:true,uncalibrated:true,formal_recommendation:false,
+    expected_home_points:round(homePts,2),expected_away_points:round(awayPts,2),
+    expected_margin:round(expectedMargin,2),expected_total:round(expectedTotal,2),
+    margin_sigma:round(sigmaMargin,2),total_sigma:round(sigmaTotal,2),
+    home_win_probability:round(homeWin,5),
+    home_cover_probability:cover===null?null:round(cover,5),
+    over_probability:over===null?null:round(over,5),
+    market:{...market},
+    shadow_directions:{moneyline,handicap:spread,over_under:totalPick},
+    sample:{home:hs.games,away:as.games,home_effective:hs.effective_sample,away_effective:as.effective_sample},
+    methodology:'Bayesian shrinkage of historical scoring and opponent points, season-aware recency, venue adjustment; Gaussian margin and total distributions. Not possession-based or calibrated.'
+  }};
+}
+async function dbGet(table, params){
+  const url=URL_BASE+'/rest/v1/'+table+'?'+params.toString();
+  const res=await fetch(url,{headers:{apikey:ROLE,Authorization:`Bearer ${ROLE}`},signal:AbortSignal.timeout(25000)});
+  if(!res.ok)throw new Error(`DB_SELECT_${table}_${res.status}:`+(await res.text()).slice(0,160));return res.json();
+}
+
+// Pregame evidence only. NBA confirmed lineups + game-scoped ESPN injury reports.
+// Public feeds require no new secret. Historical boxes are never current-game data.
+const CONTEXT_VERSION='nba-player-context-20261113-1';
+const CONTEXT_CACHE=new Map();
+const CONTEXT_ORIGINS=new Set(['https://site.api.espn.com','https://stats.nba.com']);
+const CONTEXT_TEAM_IDS={
+ atlantahawks:1610612737,bostonceltics:1610612738,brooklynnets:1610612751,charlottehornets:1610612766,
+ chicagobulls:1610612741,clevelandcavaliers:1610612739,dallasmavericks:1610612742,denvernuggets:1610612743,
+ detroitpistons:1610612765,goldenstatewarriors:1610612744,houstonrockets:1610612745,indianapacers:1610612754,
+ laclippers:1610612746,losangeleslakers:1610612747,memphisgrizzlies:1610612763,miamiheat:1610612748,
+ milwaukeebucks:1610612749,minnesotatimberwolves:1610612750,neworleanspelicans:1610612740,newyorkknicks:1610612752,
+ oklahomacitythunder:1610612760,orlandomagic:1610612753,philadelphia76ers:1610612755,phoenixsuns:1610612756,
+ portlandtrailblazers:1610612757,sacramentokings:1610612758,sanantoniospurs:1610612759,torontoraptors:1610612761,
+ utahjazz:1610612762,washingtonwizards:1610612764
+};
+const contextName=x=>String(x||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function contextDay(ms){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms)).replaceAll('-','');}
+function contextLocalTime(raw){
+ if(typeof raw!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/.test(raw))return null;
+ const n=raw.match(/\d+/g).map(Number),wall=Date.UTC(n[0],n[1]-1,n[2],n[3],n[4],n[5]);let result=wall;
+ for(let i=0;i<2;i++){
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(result)).map(p=>[p.type,p.value]));
+  const local=Date.UTC(+parts.year,+parts.month-1,+parts.day,+parts.hour,+parts.minute,+parts.second);
+  result=wall-(local-result);
+ }
+ return result;
+}
+async function contextJson(url,context,historical=false){
+ const u=new URL(url);if(!CONTEXT_ORIGINS.has(u.origin))throw Error('context_origin_rejected');
+ const now=Date.now(),hit=CONTEXT_CACHE.get(url),ttl=historical?24*3600000:45000;
+ if(hit&&now>=hit.fetched_ms&&now-hit.fetched_ms<ttl)return {data:hit.data,fetched_at:new Date(hit.fetched_ms).toISOString()};
+ if((context.context_calls||0)>=13)throw Error('context_request_limit');context.context_calls=(context.context_calls||0)+1;
+ const res=await fetch(url,{headers:{Accept:'application/json','User-Agent':'HABAO-Sports/1.0'},redirect:'error',signal:AbortSignal.timeout(8000)});
+ if(!res.ok)throw Error('context_http_'+res.status);
+ const reader=res.body?.getReader();if(!reader)throw Error('context_body_missing');
+ const chunks=[];let size=0;
+ try{for(;;){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>2000000)throw Error('context_body_too_large');chunks.push(value);}}
+ finally{await reader.cancel().catch(()=>{});}
+ const bytes=new Uint8Array(size);let offset=0;for(const x of chunks){bytes.set(x,offset);offset+=x.byteLength;}
+ const data=JSON.parse(new TextDecoder().decode(bytes)),fetched_ms=Date.now();
+ if(!data||typeof data!=='object'||Array.isArray(data))throw Error('context_invalid_payload');
+ if(CONTEXT_CACHE.size>=48)CONTEXT_CACHE.delete(CONTEXT_CACHE.keys().next().value);
+ CONTEXT_CACHE.set(url,{data,fetched_ms});return {data,fetched_at:new Date(fetched_ms).toISOString()};
+}
+function contextCompetition(data,snapshot,allowFinished=false){
+ const c=data?.header?.competitions?.[0],f=snapshot.prediction_data?.fixture||{};
+ const home=(c?.competitors||[]).filter(x=>x.homeAway==='home'),away=(c?.competitors||[]).filter(x=>x.homeAway==='away');
+ const kickoff=parseMs(snapshot.fixture_time),date=parseMs(c?.date),season=Number(f.season);
+ if(!c||home.length!==1||away.length!==1||kickoff===null||date===null||Math.abs(date-kickoff)>60000
+ ||normalizedTeam(home[0].team?.displayName)!==normalizedTeam(f.home?.api_name||f.home?.name||snapshot.home_team)
+ ||normalizedTeam(away[0].team?.displayName)!==normalizedTeam(f.away?.api_name||f.away?.name||snapshot.away_team)
+ ||Number(data.header?.season?.year)!==season+1)throw Error('context_fixture_mismatch');
+ if(!allowFinished&&(c.status?.type?.state!=='pre'||c.status?.type?.completed===true||Date.now()>=kickoff))throw Error('context_fixture_not_pregame');
+ return {competition:c,home:home[0],away:away[0]};
+}
+function parseContextInjuries(summary,match,fetched_at,now){
+ const groups=summary.injuries,teams=[],items=[];if(!Array.isArray(groups))return {status:'not_available',reason:'injury_feed_missing',items,teams};
+ for(const [side,c]of [['home',match.home],['away',match.away]]){
+  const rows=groups.filter(x=>String(x.team?.id)===String(c.id));
+  if(rows.length!==1||!Array.isArray(rows[0].injuries)){teams.push({side,status:'not_available'});continue;}
+  let rejected=0;const seen=new Set();
+  for(const row of rows[0].injuries){
+   const name=String(row.athlete?.displayName||''),key=contextName(name),reported=parseMs(row.date);
+   const status=String(row.status||'').toLowerCase().replace(/[^a-z]/g,'');
+   if(seen.has(key)){const index=items.findIndex(x=>x.side===side&&contextName(x.name)===key);if(index>=0)items.splice(index,1);rejected++;continue;}
+   if(!key||reported===null||reported>now+60000||!['out','doubtful','questionable','daytoday','probable','suspension','suspended'].includes(status)){rejected++;continue;}
+   seen.add(key);items.push({side,team_id:String(c.id),player_id:String(row.athlete?.id||''),name,status,
+    reason:String(row.details?.type||''),reported_at:new Date(reported).toISOString(),source:'espn_game_injuries',fetched_at});
+  }
+  teams.push({side,status:rejected?'partial':rows[0].injuries.length?'data_returned':'no_rows_returned',rejected_rows:rejected});
+ }
+ return {status:teams.every(x=>['data_returned','no_rows_returned'].includes(x.status))?'data_returned':teams.some(x=>x.status==='data_returned'||x.status==='no_rows_returned')?'partial':'not_available',source:'ESPN',fetched_at,items,teams};
+}
+function parseContextLineups(data,match,fetched_at,now){
+ const homeId=CONTEXT_TEAM_IDS[normalizedTeam(match.home.team?.displayName)],awayId=CONTEXT_TEAM_IDS[normalizedTeam(match.away.team?.displayName)];
+ const games=(Array.isArray(data.games)?data.games:[]).filter(g=>Number(g.homeTeam?.teamId)===homeId&&Number(g.awayTeam?.teamId)===awayId);
+ if(!homeId||!awayId||games.length!==1)return {status:'not_available',reason:'lineup_fixture_unverified',teams:[]};
+ if([2,3].includes(Number(games[0].gameStatus)))return {status:'not_available',reason:'context_fixture_not_pregame',teams:[]};
+ if(Number(games[0].gameStatus)!==1)return {status:'not_available',reason:'lineup_fixture_unverified',teams:[]};
+ const g=games[0],teams=[];
+ for(const [side,t]of [['home',g.homeTeam],['away',g.awayTeam]]){
+  const raw=Array.isArray(t.players)?t.players:[],seen=new Set(),names=new Set(),valid=[];let invalid=false;
+  for(const p of raw){
+   const id=Number(p.personId),name=String(p.playerName||''),updated=contextLocalTime(p.timestamp);
+   if(!Number.isSafeInteger(id)||id<=0||Number(p.teamId)!==Number(t.teamId)||!contextName(name)||seen.has(id)||names.has(contextName(name))
+    ||updated===null||updated>now+60000||now-updated>36*3600000){invalid=true;continue;}
+   seen.add(id);names.add(contextName(name));valid.push({id,name,position:String(p.position||''),confirmed:p.lineupStatus==='Confirmed'&&Date.parse(match.competition.date)-updated<=6*3600000,active:p.rosterStatus==='Active',inactive:p.rosterStatus==='Inactive',reported_at:new Date(updated).toISOString()});
+  }
+  const starters=valid.filter(p=>/^(PG|SG|SF|PF|C)$/.test(p.position)&&p.active);
+  const confirmed=!invalid&&starters.length===5&&new Set(starters.map(p=>p.position)).size===5&&starters.every(p=>p.confirmed);
+  teams.push({side,team_id:String(t.teamId),status:confirmed?'confirmed':!invalid&&starters.length===5?'expected':'not_available',
+   starters:starters.length===5?starters:[],inactive:invalid?[]:valid.filter(p=>p.confirmed&&p.inactive),
+   active:invalid?[]:valid.filter(p=>p.confirmed&&p.active).map(p=>p.name),source:'NBA',fetched_at});
+ }
+ return {status:teams.every(t=>t.status==='confirmed')?'data_returned':teams.some(t=>t.status==='confirmed')?'partial_confirmed':teams.some(t=>t.status==='expected')?'expected':'not_available',source:'NBA',game_id:String(g.gameId),fetched_at,teams};
+}
+function contextHistory(summary,teamId,event,cutoff,season){
+ const c=summary?.header?.competitions?.[0],date=parseMs(c?.date),group=summary.boxscore?.players?.filter(x=>String(x.team?.id)===String(teamId));
+ if(String(summary.header?.id)!==String(event.id)||!c?.status?.type?.completed||c.status.type.state!=='post'
+ ||Number(summary.header?.season?.year)!==season+1||![2,3].includes(Number(summary.header?.season?.type))||date===null||date>=cutoff-4*3600000||date<cutoff-60*86400000
+ ||Math.abs(date-Date.parse(event.gameDate))>60000||group?.length!==1)return null;
+ const stat=group[0].statistics?.find(s=>Array.isArray(s.keys)&&s.keys.includes('minutes')&&s.keys.includes('plusMinus'));
+ if(!stat||!Array.isArray(stat.athletes))return null;
+ const mi=stat.keys.indexOf('minutes'),pi=stat.keys.indexOf('plusMinus'),rows=[],ids=new Set();
+ for(const a of stat.athletes){
+  if(a.didNotPlay===true)continue;
+  const raw=String(a.stats?.[mi]??''),n=raw.match(/^(\d{1,2})(?::([0-5]\d))?$/),min=n?Number(n[1])+Number(n[2]||0)/60:null;
+  const rawPm=String(a.stats?.[pi]??''),pm=/^[+-]?\d{1,3}$/.test(rawPm)?Number(rawPm):null;
+  const name=String(a.athlete?.displayName||''),key=contextName(name),id=String(a.athlete?.id||'');
+  if(!key||!/^\d+$/.test(id)||ids.has(key)||min===null||min<0||min>65||pm===null||Math.abs(pm)>90)return null;
+  ids.add(key);if(min>0)rows.push({id,name,key,minutes:min,plus_minus:pm,starter:a.starter===true});
+ }
+ const minutes=rows.reduce((a,p)=>a+p.minutes,0);
+ if(rows.length<5||minutes<225||minutes>340)return null;
+ // Normalize overtime and rounded box-score minutes to a 240-minute team baseline.
+ return {event_id:String(event.id),date:new Date(date).toISOString(),rows:rows.map(p=>({...p,minutes:p.minutes*240/minutes}))};
+}
+async function collectPlayerContext(snapshot,context){
+ const started=Date.now(),kickoff=parseMs(snapshot.fixture_time),empty={version:CONTEXT_VERSION,availability:{status:'not_available',items:[],teams:[]},lineups:{status:'not_available',teams:[]},history:{home:[],away:[]},warnings:[]};
+ if(kickoff===null||started>=kickoff)return {...empty,warnings:['context_fixture_not_pregame']};
+ try{
+  const day=contextDay(kickoff),base='https://site.api.espn.com/apis/site/v2/sports/basketball/nba/';
+  const score=await contextJson(base+'scoreboard?dates='+day,context),f=snapshot.prediction_data?.fixture||{};
+  const events=(score.data.events||[]).filter(e=>{
+   const c=e.competitions?.[0],h=c?.competitors?.find(x=>x.homeAway==='home'),a=c?.competitors?.find(x=>x.homeAway==='away');
+   return /^\d+$/.test(String(e.id))&&Math.abs(Date.parse(e.date)-kickoff)<=60000
+    &&normalizedTeam(h?.team?.displayName)===normalizedTeam(f.home?.api_name||f.home?.name||snapshot.home_team)
+    &&normalizedTeam(a?.team?.displayName)===normalizedTeam(f.away?.api_name||f.away?.name||snapshot.away_team);
+  });
+  if(events.length!==1)throw Error('context_event_not_unique');
+  const live=await contextJson(base+'summary?event='+events[0].id,context),match=contextCompetition(live.data,snapshot);
+  if(String(live.data.header?.id)!==String(events[0].id))throw Error('context_event_mismatch');
+  const evidence={...empty,event_id:String(events[0].id),fetched_at:live.fetched_at,source_urls:{injuries:base+'summary?event='+events[0].id,lineups:'https://stats.nba.com/js/data/leaders/00_daily_lineups_'+day+'.json'}};
+  evidence.availability=parseContextInjuries(live.data,match,live.fetched_at,Date.now());
+  try{const lineups=await contextJson(evidence.source_urls.lineups,context);evidence.lineups=parseContextLineups(lineups.data,match,lineups.fetched_at,Date.now());}
+  catch(e){evidence.lineups={status:'source_unavailable',source:'NBA',reason:/^context_[a-z0-9_]+$/.test(String(e?.message))?String(e.message):'context_source_unavailable',fetched_at:new Date().toISOString(),teams:[]};evidence.warnings.push('lineup_source_unavailable');}
+  if(evidence.lineups.reason==='context_fixture_not_pregame')throw Error('context_fixture_not_pregame');
+  await Promise.all([['home',match.home],['away',match.away]].map(async([side,c])=>{
+   const list=(live.data.lastFiveGames||[]).filter(x=>String(x.team?.id)===String(c.id));
+   const seen=new Set(),events=list.length===1?(list[0].events||[]).filter(e=>{
+    const date=parseMs(e.gameDate),id=String(e.id);if(!/^\d+$/.test(id)||seen.has(id)||date===null||date>=started-4*3600000||date<started-60*86400000)return false;seen.add(id);return true;
+   }).sort((a,b)=>Date.parse(b.gameDate)-Date.parse(a.gameDate)).slice(0,5):[];
+   const boxes=await Promise.all(events.map(async e=>{try{const h=await contextJson(base+'summary?event='+e.id,context,true);return contextHistory(h.data,c.id,e,started,Number(f.season));}catch{return null;}}));
+   evidence.history[side]=boxes.filter(Boolean);
+  }));
+  if(Date.now()>=kickoff)throw Error('context_window_closed_during_capture');
+  return evidence;
+ }catch(e){return {...empty,warnings:[/^[a-z0-9_]+$/.test(String(e?.message))?String(e.message):'context_source_unavailable']};}
+}
+function contextTeamImpact(side,evidence){
+ const games=evidence?.history?.[side]||[],lineup=evidence?.lineups?.teams?.find(t=>t.side===side),report=evidence?.availability?.teams?.find(t=>t.side===side);
+ const result={side,status:'not_applied',reason:'player_history_insufficient',history_games:games.length,net_margin_delta:0,injury_applied:false,lineup_applied:false,players:[],conflicts:[]};
+ if(games.length<3)return result;
+ const players=new Map();
+ for(const g of games)for(const p of g.rows){const v=players.get(p.key)||{key:p.key,name:p.name,minutes:0,pm:0,starts:0,appearances:0};v.minutes+=p.minutes;v.pm+=p.plus_minus;v.starts+=p.starter?1:0;v.appearances++;players.set(p.key,v);}
+ const all=[...players.values()],totalMinutes=all.reduce((a,p)=>a+p.minutes,0),teamRate=all.reduce((a,p)=>a+p.pm,0)/totalMinutes*48;
+ const active=new Set((lineup?.active||[]).map(contextName)),inactive=new Set((lineup?.inactive||[]).map(p=>contextName(p.name)));
+ const starters=new Set((lineup?.starters||[]).map(p=>contextName(p.name))),confirmed=lineup?.status==='confirmed';
+ const out=new Set(inactive);
+ for(const r of evidence?.availability?.items||[]){if(r.side!==side||!['out','suspended','suspension'].includes(r.status))continue;const key=contextName(r.name);if(active.has(key)){result.conflicts.push(r.name);continue;}out.add(key);}
+ if(!confirmed&&!out.size)return {...result,reason:'no_confirmed_availability_change'};
+ if(confirmed&&[...starters].some(k=>!players.has(k)))return {...result,reason:'starter_history_missing'};
+ let desired=0;
+ for(const p of all){
+  p.baseline=p.minutes/games.length;p.target=out.has(p.key)?0:p.baseline;
+  if(confirmed&&!out.has(p.key)){p.target+=starters.has(p.key)?6*(1-p.starts/games.length):-6*p.starts/games.length;p.target=clamp(p.target,0,40);}
+  desired+=p.target;
+ }
+ if(desired<120)return {...result,reason:'remaining_rotation_insufficient'};
+ let delta=0;
+ for(const p of all){
+  const target=p.target*240/desired;if(target>48)return {...result,reason:'projected_minutes_invalid'};
+  const rate=clamp((p.pm/p.minutes*48-teamRate)*(p.minutes/(p.minutes+450)),-8,8);
+  const contribution=(target-p.baseline)/48*rate/5;delta+=contribution;
+  if(Math.abs(target-p.baseline)>.1)result.players.push({name:p.name,baseline_minutes:round(p.baseline,2),projected_minutes:round(target,2),history_appearances:p.appearances,regularized_net_per_48:round(rate,3),net_margin_contribution:round(contribution,4),reason:out.has(p.key)?'confirmed_absence':confirmed&&starters.has(p.key)?'confirmed_starter':'rotation_reallocation'});
+ }
+ return {...result,status:result.conflicts.length||(!confirmed&&!['data_returned','no_rows_returned'].includes(report?.status))?'partial':'applied',reason:null,net_margin_delta:Math.abs(delta)<.00005?0:round(clamp(delta,-1.5,1.5),4),
+  injury_applied:[...out].some(k=>players.has(k)),lineup_applied:confirmed,
+  availability_complete:['data_returned','no_rows_returned'].includes(report?.status)||confirmed};
+}
+function applyPlayerContext(model,evidence){
+ const home=contextTeamImpact('home',evidence),away=contextTeamImpact('away',evidence);
+ const delta=home.net_margin_delta-away.net_margin_delta,applicable=home.status!=='not_applied'||away.status!=='not_applied';
+ const impact={version:CONTEXT_VERSION,status:applicable?(home.status==='not_applied'||away.status==='not_applied'||home.status==='partial'||away.status==='partial'?'partial':'applied'):'not_applied',
+  injury_adjustment_applied:home.injury_applied||away.injury_applied,lineup_adjustment_applied:home.lineup_applied||away.lineup_applied,
+  net_margin_delta:round(delta,4),total_delta:0,teams:[home,away],method:'regularized_recent_oncourt_margin_rotation_v1',uncalibrated:true,
+  note:'以近五場實際上場時間及正負值估算輪替差異；僅採確認缺陣及確認先發，每隊分差修正上限 1.5 分。未估計總分修正。'};
+ if(!applicable)return {...model,player_context_adjustment:impact};
+ if(![model.expected_home_points,model.expected_away_points,model.expected_margin,model.expected_total,model.margin_sigma,model.total_sigma].every(Number.isFinite)||model.margin_sigma<=0||model.total_sigma<=0)
+  return {...model,player_context_adjustment:{...impact,status:'not_applied',injury_adjustment_applied:false,lineup_adjustment_applied:false,net_margin_delta:0,reason:'base_model_invalid'}};
+ if(delta===0)return {...model,player_context_adjustment:impact};
+ const h=model.expected_home_points+delta/2,a=model.expected_away_points-delta/2,margin=model.expected_margin+delta,total=model.expected_total,m=model.market||{};
+ const wp=normalCdf(margin/model.margin_sigma),cp=m.home_spread==null?null:normalCdf((margin+m.home_spread)/model.margin_sigma),op=model.over_probability;
+ return {...model,expected_home_points:round(h,2),expected_away_points:round(a,2),expected_margin:round(margin,2),expected_total:round(total,2),
+  home_win_probability:round(wp,5),home_cover_probability:cp===null?null:round(cp,5),over_probability:op===null?null:round(op,5),
+  shadow_directions:{moneyline:wp>=.55?'home':wp<=.45?'away':null,handicap:cp===null?null:cp>=.55?'home':cp<=.45?'away':null,over_under:op===null?null:op>=.55?'over':op<=.45?'under':null},
+  base_without_player_context:{expected_home_points:model.expected_home_points,expected_away_points:model.expected_away_points,expected_margin:model.expected_margin,expected_total:model.expected_total,home_win_probability:model.home_win_probability,home_cover_probability:model.home_cover_probability,over_probability:model.over_probability},player_context_adjustment:impact};
+}
+
+// Isolated NBA T-2/T-15 capture. Never rewrites official T-10 or public results.
+const STAGE_VERSION='nba-v2-stages-player-context-v0.2';
+const ODDS_KEY=String(Deno.env.get('THE_ODDS_API_KEY')||Deno.env.get('ODDS_API_KEY')||'').trim();
+const STAGE_REVISION='nba-stages-player-context-20261113-2';
+const stageHeaders={...HEADERS,'X-Habao-Version':STAGE_REVISION};
+const stageReply=(status,data)=>new Response(JSON.stringify(data),{status,headers:{...stageHeaders,'Content-Type':'application/json'}});
+const roleHeaders=()=>({apikey:ROLE,Authorization:'Bearer '+ROLE,'Content-Type':'application/json'});
+async function rpc(name,body){
+ const r=await fetch(URL_BASE+'/rest/v1/rpc/'+name,{method:'POST',headers:roleHeaders(),body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
+ if(!r.ok)throw Error('rpc_'+name+'_'+r.status);return r.json();
+}
+async function reserve(provider,cost){
+ const raw=Number(Deno.env.get(provider==='nba'?'NBA_STAGE_DAILY_NBA_LIMIT':'NBA_STAGE_DAILY_ODDS_LIMIT')||(provider==='nba'?300:60));
+ const limit=Number.isInteger(raw)&&raw>0?Math.min(raw,provider==='nba'?2000:300):0;
+ if(!await rpc('reserve_nba_stage_api',{p_provider:provider,p_cost:cost,p_limit:limit}))throw Error(provider+'_stage_daily_budget_exhausted');
+}
+async function nbaRequest(path,params,context){
+ if(context.nba_calls>=9)throw Error('stage_nba_request_limit');
+ await reserve('nba',1);context.nba_calls++;
+ const r=await fetch(NBA_ENDPOINT+path+'?'+new URLSearchParams(params),{headers:{'x-apisports-key':NBA_KEY},signal:AbortSignal.timeout(12000)});
+ const b=await r.json().catch(()=>null);
+ if(!r.ok||!b||!Array.isArray(b.response)||(Array.isArray(b.errors)?b.errors.length:Object.keys(b.errors||{}).length))throw Error('nba_source_unavailable');
+ return b.response;
+}
+function stageWindow(kickoff,stage,now=Date.now()){
+ const m=(Date.parse(kickoff)-now)/60000;
+ return Number.isFinite(m)&&m>0&&(stage==='t2'?m<=120&&m>15:stage==='t15'&&m<=15);
+}
+function normalizedTeam(x){return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'').replace(/^losangelesclippers$/,'laclippers');}
+function parseMarket(events,snapshot,now){
+ const f=snapshot.prediction_data?.fixture||{};
+ const home=normalizedTeam(f.home?.api_name||f.home?.name||snapshot.home_team),away=normalizedTeam(f.away?.api_name||f.away?.name||snapshot.away_team);
+ const matches=events.filter(e=>normalizedTeam(e.home_team)===home&&normalizedTeam(e.away_team)===away&&Math.abs(Date.parse(e.commence_time)-Date.parse(snapshot.fixture_time))<=15*60000);
+ if(matches.length!==1)return {available:false,home_spread:null,total:null,reason:'event_not_uniquely_matched',origin:'current_stage_market'};
+ const e=matches[0],books=[];
+ for(const b of e.bookmakers||[]){
+  const ms=(b.markets||[]).filter(m=>{const t=Date.parse(m.last_update||b.last_update||'');return Number.isFinite(t)&&t<=now+60000&&now-t<=20*60000;});
+  const spread=ms.find(m=>m.key==='spreads'),total=ms.find(m=>m.key==='totals');
+  const h=spread?.outcomes?.find(x=>x.name===e.home_team),a=spread?.outcomes?.find(x=>x.name===e.away_team);
+  const over=total?.outcomes?.find(x=>x.name==='Over'),under=total?.outcomes?.find(x=>x.name==='Under');
+  const hs=asNumber(h?.point),aw=asNumber(a?.point),t=asNumber(over?.point),ut=asNumber(under?.point);
+  const validSpread=hs!==null&&aw!==null&&Math.abs(hs+aw)<1e-6&&Math.abs(hs)<=60&&Number(h?.price)>1&&Number(a?.price)>1;
+  const validTotal=t!==null&&ut===t&&t>=120&&t<=350&&Number(over?.price)>1&&Number(under?.price)>1;
+  if(validSpread||validTotal)books.push({bookmaker:b.key,home_spread:validSpread?hs:null,away_spread:validSpread?aw:null,total:validTotal?t:null,home_odds:validSpread?h.price:null,away_odds:validSpread?a.price:null,over_odds:validTotal?over.price:null,under_odds:validTotal?under.price:null});
+ }
+ // Select actual paired lines from a single bookmaker. Never synthesize or average a betting line.
+ const chosen=books.find(x=>x.bookmaker==='pinnacle'&&x.home_spread!==null&&x.total!==null)||books.find(x=>x.home_spread!==null&&x.total!==null)||books[0];
+ return chosen?{...chosen,available:true,event_id:e.id,origin:'current_stage_market',quotes:books,fetched_at:new Date(now).toISOString()}:{available:false,home_spread:null,total:null,reason:'no_fresh_paired_lines',origin:'current_stage_market'};
+}
+async function currentMarket(s,context){
+ if(!ODDS_KEY)return {available:false,home_spread:null,total:null,reason:'odds_key_not_configured',origin:'current_stage_market'};
+ const kickoff=parseMs(s.fixture_time);if(kickoff===null)throw Error('odds_invalid_fixture_time');
+ // Use the documented UTC seconds format for both filter parameters.
+ const secondsIso=ms=>new Date(ms).toISOString().replace(/\.\d{3}Z$/,'Z');
+ await reserve('odds',2);context.odds_calls++;
+ const params=new URLSearchParams({apiKey:ODDS_KEY,regions:'us',markets:'spreads,totals',oddsFormat:'decimal',dateFormat:'iso',commenceTimeFrom:secondsIso(kickoff-15*60000),commenceTimeTo:secondsIso(kickoff+15*60000)});
+ let r;try{r=await fetch('https://api.the-odds-api.com/v4/sports/basketball_nba/odds?'+params,{signal:AbortSignal.timeout(12000)});}catch{throw Error('odds_network_error');}
+ const b=await r.json().catch(()=>null);
+ if(!r.ok){
+  // Store only status and an allowlisted code, never provider messages, URLs or keys.
+  const raw=String(b?.error_code||b?.code||'UNSPECIFIED');
+  const code=/^[A-Za-z0-9_]{1,80}$/.test(raw)?raw:'UNSPECIFIED';
+  throw Error('odds_http_'+r.status+'_'+code);
+ }
+ if(!Array.isArray(b))throw Error('invalid_current_odds');
+ return parseMarket(b,s,Date.now());
+}
+async function stageModel(s,market,context,cutoff){
+ const f=s.prediction_data?.fixture||{},home=Number(f.home?.id),away=Number(f.away?.id),season=Number(f.season);
+ if(!Number.isSafeInteger(home)||!Number.isSafeInteger(away)||home<=0||away<=0||home===away||!Number.isInteger(season)||season<2020)throw Error('official_fixture_metadata_missing');
+ const [hc,hp,ac,ap]=await Promise.all([nbaRequest('/games',{league:'standard',season:String(season),team:String(home)},context),nbaRequest('/games',{league:'standard',season:String(season-1),team:String(home)},context),nbaRequest('/games',{league:'standard',season:String(season),team:String(away)},context),nbaRequest('/games',{league:'standard',season:String(season-1),team:String(away)},context)]);
+ const hg=historicalGames(hc,hp,home,season,cutoff),ag=historicalGames(ac,ap,away,season,cutoff);
+ const prior=researchModel(hg,ag,cutoff,market,season);if(!prior.model)return {status:'insufficient_data',reason:prior.reason};
+ const choices=[];for(let i=0;i<24;i++){if(hg[i])choices.push(hg[i]);if(ag[i])choices.push(ag[i]);}
+ const ids=[...new Set(choices.map(g=>g.id))],cache=await boxCacheGet(ids),boxes=new Map(cache.filter(x=>x.status==='valid'&&x.box_data).map(x=>[Number(x.game_id),x.box_data]));
+ const all=new Map([...hc,...hp,...ac,...ap].map(g=>[Number(g.id),g]));
+ const invalid=new Set(cache.filter(x=>x.status==='invalid').map(x=>Number(x.game_id)));
+ let boxCalls=0;
+ for(const g of choices){
+  if(boxCalls>=4)break;
+  if(boxes.has(g.id)||invalid.has(g.id))continue;
+  const hCount=hg.filter(x=>boxes.has(x.id)).length,aCount=ag.filter(x=>boxes.has(x.id)).length;
+  if(hCount>=3&&aCount>=3)break;
+  if((g.team_id===home&&hCount>=3)||(g.team_id===away&&aCount>=3))continue;
+  boxCalls++;
+  const rows=await nbaRequest('/games/statistics',{id:String(g.id)},context),box=completedBox(all.get(g.id),rows);
+  if(box){boxes.set(g.id,box);await boxCachePut(g.id,{box});}else {invalid.add(g.id);await boxCachePut(g.id,{box:null,reason:'invalid_statistics'});}
+ }
+ const efficiency=efficiencyResearch(hg,ag,boxes,cutoff,market,season,prior.model);
+ const model=efficiency||{...prior.model,model_family:'bayesian_score_fallback'};
+ return {status:'ready',model:{...model,version:STAGE_VERSION,market,research_only:true,formal_recommendation:false},history_counts:{home:hg.length,away:ag.length},box_calls:boxCalls};
+}
+function stageResult(s,stage,model,meta){
+ const f=s.prediction_data?.fixture||{},m=model.market||{},p=model.home_win_probability;
+ const {player_evidence,...captureMeta}=meta;
+ const evidence=player_evidence||{availability:{status:'not_available',items:[],teams:[]},lineups:{status:'not_available',teams:[]}};
+ const adjustment=model.player_context_adjustment||{status:'not_applied',injury_adjustment_applied:false,lineup_adjustment_applied:false};
+ const conf=x=>Math.round(100*Math.max(x,1-x));
+ const pick=(p,home,away,line=null)=>p===null?{pick:'暫不推薦',line:null,confidence:0,reason:'本階段未取得有效實際盤線'}:(p>.45&&p<.55)?{pick:'暫不推薦',line:null,confidence:conf(p),reason:'模型優勢未達統合模型門檻'}:{pick:p>=.5?home:away,line,confidence:conf(p),reason:'依本階段統合模型與封存盤線'};
+ const spread=pick(model.home_cover_probability,'主隊','客隊',model.home_cover_probability>=.5?m.home_spread:m.home_spread===null?null:-m.home_spread);
+ const label=stage==='t2'?'T-2 深度分析':'T-15 最終分析';
+ const note=meta.capture_mode==='scheduled'?'本階段於目標時間附近自動封存。':'此為賽前補抓，依實際擷取時間標示，不列入準時階段比較。';
+ return {success:true,sport:'basketball',game_id:Number(s.game_id),research_only:true,formal_recommendation:false,v2_stage:stage,v2_stage_label:label,
+ fixture:{...f,id:Number(s.game_id),date:s.fixture_time,league:f.league||{name:'NBA'}},
+ analysis:{model_version:STAGE_VERSION,recommendations:{moneyline:pick(p,'主隊','客隊'),handicap:spread,over_under:pick(model.over_probability,'大','小',m.total)},summary:label+'；'+note,
+  market_analysis:'本階段重新擷取市場、歷史與球員出賽資料；球員修正依實際取得與驗證狀態套用。',
+  v2_stage_evidence:{stage,captured_at:meta.captured_at,capture_mode:meta.capture_mode,...evidence,player_adjustment:adjustment,note}},
+ model:{...model,predicted_score:{home:model.expected_home_points,away:model.expected_away_points},fair_total:model.expected_total,fair_spread:{display:String(-model.expected_margin)},win_probability:{home:round(p*100,1),away:round((1-p)*100,1)}},
+ market_data:{market:{...m,consensus:{home_spread:m.home_spread,total:m.total,spread_bookmakers:(m.quotes||[]).filter(x=>x.home_spread!==null).length,total_bookmakers:(m.quotes||[]).filter(x=>x.total!==null).length}},injuries:{available:evidence.availability.status==='data_returned',status:evidence.availability.status,items:evidence.availability.items||[]}},
+ warnings:[...(m.available?[]:['本階段實際市場盤線未取得，缺盤項目暫不推薦。']),...(evidence.warnings||[])],stage_capture:captureMeta};
+}
+async function patchStage(id,stage,token,patch){
+ const params=new URLSearchParams({game_id:'eq.'+id,stage:'eq.'+stage,status:'eq.processing',lease_token:'eq.'+token});
+ const r=await fetch(URL_BASE+'/rest/v1/basketball_v2_stage_snapshots?'+params,{method:'PATCH',headers:{...roleHeaders(),Prefer:'return=representation'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(12000)});
+ if(!r.ok)throw Error('stage_write_failed');if((await r.json()).length!==1)throw Error('stage_capture_lease_lost');
+}
+async function captureStage(s,stage){
+ if(!stageWindow(s.fixture_time,stage))return {game_id:s.game_id,stage,status:'outside_capture_window'};
+ const token=crypto.randomUUID();if(!await rpc('acquire_nba_stage_capture',{p_game_id:Number(s.game_id),p_stage:stage,p_token:token}))return {game_id:s.game_id,stage,status:'already_captured_or_processing'};
+ const context={nba_calls:0,odds_calls:0},cutoff=Date.now();
+ try{
+  // Recheck the actual provider fixture; a stale schedule must not admit an in-play capture.
+  const live=await nbaRequest('/games',{id:String(s.game_id)},context);
+  const g=live.find(x=>Number(x.id)===Number(s.game_id));
+  const fx=s.prediction_data?.fixture||{};
+  const actualStart=parseMs(g?.date?.start),savedStart=parseMs(s.fixture_time);
+  if(!g||actualStart===null||savedStart===null||String(g.league||'').toLowerCase()!=='standard'||Number(g.status?.short)!==1||Math.abs(actualStart-savedStart)>60000||Number(g.teams?.home?.id)!==Number(fx.home?.id)||Number(g.teams?.visitors?.id)!==Number(fx.away?.id))throw Error('fixture_started_changed_or_unverified');
+  const evidencePromise=collectPlayerContext(s,context);
+  const market=await currentMarket(s,context);
+  const out=await stageModel(s,market,context,cutoff),evidence=await evidencePromise;
+  if(evidence.warnings.some(x=>['context_fixture_not_pregame','context_window_closed_during_capture'].includes(x)))throw Error('fixture_started_or_context_window_closed');
+  if(out.model)out.model=applyPlayerContext(out.model,evidence);
+  if(!stageWindow(s.fixture_time,stage))throw Error('stage_window_closed_during_capture');
+  const captured_at=new Date().toISOString(),target=Date.parse(s.fixture_time)-(stage==='t2'?120:15)*60000;
+  const scheduled=Date.parse(captured_at)-target<=90000;
+  const publicEvidence={version:evidence.version,event_id:evidence.event_id,availability:evidence.availability,lineups:evidence.lineups,source_urls:evidence.source_urls,warnings:evidence.warnings,
+   history_sources:Object.fromEntries(['home','away'].map(side=>[side,evidence.history[side].map(g=>({event_id:g.event_id,date:g.date}))]))};
+  const meta={captured_at,runner_revision:STAGE_REVISION,feature_as_of:captured_at,history_cutoff:new Date(cutoff).toISOString(),scheduled_target_at:new Date(target).toISOString(),capture_mode:scheduled?'scheduled':'late_pre_match_recovery',include_in_stage_comparison:scheduled,nba_calls:context.nba_calls,odds_calls:context.odds_calls,context_calls:context.context_calls||0,
+   injury_adjustment_applied:out.model?.player_context_adjustment?.injury_adjustment_applied===true,lineup_adjustment_applied:out.model?.player_context_adjustment?.lineup_adjustment_applied===true,
+   availability_status:evidence.availability.status,lineup_status:evidence.lineups.status,history_counts:out.history_counts};
+  await patchStage(s.game_id,stage,token,{status:out.status,captured_at:out.status==='ready'?captured_at:null,model_output:out.model||null,result_data:out.model?stageResult(s,stage,out.model,{...meta,player_evidence:publicEvidence}):null,source_meta:{...meta,reason:out.reason||null,player_context_features:evidence}});
+  return {game_id:s.game_id,stage,status:out.status,capture_mode:meta.capture_mode,nba_calls:context.nba_calls,odds_calls:context.odds_calls};
+ }catch(e){const reason=String(e?.message||e).slice(0,150);await patchStage(s.game_id,stage,token,{status:'source_error',source_meta:{reason,runner_revision:STAGE_REVISION,nba_calls:context.nba_calls,odds_calls:context.odds_calls}}).catch(()=>{});return {game_id:s.game_id,stage,status:'source_error',reason};}
+}
+Deno.serve(async req=>{
+ if(req.method==='OPTIONS')return new Response(null,{status:204,headers:stageHeaders});
+ if(req.method!=='POST')return stageReply(405,{success:false,error:'method_not_allowed'});
+ const internal=ROLE&&req.headers.get('authorization')==='Bearer '+ROLE;
+ if(!internal&&(!CRON_KEY||req.headers.get('x-habao-cron-key')!==CRON_KEY))return stageReply(401,{success:false,error:'unauthorized'});
+ if(!URL_BASE||!ROLE||!NBA_KEY)return stageReply(503,{success:false,error:'missing_backend_configuration'});
+ try{
+  const body=await req.json().catch(()=>({})),action=String(body?.action||'run');
+  if(!['run','capture','dry_run','probe_context'].includes(action))return stageReply(400,{success:false,error:'invalid_action'});
+  const settings=await dbGet('basketball_v2_stage_settings',new URLSearchParams({select:'pilot_account,all_members_enabled',id:'eq.true',limit:'1'}));
+  if(!settings[0])throw Error('stage_settings_missing');
+  const params=new URLSearchParams({select:'game_id,fixture_time,generated_at,home_team,away_team,prediction_data',fixture_time:'gt.'+new Date().toISOString(),order:'fixture_time.asc',limit:'50'});
+  if(action==='probe_context'){
+   params.set('and','(fixture_time.lte.'+new Date(Date.now()+36*3600000).toISOString()+')');
+   if(body.game_id!=null){if(!Number.isSafeInteger(Number(body.game_id))||Number(body.game_id)<=0)return stageReply(400,{success:false,error:'invalid_game_id'});params.set('game_id','eq.'+Number(body.game_id));}
+   params.set('limit','1');
+  }else if(action==='capture'){
+   if(!Number.isSafeInteger(Number(body.game_id))||Number(body.game_id)<=0||!['t2','t15'].includes(body.stage))return stageReply(400,{success:false,error:'invalid_capture_request'});
+   params.set('game_id','eq.'+Number(body.game_id));
+  }else params.set('and','(fixture_time.lte.'+new Date(Date.now()+120*60000).toISOString()+')');
+  const snapshots=await dbGet('basketball_prediction_snapshots',params),candidates=[];
+  if(action==='probe_context'){
+   if(!snapshots.length)return stageReply(200,{success:false,read_only:true,error:'no_upcoming_t10_snapshot',runner_revision:STAGE_REVISION});
+   const evidence=await collectPlayerContext(snapshots[0],{context_calls:0});
+   return stageReply(200,{success:!!evidence.event_id,read_only:true,snapshot_written:false,member_credits_consumed:0,runner_revision:STAGE_REVISION,game_id:Number(snapshots[0].game_id),fixture_time:snapshots[0].fixture_time,evidence});
+  }
+  for(const s of snapshots){const stage=body.stage&&action==='capture'?body.stage:(Date.parse(s.fixture_time)-Date.now()<=15*60000?'t15':'t2');if(stageWindow(s.fixture_time,stage))candidates.push({s,stage});}
+  const rows=candidates.length?await dbGet('basketball_v2_stage_snapshots',new URLSearchParams({select:'game_id,stage,status,updated_at,attempts',game_id:'in.('+candidates.map(x=>x.s.game_id).join(',')+')',limit:'100'})):[];
+  const pending=candidates.filter(x=>{const r=rows.find(r=>Number(r.game_id)===Number(x.s.game_id)&&r.stage===x.stage);return !r||(r.attempts<4&&((r.status==='processing'&&Date.now()-Date.parse(r.updated_at)>5*60000)||(['source_error','insufficient_data'].includes(r.status)&&Date.now()-Date.parse(r.updated_at)>2*60000)));});
+  pending.sort((a,b)=>(a.stage==='t15'?0:1)-(b.stage==='t15'?0:1)||Date.parse(a.s.fixture_time)-Date.parse(b.s.fixture_time));
+  if(action==='dry_run')return stageReply(200,{success:true,read_only:true,candidates:pending.map(x=>({game_id:x.s.game_id,stage:x.stage,fixture_time:x.s.fixture_time})),max_games_per_run:1,max_nba_requests_per_stage:9});
+  const items=[];for(const x of pending.slice(0,1))items.push(await captureStage(x.s,x.stage));
+  return stageReply(200,{success:true,research_only:true,items,processed:items.length});
+ }catch(e){console.error('NBA_STAGE',String(e?.message||e));return stageReply(500,{success:false,error:'stage_runner_failed'});}
+});

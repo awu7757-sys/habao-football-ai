@@ -1,0 +1,134 @@
+{
+  "scope": "isolated browser with complete production page source and unchanged production script bodies; source APIs and real billing separately checked",
+  "state_matrix": {
+    "sports": [
+      "football",
+      "basketball",
+      "baseball"
+    ],
+    "states_per_sport": 8,
+    "passed": 24
+  },
+  "single_batch_content_equality": [
+    {
+      "sport": "football",
+      "stage": "t10",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "football",
+      "stage": "t2",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "football",
+      "stage": "t15",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "basketball",
+      "stage": "t10",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "basketball",
+      "stage": "t2",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "basketball",
+      "stage": "t15",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "baseball",
+      "stage": "t10",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "baseball",
+      "stage": "t2",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    },
+    {
+      "sport": "baseball",
+      "stage": "t15",
+      "passed": true,
+      "virtual_starting_credits": 50,
+      "virtual_final_credits": 48,
+      "virtual_debits": 2
+    }
+  ],
+  "history_grouping": [
+    {
+      "sport": "football",
+      "game_cards": 2,
+      "enabled_stage_buttons": 6,
+      "passed": true
+    },
+    {
+      "sport": "basketball",
+      "game_cards": 2,
+      "enabled_stage_buttons": 6,
+      "passed": true
+    },
+    {
+      "sport": "baseball",
+      "game_cards": 2,
+      "enabled_stage_buttons": 6,
+      "passed": true
+    }
+  ],
+  "free_rewatch": {
+    "sport": "baseball",
+    "unchanged_credits": 48,
+    "passed": true
+  },
+  "mobile_result": {
+    "viewport_width": 373,
+    "document_scroll_width": 373,
+    "passed": true
+  },
+  "invalid_response": {
+    "stage_mismatch_blocked": true,
+    "virtual_debits": 0
+  },
+  "snapshot_unready": {
+    "shown": "本階段資料準備中，請稍後再試。",
+    "virtual_debits": 0
+  },
+  "empty_quota": {
+    "modal_shown": true,
+    "virtual_debits": 0
+  },
+  "limits": [
+    "Real Supabase deployment has not been performed through a connected account.",
+    "Virtual counters do not prove real transaction logs.",
+    "T10 raw model recomputation requires original feature inputs.",
+    "Historical provider lineups are not proof of a pregame capture."
+  ]
+}

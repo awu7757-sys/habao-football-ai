@@ -1,0 +1,6 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');let handler;
+const ctx=vm.createContext({Deno:{env:{get:k=>k==='SUPABASE_SERVICE_ROLE_KEY'?'testrole':k==='SUPABASE_URL'?'https://example.invalid':''},serve:fn=>handler=fn},Date,URL,URLSearchParams,AbortSignal,Math,Map,Set,crypto,Response,console});
+vm.runInContext(fs.readFileSync(__dirname+'/baseball-v2-stage-runner.index.txt','utf8'),ctx);const captured=[];
+ctx.db=async table=>table==='sports_mlb_t10_source'?[1,2].map(game_id=>({game_id,fixture_time:new Date(Date.now()+3600000).toISOString()})):[{game_id:1,stage:'t2',status:'ready',attempts:1,updated_at:new Date().toISOString()}];
+ctx.captureMlb=async(s,stage)=>{captured.push(s.game_id);return {status:'ready'}};
+(async()=>{const r=await handler({method:'POST',headers:new Headers({authorization:'Bearer testrole'}),json:async()=>({action:'run'})});assert.equal(r.status,200);assert.deepEqual(captured,[2]);console.log('PASS MLB ready first game cannot starve next due game');const denied=await handler({method:'POST',headers:new Headers(),json:async()=>({action:'run'})});assert.equal(denied.status,401);console.log('PASS MLB capture runner rejects anonymous invocation');})().catch(e=>{console.error(e);process.exitCode=1});

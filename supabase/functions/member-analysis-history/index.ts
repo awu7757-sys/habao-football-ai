@@ -32,6 +32,17 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    // OAuth member histories must be bound to the authenticated account.
+    const requestedAccount=req.method==='GET'?new URL(req.url).searchParams.get('account'):String((await req.clone().json().catch(()=>({})))?.account||'');
+    if (/^(google|line)_/i.test(String(requestedAccount||''))) {
+      const bearer=req.headers.get('authorization');
+      if (!bearer) return json({success:false,error:'member_authentication_required'},401);
+      const identityResponse=await fetch(supabaseUrl+'/functions/v1/oauth-member-login?mode=refresh',{
+        method:'POST',headers:{apikey:Deno.env.get('SUPABASE_ANON_KEY')||serviceRoleKey,Authorization:bearer,'Content-Type':'application/json'},body:JSON.stringify({action:'refresh'}),signal:AbortSignal.timeout(12000)});
+      const identity=await identityResponse.json().catch(()=>null);
+      if(!identityResponse.ok||identity?.success!==true||identity.member?.account!==requestedAccount)return json({success:false,error:'member_authentication_required'},401);
+    }
+
 
     // =========================
     // GET：讀取會員已分析賽事
@@ -75,29 +86,20 @@ let visibleMatches = (data ?? []).filter((item) => {
           .eq("claim_state", "claimed")
           .order("claimed_at", { ascending: true });
         if (!stageClaimError && Array.isArray(stageClaims) && stageClaims.length) {
-          const byFixture = new Map<number, any>(visibleMatches.map((item: any) => [Number(item.fixture_id), item]));
+          const legacy = new Map<number, any>(visibleMatches.map((item:any)=>[Number(item.fixture_id),item]));
           for (const claim of stageClaims) {
-            const id = Number(claim.fixture_id);
-            const current = byFixture.get(id);
-            if (!current || !claim.result_data) continue;
-            const fixture = claim.fixture_data || {};
-            byFixture.set(id, {
-              ...current,
-              home_team: current.home_team || fixture.home?.name || null,
-              away_team: current.away_team || fixture.away?.name || null,
-              league_name: current.league_name || fixture.league?.name || null,
-              result_data: claim.result_data,
-              v2_stage: claim.stage,
-              v2_stage_label: claim.stage === "t2" ? "深度分析" : "最終分析",
-              v2_stage_claimed_at: claim.claimed_at,
-              updated_at: claim.claimed_at || current.updated_at,
-            });
+            if (!claim.result_data || !['t2','t15'].includes(claim.stage)) continue;
+            const f=claim.result_data.fixture||{}, fixture=claim.fixture_data||{}, id=Number(claim.fixture_id), current=legacy.get(id)||{};
+            const fixtureTime=f.date||current.fixture_time;
+            if (!fixtureTime || now>=Date.parse(fixtureTime)+8*3600000) continue;
+            visibleMatches.push({...current,id:'football-stage:'+id+':'+claim.stage,fixture_id:id,
+              history_key:'football:'+id+':'+claim.stage,fixture_time:fixtureTime,
+              home_team:current.home_team||f.home?.name||fixture.home?.name||null,
+              away_team:current.away_team||f.away?.name||fixture.away?.name||null,
+              league_name:current.league_name||f.league?.name||fixture.league?.name||null,
+              result_data:claim.result_data,v2_stage:claim.stage,v2_stage_claimed_at:claim.claimed_at,updated_at:claim.claimed_at});
           }
-          visibleMatches = [...byFixture.values()].sort((a: any, b: any) => {
-            const ta = Date.parse(a.fixture_time || a.updated_at || "");
-            const tb = Date.parse(b.fixture_time || b.updated_at || "");
-            return (Number.isFinite(ta) ? ta : 0) - (Number.isFinite(tb) ? tb : 0);
-          });
+
         }
       } catch (stageClaimReadError) {
         console.warn("V2 stage claims are not available yet", stageClaimReadError);

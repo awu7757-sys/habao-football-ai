@@ -1,0 +1,52 @@
+PASS football exact boundary 600
+PASS football exact boundary 120
+PASS football exact boundary 15
+PASS football exact boundary 0
+PASS football exact boundary -1
+PASS football exact boundary 601
+PASS basketball exact boundary 600
+PASS basketball exact boundary 120
+PASS basketball exact boundary 15
+PASS basketball exact boundary 0
+PASS basketball exact boundary -1
+PASS basketball exact boundary 601
+PASS baseball exact boundary 600
+PASS baseball exact boundary 120
+PASS baseball exact boundary 15
+PASS baseball exact boundary 0
+PASS baseball exact boundary -1
+PASS baseball exact boundary 601
+PASS claimed state 121
+PASS claimed state 16
+PASS claimed state 14
+PASS claimed state 60
+PASS wrong stage rejected
+PASS wrong sport rejected
+PASS wrong match rejected
+PASS conflicting nested identity rejected
+PASS unknown saved stage rejected
+PASS valid stage retained
+PASS saved canonical pick wins over display metadata
+PASS no pick never invents confidence or line
+PASS missing MLB confidence remains absent
+PASS stages group by sport plus match; retain all raw results
+PASS MLB starter correction requires sufficient actual innings
+PASS MLB missing team stats cannot produce fabricated model
+PASS MLB starter influence is capped
+PASS football confirmed XI requires exactly 11 unique valid IDs
+PASS football.html inline syntax
+PASS analysis.html inline syntax
+PASS mlb-analysis.html inline syntax
+PASS single and batch both invoke one shared claim entry
+PASS result page cannot refetch a T10 while viewing another stage
+RESULT 41 passed
+PASS MLB ready first game cannot starve next due game
+PASS MLB capture runner rejects anonymous invocation
+PASS two stage claims cost exactly two credits
+PASS duplicate and rewatch cost zero credits
+PASS ready snapshot cannot be recaptured
+PASS unavailable stage never consumes credit
+PASS T-2 cannot be captured inside T-15
+PASS previously claimed result remains free after kickoff
+PASS anonymous cannot call atomic claim RPC
+RESULT 7 passed

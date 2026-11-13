@@ -8,14 +8,13 @@ const lang=()=>window.HabaoI18n?.getLanguage?.()||"zh-Hant";
 const t=(v)=>lang()==="en"?String(v||""):lang()==="zh-Hans"&&window.HabaoI18n?.toSimplified?window.HabaoI18n.toSimplified(names[v]||v||""):names[v]||v||"";
 const taiwanDate=(offset)=>{const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());const d=new Date(p+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
 const getWindow=(kickoff)=>{const diff=Date.parse(kickoff)-Date.now();return{started:!Number.isFinite(diff)||diff<=0,open:diff>0&&diff<=36000000};};
-// Internal MLB UI preview: only the existing test account and explicit query value.
-const mlbPreviewDate=(()=>{try{const member=JSON.parse(sessionStorage.getItem("habao_member")||"null");const requested=new URLSearchParams(location.search).get("mlb_test_date");return member?.account==="google_2d3cef6b6e2d"&&requested==="2026-10-24"?requested:null;}catch{return null;}})();
+const mlbPreviewDate=null;
 const badge=(id)=>Number.isInteger(Number(id))&&Number(id)>0?"https://www.mlbstatic.com/team-logos/"+Number(id)+".svg":"";
 let filter="all", cache=new Map(), saved=null, memberEnabled=false, requestSerial=0;
 const memberPending=new Set();
 const CONFIG="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-feature-config";
 async function syncMlbGate(){try{const r=await fetch(CONFIG,{cache:"no-store"});const j=await r.json();memberEnabled=r.ok&&j.success===true&&j.member_analysis_enabled===true;}catch{memberEnabled=false;}}
-async function runMlbMember(gameId,button){
+async function legacyMlbMember(gameId,button){
  if(window.habaoSportBatchRunning||!memberEnabled||memberPending.has(gameId))return;
  memberPending.add(gameId);button.disabled=true;button.textContent="讀取正式分析中…";
  try{
@@ -28,6 +27,9 @@ async function runMlbMember(gameId,button){
  }catch(e){alert("MLB 分析尚未完成："+String(e.message||e));}
  finally{memberPending.delete(gameId);button.disabled=false;button.textContent="開始分析";}
 }
+
+
+async function runMlbMember(gameId,button){if(window.habaoStageReleasePending)return alert('正在確認分析狀態，請稍候。');return window.HabaoSportsStages?window.HabaoSportsStages.open('baseball',gameId,null,button):legacyMlbMember(gameId,button);}
 window.runMlbMember=runMlbMember;
 function setup(){
  if(currentHabaoSport!=="baseball")return;
@@ -51,10 +53,10 @@ function card(g){
  const w=getWindow(g.kickoff_at),status=String(g?.status?.long||"").toLowerCase(),finished=/final|completed|game over/.test(status),live=!finished&&w.started,ready=w.open&&!live&&!finished;
  const home=t(g.home?.name),away=t(g.away?.name),time=new Date(g.kickoff_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false});
  const logo=(team)=>{const src=badge(team?.id);return src?'<img class="team-logo" loading="lazy" src="'+src+'" alt="" onerror="this.replaceWith(document.createTextNode(\'⚾\'))">':'⚾';};
- return '<article class="match-card v2-match-card" data-sport="baseball" data-mlb-game-id="'+esc(g.fixture_id)+'" data-search="'+esc([g.fixture_id,g.home?.name,g.away?.name,home,away,"MLB"].join(" "))+'">'+
+ return '<article class="match-card v2-match-card" data-sport="baseball" data-mlb-game-id="'+esc(g.fixture_id)+'" data-kickoff-at="'+esc(g.kickoff_at)+'" data-search="'+esc([g.fixture_id,g.home?.name,g.away?.name,home,away,"MLB"].join(" "))+'">'+
  '<div class="v2-match-card-top"><div class="v2-match-league"><span class="v2-league-dot"></span>⚾ MLB 美國職棒大聯盟</div><div class="v2-match-time">'+esc(time)+'</div></div>'+
  '<div class="v2-match-teams"><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.home)+'</div><div class="team-name">'+esc(home)+'</div><div class="v2-team-side">主隊</div></div><div class="v2-match-vs-center"><div class="v2-vs-ring">VS</div><div class="v2-match-line"></div></div><div class="v2-match-team"><div class="v2-team-logo-box">'+logo(g.away)+'</div><div class="team-name">'+esc(away)+'</div><div class="v2-team-side">客隊</div></div></div>'+
- '<div class="analysis v2-match-action habao-unified-action"><div class="ai-status v2-status '+(finished?"finished":live?"live":ready&&memberEnabled?"ready":"locked")+'"><span></span>'+(finished?"已完賽":live?"比賽已開賽":ready&&memberEnabled?"可分析":ready?"分析功能驗收中":"尚未開放分析")+'</div>'+(ready&&memberEnabled?'<label class="v2-batch-select"><input type="checkbox" class="batch-analysis-checkbox" data-sport="baseball" data-kickoff-at="'+esc(g.kickoff_at)+'" value="'+esc(g.fixture_id)+'" onchange="updateBatchSelection(this)"><span>'+esc(window.HabaoI18n?.t("addBatch","加入批次分析")||"加入批次分析")+'</span></label>':'')+'<button type="button" class="analysis-btn v2-analysis-btn '+(finished||live?"finished":ready&&memberEnabled?"":"locked")+'" ' +(ready&&memberEnabled?'onclick="runMlbMember('+Number(g.fixture_id)+',this)"':'disabled')+'>'+(finished?"✓ 已完賽":live?"分析已截止":ready&&memberEnabled?"開始分析":ready?"分析功能驗收中":"賽前 10 小時開放分析")+'</button></div></article>';
+ '<div class="analysis v2-match-action habao-unified-action"><div class="ai-status v2-status '+(finished?"finished":live?"live":ready&&memberEnabled?"ready":"locked")+'"><span></span>'+(finished?"已完賽":live?"比賽已開賽":ready&&memberEnabled?"可分析":ready?"分析服務暫未開放":"尚未開放分析")+'</div>'+(ready&&memberEnabled?'<label class="v2-batch-select"><input type="checkbox" class="batch-analysis-checkbox" data-sport="baseball" data-kickoff-at="'+esc(g.kickoff_at)+'" value="'+esc(g.fixture_id)+'" onchange="updateBatchSelection(this)"><span>'+esc(window.HabaoI18n?.t("addBatch","加入批次分析")||"加入批次分析")+'</span></label>':'')+'<button type="button" class="analysis-btn v2-analysis-btn '+(finished||live?"finished":ready&&memberEnabled?"":"locked")+'" ' +(ready&&memberEnabled?'onclick="runMlbMember('+Number(g.fixture_id)+',this)"':'disabled')+'>'+(finished?"✓ 已完賽":live?"分析已截止":ready&&memberEnabled?"開始分析":ready?"分析服務暫未開放":"賽前 10 小時開放")+'</button></div></article>';
 }
 async function load(offset=0){
  if(currentHabaoSport!=="baseball")return;
@@ -70,7 +72,7 @@ async function load(offset=0){
     data={at:Date.now(),fixtures:Array.isArray(body.fixtures)?body.fixtures:[]};cache.set(date,data);
   }
   if(currentHabaoSport!=="baseball"||loadId!==requestSerial||(mlbPreviewDate||taiwanDate(offset))!==date)return;
-  c.innerHTML=data.fixtures.length?data.fixtures.map(card).join(""):'<div class="ai-note">當日沒有 MLB 賽事。</div>';apply();
+  c.innerHTML=data.fixtures.length?data.fixtures.map(card).join(""):'<div class="ai-note">當日沒有 MLB 賽事。</div>';apply();void window.HabaoSportsStages?.refresh('baseball');
  }catch(e){if(currentHabaoSport==="baseball"&&loadId===requestSerial)c.innerHTML='<div class="ai-note">MLB 賽程資料尚未開放，請稍後再試。<small style="display:block">'+esc(e?.message||"")+'</small></div>';}
 }
 const originalSelect=window.selectHabaoSport,originalSwitch=window.switchDate;

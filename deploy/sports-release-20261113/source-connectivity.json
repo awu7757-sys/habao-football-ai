@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-11-13T05:42:37.970445+00:00",
+  "scope": "historical_source_connectivity_and_returned_name_fields_only",
+  "not_pregame_capture_proof": true,
+  "checks": [
+    {
+      "sport": "basketball",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909976",
+      "http_status": 200,
+      "event_id": "401909976",
+      "fixture_time": "2026-11-13T00:00Z",
+      "teams": [
+        {
+          "team": "Toronto Raptors",
+          "starter_count": 5,
+          "sample_names": [
+            "RJ Barrett",
+            "Collin Murray-Boyles"
+          ]
+        },
+        {
+          "team": "Philadelphia 76ers",
+          "starter_count": 5,
+          "sample_names": [
+            "Dean Wade",
+            "Joel Embiid"
+          ]
+        }
+      ],
+      "injury_group_count": 2,
+      "payload_sha256": "dd7e252b6405a8d14cc6ddac37c6854c21828f99f414dacf373af34de8217702"
+    },
+    {
+      "sport": "baseball",
+      "source_url": "https://statsapi.mlb.com/api/v1.1/game/849799/feed/live",
+      "http_status": 200,
+      "game_id": 849799,
+      "fixture_time": "2026-10-29T00:00:00Z",
+      "teams": [
+        {
+          "side": "home",
+          "team_id": 139,
+          "batting_order_count": 9,
+          "named_batters": 9,
+          "sample_names": [
+            "Yandy Díaz",
+            "Jonathan Aranda"
+          ]
+        },
+        {
+          "side": "away",
+          "team_id": 158,
+          "batting_order_count": 9,
+          "named_batters": 9,
+          "sample_names": [
+            "Jackson Chourio",
+            "Jake Bauers"
+          ]
+        }
+      ],
+      "payload_sha256": "d4275b848688cf0c19ce6f6fb13c8394f30fe58a1c26b88486b19f00e2b59a01"
+    }
+  ],
+  "official_nba_lineups": {
+    "source_url": "https://stats.nba.com/js/data/leaders/00_daily_lineups_20261112.json",
+    "http_status": 200,
+    "game_count": 4,
+    "all_games_completed": true,
+    "scope": "historical_endpoint_connectivity_only"
+  }
+}
