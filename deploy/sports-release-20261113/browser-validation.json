@@ -130,5 +130,14 @@
     "Virtual counters do not prove real transaction logs.",
     "T10 raw model recomputation requires original feature inputs.",
     "Historical provider lineups are not proof of a pregame capture."
-  ]
+  ],
+  "public_site": "https://awu7757-sys.github.io/habao-football-ai/qa/sports-release/",
+  "public_commit": "dc8991a60ed00fcd6532061853f2d050fef854b4",
+  "public_state_matrix_passed": 24,
+  "public_single_batch_pairs_passed": 9,
+  "public_mobile_width": {
+    "viewport": 373,
+    "content": 373
+  },
+  "production_source_probe_report": "backend-source-validation.json"
 }

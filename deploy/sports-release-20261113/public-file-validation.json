@@ -1,0 +1,42 @@
+[
+  {
+    "file": "football.html",
+    "match": true
+  },
+  {
+    "file": "analysis.html",
+    "match": true
+  },
+  {
+    "file": "mlb-analysis.html",
+    "match": true
+  },
+  {
+    "file": "sports-stage-core.js",
+    "match": true
+  },
+  {
+    "file": "sports-stages.js",
+    "match": true
+  },
+  {
+    "file": "sports-stages.css",
+    "match": true
+  },
+  {
+    "file": "sports-analysis-contract.js",
+    "match": true
+  },
+  {
+    "file": "habao-page-runtime.js",
+    "match": true
+  },
+  {
+    "file": "nba-stages.js",
+    "match": true
+  },
+  {
+    "file": "mlb-match-center.js",
+    "match": true
+  }
+]

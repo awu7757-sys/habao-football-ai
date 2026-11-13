@@ -1,0 +1,62 @@
+{
+  "checked_at": "2026-11-13T07:59:30.108Z",
+  "project_ref": "oqtbsbohcfeghgnykwxy",
+  "functions": [
+    {
+      "name": "baseball-v2-stage-runner",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "baseball-v2-stage-member",
+      "version": 2,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "football-v2-shadow-stage-runner",
+      "version": 30,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "member-analysis-history",
+      "version": 66,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "sports-release-verify",
+      "version": 3,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "nba-v2-stage-runner",
+      "version": 4,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "content_matches": true
+    },
+    {
+      "name": "baseball-member-analysis",
+      "version": 36,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "content_matches": true
+    }
+  ],
+  "release_ready": true,
+  "all_members_enabled": {
+    "football": true,
+    "basketball": true,
+    "baseball": true
+  },
+  "new_mlb_atomic_checks_passed": 8
+}

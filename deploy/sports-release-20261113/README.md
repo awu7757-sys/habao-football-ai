@@ -74,3 +74,7 @@
 舊 T-10／T-2／T-15 ready 快照與已領取結果不回寫、不退款、不重算；既有公開戰績口徑不改。每個新階段扣一次，同一會員同場同階段重看免費。MLB 新階段的 Poisson 機率研究欄位不作準確率保證。
 
 驗證紀錄見 `validation.log`、`browser-validation.json`。後端函式與 SQL 必須由有權限的專案管理員部署；前台發佈不能代替這一步。
+
+## 本次正式部署確認
+
+2026-11-13 已完成正式 Supabase 部署與所有會員開放。七支函式下載後與交付來源逐字比對相同。正式來源核對包含足球傷停／雙方 11 人先發、NBA 傷停／官方名單、MLB 雙方 9 人打線／傷兵；詳見 `backend-source-validation.json` 與 `backend-deployment-validation.json`。歷史來源不改寫賽前快照。前台公開資源 SHA-256 10/10 相同。

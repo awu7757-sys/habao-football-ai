@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-13T07:44:12.196Z",
+  "checked_at": "2026-11-13T07:57:57.853Z",
   "actual_project_edge_requests": true,
   "creates_stage_snapshot": false,
   "member_debits": 0,
@@ -756,6 +756,136 @@
         },
         "revision": "sports-release-20261113-1",
         "source_read_at": "2026-11-13T07:40:31.057Z",
+        "creates_stage_snapshot": false
+      }
+    },
+    {
+      "sport": "football",
+      "request_id": 74907,
+      "status_code": 200,
+      "error_msg": null,
+      "response": {
+        "scope": "source_reachability_and_schema_only",
+        "sport": "football",
+        "game_id": 1550189,
+        "success": true,
+        "evidence": {
+          "teams": [
+            {
+              "name": "Fiorentina",
+              "team_id": 502,
+              "starters": [
+                {
+                  "id": 882,
+                  "name": "David de Gea"
+                },
+                {
+                  "id": 330437,
+                  "name": "Álex Jiménez"
+                },
+                {
+                  "id": 162498,
+                  "name": "R. Drăgușin"
+                },
+                {
+                  "id": 424277,
+                  "name": "Viery"
+                },
+                {
+                  "id": 41734,
+                  "name": "João Mário"
+                },
+                {
+                  "id": 311083,
+                  "name": "C. Ndour"
+                },
+                {
+                  "id": 474591,
+                  "name": "C. Inao OulaÃ¯"
+                },
+                {
+                  "id": 449249,
+                  "name": "Franco Mastantuono"
+                },
+                {
+                  "id": 18748,
+                  "name": "Pote"
+                },
+                {
+                  "id": 383006,
+                  "name": "A. Njie"
+                },
+                {
+                  "id": 292172,
+                  "name": "Mateo Pellegrino"
+                }
+              ]
+            },
+            {
+              "name": "Juventus",
+              "team_id": 496,
+              "starters": [
+                {
+                  "id": 31354,
+                  "name": "G. Vicario"
+                },
+                {
+                  "id": 162188,
+                  "name": "P. Kalulu"
+                },
+                {
+                  "id": 30497,
+                  "name": "Bremer"
+                },
+                {
+                  "id": 1929,
+                  "name": "J. Lucumí"
+                },
+                {
+                  "id": 125674,
+                  "name": "J. Cabal"
+                },
+                {
+                  "id": 415,
+                  "name": "W. McKennie"
+                },
+                {
+                  "id": 36899,
+                  "name": "T. Koopmeiners"
+                },
+                {
+                  "id": 47522,
+                  "name": "Douglas Luiz"
+                },
+                {
+                  "id": 30531,
+                  "name": "J. Boga"
+                },
+                {
+                  "id": 21104,
+                  "name": "R. Kolo Muani"
+                },
+                {
+                  "id": 158054,
+                  "name": "N. Woltemade"
+                }
+              ]
+            }
+          ],
+          "source": "api_football",
+          "injuries": [
+            {
+              "name": "R. Sottil",
+              "reason": "Back Injury",
+              "team_id": 502,
+              "player_id": 31507
+            }
+          ],
+          "injury_status": "data_returned",
+          "lineup_status": "data_returned"
+        },
+        "revision": "sports-release-20261113-1",
+        "source_read_at": "2026-11-13T07:49:49.759Z",
         "creates_stage_snapshot": false
       }
     }

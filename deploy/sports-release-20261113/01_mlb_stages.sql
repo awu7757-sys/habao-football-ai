@@ -92,7 +92,7 @@ BEGIN
  SELECT * INTO settings FROM public.baseball_v2_stage_settings WHERE id=true;
  IF NOT FOUND OR (settings.all_members_enabled IS DISTINCT FROM true AND p_account IS DISTINCT FROM settings.pilot_account) THEN RAISE EXCEPTION 'stage_access_disabled'; END IF;
  SELECT * INTO m FROM public.members WHERE account=p_account FOR UPDATE;
- IF NOT FOUND OR m.is_active IS DISTINCT FROM true THEN RAISE EXCEPTION 'member_inactive'; END IF;
+ IF NOT FOUND OR m.is_active IS DISTINCT FROM true OR (m.expire_at IS NOT NULL AND m.expire_at<=clock_timestamp()) THEN RAISE EXCEPTION 'member_inactive'; END IF;
  SELECT * INTO c FROM public.baseball_v2_stage_claims WHERE account=p_account AND game_id=p_game_id AND stage=p_stage;
  IF FOUND THEN RETURN jsonb_build_object('success',true,'already_claimed',true,'result',c.result_data); END IF;
  SELECT * INTO s FROM public.baseball_v2_stage_snapshots WHERE game_id=p_game_id AND stage=p_stage AND status='ready';

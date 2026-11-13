@@ -26,8 +26,8 @@ Deno.serve(async req=>{
   if(!settings)return reply(503,{success:false,error:'stage_settings_missing'});
   if(settings.all_members_enabled!==true&&settings.pilot_account!==account)return reply(200,{success:true,enabled:false,stages:{},matches:[]});
   if(await identity(req)!==account)return reply(401,{success:false,error:'member_authentication_required'});
-  const member=(await get('members',{account:'eq.'+account,select:'account,is_active',limit:'1'}))[0];
-  if(!member||member.is_active!==true)return reply(403,{success:false,error:'member_inactive'});
+  const member=(await get('members',{account:'eq.'+account,select:'account,is_active,expire_at',limit:'1'}))[0];
+  if(!member||member.is_active!==true||(member.expire_at&&Date.parse(member.expire_at)<=Date.now()))return reply(403,{success:false,error:'member_inactive'});
   if(action==='history'){
    const rows=await get('baseball_v2_stage_claims',{account:'eq.'+account,select:'game_id,stage,fixture_time,claimed_at,result_data',fixture_time:'gt.'+new Date(Date.now()-8*3600000).toISOString(),order:'fixture_time.asc,stage.asc',limit:'200'});
    return reply(200,{success:true,enabled:true,matches:rows.map(x=>({id:'mlb-stage:'+x.game_id+':'+x.stage,game_id:x.game_id,fixture_id:x.game_id,sport:'baseball',history_key:'baseball:stage:'+x.game_id+':'+x.stage,fixture_time:x.fixture_time,home_team:x.result_data?.fixture?.home?.name||'',away_team:x.result_data?.fixture?.away?.name||'',league_name:'MLB',updated_at:x.claimed_at,v2_stage:x.stage,v2_stage_label:x.stage==='t2'?'T-2 深度分析':'T-15 最終分析',result_data:x.result_data}))});
