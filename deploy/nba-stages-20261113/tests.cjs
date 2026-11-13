@@ -104,11 +104,25 @@ const credits=async()=>Number((await db.query('SELECT analysis_credits FROM memb
  await test('after T-10 claim button immediately waits for blue T-2',()=>{const x=ui.decision(iso(now+180*60000),{t10:true},now);assert.equal(x.stage,'t2');assert.equal(x.disabled,true);});
  await test('T-2 opens without requiring earlier claim; T-15 follows',()=>{assert.equal(ui.decision(iso(now+90*60000),{},now).stage,'t2');const x=ui.decision(iso(now+90*60000),{t2:true},now);assert.equal(x.stage,'t15');assert.equal(x.disabled,true);assert.equal(ui.decision(iso(now+10*60000),{},now).disabled,false);});
  await test('completed current stage is disabled; tipoff always closes',()=>{assert.equal(ui.decision(iso(now+10*60000),{t15:true},now).disabled,true);assert.equal(ui.decision(iso(now),{},now).label,'分析已截止');});
- await test('all updated page scripts and both function bundles parse',()=>{for(const file of ['football.html','analysis.html'])for(const m of src(file).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){if(/src\s*=|application\/ld\+json|application\/json/.test(m[1])||!m[2].trim())continue;new vm.Script(m[2]);}new vm.Script(src('nba-stages.js'));new vm.Script(src('nba-v2-stage-member.index.txt'));new vm.Script(src('nba-v2-stage-runner.index.txt'));assert.ok(src('football.html').includes('nba-stages.js?v=20261113-4'));});
+ await test('all updated page scripts and both function bundles parse',()=>{for(const file of ['football.html','analysis.html'])for(const m of src(file).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){if(/src\s*=|application\/ld\+json|application\/json/.test(m[1])||!m[2].trim())continue;new vm.Script(m[2]);}new vm.Script(src('nba-stages.js'));new vm.Script(src('nba-v2-stage-member.index.txt'));new vm.Script(src('nba-v2-stage-runner.index.txt'));assert.ok(src('football.html').includes('nba-stages.js?v=20261113-5'));});
  await test('read-only live-evidence SQL compares member results with their frozen stage snapshot',async()=>{
   await db.exec("ALTER TABLE basketball_prediction_snapshots ADD COLUMN model_version text;ALTER TABLE basketball_prediction_snapshots ADD COLUMN prediction_data jsonb;");
   const rows=(await db.exec(src('05_verify_stage_results.sql')))[0].rows;
   assert.ok(rows.length>0);assert.ok(rows.every(x=>Number(x.claim_snapshot_mismatches)===0));
+ });
+ await test('production SQL opens ordinary members and preserves atomic debit and replay rules',async()=>{
+  await db.exec(src('07_enable_all_members.sql'));
+  const settings=(await db.query('SELECT * FROM basketball_v2_stage_settings')).rows[0];assert.equal(settings.all_members_enabled,true);assert.equal(settings.pilot_account,'');
+  const before=(await db.query("SELECT analysis_credits FROM members WHERE account='ordinary'")).rows[0].analysis_credits;
+  assert.equal((await claim(3,'t2','ordinary')).success,true);assert.equal((await claim(3,'t2','ordinary')).already_claimed,true);
+  assert.equal((await db.query("SELECT analysis_credits FROM members WHERE account='ordinary'")).rows[0].analysis_credits,before-1);
+ });
+ await test('all-member release still authenticates the account and blocks disabled members',async()=>{
+  for(const mode of ['valid','spoof','inactive']){
+   const owner='google_regular_member';let storageReads=0;
+   const c=endpoint(async(raw)=>{const u=new URL(raw);if(u.pathname.endsWith('/basketball_v2_stage_settings'))return json([{all_members_enabled:true,pilot_account:''}]);if(u.pathname.includes('oauth-member-login'))return json({success:true,member:{account:mode==='spoof'?'attacker':owner}});if(u.pathname.endsWith('/members'))return json([{account:owner,is_active:mode!=='inactive'}]);storageReads++;return json([]);});
+   const res=await c.handler(req({action:'status',account:owner,game_ids:[99]}));assert.equal(res.status,mode==='valid'?200:mode==='spoof'?401:403);if(mode!=='valid')assert.equal(storageReads,0);
+  }
  });
  console.log(JSON.stringify({suite:'NBA stage financial, capture, frontend tests',passed,failed}));await db.close();process.exitCode=failed?1:0;
 })().catch(async e=>{console.error(e);await db.close();process.exitCode=1;});

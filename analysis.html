@@ -4202,7 +4202,7 @@ const timeText = gameDate
     const nbaCaptureMs=Date.parse(nbaCapturedAt||"");
     const nbaCaptureLabel=Number.isFinite(nbaCaptureMs)?new Date(nbaCaptureMs).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour:"2-digit",minute:"2-digit",hour12:false})+" 封存":"已封存";
     const nbaLate=data.stage_capture?.capture_mode==="late_pre_match_recovery"||footballV2Evidence?.capture_mode==="late_pre_match_recovery";
-    const nbaStageBadgeHtml=`<div class="v2-detail-badge nba-stage-badge" data-stage="${nbaStage}">${nbaStage==="t10"?"正式快照":"研究版"} · ${escapePartnerHtml(nbaCaptureLabel)}${nbaLate?" · 賽前補抓":""}</div>`;
+    const nbaStageBadgeHtml=`<div class="v2-detail-badge nba-stage-badge" data-stage="${nbaStage}">${nbaStage==="t10"?"T-10 快照":"階段快照"} · ${escapePartnerHtml(nbaCaptureLabel)}${nbaLate?" · 賽前補抓":""}</div>`;
     const evidenceStatus=value=>({not_available:"資料未取得",not_collected_at_this_stage:"本階段未取得資料",no_rows_returned:"來源未回傳名單",data_returned:"已取得資料"}[String(value)]||"資料待確認");
     const nbaEvidenceHtml=footballV2Evidence?`<div class="nba-stage-evidence" data-stage="${nbaStage}"><strong>本階段資料狀態</strong><p>傷停：${escapePartnerHtml(evidenceStatus(footballV2Evidence.availability?.status))}；先發：${escapePartnerHtml(evidenceStatus(footballV2Evidence.lineups?.status))}。</p><p>${footballV2Evidence.availability?.status!=="data_returned"?"尚未套用傷停與先發修正。":""}${nbaLate?"本次為賽前補抓，依實際封存時間提供分析。":""}</p></div>`:"";
     const nbaNoPick=r=>isBasketballAnalysis&&(!r?.pick||["暫不推薦","暂不推荐","No Recommendation","no recommendation"].includes(String(r.pick).trim()));

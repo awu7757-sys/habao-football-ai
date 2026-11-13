@@ -1,7 +1,7 @@
 -- Read-only NBA stage deployment check; a cron SQL success alone is not an API success.
 SELECT '階段開放範圍' AS item,
- CASE WHEN count(*)=1 AND bool_and(NOT all_members_enabled AND pilot_account='google_2d3cef6b6e2d') THEN 'PASS' ELSE 'CHECK' END AS status,
- '僅測試帳號；不開放全會員' AS detail
+ CASE WHEN count(*)=1 AND bool_and(all_members_enabled AND pilot_account='') THEN 'PASS' ELSE 'CHECK' END AS status,
+ 'NBA 三階段已開放全會員；沿用登入與會員權限' AS detail
 FROM public.basketball_v2_stage_settings;
 SELECT game_id,stage,status,fixture_time AT TIME ZONE 'Asia/Taipei' AS kickoff_tw,
  captured_at AT TIME ZONE 'Asia/Taipei' AS captured_tw,

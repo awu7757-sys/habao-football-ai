@@ -3911,13 +3911,8 @@ const supabaseAuth =
 let currentFixtureOffset = 1;
 let currentHabaoSport = "football";
 
-const HABAO_NBA_TEST_MODE =
-  new URLSearchParams(
-    window.location.search
-  ).get("nba_test") === "1";
-
-const HABAO_NBA_TEST_BASE_DATE =
-  "2026-10-21";
+const HABAO_NBA_TEST_MODE = false;
+const HABAO_NBA_TEST_BASE_DATE = "";
 
 function addHabaoDateDays(
   yyyyMmDd,
@@ -4394,8 +4389,6 @@ const BASKETBALL_MEMBER_ANALYSIS_URL =
 const BASKETBALL_ANALYSIS_PREVIEW_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-analysis";
 
-const HABAO_NBA_PREVIEW_TEST_ACCOUNT =
-  "google_2d3cef6b6e2d";
 
 const HABAO_ANALYSIS_JOB_KEY =
   "habao_active_analysis_job";
@@ -5721,7 +5714,7 @@ function updateHabaoFixtureTitle(
 
     if (testDate) {
       sectionTitle.textContent =
-        `🏀 NBA 測試賽事｜${testDate}`;
+        `🏀 NBA 賽事｜${testDate}`;
     } else {
       sectionTitle.textContent =
         offset === 0
@@ -6263,7 +6256,7 @@ async function loadBasketballFixtures(
   container.innerHTML = `
     <div class="ai-note">
       ${requestDate
-        ? `正在取得 NBA 測試賽事｜${requestDate}...`
+        ? `正在取得 NBA 賽事｜${requestDate}...`
         : (
             offset === 0
               ? "正在取得今日 NBA 賽事..."
@@ -6343,29 +6336,7 @@ async function loadBasketballFixtures(
   }
 }
 
-function isHabaoNbaPreviewTester() {
-  if (!HABAO_NBA_TEST_MODE) {
-    return false;
-  }
-
-  try {
-    const member =
-      JSON.parse(
-        sessionStorage.getItem(
-          "habao_member"
-        ) || "null"
-      );
-
-    return (
-      String(
-        member?.account || ""
-      ).trim() ===
-      HABAO_NBA_PREVIEW_TEST_ACCOUNT
-    );
-  } catch {
-    return false;
-  }
-}
+function isHabaoNbaPreviewTester() { return false; }
 
 function habaoNbaMemberResponseValid(data,gameId){
   const fixture=data?.fixture,analysis=data?.analysis;
@@ -6433,7 +6404,7 @@ async function openBasketballMatch(
 
     button.textContent =
       previewTest
-        ? "NBA 測試分析中..."
+        ? "NBA 分析中..."
         : "NBA AI 分析中...";
 
     button.style.setProperty(
@@ -6918,7 +6889,7 @@ function renderBasketballFixtureData(
         isFinished ? "已完賽" :
         isLive ? "比賽已開賽" :
         previewTest && !analysisWindow.isOpen
-          ? nbaT("nbaTestPreview", "NBA 測試預覽")
+          ? nbaT("nbaTestPreview", "NBA 賽事分析")
           : analysisAvailable
             ? nbaT("analysisAvailable", "可分析")
             : nbaT("nbaLocked", "尚未開放分析");
@@ -6927,7 +6898,7 @@ function renderBasketballFixtureData(
         isFinished ? nbaT("matchFinished", "✓ 已完賽") :
         isLive ? "分析已截止" :
         previewTest && !analysisWindow.isOpen
-          ? nbaT("nbaTestButton", "測試 NBA AI 分析")
+          ? nbaT("nbaTestButton", "NBA AI 分析")
           : analysisAvailable
             ? nbaT("startAnalysis", "開始分析")
             : nbaT("nbaLockedButton", "賽前 10 小時開放");
@@ -8785,10 +8756,13 @@ async function startHabaoSportBatchAnalysis(){
   if(!member?.account){alert("請重新登入會員");return;}
   const batchAccount=String(member.account);
   let nbaSpecs=null;
-  if(sport==="basketball"&&batchAccount==="google_2d3cef6b6e2d"){
+  if(sport==="basketball"){
     try{
-      if(!window.habaoNbaStages?.batchSpec)throw new Error("階段功能尚未載入，請重新整理後再試。");
-      nbaSpecs=inputs.map(input=>window.habaoNbaStages.batchSpec(input));
+      const client=window.habaoNbaStages;
+      if(!client?.batchSpec||!client?.accessState)throw new Error("階段功能尚未載入，請重新整理後再試。");
+      const access=client.accessState();
+      if(access==="enabled")nbaSpecs=inputs.map(input=>client.batchSpec(input));
+      else if(access!=="disabled")throw new Error("正在確認會員分析狀態，請稍後再試。");
     }catch(error){alert(error?.message||"請重新勾選 NBA 階段分析");return;}
   }
   let accessToken="";
@@ -9362,7 +9336,7 @@ const basketballMatches =
 // Add isolated claimed NBA stages without replacing official T-10 history rows.
 window.habaoNbaStageHistoryError=false;
 try {
-  if(String(member.account)==="google_2d3cef6b6e2d"&&!window.habaoNbaStages?.history)throw new Error("NBA 階段功能尚未載入，請重新整理後再試");
+  if(!window.habaoNbaStages?.history)throw new Error("NBA 階段功能尚未載入，請重新整理後再試");
   const stageMatches=await window.habaoNbaStages?.history();
   if(Array.isArray(stageMatches))basketballMatches.push(...stageMatches);
 } catch(error) { window.habaoNbaStageHistoryError=true;console.warn('NBA_STAGE_HISTORY_UNAVAILABLE',error?.message||error); }
@@ -10243,7 +10217,7 @@ if (
 }  
 
 </script>
-<script src="./nba-stages.js?v=20261113-4"></script>
+<script src="./nba-stages.js?v=20261113-5"></script>
 <script>
 // =========================================
 // HABAO｜首頁「我的分析」直達分析紀錄
@@ -10885,10 +10859,10 @@ function closeQuotaLimitModal() {
       sportFootball: "足球",
       sportBasketball: "籃球",
       sportBaseball: "棒球",
-      nbaTestPreview: "NBA 測試預覽",
+      nbaTestPreview: "NBA 賽事分析",
       nbaReady: "NBA AI 可分析",
       nbaLocked: "尚未開放分析",
-      nbaTestButton: "測試 NBA AI 分析",
+      nbaTestButton: "NBA AI 分析",
       nbaLockedButton: "賽前 10 小時開放",
       basketballComingSoon: "🏀 籃球賽事即將開放",
       baseballComingSoon: "⚾ 棒球賽事即將開放",
