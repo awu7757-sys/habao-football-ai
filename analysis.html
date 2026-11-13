@@ -4224,18 +4224,6 @@ const timeText = gameDate
   <div class="eyebrow">AI MATCH ANALYSIS</div>
 
   <h1>${window.HabaoAnalysisContract.heading(savedData)}</h1>
-  ${window.HabaoAnalysisContract.badge(savedData)}
-
-  <div class="sub">
-    ${
-      isBasketballAnalysis
-        ? "依本階段封存的球隊數據與市場盤口，提供 NBA 賽前分析"
-        : analysisT(
-            "analysisSubtitle",
-            "整合近期數據、賽事資訊與市場資料，提供多維賽事量化分析"
-          )
-    }
-  </div>
 
 </div>
 
@@ -4288,7 +4276,7 @@ ${getAnalysisLeagueName(
         ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
       </div>
 
-      ${window.HabaoAnalysisContract.evidence(savedData)}
+
 
       <div class="grid">
 
