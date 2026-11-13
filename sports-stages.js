@@ -19,8 +19,8 @@
   let ready=access[sp]==='enabled';if(current==='t10'&&access[sp]==='disabled')ready=true;
   // Failed status never silently downgrades a requested T-2/T-15 to T-10.
   const unavailable=!ready&&d.stage!==null&&!(Date.parse(kickoff)-Date.now()>36000000);
-  button.disabled=d.disabled||unavailable;button.dataset.lifecycle=lifecycle;button.classList.remove('stage-t2','stage-t15','football-v2-stage-btn','locked','finished');
-  button.classList.add('habao-stage-button');if(d.stage)button.classList.add('stage-'+d.stage);if(button.disabled)button.classList.add('locked');
+  button.disabled=d.disabled||unavailable;button.dataset.lifecycle=d.status==='比賽已開賽'?'live':lifecycle;button.classList.remove('stage-t10','stage-t2','stage-t15','football-v2-stage-btn','locked','finished');
+  button.classList.add('habao-stage-button');if(d.stage)button.classList.add('stage-'+d.stage);else if(Date.parse(kickoff)>Date.now()&&lifecycle!=='finished'&&lifecycle!=='live')button.classList.add('stage-t10');if(button.disabled)button.classList.add('locked');
   button.textContent=unavailable?'階段服務尚未就緒':d.label;button.dataset.habaoStage=d.stage||'';button.setAttribute('aria-label',button.textContent);button.onclick=button.disabled?null:()=>open(sp,id,d.stage,button);
   if(status){status.dataset.lifecycle=lifecycle;status.textContent=unavailable?'請稍後重新整理':d.status;status.dataset.stage=d.stage||'';status.classList.toggle('ready',!button.disabled);status.classList.toggle('locked',button.disabled);}
   let label=card.querySelector('.v2-batch-select');if(!label&&current){label=document.createElement('label');label.className='v2-batch-select';label.innerHTML='<input type="checkbox" class="batch-analysis-checkbox"><span></span>';button.before(label);}
