@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>賽事中心｜HABAO 賽事預測 AI</title>
-<link rel="stylesheet" href="sports-stages.css?v=20261113-1">
+<link rel="stylesheet" href="sports-stages.css?v=20261113-2">
 
 <style>
 *{
@@ -6876,7 +6876,7 @@ function renderBasketballFixtureData(
         ? Math.max(0, -analysisWindow.msUntilKickoff) : 0;
       const isFinished = analysisWindow.isStarted &&
         (nbaStatus === "3" || ["FT", "AET", "FINAL", "FINISHED"].includes(nbaStatus) ||
-         /finished|final|game over/.test(nbaStatusLong) || elapsedMs >= 5 * 60 * 60 * 1000);
+         /finished|final|game over/.test(nbaStatusLong));
       const isLive = analysisWindow.isStarted && !isFinished;
       const nbaStatusKey = isFinished ? "finished" : isLive ? "live" : "upcoming";
       const analysisAvailable =
@@ -7521,7 +7521,7 @@ container.innerHTML =
     return `
       <article
         class="match-card v2-match-card" data-sport="football"
-        data-fixture-id="${safeFixtureId}"
+        data-fixture-id="${safeFixtureId}" data-fixture-state="${isFinished?'finished':isStarted?'live':'scheduled'}"
         data-league-key="${safeLeagueKey}"
       >
 
@@ -11647,9 +11647,9 @@ analysisResultNotFound: "Analysis result not found"
 </script>
 
 <script src="nba-stages.js?v=20261113-5"></script>
-<script src="sports-stage-core.js?v=20261113-1"></script>
-<script src="sports-stages.js?v=20261113-1"></script>
-<script src="mlb-match-center.js?v=20261113-13"></script>
+<script src="sports-stage-core.js?v=20261113-2"></script>
+<script src="sports-stages.js?v=20261113-2"></script>
+<script src="mlb-match-center.js?v=20261113-14"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 
 </body>

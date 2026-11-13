@@ -11,3 +11,10 @@
 .analysis-hero h1{overflow-wrap:anywhere}.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.pick-value{overflow-wrap:anywhere}.history-team .v2-team-logo-box{margin:0 auto 10px}.history-team .v2-team-logo-box img{width:100%;height:100%;margin:0;object-fit:contain}
 @media(max-width:600px){.grid{grid-template-columns:1fr!important}.habao-history-stages{gap:6px;padding:0 12px 9px}.habao-history-stage{font-size:11px;padding:11px 3px}.habao-history-stage small{font-size:9px}.habao-stage-evidence{padding:14px;font-size:12px}}
 @keyframes habao-stage-spin{to{transform:rotate(360deg)}}
+
+/* Match-center stage colors outrank the legacy gold button selector. */
+#matchesContainer .v2-match-card .analysis-btn.habao-stage-button.stage-t10{background:linear-gradient(135deg,#f8d86b,#d89914)!important;color:#211a09!important;border-color:#b78b28!important;box-shadow:0 7px 18px #b78b282b!important}
+#matchesContainer .v2-match-card .analysis-btn.habao-stage-button.stage-t2{background:linear-gradient(135deg,#c5e9ff,#52b7ed)!important;color:#062238!important;border-color:#71c9f8!important;box-shadow:0 7px 18px #3da5dc38!important}
+#matchesContainer .v2-match-card .analysis-btn.habao-stage-button.stage-t15{background:linear-gradient(135deg,#d9c8ff,#9874ed)!important;color:#180c32!important;border-color:#c0a5ff!important;box-shadow:0 7px 18px #845bdf38!important}
+#matchesContainer .v2-match-card .analysis-btn.habao-stage-button[data-lifecycle=finished],#matchesContainer .v2-match-card .analysis-btn.habao-stage-button[data-lifecycle=live]{background:#1c2b35!important;color:#a7bacb!important;border-color:#3d505e!important;box-shadow:none!important;opacity:1!important}
+#matchesContainer .ai-status[data-lifecycle=finished]{color:#b8c9d6!important}

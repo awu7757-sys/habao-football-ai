@@ -10,7 +10,9 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const stage=r=>sequence.includes(r?.v2_stage)?r.v2_stage:'t10';
  function phase(kickoff,now=Date.now()) {const minutes=(Date.parse(kickoff)-now)/60000;return !Number.isFinite(minutes)||minutes<=0||minutes>600?null:minutes<=15?'t15':minutes<=120?'t2':'t10';}
- function decision(kickoff,claimed={},now=Date.now()){
+ function lifecycle(value,sp){const v=value&&typeof value==='object'?String(value.long||value.short||''):String(value||'');const key=v.trim().toLowerCase();return /^(ft|aet|pen|awd|wo|final|finished|completed|game over|gameover|f|fr|fo)$/.test(key)||(sp==='basketball'&&key==='3')?'finished':/^(live|in progress|in play|1h|2h|ht|et|bt|p)$/.test(key)?'live':'scheduled';}
+ function decision(kickoff,claimed={},now=Date.now(),fixtureStatus='',sp=''){
+  const life=lifecycle(fixtureStatus,sp);if(life==='finished')return {stage:null,label:'✓ 已完賽',status:'已完賽',disabled:true};if(life==='live')return {stage:null,label:'分析已截止',status:'比賽已開賽',disabled:true};
   const minutes=(Date.parse(kickoff)-now)/60000,current=phase(kickoff,now);
   const time=s=>new Date(Date.parse(kickoff)-(s==='t2'?120:15)*60000).toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',hour12:false});
   if(!Number.isFinite(minutes))return {stage:null,label:'賽事時間未確認',status:'尚未開放分析',disabled:true};
@@ -47,5 +49,5 @@
   }
   return [...groups.values()].sort((a,b)=>Date.parse(a.fixture_time)-Date.parse(b.fixture_time));
  }
- const api={sequence,labels,sportNames,mlbNames,teamLogo,esc,phase,decision,stage,identity,sport,valid,pickView,groupHistory};root.HabaoStageCore=api;if(typeof module!=='undefined')module.exports=api;
+ const api={sequence,labels,sportNames,mlbNames,teamLogo,esc,phase,lifecycle,decision,stage,identity,sport,valid,pickView,groupHistory};root.HabaoStageCore=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
