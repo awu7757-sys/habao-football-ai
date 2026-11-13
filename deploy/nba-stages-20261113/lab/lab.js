@@ -10,9 +10,11 @@ const scenarios=[
  {id:'t15',label:'T-15：最終分析',minutes:14,owned:['t10','t2'],button:'最終分析',disabled:false},
  {id:'done',label:'三階段已領取：免費重看',minutes:10,owned:['t10','t2','t15'],button:'已領取最終分析',disabled:true},
  {id:'started',label:'開賽後：分析截止',minutes:-1,owned:['t10','t2','t15'],button:'分析已截止',disabled:true},
- {id:'empty',label:'T-2：額度不足',minutes:60,owned:['t10'],button:'深度分析',disabled:false,credits:0}
+ {id:'empty',label:'T-2：額度不足',minutes:60,owned:['t10'],button:'深度分析',disabled:false,credits:0},
+ {id:'confirmed',label:'T-15：確認先發分支（合成範例）',minutes:14,owned:['t10','t2'],button:'最終分析',disabled:false,confirmed:true}
 ];
 const state={bundle:clone(LAB.demo),scenario:scenarios[3],claims:{},credits:50,ledger:[],storage:{},view:'fixtures',search:'',token:0,waiting:null};
+function currentBundle(){const b=clone(state.bundle);if(state.scenario.confirmed&&b.origin==='synthetic_display_examples')for(const g of b.games){const v=g.variants?.confirmed;if(v){g.results.t15=v.result;g.models.t15=v.model;g.metas.t15=v.meta;}}return b;}
 function displaySafe(v){if(typeof v==='string')return v.replaceAll('<','＜').replaceAll('>','＞');if(Array.isArray(v))return v.map(displaySafe);if(v&&typeof v==='object')return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,displaySafe(x)]));return v;}
 function bootstrap(seed){
  const NativeDate=Date,wait=window.setTimeout.bind(window),storage=new Map(Object.entries(seed.storage||{}));
@@ -67,7 +69,7 @@ function bootstrap(seed){
 function resetScenario(s){state.scenario=s;state.claims=Object.fromEntries(state.bundle.games.map(g=>[g.game_id,Object.fromEntries(s.owned.filter(k=>g.results[k]).map(k=>[k,true]))]));state.credits=s.credits??50;state.ledger=[];state.storage={};state.search='';state.view='fixtures';}
 function frameBoot(seed){return '('+bootstrap.toString()+')('+JSON.stringify(seed).replaceAll('<','\\u003c')+');';}
 function seedFor(view){
- const games=displaySafe(clone(state.bundle.games));
+ const games=displaySafe(currentBundle().games);
  for(const g of games)for(const r of Object.values(g.results)){if(r?.fixture){r.fixture.home.logo=LAB.logos[g.home_team]||'';r.fixture.away.logo=LAB.logos[g.away_team]||'';}if(r.game_id==null)r.game_id=g.game_id;if(r.success==null)r.success=true;if(r.sport==null)r.sport='basketball';}
  const kickoff=Date.parse(games[0].fixture_time),now=kickoff-state.scenario.minutes*60000;
  const fixtures=games.map(g=>({fixture_id:g.game_id,kickoff_at:g.fixture_time,competition_name:'NBA',home:{name:g.home_team},away:{name:g.away_team},status:{short:1}}));
@@ -91,7 +93,7 @@ async function render(view=state.view){
  $('viewTitle').textContent=view==='fixtures'?'賽事中心':view==='history'?'我的分析':'分析結果（可從上方返回賽事中心／我的分析）';
  const seed=seedFor(view);$('origin').textContent=state.bundle.origin==='synthetic_display_examples'?'顯示範例（非正式預測）':'匯入的正式快照副本';
  $('clock').textContent=new Date(seed.now).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});$('credits').textContent=state.credits;$('charged').textContent=state.ledger.length;
- $('description').textContent=state.bundle.description||'僅讀取保存結果；不代表重新產生預測。';$('raw').textContent=JSON.stringify(state.bundle.games,null,2);
+ $('description').textContent=(state.scenario.confirmed?'此情境的確認名單是合成分支，不代表原賽事曾在該時間確認先發。':'')+(state.bundle.description||'僅讀取保存結果；不代表重新產生預測。');$('raw').textContent=JSON.stringify(currentBundle().games,null,2);drawAudit();
  return await new Promise(resolve=>{state.waiting={token:seed.token,resolve};$('view').srcdoc=childDoc(seed);setTimeout(()=>{if(state.waiting?.token===seed.token){state.waiting=null;toast('模板初始化逾時，請重設此情境。');resolve({error:true});}},10000);});
 }
 function toast(message){$('toast').textContent=message;}
@@ -124,7 +126,7 @@ function auditBundle(bundle){
  }
  return rows;
 }
-function drawAudit(){const rows=auditBundle(state.bundle);$('audit').innerHTML='<table><thead><tr><th>賽事／階段</th><th>檢查</th><th>狀態</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.game)+'<br>'+esc(r.stage.toUpperCase())+'</td><td>'+esc(r.name)+'<details><summary>數值</summary><pre>'+esc(r.detail)+'</pre></details></td><td class="'+(r.status==='PASS'?'pass':r.status==='CHECK'?'fail':'wait')+'">'+esc(r.status)+'</td></tr>').join('')+'</tbody></table>';}
+function drawAudit(){const rows=auditBundle(currentBundle());$('audit').innerHTML='<table><thead><tr><th>賽事／階段</th><th>檢查</th><th>狀態</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.game)+'<br>'+esc(r.stage.toUpperCase())+'</td><td>'+esc(r.name)+'<details><summary>數值</summary><pre>'+esc(r.detail)+'</pre></details></td><td class="'+(r.status==='PASS'?'pass':r.status==='CHECK'?'fail':'wait')+'">'+esc(r.status)+'</td></tr>').join('')+'</tbody></table>';}
 async function matrix(){
  $('auto').disabled=true;const old=state.scenario,out=[];
  for(const s of scenarios.slice(0,8)){resetScenario(s);$('scenario').value=s.id;const p=await render('fixtures'),card=p.cards?.[0],pass=card&&card.label.includes(s.button)&&card.disabled===s.disabled;out.push({label:s.label,pass,actual:card?.label||'無結果',fits:p.scrollWidth<=p.width+1});$('matrix').innerHTML=out.map(r=>'<p class="'+(r.pass&&r.fits?'pass':'fail')+'">'+(r.pass&&r.fits?'PASS':'CHECK')+' · '+esc(r.label)+' · '+esc(r.actual)+(r.fits?'':'（寬度溢出）')+'</p>').join('');}
@@ -137,7 +139,7 @@ function normalizeImport(raw){
  return b;
 }
 $('scenario').innerHTML=scenarios.map(s=>'<option value="'+s.id+'">'+s.label+'</option>').join('');$('scenario').value='t2';
-$('scenario').onchange=()=>{resetScenario(scenarios.find(s=>s.id===$('scenario').value));toast('');render();};$('reset').onclick=()=>{resetScenario(state.scenario);toast('');render();};$('auto').onclick=matrix;
+$('scenario').onchange=()=>{const s=scenarios.find(s=>s.id===$('scenario').value);if(s.confirmed&&state.bundle.origin!=='synthetic_display_examples'){$('scenario').value=state.scenario.id;toast('確認先發的合成分支只適用範例；不會修改匯入的正式名單。');return;}resetScenario(s);toast('');render();};$('reset').onclick=()=>{resetScenario(state.scenario);toast('');render();};$('auto').onclick=matrix;
 $('mobile').onclick=()=>{$('frameBox').classList.toggle('mobile');$('mobile').textContent=$('frameBox').classList.contains('mobile')?'桌面寬度':'手機寬度';};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>render(b.dataset.view));$('latest').onclick=()=>{if(!state.storage.matchAnalysis)return toast('請先在模板內點擊分析，或到「我的分析」重看已領取階段。');state.search='?sport=basketball';render('result');};
 $('sample').onclick=()=>{state.bundle=clone(LAB.demo);resetScenario(scenarios[3]);$('scenario').value='t2';drawAudit();render();};
