@@ -1,0 +1,20 @@
+{
+  "release": "0ce8966bca6b20b256b4f293a571e7edb90ff9a9",
+  "unit_checks": 45,
+  "browser_scenarios": 27,
+  "browser_passed": 27,
+  "checks": [
+    "button text",
+    "disabled state",
+    "computed button background",
+    "horizontal overflow"
+  ],
+  "sports": [
+    "football",
+    "basketball",
+    "baseball"
+  ],
+  "limitations": [
+    "Synthetic fixtures verify production renderer, not live source completeness or MLB batting/injury model integration."
+  ]
+}
