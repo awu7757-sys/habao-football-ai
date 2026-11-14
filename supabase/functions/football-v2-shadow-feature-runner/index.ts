@@ -63,7 +63,8 @@ async function loadCalendar(now:number, allowFetch:boolean):Promise<{fixtures:Fi
     let rows:Fixture[];
     if(okayCache(old,now,CALENDAR_TTL)&&Array.isArray(old?.fixtures))rows=old.fixtures;
     else if (allowFetch) {
-      rows=await api(`/fixtures?date=${date}&timezone=UTC`) as Fixture[];
+      // 2026-11-15：只存 12 個支援聯賽，避免每分鐘讀出全世界賽程造成大量流量（Egress）。
+      rows=(await api(`/fixtures?date=${date}&timezone=UTC`) as Fixture[]).filter(f=>SPORTS.has(Number(f?.league?.id)));
       await dbWrite('football_v2_shadow_fixture_calendar',{calendar_date:date,fetched_at:new Date().toISOString(),fixtures:rows,source_meta:{provider:'api_football',version:VERSION}},'calendar_date');
     } else { missingDates.push(date); continue; }
     result.push(...rows.filter(f=>SPORTS.has(Number(f?.league?.id))));

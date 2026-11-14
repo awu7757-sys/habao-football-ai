@@ -101,7 +101,7 @@ async function loadFixtures(now:number,allowFetch:boolean){
   const cached=new Map(rows.map(x=>[x.calendar_date,x]));const result:Fixture[]=[];const misses:string[]=[];
   for(const d of dates){const r=cached.get(d);let fs:any[];
     if(r&&Date.parse(r.fetched_at)>now-6*HOUR&&Array.isArray(r.fixtures))fs=r.fixtures;
-    else if(allowFetch){fs=await football(`/fixtures?date=${d}&timezone=UTC`);await dbWrite('football_v2_shadow_fixture_calendar',{calendar_date:d,fetched_at:new Date().toISOString(),fixtures:fs,source_meta:{provider:'api_football',version:VERSION}},'calendar_date');}
+    else if(allowFetch){fs=(await football(`/fixtures?date=${d}&timezone=UTC`)).filter((f:any)=>SPORTS.has(Number(f?.league?.id)));await dbWrite('football_v2_shadow_fixture_calendar',{calendar_date:d,fetched_at:new Date().toISOString(),fixtures:fs,source_meta:{provider:'api_football',version:VERSION}},'calendar_date');}
     else{misses.push(d);continue;}result.push(...fs.filter(f=>SPORTS.has(Number(f?.league?.id))));
   }
   const seen=new Set<number>();return {fixtures:result.filter(f=>{const id=Number(f?.fixture?.id);if(!Number.isSafeInteger(id)||seen.has(id))return false;seen.add(id);return true;}),misses};
