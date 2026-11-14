@@ -409,6 +409,21 @@ DRtg = 由對手得分效率建立
 - 流量主因：足球 feature runner 與 stage runner 每分鐘各讀一次 3 天份 `football_v2_shadow_fixture_calendar`，該快取存的是 API-Football 全世界賽程（每天最多約 1,000 場、約 1 MB），支援聯賽只有 0～2 場（`deploy/fixes-20261115/10_egress_suspects_readonly.sql`）。修正：兩支 runner 寫入快取前只留 12 個支援聯賽；`11_shrink_fixture_calendar.sql` 可立即縮小既有快取。2026-11-15 07:09 使用者已執行縮小，每日快取由約 1 MB 降到 0～0.002 MB。兩支 runner 新版（只快取支援聯賽）使用者確認已部署。待隔日在 Usage → Egress 確認每日流量下降（修正前約 500 MB／日）。
 - 結論：外部 API 額度使用率皆在個位數百分比，不需調整。長期最可能先碰到的是免費方案資料庫 0.5 GB 上限，建議每月檢查。MLB 休賽期排程只耗執行次數、不耗 API，是否暫停視後台實際執行次數決定。
 
+### 6.2c 2026-11-15 當下無法確認、需之後回頭驗證的項目
+
+| # | 項目 | 何時、怎麼確認 | 預期結果 |
+|---|---|---|---|
+| 1 | Egress 是否下降 | 11-16 起看 Supabase Usage → Egress 每日長條 | 明顯低於 11-13／11-14 的約 500 MB／日 |
+| 2 | 日職／韓職／中超／巴甲開始有 T-10／T-2／T-15；英冠／美職／墨超／歐協聯不再新增 | 國際賽週後（約 11-21 起）跑 `deploy/fixes-20261115/04_football_league_coverage_readonly.sql` | 4 個新聯賽有場次，4 個移除聯賽不再增加 |
+| 3 | 足球 T-10 補抓佇列「開賽仍無快照」(expired) 是否歸零 | 數天後跑 `08_snapshot_timeliness_readonly.sql` | 新賽事 expired 接近 0 |
+| 4 | feature runner 10 小時內補救是否生效 | 遇到晚出現的賽事時看 `match-analysis` 日誌 | 不再出現 `FOOTBALL_V2_FEATURE_SNAPSHOT_MISSING` |
+| 5 | NBA 賽程 103 場 vs T-10 100 場，差 3 場的原因 | 查 `basketball_fixture_cache` 與 `basketball_prediction_snapshots` 差集 | 應為延賽／非正式賽 |
+| 6 | 舊管理密碼後門開關是否被其他後台函式採用 | 匯出 `admin-benefits`、`admin-basketball`、`admin-baseball` 等原始碼後檢查 `ADMIN_LEGACY_PASSWORD_FALLBACK` | 都讀同一開關 |
+| 7 | 新會員首次 LINE 註冊（送 3 點、登入禮、加好友開關） | 有從未登入過的 LINE 帳號時實測 | 正常註冊並出現加好友開關 |
+| 8 | Log Query 用量偏高（2.5 天 26.9／100 GB） | 下週看 Usage | 回落；若持續偏高需找查詢來源 |
+| 9 | `usage-snapshot` 記錄的 edge_function_used、egress 為 0（不準） | 匯出 `usage-snapshot` 原始碼檢查 | 修正或改以後台為準 |
+| 10 | 11-13 疑似第 3 點扣點 | 匯出 `basketball-member-analysis` 檢查 T-10 重看是否重扣 | 使用者決定暫緩 |
+
 ### 6.3 做到一半或尚未完成
 
 - 三球類每日公開驗證（2026-11-15 04:28 以 `deploy/fixes-20261115/07_daily_verification_health_readonly.sql` 檢查）：四個結算排程近 3 天執行全部成功（棒球、籃球各 144/144，足球兩個各 72/72）；足球最後驗證 11-09（之後為國際賽週）、NBA 11-14（近 7 天 51 場）、MLB 10-29（休賽季，近 7 天 0 場屬正常）。各球類「完賽超過 6 小時未驗證」數字截圖被截斷，待補看。前台 30D／三球類首頁統計確認已於 `0ad0c66` 完成。
