@@ -115,8 +115,8 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 
 - 2026-11-15 起前台送 `adjust_credits`（差額 `delta`），後端呼叫 RPC `admin_adjust_member_credits`，由資料庫在同一行 UPDATE 內加減，扣除後不可小於 0。
 - 舊 action `update_credits`（直接覆寫總數）仍保留；前台只在後端回「無效的管理操作」（新版尚未部署）時退回使用。
-- 部署順序：`deploy/fixes-20261115/03_admin_adjust_member_credits.sql` → 新版 `admin-members`。部署狀態見 PROJECT_NOTES。
-- 其他 action：`list`、`create`（新增會員，初始 0 點，與 OAuth 註冊的預設 3 點不同）、`set_active`、`update_member_level`（降為一般會員會清空每日點數；升 VIP 會設 `vip_ever_activated`）、`update_platform_binding`（同平台同帳號不可重複綁定）。
+- 已於 2026-11-15 部署並實測正常。
+- 其他 action：`list`、`create`（殘留碼，後台已無入口；會員一律自行註冊）、`set_active`、`update_member_level`（降為一般會員會清空每日點數；升 VIP 會設 `vip_ever_activated`）、`update_platform_binding`（同平台同帳號不可重複綁定）。
 - 管理員權限：需 `members` 權限，或 legacy 超級管理員密碼（`ADMIN_LEGACY_PASSWORD_FALLBACK` 預設開啟）。
 
 ---
@@ -370,7 +370,7 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 
 1. 足球推薦轉換邏輯有兩份（§6），修改時必須同步。
 2. `performance_delete` 可永久刪除公開戰績，沒有稽核（§8.3）。
-3. 管理員改點數覆寫總數的競態：已改為差額加減，待後端部署（§3.4）。
+3. ~~管理員改點數覆寫總數~~：2026-11-15 已改為原子差額並上線（§3.4）。
 4. T-10 扣點、每日發點、賽後結算程式不在 repo（§12）。
 5. MLB 與 NBA 排程共用同一把 cron 金鑰（§5.3），換金鑰要兩邊一起改。
 6. 維護模式例外帳號寫死在前台（§2.3）。
