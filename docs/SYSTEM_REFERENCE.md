@@ -229,7 +229,13 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 - 會員看的：`supabase/functions/football-v2-stage-member/index.ts`（約 48–150 行）
 - 公開戰績：`supabase/functions/ai-performance/index.ts`（約 189–262 行）
 
-**兩份必須同步修改**，否則會員看到的推薦與公開戰績結算的推薦會不同。這是目前最需要注意的重複邏輯。
+**兩份必須同步修改**，否則會員看到的推薦與公開戰績結算的推薦會不同。
+
+自動檢查：`node tests/football-recommendation-parity.test.cjs`（2026-11-15 新增）。直接從兩個原始檔抽出算法，用 3000 筆合成快照比對獨贏、大小、讓分、BTTS 的選項與盤線；任何一邊單獨修改就會失敗。修改任一檔後必跑。
+
+已知的邊界差異（正常資料不會觸發，測試未涵蓋）：
+- 會員端拒絕 xG ≤0 或 >8 的快照；公開戰績端只要求是數字。
+- `probabilities` 部分欄位缺失時：會員端三項（主／和／客）要齊全且總和≈1 才採用，否則全部改用比分網格；公開戰績端逐項採用。
 
 ---
 

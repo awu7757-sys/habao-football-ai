@@ -417,7 +417,7 @@ DRtg = 由對手得分效率建立
 1. 保持 Supabase 禁止讀寫與 GitHub 逐次授權。任何工程師／AI 接手先確認當前允許範圍。
 1a. 【2026-11-15 已處理，使用者執行 `deploy/fixes-20261115/02_cleanup_retention_and_grants.sql`】每日清理不再刪除 `member_analysis_history`；`habao_cleanup_admin_data`、`habao_usage_database_size_gb`、`habao_usage_storage_size_gb` 只剩 postgres、service_role 可執行（線上確認）。
 1b. 【2026-11-15 已上線】管理員增減點數改為原子差額：`deploy/fixes-20261115/03_admin_adjust_member_credits.sql`（權限確認只剩 postgres、service_role）＋新版 `supabase/functions/admin-members/index.ts`（action `adjust_credits`）已部署；使用者實測加 1、扣 1 正常。
-1d. 【2026-11-15 進行中】關閉管理後台舊密碼後門：Supabase Secrets 設 `ADMIN_LEGACY_PASSWORD_FALLBACK=false`。目前 `admin.html`、`admin-nba-v2.js` 登入後都用 session，只在沒有 session 時才送 `admin_password`，關閉後正常登入不受影響（`auth_login` 不帶帳號＝超級管理員密碼登入仍可用，且有失敗鎖定）。`admin-benefits`、`admin-basketball` 等未匯出的函式是否讀同一開關待確認。
+1d. 【2026-11-15 已完成，使用者驗證後台登入與各頁正常】關閉管理後台舊密碼後門：Supabase Secrets 設 `ADMIN_LEGACY_PASSWORD_FALLBACK=false`。目前 `admin.html`、`admin-nba-v2.js` 登入後都用 session，只在沒有 session 時才送 `admin_password`，關閉後正常登入不受影響（`auth_login` 不帶帳號＝超級管理員密碼登入仍可用，且有失敗鎖定）。`admin-benefits`、`admin-basketball` 等未匯出的函式是否讀同一開關待確認。
 1e. 【使用者 2026-11-15】暫不處理：11/13 第 3 點追查（影響小）、新增扣點流水表。後台已無「新增會員」入口，會員一律自行註冊（註冊送 3 點）；`admin-members` 的 `create` action 為無前台呼叫的殘留碼。
 1c. 【決策：使用者 2026-11-15】後台「刪除戰績」`performance_delete` 維持原樣，不得擅自修改。
 2. 核對每球類公開驗證最後成功時間、已完賽未結算數、Cron、HTTP 回應與 function log。若有積壓先找原因，不要改標籤宣稱正常。
@@ -488,6 +488,7 @@ node deploy/public-home-20261115/performance-tests.cjs
 node deploy/sports-release-20261113/mlb-player-tests.cjs
 node deploy/sports-release-20261113/mlb-player-integration-tests.cjs
 node deploy/sports-release-20261113/contract-tests.cjs
+node tests/football-recommendation-parity.test.cjs   # 足球會員推薦 vs 公開戰績推薦一致性
 ```
 
 另有 `tests/` 目錄 8 個足球／NBA 測試（atomic、functional、settlement-repair、ui、batch、frontend、live-settlement）。其他 atomic／PGlite 測試依各 README 準備依賴；不能直接對正式會員做測試。這些通過只代表相應軟體行為，不表示真實來源正常或模型準確。
