@@ -58,12 +58,33 @@
       if(privateAccess){const s=(await auth.auth.getSession()).data?.session;if(!s?.access_token)throw Error('member_session_required');bearer=s.access_token;}
       return {apikey:key,Authorization:'Bearer '+bearer,'Content-Type':'application/json'};
     }
+    // 2026-11-15：首頁同時發出十多個唯讀請求，免費方案偶爾回 5xx／逾時，造成整排顯示「--」與「資料載入失敗」。
+    // 這裡全部是唯讀（含 stage 的 status／history），可安全重試：5xx、429、網路錯誤最多再試 2 次。
+    const RETRY_DELAYS=[600,1500];
+    const wait=ms=>new Promise(r=>setTimeout(r,ms));
     async function request(path,{body,privateAccess=false}={}){
-      const r=await fetcher(base+path,{method:body?'POST':'GET',headers:await headers(privateAccess),...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(20000)});
-      const p=await r.json();if(!r.ok||p?.success!==true)throw Error(path.split('?')[0]+'_unavailable');return p;
+      for(let attempt=0;;attempt++){
+        let r=null;
+        try{
+          r=await fetcher(base+path,{method:body?'POST':'GET',headers:await headers(privateAccess),...(body?{body:JSON.stringify(body)}:{}),cache:'no-store',signal:AbortSignal.timeout(20000)});
+        }catch(error){
+          if(String(error?.message||'')==='member_session_required'||attempt>=RETRY_DELAYS.length)throw error;
+          await wait(RETRY_DELAYS[attempt]);continue;
+        }
+        if((r.status>=500||r.status===429)&&attempt<RETRY_DELAYS.length){await wait(RETRY_DELAYS[attempt]);continue;}
+        const p=await r.json();if(!r.ok||p?.success!==true)throw Error(path.split('?')[0]+'_unavailable');return p;
+      }
     }
     function account(){const a=member()?.account;if(!a)throw Error('member_account_required');return a;}
+    // 公開驗證總數為公開資料、最快每小時更新：同一分頁 5 分鐘內回首頁直接沿用，減少等待與流量。
+    const VERIFIED_CACHE='habao_home_verified_v1',VERIFIED_TTL=5*60*1000;
     async function verified(){
+      try{const c=JSON.parse(root.sessionStorage?.getItem(VERIFIED_CACHE)||'null');if(c&&Date.now()-c.t<VERIFIED_TTL&&Number.isSafeInteger(c.v))return c.v;}catch{}
+      const total=await verifiedFresh();
+      try{root.sessionStorage?.setItem(VERIFIED_CACHE,JSON.stringify({t:Date.now(),v:total}));}catch{}
+      return total;
+    }
+    async function verifiedFresh(){
       const ps=await Promise.all(PERFORMANCE.map(path=>request(path)));
       return ps.reduce((sum,p)=>{const v=p.summary?.verified_matches;if(v==null||!Number.isSafeInteger(Number(v))||Number(v)<0)throw Error('verified_count_missing');return sum+Number(v);},0);
     }
