@@ -544,7 +544,7 @@ node tests/football-recommendation-parity.test.cjs   # 足球會員推薦 vs 公
 | 首頁浮動客服 | `home-v2.html` | `https://line.me/R/ti/p/@804dlhod`（原 `ppRvZLM`） |
 | 積分不足聯絡客服 | `football.html` | `https://line.me/R/ti/p/@804dlhod`（原 `xmU6Cn8`） |
 
-LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `queryParams.bot_prompt = "normal"`：會員首次授權時，同意畫面內直接出現「加入 HB 台彩賽事Ai 好友」開關（2026-11-15 實測 aggressive 會多跳第二頁，使用者不要，改回 normal）。LINE 無法真正強制加好友；真正強制需後端 `oauth-member-login` 查好友狀態後擋登入，使用者決定暫不做。同意畫面上的名稱／頭像／說明來自 LINE Login channel 的 Basic settings，與官方帳號是分開設定。2026-11-15 已完成綁定：LINE Developers Provider「哈寶足球」→ LINE Login channel「HABAO 賽事預測 AI」的 Linked LINE Official Account 由 `@033uztfl／哈寶` 改為 `@804dlhod／HB 台彩賽事Ai`（HB 台彩賽事Ai 已啟用 Messaging API 並加入同一 Provider，Webhook 未設定）。Supabase 自訂 provider 是否把此參數轉給 LINE 待實測；若同意畫面沒出現，先檢查 LINE 後台綁定。OAuth 授權網址本身未更動；`line-login-test.html` 為測試頁，未加。合作平台等後台動態連結不在此表。
+LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `queryParams.bot_prompt = "normal"`：會員首次授權時，同意畫面內直接出現「加入 HB 台彩賽事Ai 好友」開關（2026-11-15 實測 aggressive 會多跳第二頁，使用者不要，改回 normal）。LINE 無法真正強制加好友；真正強制需後端 `oauth-member-login` 查好友狀態後擋登入，使用者決定暫不做。同意畫面上的名稱／頭像／說明來自 LINE Login channel 的 Basic settings，與官方帳號是分開設定。2026-11-15 已完成綁定：LINE Developers Provider「哈寶足球」→ LINE Login channel「HABAO 賽事預測 AI」的 Linked LINE Official Account 由 `@033uztfl／哈寶` 改為 `@804dlhod／HB 台彩賽事Ai`（HB 台彩賽事Ai 已啟用 Messaging API 並加入同一 Provider，Webhook 未設定）。Supabase 自訂 provider 是否把此參數轉給 LINE 待實測；若同意畫面沒出現，先檢查 LINE 後台綁定。2026-11-15 修正：從安裝版 App（PWA handoff 流程）發起 LINE 登入、在 LINE 授權畫面按「取消」後，回到網站沒有 session，原本 Loading 永遠卡在 94%；現在會關閉 Loading、回到登入頁並顯示「已取消 LINE 登入」（`index.html` 的 `showHabaoOAuthReturnNotice`）。OAuth 授權網址本身未更動；`line-login-test.html` 為測試頁，未加。合作平台等後台動態連結不在此表。
 
 ## 12. 下一位維護者應回報的內容
 

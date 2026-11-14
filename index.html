@@ -3759,6 +3759,60 @@ function isHabaoStandalonePWA() {
 }
 
 
+/*
+ * 2026-11-15：OAuth 回到網站但沒有登入成功（例如在 LINE 授權畫面按取消）。
+ * 讀取 Supabase 帶回的 error 參數，顯示提示並清掉網址上的授權參數。
+ */
+function getHabaoOAuthReturnError() {
+  const query =
+    new URLSearchParams(window.location.search);
+  const hash =
+    new URLSearchParams(
+      String(window.location.hash || "").replace(/^#/, "")
+    );
+  const error =
+    query.get("error") || hash.get("error");
+  if (!error) {
+    return null;
+  }
+  return {
+    error,
+    description:
+      query.get("error_description") ||
+      hash.get("error_description") ||
+      ""
+  };
+}
+
+function showHabaoOAuthReturnNotice() {
+  const oauthError =
+    getHabaoOAuthReturnError();
+  const message =
+    document.getElementById("message");
+  if (message) {
+    const cancelled =
+      !!oauthError &&
+      /access_denied|cancel/i.test(
+        oauthError.error + " " + oauthError.description
+      );
+    message.textContent = cancelled
+      ? (window.HabaoI18n?.t?.("lineLoginCancelled", "已取消 LINE 登入，請重新點選登入。") || "已取消 LINE 登入，請重新點選登入。")
+      : (window.HabaoI18n?.t?.("lineLoginNotCompleted", "LINE 登入未完成，請重新點選登入。") || "LINE 登入未完成，請重新點選登入。");
+  }
+  try {
+    const lang =
+      new URLSearchParams(window.location.search).get("lang");
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname +
+        (lang ? "?lang=" + encodeURIComponent(lang) : "")
+    );
+  } catch {
+    // 清網址失敗不影響登入頁顯示
+  }
+}
+
 function getPWAHandoffCallback() {
 
   const params =
@@ -5236,7 +5290,6 @@ window.addEventListener(
      * 再完成 Safari → PWA handoff。
      */
     if (handoffCallback) {
-
       const {
         data: { session }
       } =
@@ -5246,8 +5299,16 @@ await getHabaoSessionWithTimeout();
         await completePWAHandoff(
           session
         );
+        return;
       }
 
+      /*
+       * 2026-11-15：會員在 LINE 授權畫面按「取消」或授權失敗時，
+       * 回到這裡不會有 session。原本直接 return，Loading 會永遠卡在 94%。
+       * 現在關閉 Loading、顯示登入頁與提示，會員可重新登入。
+       */
+      window.habaoCloseSplash?.();
+      showHabaoOAuthReturnNotice();
       return;
     }
 
@@ -5332,6 +5393,9 @@ if (!canLogin) {
   return;
 }
 
+if (getHabaoOAuthReturnError()) {
+  showHabaoOAuthReturnNotice();
+}
 try {
 
 } catch (error) {
