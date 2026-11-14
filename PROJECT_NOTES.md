@@ -406,7 +406,7 @@ DRtg = 由對手得分效率建立
 - Supabase 為免費方案額度（帳單週期 11-13～12-13）：資料庫 0.119／0.5 GB（24%）、儲存 0.031／1 GB。`edge_function_used`、`egress_used_gb` 顯示 0，與每天約 7,000 次排程呼叫不符，研判 `usage-snapshot` 沒有取得這兩項真實數字，需以 Supabase 後台 Usage 頁為準。
 - API-Football（V2 runner）：每日 19～338 次／7,500。API-NBA 總用量：每日 103～395 次／7,500。NBA 階段：nba 31～61、odds 22～26／日（odds 約每月 750 點／20,000）。MLB 階段：休賽期 0。
 - **Egress（流量）是主要風險**：Supabase 後台顯示 11-13、11-14 每天約 500 MB，推算每月約 15 GB，免費額度 5 GB。執行次數 2 天 19,452 次，推算每月約 30 萬次／50 萬。
-- 流量主因：足球 feature runner 與 stage runner 每分鐘各讀一次 3 天份 `football_v2_shadow_fixture_calendar`，該快取存的是 API-Football 全世界賽程（每天最多約 1,000 場、約 1 MB），支援聯賽只有 0～2 場（`deploy/fixes-20261115/10_egress_suspects_readonly.sql`）。修正：兩支 runner 寫入快取前只留 12 個支援聯賽；`11_shrink_fixture_calendar.sql` 可立即縮小既有快取。
+- 流量主因：足球 feature runner 與 stage runner 每分鐘各讀一次 3 天份 `football_v2_shadow_fixture_calendar`，該快取存的是 API-Football 全世界賽程（每天最多約 1,000 場、約 1 MB），支援聯賽只有 0～2 場（`deploy/fixes-20261115/10_egress_suspects_readonly.sql`）。修正：兩支 runner 寫入快取前只留 12 個支援聯賽；`11_shrink_fixture_calendar.sql` 可立即縮小既有快取。2026-11-15 07:09 使用者已執行縮小，每日快取由約 1 MB 降到 0～0.002 MB。待確認兩支 runner 新版已部署（否則 6 小時後重新抓取會再寫回全世界賽程），並於隔日在 Usage → Egress 確認每日流量下降。
 - 結論：外部 API 額度使用率皆在個位數百分比，不需調整。長期最可能先碰到的是免費方案資料庫 0.5 GB 上限，建議每月檢查。MLB 休賽期排程只耗執行次數、不耗 API，是否暫停視後台實際執行次數決定。
 
 ### 6.3 做到一半或尚未完成
