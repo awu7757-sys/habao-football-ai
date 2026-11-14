@@ -24,11 +24,11 @@
 | 正式分支 | `main` |
 | 前台 | GitHub Pages：`https://awu7757-sys.github.io/habao-football-ai/` |
 | Supabase 專案 | 名稱「哈寶足球AI」；project ref：`oqtbsbohcfeghgnykwxy` |
-| 本次讀到的 main HEAD | `2c26f99cea83f603ce542d08b5dfbe501df69c27` |
+| 本次讀到的 main HEAD | `2c26f99cea83f603ce542d08b5dfbe501df69c27`（本文件之前） |
 | 最近前台功能提交 | `0ad0c66b731ee4c84d3518c9ce7ac2da4481a0a2`：30D 戰績、首頁三球類統計 |
 | 最近補充提交 | `2c26f99...`：唯讀排程檢查改成單一可匯出結果集 |
 | 本次部署確認 | 上述 HEAD 的 `pages build and deployment` 已 `completed / success` |
-| 文件本身 | 提供交接檔；本次未將此文件提交 GitHub |
+| 文件本身 | 2026-11-15 由 Claude 提交至 repo 根目錄，並依程式碼核對結果補正（見 §13） |
 
 **GitHub Pages 成功不等於 Supabase 已部署。** `supabase/functions/` 與 `deploy/` 有重複、歷史版及組合產物，不能任選一份覆蓋線上函式。請先比對最後部署紀錄、版本、原始碼雜湊與依賴。
 
@@ -100,7 +100,7 @@ flowchart TD
 | `habao-page-runtime.js`、`habao-back-to-top-v2.js` | 導航及回頂部 | 注意 PWA／返回行為 |
 | `manifest.json`、`sw.js` | PWA 與快取 | 舊靜態資源可能影響驗收；不能靠重新扣點檢查新版 |
 | `qa/sports-release/` | 三球類驗證／重播頁 | 預設合成資料；不是正式真實分析紀錄 |
-| `qa/nba-stages.html`、`mlb-staging.html`、`mlb-verify-1024.html`、`line-login-test.html` | 歷史／專項驗證入口 | 不代表正式會員主路徑；刪除前先查引用 |
+| `qa/nba-stages.html`；根目錄的 `mlb-staging.html`、`mlb-verify-1024.html`、`line-login-test.html` | 歷史／專項驗證入口（後三者在 repo 根目錄，不在 `qa/`） | 不代表正式會員主路徑；刪除前先查引用 |
 
 ### 2.3 重要 Edge Functions
 
@@ -114,7 +114,10 @@ flowchart TD
 | MLB | `baseball-public-fixtures`、`baseball-feature-config`、`baseball-analysis`、`baseball-member-analysis`、`baseball-member-analysis-history`、`baseball-v2-stage-runner`、`baseball-v2-stage-member`、`baseball-performance-api`、`baseball-public-picks` |
 | 批次與跨球類 | `analysis-job`、`sports-release-verify` |
 | 管理 | `admin-center`、`admin-benefits`、`admin-members`、`admin-basketball`、`admin-basketball-performance`、`admin-baseball`、各 V2 compare 函式 |
-| 其他 | `public-stats`、`partner-platforms`、`toolbox-launch-settings`、`push-send`、`upgrade-vip` |
+| 其他 | `public-stats`、`public-announcements`、`partner-platforms`、`toolbox-launch-settings`、`push-send`、`push-subscribe`、`upgrade-vip`、`fund-plan-beta`、`nba-model-backtest`、`admin-football-v2-compare` |
+| 排程／後端互呼（只在部署檔出現） | `baseball-t10-job`、`public-prediction-runner`、`football-v2-shadow-stage-runner`、`nba-v2-stage-runner`、`baseball-v2-stage-runner` |
+
+`supabase/functions/football-v2-llm-shadow-runner/` 原始碼仍在 repo；是否仍部署／排程待確認（見 §1 LLM 停用決策）。
 
 `sports-release-verify` 的 capabilities 回應用於前台 controller 啟用；不要將其「能力可用」解讀成所有資料每日抓取均成功。所有診斷用臨時 action 完成後應還原，不得永久留下可被濫用的 probe。
 
@@ -143,7 +146,7 @@ flowchart TD
 
 重要 RPC：
 
-- `consume_member_analysis_credit(text)`：實際扣點規則的核心。一般首次成功領取扣 1 點；免費額度、付費額度、無限權限的優先順序以線上函式為準，**待確認**。
+- `consume_member_analysis_credit(text)`：實際扣點規則的核心。**repo 內找不到其 CREATE FUNCTION 定義，只有呼叫端**；定義僅存在線上資料庫，應由使用者匯出存檔。一般首次成功領取扣 1 點；免費額度、付費額度、無限權限的優先順序以線上函式為準，**待確認**。
 - `claim_football_v2_stage_analysis_atomic(...)`、`claim_nba_stage_atomic(...)`、`claim_mlb_stage_atomic(...)`：領取與扣點在同一交易完成，重複領取回傳舊結果。
 - `reserve_football_v2_stage_capture_lease(...)`／`release_football_v2_stage_capture_lease(...)`：足球擷取鎖。
 - `acquire_nba_stage_capture(...)`／`acquire_mlb_stage_capture(...)`：NBA／MLB 階段租約。
@@ -207,14 +210,14 @@ Secrets 只記名稱、不記值：`API_NBA_KEY`、`API_FOOTBALL_KEY`、`THE_ODD
 - 攻擊貢獻用進球＋助攻每 90 分鐘，乘隊內進球／進球助攻合計換算率（限制 `0.35～0.85`），再以 `minutes/(minutes+900)` 收縮。
 - 比較確認 XI，或排除已列傷停後的可用 XI，與基準 XI 的差別。不能把預估 XI 對外稱為確認先發。
 - 攻擊修正上限 ±0.35 xG；防守動作對對手 xG 修正 ±0.25；更換守門員失球率修正 ±0.25。
-- 球員快取 24 小時；舊文件說明冷快取只抓第一頁 20 位，可能部分覆蓋。實際分頁策略是否已升級待確認。
+- 球員快取 24 小時；`supabase/functions/football-v2-shadow-stage-runner/index.ts` 的 `teamPlayerStats` **目前只抓 `page=1`**，多頁時標為 `fresh_partial`／`cached_partial`。程式碼確認尚未升級分頁；線上是否同版待確認。
 - 部署後捕捉可套用球員修正；既有封存資料不回寫。資料不完整則保留原因與基礎模型。
 
 早期特徵設計曾採近 12 場、場地各 12 場，依 8→6→4 降階及跨季備援。**當前特徵生成器的完整取樣／分頁實作不全在此次核對來源中，待確認**，不得把這段規劃當成已確認現役參數。
 
 ### 3.3 NBA
 
-**T-10**：既有正式量化模型路徑，曾標為 `habao-nba-quant v1.0`。本次沒有重新取得其完整正式線上碼，精確參數待確認。
+**T-10**：既有正式量化模型路徑，曾標為 `habao-nba-quant v1.0`（此字串在 repo 中找不到，僅為對話紀錄）。本次沒有重新取得其完整正式線上碼，精確參數待確認。
 
 **T-2／T-15**：統合效率模型＋貝氏比分備援，使用 `nba-v2-unified-efficiency-shrinkage-v0.2` 的計算核心，另外由 stage runner 封存當階段市場與球員修正。
 
@@ -238,7 +241,7 @@ DRtg = 由對手得分效率建立
 雙方預估分數各限制 = 85～143
 ```
 
-每隊少於 3 場有效 box score 時，改用比分備援，不捏造效率。
+每隊少於 3 場有效 box score 時，改用比分備援，不捏造效率。效率路徑的分差／總分標準差取自比分模型的 `margin_sigma`／`total_sigma`（缺值時預設 16.3／20），再限制 10.5～22／13～27。
 
 比分備援：
 
@@ -255,7 +258,7 @@ DRtg = 由對手得分效率建立
 - 先發須每隊 5 位不重複球員、位置有效、Active 且 Confirmed；Expected 不當作確認。
 - 缺陣採 Out／Suspended 或官方 Inactive；Questionable／Probable 不猜機率。來源衝突保留紀錄並排除該筆不可靠修正。
 - 近五場球員分鐘／正負值，至少三場有效；團隊分鐘正規化至 240。
-- 個人相對隊內每 48 分鐘正負值，以 `minutes/(minutes+450)` 收縮；輪替再分配，單隊修正上限 ±1.5 分，雙方相對分差最多 ±3 分。
+- 個人相對隊內每 48 分鐘正負值，以 `minutes/(minutes+450)` 收縮並限制 ±8；輪替再分配，單隊修正上限 ±1.5 分，雙方相對分差最多 ±3 分。
 - 新確認先發的分鐘調整最多 `6 × (1 − 近期先發率)`；轉替補減少 `6 × 近期先發率`，然後重新正規化。
 - 長期缺陣且近五場已不在輪替的球員不再重扣；「有傷停資料但修正 0」不必然是 bug。
 - **目前只調整分差、獨贏與讓分。總分球員修正尚未實作。** 不得宣稱傷停已修正所有市場。
@@ -405,7 +408,7 @@ DRtg = 由對手得分效率建立
 ### P1：本輪上線驗收與資料缺口
 
 1. 重新整理首頁與公開戰績，確認 30D、7D 切換、三球類去重與 `--` 行為。確認「已分析」的可見範圍符合使用者意圖。
-2. **足球聯賽白名單不一致風險**：新首頁沿用原首頁 `[2,3,39,140,78,135,61,98,292,88,169,71]`；目前讀到的 stage runner `SPORTS` 為 `[39,140,78,135,61,2,3,88,40,253,262,848]`。這是來源碼差異，不是已證明正式某場漏算；需建立單一正式支援清單並核對賽事中心、T-10、stage runner、首頁。不得任意擴大聯賽造成額外 API 成本。
+2. **足球聯賽白名單不一致風險**：`home-sports-stats.js` 使用 `[2,3,39,140,78,135,61,98,292,88,169,71]`，對應 `football.html`／`performance.html` 的聯賽對照（`home.html` 內無此清單）；目前讀到的 stage runner `SPORTS` 為 `[39,140,78,135,61,2,3,88,40,253,262,848]`。這是來源碼差異，不是已證明正式某場漏算；需建立單一正式支援清單並核對賽事中心、T-10、stage runner、首頁。不得任意擴大聯賽造成額外 API 成本。
 3. MLB 下一場實場：三時間點資料時間戳、打線／傷兵狀態、實際 applied flag、模型 delta、盤口、會員單／批次／免費重看與公開結算串起驗收。
 4. 傷停／先發失敗分類：未公布、來源空名單、權限／方案到期、限流、逾時、隊伍／日期匹配失敗、球員統計不足、來源衝突。不同原因應可稽核，不能都歸為前台問題。
 5. API 用量／訂閱追蹤與實際供應商對齊。API-NBA 已續訂的截圖終止時間為 2026-12-14 11:47:38 UTC（台灣 19:47:38）；只代表當時方案，The Odds 續費尚未確認。
@@ -418,7 +421,8 @@ DRtg = 由對手得分效率建立
 2. 對足球球員欄位覆蓋／確認 XI 與預估 XI 分類、NBA 先驗與正負值代理、MLB OPS／ERA 啟發式做敏感度分析。
 3. NBA 總分球員效果、MLB 延長賽／天候／過度離散與完整牛棚模型為可研究項，不應未驗證直接上線。
 4. 整理 `supabase/functions/`、`deploy/` 多份相近檔，建立每個正式函式唯一來源及 build 流程；目前勿刪舊檔以免失去回滾證據。
-5. 移除誤導性的過時 README 指令（pilot-only、舊 T-10 文案、舊未納入 MLB 球員等），保留歷史時間標記。
+5. 移除誤導性的過時 README 指令（pilot-only、舊 T-10 文案、舊未納入 MLB 球員等，主要在 `deploy/*/README.md`），保留歷史時間標記。根目錄 `README.md` 幾乎是空的，且 `\n` 未轉成換行，需重寫。
+8. `index.html` 約 5013 行註解仍寫「QA 完成後才正式升級為 home.html」，與現況（`home.html` 已無任何入站連結、正式首頁為 `home-v2.html`）相反，應更正。
 6. 處理隊徽破圖、三語文字、手機長表、載入錯誤與重試。使用者先前圖片曾顯示足球／太陽隊徽問題，沒有完整最新驗收結論。
 7. LINE 三處待換；合作平台等後台動態連結需另行盤點，不包含在寫死 URL 清單內。
 
@@ -467,7 +471,7 @@ node deploy/sports-release-20261113/mlb-player-integration-tests.cjs
 node deploy/sports-release-20261113/contract-tests.cjs
 ```
 
-其他 atomic／PGlite 測試依各 README 準備依賴；不能直接對正式會員做測試。這些通過只代表相應軟體行為，不表示真實來源正常或模型準確。
+另有 `tests/` 目錄 8 個足球／NBA 測試（atomic、functional、settlement-repair、ui、batch、frontend、live-settlement）。其他 atomic／PGlite 測試依各 README 準備依賴；不能直接對正式會員做測試。這些通過只代表相應軟體行為，不表示真實來源正常或模型準確。
 
 瀏覽器腳本：`deploy/public-home-20261115/browser-tests.cjs`。本次失敗原因是本機 Chromium 啟動的 socket 權限，不是已證明頁面錯誤；仍須另找可用環境完成。不得繞過 Supabase 禁止存取的授權來跑正式端到端。
 
@@ -530,3 +534,11 @@ node deploy/sports-release-20261113/contract-tests.cjs
 5. 需要使用者做的唯一下一步與預期結果。
 
 **不要使用「三種球類全部 OK」「傷停先發已全部正常」「正式 1:1 驗證成功」等總括說法，除非同時有相應資料、時點、模板、扣點與實場證據。未確定就標註「待確認」。**
+
+## 13. 2026-11-15 程式碼核對紀錄（Claude）
+
+對照 main `2c26f99` 程式碼，本文件模型參數與以下來源一致：足球 `supabase/functions/football-v2-shadow-stage-runner/index.ts`（與 `deploy/sports-release-20261113/` 版本逐字相同；`deploy/football-v2-rollout/` 為較舊版本）、NBA `deploy/nba-stages-20261113/stage-core.ts`／`nba-stage-context.ts`、MLB `deploy/sports-release-20261113/baseball-analysis.index.txt`／`mlb-player-adjustment.js`、排程名稱與 Vault `nba_v2_cron_key`、三處 LINE URL。§9.2 五個本機測試重跑通過（9＋4＋15＋5＋45）。
+
+已依程式碼補正：驗證頁路徑、函式清單、`consume_member_analysis_credit` 不在 repo、足球球員只抓第 1 頁、NBA 標準差來源與 ±8 限制、首頁聯賽清單來源、`tests/` 目錄、`index.html` 過時註解。
+
+仍無法由程式碼確認：線上函式是否與 repo 同版、cron 啟用與最後成功時間、公開戰績採用階段、fixture 1557418 修正是否已執行、11/13 疑似多扣點。
