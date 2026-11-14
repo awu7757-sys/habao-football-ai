@@ -3168,32 +3168,27 @@ async function adjustCredits(type) {
       0
     );
 
-  let newCredits =
-    currentCredits;
-
-  if (type === "add") {
-    newCredits =
-      currentCredits +
-      amount;
-  } else if (
-    type === "subtract"
+  if (
+    type !== "add" &&
+    type !== "subtract"
   ) {
-    if (
-      amount >
-      currentCredits
-    ) {
-      alert(
-        "扣除積分不能大於會員目前積分。"
-      );
-      return;
-    }
-
-    newCredits =
-      currentCredits -
-      amount;
-  } else {
     return;
   }
+
+  if (
+    type === "subtract" &&
+    amount > currentCredits
+  ) {
+    alert(
+      "扣除積分不能大於會員目前積分。"
+    );
+    return;
+  }
+
+  const delta =
+    type === "add"
+      ? amount
+      : -amount;
 
   const actionText =
     type === "add"
@@ -3209,14 +3204,36 @@ async function adjustCredits(type) {
   }
 
   try {
-    await apiRequest({
-      action:
-        "update_credits",
-      id:
-        editingMemberId,
-      analysis_credits:
-        newCredits
-    });
+    /*
+      2026-11-15：改送差額，由資料庫原子加減，
+      避免覆寫會員在此期間使用的點數。
+      後端尚未部署新版 admin-members 時才退回舊的覆寫方式。
+    */
+    try {
+      await apiRequest({
+        action:
+          "adjust_credits",
+        id:
+          editingMemberId,
+        delta
+      });
+    } catch (adjustError) {
+      if (
+        String(adjustError?.message || "") !==
+        "無效的管理操作。"
+      ) {
+        throw adjustError;
+      }
+
+      await apiRequest({
+        action:
+          "update_credits",
+        id:
+          editingMemberId,
+        analysis_credits:
+          currentCredits + delta
+      });
+    }
 
     closeCreditsModal();
 

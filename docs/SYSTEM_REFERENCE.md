@@ -111,11 +111,13 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 
 退點函式【線上】：`refund_member_analysis_credit(account, 'daily'|'paid')`，每日點退回時上限 2；`refund_member_credit`／`consume_member_credit` 是只處理付費點的舊版，是否仍有程式呼叫【缺】。
 
-### 3.4 管理員改點數【程式 `admin.html` 約 3150 行；後端 `admin-members`【缺】】
+### 3.4 管理員改點數【程式 `admin.html`、`supabase/functions/admin-members/index.ts`（線上匯出 2026-11-15）】
 
-- 管理員輸入增加／扣除數量，**前台用畫面上的舊餘額算出新總數**，送 `update_credits` 帶 `analysis_credits: 新總數`。
-- 風險：如果會員在管理員開視窗後剛好用掉一點，送出時會把那一點「補回來」。要修需改後端成「加減差額」，屬後端改動。
-- 其他會員管理 action：`list`、`set_active`（停權／恢復）、`update_member_level`、`update_platform_binding`。
+- 2026-11-15 起前台送 `adjust_credits`（差額 `delta`），後端呼叫 RPC `admin_adjust_member_credits`，由資料庫在同一行 UPDATE 內加減，扣除後不可小於 0。
+- 舊 action `update_credits`（直接覆寫總數）仍保留；前台只在後端回「無效的管理操作」（新版尚未部署）時退回使用。
+- 部署順序：`deploy/fixes-20261115/03_admin_adjust_member_credits.sql` → 新版 `admin-members`。部署狀態見 PROJECT_NOTES。
+- 其他 action：`list`、`create`（新增會員，初始 0 點，與 OAuth 註冊的預設 3 點不同）、`set_active`、`update_member_level`（降為一般會員會清空每日點數；升 VIP 會設 `vip_ever_activated`）、`update_platform_binding`（同平台同帳號不可重複綁定）。
+- 管理員權限：需 `members` 權限，或 legacy 超級管理員密碼（`ADMIN_LEGACY_PASSWORD_FALLBACK` 預設開啟）。
 
 ---
 
@@ -284,7 +286,7 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 | 端點 | action |
 |---|---|
 | `admin-center`【程式】 | auth_me、auth_logout、overview、analysis_history、jobs、retry_job、health、fixtures、refresh_fixtures、fixture_live_push_toggle、performance、performance_toggle_excluded、**performance_delete**、validate_overdue_performance、run_public_runner、admin_users_*、partners、partner_save／toggle／delete、api_stats、clear_expired_locks |
-| `admin-members`【缺】 | list、update_credits、update_member_level、update_platform_binding、set_active |
+| `admin-members`【程式】 | list、create、adjust_credits、update_credits（舊）、update_member_level、update_platform_binding、set_active |
 | `admin-benefits`【缺】 | get_settings、save_settings、get_api_settings、confirm_api_renewal、confirm_nba_api_renewal；會員端 get_public_settings |
 | `admin-basketball`【缺】 | overview、analysis_history、fixtures、sync_fixture_scores、refresh_fixtures、api_usage、confirm_odds_renewal |
 | `admin-basketball-performance`【缺】 | performance、performance_toggle_excluded、performance_delete |
@@ -344,7 +346,7 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 
 已停用：`habao-live-score-push-every-2-minutes`（足球比分推播）、`habao-nba-v2-shadow-15min`、`habao-nba-v3-efficiency-15min`、`habao-nba-v3-player-timing-5min`。
 
-每日清理會刪除：`member_analysis_history` 中 `updated_at` 超過 7 天的列，以及完成／失敗超過 7 天的 `analysis_jobs`。**足球 T-10 會員領取紀錄只保留 7 天。**
+每日清理【線上 2026-11-15 修改後】：只刪除完成／失敗超過 7 天的 `analysis_jobs`。**不再刪除 `member_analysis_history`**（修改前會刪 7 天前的足球 T-10 會員領取紀錄）。SQL：`deploy/fixes-20261115/02_cleanup_retention_and_grants.sql`。
 
 ---
 
@@ -355,7 +357,7 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 | 名稱 | 影響 |
 |---|---|
 | `oauth-member-login`、`member-login`、`upgrade-vip` | 登入、建立會員、呼叫每日補點、VIP 升級 |
-| `admin-members`、`admin-benefits`、`admin-basketball`、`admin-basketball-performance`、`admin-baseball`、`toolbox-launch-settings` | 管理後台 |
+| `admin-benefits`、`admin-basketball`、`admin-basketball-performance`、`admin-baseball`、`toolbox-launch-settings` | 管理後台 |
 | `match-analysis`、`basketball-member-analysis`、`basketball-analysis`、`basketball-t10-job`、`baseball-t10-job` | T-10 擷取與足球／NBA 領取扣點 |
 | `public-prediction-runner`、`basketball-result-runner`、`baseball-result-runner`、`basketball-performance-api`、`baseball-performance-api` | 結算與公開戰績 |
 | `football-v2-shadow-feature-runner`、`football-v2-repair-runner`、`baseball-v2-shadow`、`baseball-opening-capture`、`baseball-team-stats-cache`、`habao-sport-score-push`、`usage-snapshot` | 排程任務 |
@@ -368,14 +370,15 @@ MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
 
 1. 足球推薦轉換邏輯有兩份（§6），修改時必須同步。
 2. `performance_delete` 可永久刪除公開戰績，沒有稽核（§8.3）。
-3. 管理員改點數是覆寫總數，有競態（§3.4）。
+3. 管理員改點數覆寫總數的競態：已改為差額加減，待後端部署（§3.4）。
 4. T-10 扣點、每日發點、賽後結算程式不在 repo（§12）。
 5. MLB 與 NBA 排程共用同一把 cron 金鑰（§5.3），換金鑰要兩邊一起改。
 6. 維護模式例外帳號寫死在前台（§2.3）。
 7. 球員資料只抓第 1 頁（§5.1）。
-8. **`habao_cleanup_admin_data()` 開放給 anon／authenticated 執行**，任何拿到前台公開金鑰的人都能直接觸發清理（效果與每日排程相同，提早刪 7 天前紀錄）。應收回權限。【線上】
-9. **每日清理會刪 7 天前的足球 T-10 會員領取紀錄**（§11），與「資料庫不刪資料」的說法不符，也會讓舊的扣點爭議失去證據（例如 2026-11-13 疑似多扣點）。
-10. `habao_usage_database_size_gb`、`habao_usage_storage_size_gb` 也開放給 anon（只會洩漏資料庫大小，風險低）。
+8. ~~清理函式開放給 anon~~：2026-11-15 已收回，線上確認只剩 postgres、service_role。
+9. ~~每日清理刪 7 天前足球 T-10 領取紀錄~~：2026-11-15 已停止。
+10. ~~兩個大小查詢函式開放給 anon~~：2026-11-15 已收回。
+10a. **系統沒有扣點流水表**：扣點只改餘額，事後無法逐筆對帳（見 PROJECT_NOTES 11/13 調查）。
 11. NBA／MLB 階段若 T-10 快照不在開賽前 10.5～8 小時之間產生，該場就不會有 T-2／T-15（§5.2）。
 12. API 預算以 UTC 換日，與介面的台灣日期不同。
 13. 有舊備份表與測試表殘留：`football_v2_shadow_feature_*_backup_20261105`、`habao_nba_member_test_backup`。

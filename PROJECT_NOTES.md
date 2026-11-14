@@ -402,7 +402,12 @@ DRtg = 由對手得分效率建立
 - NBA 球員對總分的修正：尚未實作；既有 margin-only 不可冒充已完成。
 - 全模型勝率校準、樣本外評估、ROI／EV 穩健性、版本比較：沒有完整可接受證據。
 - 三處 LINE 網址更換：延後，等待新網址。
-- 2026-11-13 批次兩場疑似扣三點：曾提供稽核 SQL，未見足夠前後餘額／流水證據結案；不能主動退款或再補扣。
+- 2026-11-13 批次兩場疑似扣三點（帳號 `google_2d3cef6b6e2d`，NBA）：2026-11-15 以 `deploy/fixes-20261115/01_investigate_20261113_readonly.sql` 匯出。結果：
+  - 批次為台灣 08:16 的 17113、17114 T-2，`basketball_v2_stage_claims` 恰有 2 筆；T-2／T-15 原子 RPC 的扣點與寫入同一交易，**不可能扣點卻沒有紀錄，所以這條路徑只扣了 2 點**。
+  - 當天沒有 `analysis_jobs`（此批次不經批次工作表），足球、MLB 無紀錄。
+  - NBA T-10 使用紀錄 4 場（05:58～06:06），沒有 08:16 前後的紀錄。
+  - **系統沒有扣點流水表**，無法用資料證明或排除第 3 點。唯一可能在不留紀錄的情況下扣點的是 NBA T-10 會員函式 `basketball-member-analysis`（原始碼未匯出）重看時是否重扣；或當時顯示的餘額含每日點數重設而造成誤判。
+  - 下一步：匯出 `basketball-member-analysis` 檢查；長期建議新增扣點流水表。不主動退款或補扣。
 - 舊足球 fixture 1557418 大小球結算方向異常：已備專用修正 SQL／測試；正式是否已成功執行並結案待確認。
 
 ## 7. 已知問題與待辦（優先順序）
@@ -410,7 +415,9 @@ DRtg = 由對手得分效率建立
 ### P0：資料完整性與權限
 
 1. 保持 Supabase 禁止讀寫與 GitHub 逐次授權。任何工程師／AI 接手先確認當前允許範圍。
-1a. 【2026-11-15 匯出發現，尚未處理】`habao_cleanup_admin_data()` 可被 anon／authenticated 執行，應收回；每日清理刪除 7 天前足球會員領取紀錄，與稽核需求衝突，需由使用者決定保留政策。
+1a. 【2026-11-15 已處理，使用者執行 `deploy/fixes-20261115/02_cleanup_retention_and_grants.sql`】每日清理不再刪除 `member_analysis_history`；`habao_cleanup_admin_data`、`habao_usage_database_size_gb`、`habao_usage_storage_size_gb` 只剩 postgres、service_role 可執行（線上確認）。
+1b. 【2026-11-15 準備中】管理員增減點數改為原子差額：`deploy/fixes-20261115/03_admin_adjust_member_credits.sql`＋新版 `supabase/functions/admin-members/index.ts`（action `adjust_credits`），前台 `admin.html` 已提交並在後端未部署時退回舊方式。待使用者執行 SQL 並部署函式。
+1c. 【決策：使用者 2026-11-15】後台「刪除戰績」`performance_delete` 維持原樣，不得擅自修改。
 2. 核對每球類公開驗證最後成功時間、已完賽未結算數、Cron、HTTP 回應與 function log。若有積壓先找原因，不要改標籤宣稱正常。
 3. 若再現重複扣點，保存帳號遮罩、時間、球類、game／fixture ID、stage、request/job ID、前後餘額及交易／領取資料，先證據後修復。
 4. 舊 fixture 1557418：先確認目前原值、是否已有 correction log，未經確認不能重跑歷史修改 SQL。

@@ -975,6 +975,78 @@ if (action === "update_credits") {
 
 
 // =========================
+// 增減會員積分（原子加減差額，2026-11-15）
+// 由資料庫在同一行 UPDATE 內計算，避免覆寫會員同時使用的點數。
+// =========================
+
+if (action === "adjust_credits") {
+  const id = Number(body?.id);
+  const delta = Number(body?.delta);
+
+  if (
+    !id ||
+    !Number.isInteger(delta) ||
+    delta === 0 ||
+    Math.abs(delta) > 100000
+  ) {
+    return json(
+      {
+        success: false,
+        error: "invalid_request",
+        message: "會員資料或積分數量不正確。",
+      },
+      400
+    );
+  }
+
+  const { data: rows, error } = await supabase.rpc(
+    "admin_adjust_member_credits",
+    { p_member_id: id, p_delta: delta }
+  );
+
+  if (error) {
+    console.error("ADJUST CREDITS ERROR:", error);
+    return json(
+      {
+        success: false,
+        error: "update_failed",
+        message: "修改會員積分失敗。",
+      },
+      500
+    );
+  }
+
+  const row = Array.isArray(rows) ? rows[0] : rows;
+
+  if (!row?.success) {
+    const code = String(row?.error || "update_failed");
+    return json(
+      {
+        success: false,
+        error: code,
+        message:
+          code === "insufficient_credits"
+            ? `扣除積分不能大於會員目前積分（目前 ${Number(row?.analysis_credits ?? 0)} 點）。`
+            : code === "member_not_found"
+              ? "找不到會員資料。"
+              : "會員資料或積分數量不正確。",
+      },
+      code === "member_not_found" ? 404 : 400
+    );
+  }
+
+  return json({
+    success: true,
+    message: "會員積分已更新。",
+    member: {
+      id: row.member_id,
+      account: row.account,
+      analysis_credits: row.analysis_credits,
+    },
+  });
+}
+
+// =========================
 
 // 修改會員等級
 
