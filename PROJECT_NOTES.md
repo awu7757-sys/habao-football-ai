@@ -148,14 +148,14 @@ flowchart TD
 
 重要 RPC：
 
-- `consume_member_analysis_credit(text)`：實際扣點規則的核心。**線上確認（2026-11-15 匯出）**，備份於 `supabase/sql/consume_member_analysis_credit.snapshot.sql`（僅紀錄，不可直接部署）。規則：
+- `consume_member_analysis_credit(text)`：實際扣點規則的核心。**線上確認（2026-11-15 匯出）**，備份於 `supabase/sql/production-export-20261115/functions/consume_member_analysis_credit.sql`（僅紀錄，不可直接部署）。規則：
   1. 以 `members.account` 鎖定該列（`FOR UPDATE`）；找不到帳號回傳 `success=false`。
   2. **只有 `member_level='vip'` 才會扣 `daily_free_credits`**，且優先於付費點數；一般會員即使 `daily_free_credits>0` 也不會使用它。
   3. 每日免費用完（或非 VIP）時扣 `analysis_credits`（付費／儲值）。
   4. 兩者皆為 0 回傳 `success=false, consumed_type='none'`。
   5. **無限權限不在此函式**：三個 `claim_*_atomic` 在 `members.analysis_unlimited` 為 true 時直接略過呼叫。
   6. 函式為 `SECURITY DEFINER` 且未設定 `search_path`。EXECUTE 權限**線上確認**只有 `postgres`、`service_role`，anon／authenticated 不能直接呼叫。
-- **會員等級與點數設計（使用者 2026-11-15 說明）**：首次註冊登入為一般會員，只有註冊贈送的 3 點，**沒有每日免費點數**；註冊前台連接的合作平台後直接升級為 VIP，才有每日免費點數。因此上述「只有 VIP 扣每日免費點數」符合設計，**不是 bug，不要改**。扣點順序對所有會員相同：先每日免費（只有 VIP 會有）→ 再付費／贈送點數。註冊贈送 3 點存在哪個欄位（推測 `analysis_credits`）、升級 VIP 與每日發點由哪個函式／排程執行，**待確認**。
+- **會員等級與點數設計（使用者 2026-11-15 說明）**：首次註冊登入為一般會員，只有註冊贈送的 3 點，**沒有每日免費點數**；註冊前台連接的合作平台後直接升級為 VIP，才有每日免費點數。因此上述「只有 VIP 扣每日免費點數」符合設計，**不是 bug，不要改**。扣點順序對所有會員相同：先每日免費（只有 VIP 會有）→ 再付費／贈送點數。【線上確認】註冊送 3 點＝`members.analysis_credits` 預設值 3；VIP 每日補點由 `refresh_vip_daily_credits` 以台灣日期重設為 2（不累積），沒有排程，當天第一次觸發時才補。升級 VIP 的 Edge Function `upgrade-vip` 原始碼仍待匯出。
 - `claim_football_v2_stage_analysis_atomic(...)`、`claim_nba_stage_atomic(...)`、`claim_mlb_stage_atomic(...)`：領取與扣點在同一交易完成，重複領取回傳舊結果。
 - `reserve_football_v2_stage_capture_lease(...)`／`release_football_v2_stage_capture_lease(...)`：足球擷取鎖。
 - `acquire_nba_stage_capture(...)`／`acquire_mlb_stage_capture(...)`：NBA／MLB 階段租約。
@@ -324,7 +324,7 @@ DRtg = 由對手得分效率建立
 - T-15 時可補領已存在的 T-2；若不存在，不能用此時資料倒做過去 T-2。
 - 會員點擊可觸發符合當前窗口的遺漏快照補抓，這是系統排程失敗的受控備援，不是每個人重算不同結果。
 - 開賽後不得補抓為賽前資料；快照完成時間而非請求開始時間決定是否合格。
-- 「我的分析」同場一張卡、三階段按鈕，重看不扣點。歷史一般顯示至開賽＋8 小時，資料庫不刪資料；各 legacy endpoint 的精確一致性待核對。
+- 「我的分析」同場一張卡、三階段按鈕，重看不扣點。歷史一般顯示至開賽＋8 小時。**注意：每日清理排程會刪除 `member_analysis_history`（足球 T-10 領取紀錄）中 7 天前的列**（見 `docs/SYSTEM_REFERENCE.md` §11）；NBA／MLB stage claims 不受影響；各 legacy endpoint 的精確一致性待核對。
 - 今天／明天以台灣日期切換；跨午夜與夏令時間是必要回歸案例。
 
 ### 4.2 分球類特別規則
@@ -410,6 +410,7 @@ DRtg = 由對手得分效率建立
 ### P0：資料完整性與權限
 
 1. 保持 Supabase 禁止讀寫與 GitHub 逐次授權。任何工程師／AI 接手先確認當前允許範圍。
+1a. 【2026-11-15 匯出發現，尚未處理】`habao_cleanup_admin_data()` 可被 anon／authenticated 執行，應收回；每日清理刪除 7 天前足球會員領取紀錄，與稽核需求衝突，需由使用者決定保留政策。
 2. 核對每球類公開驗證最後成功時間、已完賽未結算數、Cron、HTTP 回應與 function log。若有積壓先找原因，不要改標籤宣稱正常。
 3. 若再現重複扣點，保存帳號遮罩、時間、球類、game／fixture ID、stage、request/job ID、前後餘額及交易／領取資料，先證據後修復。
 4. 舊 fixture 1557418：先確認目前原值、是否已有 correction log，未經確認不能重跑歷史修改 SQL。
@@ -550,4 +551,4 @@ node deploy/sports-release-20261113/contract-tests.cjs
 
 已依程式碼補正：扣點函式線上定義（§2.4）、驗證頁路徑、函式清單、`consume_member_analysis_credit` 不在 repo、足球球員只抓第 1 頁、NBA 標準差來源與 ±8 限制、首頁聯賽清單來源、`tests/` 目錄、`index.html` 過時註解。
 
-仍無法由程式碼確認：線上函式是否與 repo 同版、cron 啟用與最後成功時間、公開戰績採用階段、fixture 1557418 修正是否已執行、11/13 疑似多扣點。
+2026-11-15 已匯出全部線上資料庫函式、排程與資料表欄位至 `supabase/sql/production-export-20261115/`。仍無法確認：Edge Function 是否與 repo 同版、cron 最後成功時間、公開戰績採用階段、fixture 1557418 修正是否已執行、11/13 疑似多扣點。

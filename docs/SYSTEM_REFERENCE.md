@@ -15,7 +15,7 @@
 | 【使用者】 | 專案負責人口頭說明的設計意圖 |
 | 【缺】 | 程式只在線上、repo 沒有原始碼。只能從前台呼叫方式推測，**不可當成已確認** |
 
-**重要事實：很多核心後端只存在線上，不在 repo。** 見 §12 清單；補齊方式見 `deploy/system-reference-20261115/`。
+**重要事實：很多核心後端只存在線上，不在 repo。** 2026-11-15 已匯出全部資料庫函式（32 個）、排程（23 個）與資料表欄位（94 張）到 `supabase/sql/production-export-20261115/`；Edge Function 原始碼仍有部分缺，見 §12。
 
 ---
 
@@ -55,8 +55,13 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 | `account` | 會員唯一帳號（例 `google_xxxx`），所有領取／扣點以此為鍵 | 【程式】 |
 | `is_active` | false＝停權；三個 stage 領取 RPC 會拒絕 | 【程式】 |
 | `member_level` | `normal` 或 `vip` | 【線上】 |
-| `analysis_credits` | 付費／贈送點數（推測含註冊送的 3 點） | 【線上】欄位存在；3 點存放位置【缺】 |
+| `analysis_credits` | 付費／贈送點數。**欄位預設值 3＝註冊送的 3 點** | 【線上】 |
 | `daily_free_credits` | 每日免費點數，只有 VIP 會有 | 【線上】【使用者】 |
+| `daily_free_credits_date` | 上次補每日點數的台灣日期 | 【線上】 |
+| `vip_ever_activated` | 曾經升級過 VIP（推測用來擋 `VIP_REUPGRADE_BLOCKED`） | 【線上】欄位；用法【缺】 |
+| `expire_at` | 會員到期時間；**目前只有 MLB 的領取程序會檢查** | 【線上】 |
+| `daily_analysis_limit`／`daily_analysis_unlimited` | 舊「每日可分析場數」，預設 3；現在只做統計，不擋領取 | 【線上】 |
+| `auth_user_id`／`auth_provider`／`email` | Supabase Auth 對應 | 【線上】 |
 | `analysis_unlimited` | true＝無限分析，不扣點 | 【程式】 |
 | `platform_name`／`platform_account` | 綁定的合作平台與帳號 | 【程式】 |
 | `last_login_at` | 最後登入 | 【程式】 |
@@ -77,7 +82,15 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 | 一般會員 | 首次註冊登入 | 註冊送 3 點，**沒有每日免費點數** |
 | VIP | 綁定任一合作平台帳號（免費） | 每日登入補充 2 點，**不累積**；每日點數優先扣 |
 
-「每日 2 點、不累積、優先扣除」來自首頁 VIP 卡片文案。【程式 `home-v2.html` 約 7627 行】實際發點由哪支程式在何時執行【缺】，推測在 `oauth-member-login` 或排程。
+每日補點由資料庫函式 `refresh_vip_daily_credits(account)` 執行【線上】：
+
+1. 以台灣日期為準；鎖住會員列。
+2. 非 VIP → 不發點，直接回傳 0。
+3. VIP 且 `daily_free_credits_date` 不是今天 → **直接把每日點數設成 2**（昨天剩的不累積），並記下今天日期。
+4. 今天已補過 → 不變。
+
+沒有排程呼叫它，所以是**會員當天第一次觸發時才補**（推測在 `oauth-member-login` 登入時呼叫；呼叫端【缺】）。
+註冊送 3 點來自 `members.analysis_credits` 欄位預設值 3。【線上】
 
 ### 3.2 升級 VIP【程式 `home-v2.html` 約 9090 行；後端【缺】】
 
@@ -87,7 +100,7 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 
 ### 3.3 扣點核心 `consume_member_analysis_credit(p_account)`【線上 2026-11-15】
 
-備份：`supabase/sql/consume_member_analysis_credit.snapshot.sql`。
+備份：`supabase/sql/production-export-20261115/functions/consume_member_analysis_credit.sql`。
 
 1. `SELECT … FOR UPDATE` 鎖住該會員列。找不到 → `success=false`。
 2. `member_level='vip'` 且 `daily_free_credits>0` → 扣 1 日點，`consumed_type='daily'`。
@@ -95,6 +108,8 @@ Edge Functions（Supabase）──►  Postgres（members、快照、領取、�
 4. 都沒有 → `success=false, consumed_type='none'`。
 5. 無限會員不經過這裡（呼叫端先判斷 `analysis_unlimited`）。
 6. 執行權限只有 `postgres`、`service_role`。【線上】
+
+退點函式【線上】：`refund_member_analysis_credit(account, 'daily'|'paid')`，每日點退回時上限 2；`refund_member_credit`／`consume_member_credit` 是只處理付費點的舊版，是否仍有程式呼叫【缺】。
 
 ### 3.4 管理員改點數【程式 `admin.html` 約 3150 行；後端 `admin-members`【缺】】
 
@@ -145,11 +160,21 @@ RPC 權限：已 REVOKE PUBLIC／anon／authenticated，只給 `service_role`。
 
 | 球類 | 會員端 | 扣點方式 | 證據 |
 |---|---|---|---|
-| 足球 | `match-analysis` | 【缺】 | 原始碼不在 repo |
-| NBA | `basketball-member-analysis` | 【缺】 | 原始碼不在 repo |
-| MLB | `baseball-member-analysis` → RPC `baseball_claim_member_snapshot`、`baseball_rerun_member_snapshot` | RPC 本體【缺】 | 【程式】`deploy/sports-release-20261113/baseball-member-analysis.index.txt`；需 `HABAO_MLB_MEMBER_WRITE_ENABLED=true` |
+| 足球 | `match-analysis` | Edge Function【缺】；會用 `consume_analysis_quota` 記每日使用（只做統計，不擋） | 【線上】函式 |
+| NBA | `basketball-member-analysis` | Edge Function【缺】；會用 `consume_basketball_analysis_quota`（只做統計）、`refund_basketball_analysis_quota` | 【線上】函式 |
+| MLB | `baseball-member-analysis` → `baseball_claim_member_snapshot` | 同一交易內呼叫 `consume_member_analysis_credit` | 【線上】完整 |
 
-T-10 扣點邏輯不在 repo，是目前最大的盲點之一。
+MLB T-10 領取 `baseball_claim_member_snapshot`【線上】：
+1. 鎖會員列；停權或 `expire_at` 已過 → 拒絕。
+2. 快照必須存在、已到 T-10、內容為棒球且場次相符。
+3. 已領過 → 回傳舊結果，不扣點（開賽後仍可重看）。
+4. 開賽後不可新領。
+5. 非無限會員扣 1 點；扣不到 → `MLB_NO_MEMBER_CREDITS`。
+6. 寫 `member_baseball_analysis_history`（含 `credit_charged`、`consumed_credit_type`）與 `baseball_member_daily_usage`。
+
+`baseball_rerun_member_snapshot`：已領過的會員每 6 小時可「重跑」一次，但**只是回傳同一份快照、不扣點**（舊六小時重分析機制的殘留）。
+
+足球、NBA 的 T-10 扣點程式在 Edge Function 裡，仍【缺】。
 
 ### 4.4 前台 controller【程式】
 
@@ -175,7 +200,8 @@ T-10 扣點邏輯不在 repo，是目前最大的盲點之一。
 ### 5.2 NBA【程式 `deploy/nba-stages-20261113/`】
 
 - 排程 `habao-nba-v2-stages-every-minute`（`* * * * *`），Vault 金鑰 `nba_v2_cron_key`。
-- 租約 `acquire_nba_stage_capture`；成本預算 `reserve_nba_stage_api`，記在 `basketball_v2_stage_api_budget(usage_date, provider)`。
+- 租約 `acquire_nba_stage_capture`【線上】：只在該階段窗口內、開賽前取得；**T-10 快照必須產生於開賽前 10.5～8 小時之間**，否則這場不會產生 T-2／T-15；失敗（`source_error`／`insufficient_data`）2 分鐘後可重試、處理中逾 5 分鐘可接手，**最多 4 次**。MLB 的 `acquire_mlb_stage_capture` 規則相同。
+- 成本預算 `reserve_nba_stage_api`，記在 `basketball_v2_stage_api_budget(usage_date, provider)`；日期以 **UTC** 計（台灣早上 8 點換日）。
 - 每日上限：`NBA_STAGE_DAILY_NBA_LIMIT`（預設 300）、`NBA_STAGE_DAILY_ODDS_LIMIT`（預設 60）。超過 → `*_stage_daily_budget_exhausted`。
 - 球員情境：ESPN 傷停＋NBA 官方 daily lineups（`nba-stage-context.ts`）。
 
@@ -218,11 +244,15 @@ T-10 扣點邏輯不在 repo，是目前最大的盲點之一。
 5. 命中率 = 有效勝 ÷（有效勝＋有效負），半贏／半輸各算 0.5，走盤不計入分母。
 6. 單場總評：各市場 win=1、half_win=0.5、loss=−1、half_loss=−0.5 加總，>0 勝、<0 負、=0 和。
 7. 全期間且從未切過非 T-10 階段時，會另外顯示 `ai_backtest_summary`（回測彙總，須區分真實／模擬）。
-8. T-10 的 `ai_prediction_snapshots` 由誰結算：`public-prediction-runner`（`mode: validate_overdue`）【缺】；管理後台可手動觸發。
+8. T-10 的 `ai_prediction_snapshots` 由 `public-prediction-runner` 結算（排程 `habao-football-verify-hourly` 每小時 :20）【程式本體缺】；管理後台可手動觸發。
+9. 足球 T-10 快照補抓佇列 `habao_t10_retry_queue`【線上】：賽程登記後於 T-10 起可領，每次最多 2 場、租約 3 分鐘、失敗 5 分鐘後重試；已有正式快照即標 done，開賽仍無快照標 expired。
 
 ### 7.2 NBA、MLB【缺】
 
-`basketball-performance-api`、`baseball-performance-api`、`baseball_verified_results` 的結算程式都不在 repo。前台只能確認回應包含 `summary.verified_matches`。
+- 結算排程【線上】：NBA `basketball-result-runner`、MLB `baseball-result-runner`，都是每 30 分鐘。程式本體【缺】。
+- NBA 結算寫回 `basketball_prediction_snapshots`（`settlement`、`verified_at`、`verification_error`、`excluded_from_public`）。
+- MLB 結算寫 `baseball_verified_results`（`moneyline_result`、`totals_result`、`handicap_result`），**有觸發器禁止修改**（`MLB_VERIFIED_RESULT_IMMUTABLE`）；`baseball_t10_snapshots` 也有觸發器禁止修改。
+- 戰績 API `basketball-performance-api`、`baseball-performance-api` 本體【缺】。
 
 ### 7.3 前台戰績頁【程式 `performance.html`】
 
@@ -288,34 +318,49 @@ T-10 扣點邏輯不在 repo，是目前最大的盲點之一。
 
 ---
 
-## 11. 排程總表（repo 可見）
+## 11. 排程總表【線上 2026-11-15】
 
-| job 名稱 | 頻率 | 呼叫 | 證據 |
-|---|---|---|---|
-| `habao-nba-v2-stages-every-minute` | 每分鐘 | `nba-v2-stage-runner` | 【程式】SQL |
-| `habao-mlb-v2-stages-every-minute` | 每分鐘 | `baseball-v2-stage-runner` | 【程式】SQL |
-| 足球 stage runner | 每分鐘（文件） | `football-v2-shadow-stage-runner` | job 名稱【缺】 |
-| T-10、賽後結算、每日發點等 | ? | ? | 【缺】 |
+完整清單：`supabase/sql/production-export-20261115/cron_jobs.md`（時間為 UTC）。重點：
 
-完整清單請用 §12 的匯出 SQL 取得。
+| 用途 | job | 頻率 |
+|---|---|---|
+| 足球特徵準備 | `football-v2-shadow-feature-prep` | 每分鐘 |
+| 足球 T-2／T-10／T-15 擷取 | `football-v2-shadow-stage-temp` | 每分鐘（名稱有 temp 但是正式在用） |
+| 足球 T-10 補抓 | `habao-football-t10-rescue-every-5m` | 每 5 分鐘 |
+| 足球市場修補 | `habao-football-v2-repair-15min` | 每 15 分鐘 |
+| 足球公開 runner | `public-prediction-runner-hourly`（:00）、`habao-football-verify-hourly`（:20） | 每小時兩次 |
+| NBA T-10 | `habao-basketball-t10-every-15m` | 每 15 分鐘 |
+| NBA T-2／T-15 | `habao-nba-v2-stages-every-minute` | 每分鐘 |
+| NBA 研究模型 | `habao-nba-v2-unified-15min` | 每 15 分鐘（研究用，會用 API 額度） |
+| NBA 結算 | `habao-basketball-result-every-30m` | 每 30 分鐘 |
+| MLB T-10 | `habao-baseball-t10-every-15m` | 每 15 分鐘 |
+| MLB T-2／T-15 | `habao-mlb-v2-stages-every-minute` | 每分鐘 |
+| MLB 研究模型 | `habao-baseball-v2-shadow-15min` | 每 15 分鐘（研究用） |
+| MLB 結算 | `habao-baseball-results-every-30m` | 每 30 分鐘 |
+| MLB 開盤線、球隊統計 | `habao-baseball-opening-every-6h`、`habao-baseball-team-stats-every-6h` | 每 6 小時 |
+| NBA／MLB 比分推播 | `habao-sport-score-push-3min` | 每 3 分鐘 |
+| 用量快照 | `habao-usage-snapshot-every-6-hours` | 每 6 小時 |
+| 每日清理 | `habao-v3-daily-cleanup` → `habao_cleanup_admin_data()` | 每天 20:10 UTC（台灣 04:10） |
+
+已停用：`habao-live-score-push-every-2-minutes`（足球比分推播）、`habao-nba-v2-shadow-15min`、`habao-nba-v3-efficiency-15min`、`habao-nba-v3-player-timing-5min`。
+
+每日清理會刪除：`member_analysis_history` 中 `updated_at` 超過 7 天的列，以及完成／失敗超過 7 天的 `analysis_jobs`。**足球 T-10 會員領取紀錄只保留 7 天。**
 
 ---
 
-## 12. 不在 repo 的後端（待匯出補齊）
+## 12. 不在 repo 的後端（仍待補）
 
-| 類型 | 名稱 | 影響 |
-|---|---|---|
-| Edge Function | `oauth-member-login`、`member-login`、`upgrade-vip` | 註冊送點、每日發點、VIP 升級 |
-| Edge Function | `admin-members`、`admin-benefits`、`admin-basketball`、`admin-basketball-performance`、`admin-baseball`、`toolbox-launch-settings` | 管理後台 |
-| Edge Function | `match-analysis`、`basketball-member-analysis`、`basketball-analysis`、`baseball-t10-job` | T-10 擷取與領取扣點 |
-| Edge Function | `public-prediction-runner`、`basketball-performance-api`、`baseball-performance-api` | 賽後結算與公開戰績 |
-| DB 函式 | `baseball_claim_member_snapshot`、`baseball_rerun_member_snapshot`，以及其他未知函式 | MLB T-10 扣點 |
-| 排程 | 全部 cron job 現況 | 每日運作 |
+資料庫函式、排程、資料表已於 2026-11-15 全部匯出（`supabase/sql/production-export-20261115/`）。仍缺的是 **Edge Function 原始碼**：
 
-補齊方式：
+| 名稱 | 影響 |
+|---|---|
+| `oauth-member-login`、`member-login`、`upgrade-vip` | 登入、建立會員、呼叫每日補點、VIP 升級 |
+| `admin-members`、`admin-benefits`、`admin-basketball`、`admin-basketball-performance`、`admin-baseball`、`toolbox-launch-settings` | 管理後台 |
+| `match-analysis`、`basketball-member-analysis`、`basketball-analysis`、`basketball-t10-job`、`baseball-t10-job` | T-10 擷取與足球／NBA 領取扣點 |
+| `public-prediction-runner`、`basketball-result-runner`、`baseball-result-runner`、`basketball-performance-api`、`baseball-performance-api` | 結算與公開戰績 |
+| `football-v2-shadow-feature-runner`、`football-v2-repair-runner`、`baseball-v2-shadow`、`baseball-opening-capture`、`baseball-team-stats-cache`、`habao-sport-score-push`、`usage-snapshot` | 排程任務 |
 
-- 資料庫函式、排程、資料表欄位：執行 `deploy/system-reference-20261115/01_export_backend_readonly.sql`（唯讀），匯出 CSV 交給 Claude 存進 repo。
-- Edge Function 原始碼：Supabase → Edge Functions → 點函式 → Code，逐一複製；或用 CLI `supabase functions download <名稱>`。存到 `supabase/functions/<名稱>/index.ts`，提交時註明「線上匯出，日期」。
+補齊方式：Supabase → Edge Functions → 點函式 → Code，複製後交給 Claude 存到 `supabase/functions/<名稱>/index.ts`，註明「線上匯出＋日期」。
 
 ---
 
@@ -328,6 +373,12 @@ T-10 扣點邏輯不在 repo，是目前最大的盲點之一。
 5. MLB 與 NBA 排程共用同一把 cron 金鑰（§5.3），換金鑰要兩邊一起改。
 6. 維護模式例外帳號寫死在前台（§2.3）。
 7. 球員資料只抓第 1 頁（§5.1）。
+8. **`habao_cleanup_admin_data()` 開放給 anon／authenticated 執行**，任何拿到前台公開金鑰的人都能直接觸發清理（效果與每日排程相同，提早刪 7 天前紀錄）。應收回權限。【線上】
+9. **每日清理會刪 7 天前的足球 T-10 會員領取紀錄**（§11），與「資料庫不刪資料」的說法不符，也會讓舊的扣點爭議失去證據（例如 2026-11-13 疑似多扣點）。
+10. `habao_usage_database_size_gb`、`habao_usage_storage_size_gb` 也開放給 anon（只會洩漏資料庫大小，風險低）。
+11. NBA／MLB 階段若 T-10 快照不在開賽前 10.5～8 小時之間產生，該場就不會有 T-2／T-15（§5.2）。
+12. API 預算以 UTC 換日，與介面的台灣日期不同。
+13. 有舊備份表與測試表殘留：`football_v2_shadow_feature_*_backup_20261105`、`habao_nba_member_test_backup`。
 
 ---
 

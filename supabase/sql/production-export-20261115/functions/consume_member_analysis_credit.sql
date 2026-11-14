@@ -1,9 +1,8 @@
 -- SNAPSHOT ONLY — DO NOT DEPLOY FROM THIS FILE.
--- Exported by the project owner from production Supabase (project ref oqtbsbohcfeghgnykwxy)
--- via pg_get_functiondef on 2026-11-15 (Asia/Taipei). Kept as the repo record / rollback reference
--- for the credit-deduction core. Callers: claim_football_v2_stage_analysis_atomic,
--- claim_nba_stage_atomic, claim_mlb_stage_atomic (they skip this call when members.analysis_unlimited is true).
--- Grants / EXECUTE privileges are NOT captured here.
+-- Exported read-only from production Supabase (oqtbsbohcfeghgnykwxy) by the project owner on 2026-11-15 (Asia/Taipei)
+-- via deploy/system-reference-20261115/01_export_backend_readonly.sql.
+-- Signature: consume_member_analysis_credit(text)
+-- EXECUTE granted to: postgres, service_role
 
 CREATE OR REPLACE FUNCTION public.consume_member_analysis_credit(p_account text)
  RETURNS TABLE(success boolean, consumed_type text, daily_free_remaining integer, paid_remaining integer, total_remaining integer)
