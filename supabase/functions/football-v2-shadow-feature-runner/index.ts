@@ -1,7 +1,9 @@
 // Shadow-only T-48/T-24 history feature preparation. No writes to V1/member/public-result tables.
 const VERSION = 'football-v2-shadow-features-0.2';
 const DAY = 86_400_000, HOUR = 3_600_000, CACHE_TTL = 6 * HOUR, CALENDAR_TTL = 6 * HOUR;
-const SPORTS = new Set([39,140,78,135,61,2,3,88,40,253,262,848]);
+// 正式支援 12 聯賽（使用者決策 2026-11-15）：五大、歐冠、歐聯、荷甲、日職、韓職、中超、巴甲。改動須同步：
+// football-v2-shadow-feature-runner、football-v2-shadow-stage-runner、match-analysis 賠率對照、home-sports-stats.js。
+const SPORTS = new Set([39,140,78,135,61,2,3,88,98,292,169,71]);
 const cfg = {
   url: (Deno.env.get('SUPABASE_URL') || '').replace(/\/$/, ''),
   role: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',

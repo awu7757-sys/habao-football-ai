@@ -9,8 +9,10 @@ const STAGES = [
   { key: 't10', target: 10 * 60 },
   { key: 't2', target: 2 * 60 },
 ] as const;
-const SPORTS = new Set([39,140,78,135,61,2,3,88,40,253,262,848]);
-const ODDS_SPORTS:Record<number,string>={39:'soccer_epl',140:'soccer_spain_la_liga',78:'soccer_germany_bundesliga',135:'soccer_italy_serie_a',61:'soccer_france_ligue_one',2:'soccer_uefa_champs_league',3:'soccer_uefa_europa_league',88:'soccer_netherlands_eredivisie',40:'soccer_efl_champ',253:'soccer_usa_mls',262:'soccer_mexico_ligamx',848:'soccer_uefa_europa_conference_league'};
+// 正式支援 12 聯賽（使用者決策 2026-11-15）：五大、歐冠、歐聯、荷甲、日職、韓職、中超、巴甲。改動須同步：
+// football-v2-shadow-feature-runner、football-v2-shadow-stage-runner、match-analysis 賠率對照、home-sports-stats.js。
+const SPORTS = new Set([39,140,78,135,61,2,3,88,98,292,169,71]);
+const ODDS_SPORTS:Record<number,string>={39:'soccer_epl',140:'soccer_spain_la_liga',78:'soccer_germany_bundesliga',135:'soccer_italy_serie_a',61:'soccer_france_ligue_one',2:'soccer_uefa_champs_league',3:'soccer_uefa_europa_league',88:'soccer_netherlands_eredivisie',98:'soccer_japan_j_league',292:'soccer_korea_kleague1',169:'soccer_china_superleague',71:'soccer_brazil_campeonato'};
 const cfg = {
   url:(Deno.env.get('SUPABASE_URL')||'').replace(/\/$/,''), role:Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',
   footballKey:Deno.env.get('API_FOOTBALL_KEY')||'', oddsKey:Deno.env.get('THE_ODDS_API_KEY')||Deno.env.get('ODDS_API_KEY')||'', cronKey:Deno.env.get('FOOTBALL_V2_STAGE_CRON_KEY')||'',

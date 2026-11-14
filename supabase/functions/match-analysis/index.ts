@@ -262,6 +262,9 @@ const HABAO_SOCCER_ODDS_KEYS: Record<number,string> = {
   88: "soccer_netherlands_eredivisie", 40: "soccer_efl_champ",
   253: "soccer_usa_mls", 262: "soccer_mexico_ligamx",
   848: "soccer_uefa_europa_conference_league", // API-Football UEFA Conference League
+  // 2026-11-15：補上正式支援的日職、韓職、中超、巴甲
+  98: "soccer_japan_j_league", 292: "soccer_korea_kleague1",
+  169: "soccer_china_superleague", 71: "soccer_brazil_campeonato",
 };
 function habaoNormalizeTeam(name: string): string {
   return String(name || "").toLowerCase()
