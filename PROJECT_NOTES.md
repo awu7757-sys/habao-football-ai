@@ -146,7 +146,13 @@ flowchart TD
 
 重要 RPC：
 
-- `consume_member_analysis_credit(text)`：實際扣點規則的核心。**repo 內找不到其 CREATE FUNCTION 定義，只有呼叫端**；定義僅存在線上資料庫，應由使用者匯出存檔。一般首次成功領取扣 1 點；免費額度、付費額度、無限權限的優先順序以線上函式為準，**待確認**。
+- `consume_member_analysis_credit(text)`：實際扣點規則的核心。**線上確認（2026-11-15 匯出）**，備份於 `supabase/sql/consume_member_analysis_credit.snapshot.sql`（僅紀錄，不可直接部署）。規則：
+  1. 以 `members.account` 鎖定該列（`FOR UPDATE`）；找不到帳號回傳 `success=false`。
+  2. **只有 `member_level='vip'` 才會扣 `daily_free_credits`**，且優先於付費點數；一般會員即使 `daily_free_credits>0` 也不會使用它。
+  3. 每日免費用完（或非 VIP）時扣 `analysis_credits`（付費／儲值）。
+  4. 兩者皆為 0 回傳 `success=false, consumed_type='none'`。
+  5. **無限權限不在此函式**：三個 `claim_*_atomic` 在 `members.analysis_unlimited` 為 true 時直接略過呼叫。
+  6. 函式為 `SECURITY DEFINER` 且未設定 `search_path`；EXECUTE 權限（anon／authenticated 是否可直接呼叫）**待確認**。
 - `claim_football_v2_stage_analysis_atomic(...)`、`claim_nba_stage_atomic(...)`、`claim_mlb_stage_atomic(...)`：領取與扣點在同一交易完成，重複領取回傳舊結果。
 - `reserve_football_v2_stage_capture_lease(...)`／`release_football_v2_stage_capture_lease(...)`：足球擷取鎖。
 - `acquire_nba_stage_capture(...)`／`acquire_mlb_stage_capture(...)`：NBA／MLB 階段租約。
@@ -539,6 +545,6 @@ node deploy/sports-release-20261113/contract-tests.cjs
 
 對照 main `2c26f99` 程式碼，本文件模型參數與以下來源一致：足球 `supabase/functions/football-v2-shadow-stage-runner/index.ts`（與 `deploy/sports-release-20261113/` 版本逐字相同；`deploy/football-v2-rollout/` 為較舊版本）、NBA `deploy/nba-stages-20261113/stage-core.ts`／`nba-stage-context.ts`、MLB `deploy/sports-release-20261113/baseball-analysis.index.txt`／`mlb-player-adjustment.js`、排程名稱與 Vault `nba_v2_cron_key`、三處 LINE URL。§9.2 五個本機測試重跑通過（9＋4＋15＋5＋45）。
 
-已依程式碼補正：驗證頁路徑、函式清單、`consume_member_analysis_credit` 不在 repo、足球球員只抓第 1 頁、NBA 標準差來源與 ±8 限制、首頁聯賽清單來源、`tests/` 目錄、`index.html` 過時註解。
+已依程式碼補正：扣點函式線上定義（§2.4）、驗證頁路徑、函式清單、`consume_member_analysis_credit` 不在 repo、足球球員只抓第 1 頁、NBA 標準差來源與 ±8 限制、首頁聯賽清單來源、`tests/` 目錄、`index.html` 過時註解。
 
 仍無法由程式碼確認：線上函式是否與 repo 同版、cron 啟用與最後成功時間、公開戰績採用階段、fixture 1557418 修正是否已執行、11/13 疑似多扣點。
