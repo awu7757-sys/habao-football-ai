@@ -163,7 +163,7 @@ async function run(action:'dry_run'|'run'){
     return {success:false,version:VERSION,action,status:'daily_api_cap_not_configured',api_football_calls:0};
   const now=Date.now(),calendar=await loadCalendar(now,action==='run'),cal=calendar.fixtures;
   const upcoming=cal.filter(f=>{
-    const t=Date.parse(f.fixture.date)-now;return Number.isFinite(t)&&t>10*HOUR&&t<=48*HOUR&&String(f.fixture.status?.short||'NS')==='NS';
+    const t=Date.parse(f.fixture.date)-now;return Number.isFinite(t)&&t>30*60_000&&t<=48*HOUR&&String(f.fixture.status?.short||'NS')==='NS'; // 2026-11-15：下限由 10 小時改為 30 分鐘，供漏抓補救
   }).sort((a,b)=>Date.parse(a.fixture.date)-Date.parse(b.fixture.date));
   if(!upcoming.length)return {success:true,version:VERSION,action,status:calendar.missingDates.length?'calendar_cache_missing':'no_fixture_in_prep_window',scheduled_dates:3,calendar_cache_misses:calendar.missingDates,api_football_calls:apiCalls};
   const ids=[...new Set(upcoming.map(f=>Number(f.fixture.id)))],inFilter=`fixture_id=in.(${ids.join(',')})`;
@@ -171,9 +171,11 @@ async function run(action:'dry_run'|'run'){
     dbGet<{fixture_id:number;stage:string}>('football_v2_shadow_feature_snapshots',`select=fixture_id,stage&${inFilter}`),
     dbGet<Audit>('football_v2_shadow_feature_audit',`select=fixture_id,stage,attempts,next_retry_at,terminal&${inFilter}`)
   ]);
-  const savedKeys=new Set(saved.map(x=>`${x.fixture_id}:${x.stage}`)),auditMap=new Map(audits.map(x=>[`${x.fixture_id}:${x.stage}`,x]));
+  const savedKeys=new Set(saved.map(x=>`${x.fixture_id}:${x.stage}`)),savedFixtures=new Set(saved.map(x=>Number(x.fixture_id))),auditMap=new Map(audits.map(x=>[`${x.fixture_id}:${x.stage}`,x]));
   const due=upcoming.flatMap(f=>{
     const t=Date.parse(f.fixture.date)-now,stage=t>24*HOUR?'prep_t48':'prep_t24',key=`${f.fixture.id}:${stage}`,a=auditMap.get(key);
+    // 距開賽 10 小時內只補「完全沒有特徵」的場次（例如新加入聯賽、日曆晚到），讓 T-10 首位會員補位與 T-2／T-15 不會永久卡住。
+    if(t<=10*HOUR&&savedFixtures.has(Number(f.fixture.id)))return[];
     if(savedKeys.has(key)||a?.terminal||Number(a?.attempts||0)>=3||(a?.next_retry_at&&Date.parse(a.next_retry_at)>now))return[];
     return [{f,stage,prior:a}];
   });
@@ -207,7 +209,7 @@ async function run(action:'dry_run'|'run'){
     await writeAudit(f,stage,a,'ready','feature_snapshot_saved',{data_quality:quality,home_matches:hf.matches,away_matches:af.matches,api_football_calls:apiCalls},null,true);
     return {success:true,version:VERSION,action,status:'ready',fixture_id:id,stage,data_quality:quality,home_matches:hf.matches,away_matches:af.matches,api_football_calls:apiCalls};
   }catch(error){
-    const terminal=attempt>=3||Date.parse(f.fixture.date)-now<(stage==='prep_t48'?24*HOUR:10*HOUR),reason=safe(error);
+    const terminal=attempt>=3||Date.parse(f.fixture.date)-now<(stage==='prep_t48'?24*HOUR:30*60_000),reason=safe(error);
     await writeAudit(f,stage,a,'failed',reason,{api_football_calls:apiCalls},terminal?null:60,terminal);
     return {success:false,version:VERSION,action,status:'failed',fixture_id:id,stage,reason,attempt,terminal,api_football_calls:apiCalls};
   }
