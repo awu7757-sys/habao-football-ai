@@ -6029,6 +6029,8 @@ padding:
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
+<script src="./sports-stage-core.js?v=20261113"></script>
+<script src="./home-sports-stats.js?v=20261115"></script>
   
 
 <style>
@@ -9485,75 +9487,18 @@ async function logoutV2Member() {
    公開 AI 驗證數量
 ================================ */
 
+function getV2SportsStats() {
+  return window.HabaoHomeSportsStats.create({
+    base:V2_SUPABASE_URL+"/functions/v1/",key:PUBLISHABLE_KEY,auth:v2SupabaseAuth,
+    member:()=>{try{return JSON.parse(sessionStorage.getItem("habao_member")||"null");}catch{return null;}},
+    core:window.HabaoStageCore
+  });
+}
+
 async function loadV2Performance() {
-
-  const countEl =
-    document.getElementById(
-      "verifiedCount"
-    );
-
-  if (!countEl) return;
-
-
-  try {
-
-    const response =
-      await fetch(
-        AI_PERFORMANCE_URL,
-        {
-          method: "GET",
-          cache: "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-      throw new Error(
-        "AI performance request failed"
-      );
-    }
-
-
-    const data =
-      await response.json();
-
-
-    const count =
-      Number(
-        data?.summary
-          ?.verified_matches
-      );
-
-
-    if (
-      Number.isFinite(count)
-    ) {
-
-      animateV2Number(
-        countEl,
-        count
-      );
-
-    } else {
-
-      countEl.textContent =
-        "0";
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "V2 PERFORMANCE ERROR:",
-      error
-    );
-
-    countEl.textContent =
-      "--";
-
-  }
-
+  const el=document.getElementById("verifiedCount");if(!el)return;
+  try{animateV2Number(el,await getV2SportsStats().verified());}
+  catch(e){console.error("V2 SPORTS VERIFIED ERROR",e);el.textContent="--";}
 }
 
 
@@ -9846,266 +9791,19 @@ function setV2HomeDataLoadingState(
 ================================ */
 
 async function loadV2TodayFixturesCount() {
-
-  setV2HomeDataLoadingState(
-    "loading"
-  );
-
-  console.time("⏱️ 可分析賽事 API");
-
-  const countEl =
-    document.getElementById(
-      "todayMatchCount"
-    );
-
-  if (!countEl) return;
-
-
-  const fetchFixtures =
-    async (offset) => {
-
-      const response =
-        await fetch(
-          V2_FIXTURES_URL,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-
-              "apikey":
-                PUBLISHABLE_KEY,
-
-              "Authorization":
-                "Bearer " +
-                PUBLISHABLE_KEY
-            },
-
-            body:
-              JSON.stringify({
-                offset
-              })
-          }
-        );
-
-
-      const data =
-        await response.json();
-
-
-      if (
-        !response.ok ||
-        !data.success
-      ) {
-
-        throw new Error(
-          data.error ||
-          "賽事讀取失敗"
-        );
-
-      }
-
-
-      return Array.isArray(
-        data.fixtures
-      )
-        ? data.fixtures
-        : [];
-
-    };
-
-
-  try {
-
-    const [
-      todayFixtures,
-      tomorrowFixtures
-    ] =
-      await Promise.all([
-        fetchFixtures(0),
-        fetchFixtures(1)
-      ]);
-
-
-    const fixtures = [
-      ...todayFixtures,
-      ...tomorrowFixtures
-    ];
-
-
-    const unavailableStatuses =
-      new Set([
-        "FT",
-        "AET",
-        "PEN",
-        "AWD",
-        "WO",
-        "CANC",
-        "PST",
-        "ABD"
-      ]);
-
-
-    const supportedLeagueIds =
-      new Set([
-        2,
-        3,
-        39,
-        140,
-        78,
-        135,
-        61,
-        98,
-        292,
-        88,
-        169,
-        71
-      ]);
-
-
-    const uniqueFixtures =
-      new Map();
-
-
-    fixtures.forEach(match => {
-
-      const fixtureId =
-        Number(
-          match?.fixtureId ||
-          0
-        );
-
-
-      const leagueId =
-        Number(
-          match?.league?.id ||
-          match?.league_id ||
-          match?.leagueId ||
-          0
-        );
-
-
-const status =
-  String(
-    match?.status || ""
-  ).toUpperCase();
-
-
-const kickoffMs =
-  new Date(
-    match?.time ||
-    match?.fixture?.date ||
-    match?.date ||
-    0
-  ).getTime();
-
-
-const msUntilKickoff =
-  kickoffMs - Date.now();
-
-
-const isWithinAnalysisWindow =
-  Number.isFinite(
-    kickoffMs
-  ) &&
-  msUntilKickoff > 0 &&
-  msUntilKickoff <=
-    10 * 60 * 60 * 1000;
-
-
-if (
-  fixtureId > 0 &&
-  supportedLeagueIds.has(
-    leagueId
-  ) &&
-  !unavailableStatuses.has(
-    status
-  ) &&
-  isWithinAnalysisWindow
-) {
-
-        uniqueFixtures.set(
-          fixtureId,
-          match
-        );
-
-      }
-
-    });
-
-
-    animateV2Number(
-      countEl,
-      uniqueFixtures.size
-    );
-
-
-    /*
-      焦點賽事仍維持原本邏輯：
-      先顯示今天，
-      今天沒有可用賽事時，
-      原程式會再抓明日焦點。
-    */
-
-    window.v2TodayFixtures =
-      todayFixtures;
-
-
-    renderV2FocusMatches(
-      todayFixtures
-    );
-
-
-    setV2HomeDataLoadingState(
-      "success"
-    );
-
-
-    console.timeEnd(
-      "⏱️ 可分析賽事 API"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "V2 ANALYZABLE FIXTURES ERROR:",
-      error
-    );
-
-    countEl.textContent =
-      "--";
-
-    setV2HomeDataLoadingState(
-      "error"
-    );
-
-    const focusContainer =
-      document.getElementById(
-        "v2FocusMatches"
-      );
-
-    if (focusContainer) {
-      focusContainer.innerHTML = `
-        <article class="match-card">
-          <div class="v2-focus-loading">
-            <strong style="color:#ff9b9b">
-              ${
-                window.HabaoI18n?.t(
-                  "dataSyncFailed",
-                  "資料載入失敗，請稍後再試"
-                ) ||
-                "資料載入失敗，請稍後再試"
-              }
-            </strong>
-          </div>
-        </article>
-      `;
-    }
-
+  const el=document.getElementById("todayMatchCount");if(!el)return;
+  setV2HomeDataLoadingState("loading");
+  try{
+    const data=await getV2SportsStats().fixtures();
+    animateV2Number(el,data.count);
+    window.v2TodayFixtures=data.footballToday;
+    renderV2FocusMatches(data.footballToday);
+    setV2HomeDataLoadingState("success");
+  }catch(e){
+    console.error("V2 SPORTS FIXTURES ERROR",e);el.textContent="--";
+    if(Array.isArray(e.footballToday)){window.v2TodayFixtures=e.footballToday;renderV2FocusMatches(e.footballToday);}
+    setV2HomeDataLoadingState("error");
   }
-
 }
 
 
@@ -10195,115 +9893,9 @@ console.time("⏱️ 明日賽事 API");
 }
   
 async function loadV2AnalysisCount() {
-  
-console.time("⏱️ 已分析 API");  
-
-  const countEl =
-    document.getElementById(
-      "analysisCount"
-    );
-
-  if (!countEl) return;
-
-
-  try {
-
-    const member =
-      JSON.parse(
-        sessionStorage.getItem(
-          "habao_member"
-        ) || "null"
-      );
-
-
-    if (!member?.account) {
-
-      countEl.textContent =
-        "--";
-
-      return;
-
-    }
-
-
-    const response =
-      await fetch(
-        V2_HISTORY_URL +
-        "?account=" +
-        encodeURIComponent(
-          member.account
-        ),
-        {
-          method: "GET",
-
-          headers: {
-
-            "apikey":
-              PUBLISHABLE_KEY,
-
-            "Authorization":
-              "Bearer " +
-              PUBLISHABLE_KEY
-
-          },
-
-          cache:
-            "no-store"
-        }
-      );
-
-
-    const data =
-      await response.json();
-    
-      console.timeEnd("⏱️ 已分析 API");
-
-
-    if (
-      !response.ok ||
-      !data.success
-    ) {
-
-      throw new Error(
-        data.error ||
-        "分析紀錄讀取失敗"
-      );
-
-    }
-
-
-    const matches =
-      Array.isArray(data.matches)
-        ? data.matches
-        : [];
-
-
-    animateV2Number(
-      countEl,
-      matches.length
-    );
-
-
-    /*
-      下一步「我的分析」頁面也能直接使用
-    */
-
-    window.v2AnalysisHistory =
-      matches;
-
-
-  } catch (error) {
-
-    console.error(
-      "V2 ANALYSIS COUNT ERROR:",
-      error
-    );
-
-    countEl.textContent =
-      "--";
-
-  }
-
+  const el=document.getElementById("analysisCount");if(!el)return;
+  try{const data=await getV2SportsStats().history();animateV2Number(el,data.count);window.v2AnalysisHistory=data.matches;}
+  catch(e){console.error("V2 SPORTS HISTORY ERROR",e);el.textContent="--";}
 }
 
 /* =========================================

@@ -345,9 +345,9 @@
         <div class="verified-line"><span id="verifiedMatches" class="verified-num">--</span><span class="verified-unit" data-i18n="matchUnit">場</span><span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
       </div>
       <div class="filters">
-        <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
+        <button class="filter-btn" data-days="" data-i18n="all">全部</button>
         <button class="filter-btn" data-days="7" data-i18n="last7">近 7 天</button>
-        <button class="filter-btn" data-days="30" data-i18n="last30">近 30 天</button>
+        <button class="filter-btn active" data-days="30" data-i18n="last30">近 30 天</button>
       </div>
       <div class="rangebox">
         <span class="range-icon">▣</span>
@@ -405,7 +405,7 @@
             <button class="trend-tab" data-trend="over_under" data-i18n="overUnder">大小分</button>
             <button class="trend-tab" data-trend="btts">BTTS</button>
           </div>
-          <div class="trend-period"><button class="period-btn active" data-period="7">7D</button><button class="period-btn" data-period="30">30D</button></div>
+          <div class="trend-period"><button class="period-btn" data-period="7">7D</button><button class="period-btn active" data-period="30">30D</button></div>
         </div>
         <div class="trend-body">
           <div id="trendChart" class="chart-wrap"></div>
@@ -486,8 +486,9 @@ const BASEBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functio
 const BASEBALL_OFFICIAL_PICKS_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-picks";
 const NBA_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/National_Basketball_Association_logo_2017-present.svg";
 const MLB_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/Major_League_Baseball_logo.svg";
-let topDays="", lowerDays=7, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
-let topData=null, lowerData=null, allData=null;
+let topDays="30", lowerDays=30, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
+let topData=null, lowerData=null, allData=null, recordsData=null;
+let lowerViewRequestId=0, topViewRequestId=0;
 
 const I18N={
   "zh-Hant":{brandTitle:"HABAO 賽事預測 AI",football:"足球",basketball:"籃球",baseball:"棒球",basketballComingSoon:"🏀 籃球戰績即將開放",baseballComingSoon:"⚾ 棒球戰績即將開放",comingSoon:"敬請期待",comingText:"目前先完成版面骨架；資料源與自動驗證接通後，將使用與足球相同的公開驗證機制。",sportPerformance:"{sport}公開戰績",winLoss:"勝負",handicap:"讓分",back:"返回",heroTitle:"公開戰績",heroText:"系統每日自動對平台可分析賽事建立賽前預測快照，完賽後依正式比分自動驗證。所有符合條件的賽事皆會納入公開戰績，不人工篩選。",feature1:"賽前自動分析",feature2:"不依賴會員操作",feature3:"真實賽果驗證",feature4:"透明公開數據",verifiedMatches:"已驗證賽事",matchUnit:"場",dailyUpdate:"每日更新",simulationSample:"含模擬樣本",all:"全部",last7:"近 7 天",last30:"近 30 天",statsRange:"統計區間",marketPerformance:"AI 市場表現",moneyline:"獨贏",overUnder:"大小分",bttsName:"雙方進球",recentForm:"近期戰績",recent10:"（近 10 筆）",overall:"綜合",trendTitle:"AI 命中走勢",current:"目前",recentTrend:"近期趨勢",leaguePerformance:"各聯賽表現",sortByRate:"勝率排序",matchCount:"賽事數量",latestRecords:"最新公開驗證紀錄",viewMore:"查看更多 ›",viewLess:"收合 ›",dateTime:"日期時間",league:"聯賽",homeAway:"主隊 vs 客隊",score:"比分",aiPrediction:"AI 預測",verification:"驗證結果",samples:"場",noData:"尚無資料",insufficient:"樣本累積中",stable:"近期穩定",volatile:"近期波動",rising:"近期上升",falling:"近期回落",trendStable:"持平",trendUp:"上升",trendDown:"回落",recentSummary:"近 10 筆：{w} 中｜{l} 未中｜{p} 走盤　命中率 {r}",verificationUnit:"筆驗證",otherLeague:"其他聯賽",methodNote:"所有公開戰績均以賽前 T-10 正式分析快照為依據，透過官方賽果進行驗證，完整呈現 AI 預測與實際結果。"},
@@ -885,7 +886,8 @@ function habaoRecordMarketMark(row,key){
 }
 function overallResult(settlement){const keys=currentSport==="football"?["moneyline","over_under","btts"]:["moneyline","over_under","handicap"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);if(!vals.length)return"";let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
-  const rows=Array.isArray(lowerData?.matches)?lowerData.matches:[],
+  const cutoff=Date.now()-30*86400000;
+  const rows=(Array.isArray(recordsData?.matches)?recordsData.matches:[]).filter(x=>{const at=Date.parse(x.kickoff_at??x.fixture_time??x.game_date);return Number.isFinite(at)&&at>=cutoff&&at<=Date.now();}).sort((a,b)=>Date.parse(b.kickoff_at??b.fixture_time??b.game_date)-Date.parse(a.kickoff_at??a.fixture_time??a.game_date)),
         shown=showAll?rows:rows.slice(0,5),
         body=document.getElementById("recordsBody"),
         mobile=document.getElementById("mobileRecords");
@@ -999,6 +1001,11 @@ let performanceSportRequestId=0;
 async function switchSport(sport){
   if(sport==="football"||sport==="basketball"||sport==="baseball"){
     currentSport=sport;
+    topDays="30";lowerDays=30;
+    ++lowerViewRequestId;++topViewRequestId;
+    allData=topData=lowerData=recordsData=emptyPerformanceData();
+    document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b.dataset.period==="30"));
+    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.days==="30"));
     showAll=false;
     currentRecent="overall";
     currentTrend="overall";
@@ -1018,17 +1025,13 @@ async function switchSport(sport){
     const requestId=++performanceSportRequestId;
     history.replaceState(null,"",location.pathname+(sport==="football"?"":"?sport="+sport));
     try{
-      const full=await fetchData("");
+      const recent=await fetchData("30");
       if(requestId!==performanceSportRequestId)return;
-      allData=full;
-      topData=topDays?await fetchData(topDays):allData;
-      const recent=await fetchData(String(lowerDays));
-      if(requestId!==performanceSportRequestId)return;
-      lowerData=recent;
+      topData=lowerData=recordsData=recent;
     }catch(e){
       if(requestId!==performanceSportRequestId)return;
       console.error("SPORT PERFORMANCE ERROR",e);
-      allData=topData=lowerData=emptyPerformanceData();
+      allData=topData=lowerData=recordsData=emptyPerformanceData();
     }
 
     renderAll();
@@ -1148,8 +1151,16 @@ async function fetchData(days=""){
     return display;
   }
 }
-async function loadTopView(){try{topData=topDays?await fetchData(topDays):allData;if(!topData)topData=await fetchData("");renderTop()}catch(e){console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop()}}
-async function loadLowerView(){try{lowerData=await fetchData(String(lowerDays));renderLower()}catch(e){console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower()}}
+async function loadTopView(){
+  const token=++topViewRequestId,sport=currentSport;
+  try{const data=await fetchData(topDays);if(token!==topViewRequestId||sport!==currentSport)return;topData=data;renderTop();}
+  catch(e){if(token!==topViewRequestId||sport!==currentSport)return;console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop();}
+}
+async function loadLowerView(){
+  const token=++lowerViewRequestId,sport=currentSport;
+  try{const data=await fetchData(String(lowerDays));if(token!==lowerViewRequestId||sport!==currentSport)return;lowerData=data;renderLower();}
+  catch(e){if(token!==lowerViewRequestId||sport!==currentSport)return;console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower();}
+}
 async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");await switchSport(["football","basketball","baseball"].includes(sport)?sport:"football")}
 
 document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>window.HABAO_LOADING ? window.HABAO_LOADING.track(switchSport(btn.dataset.sport||"football")) : switchSport(btn.dataset.sport||"football")));
@@ -1162,7 +1173,7 @@ function syncMarketTabs(key){
 }
 document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.recent)));
 document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.trend)));
-document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||7;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadLowerView()) : loadLowerView())}));
+document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||30;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadLowerView()) : loadLowerView())}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
 document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
 window.addEventListener("habao:languagechange",()=>{applyLang();renderAll();applySportLabels()});
