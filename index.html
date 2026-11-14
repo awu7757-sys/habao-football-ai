@@ -3404,7 +3404,7 @@ body.login-ready .app {
 
   <a
     class="shortcut-card line-card"
-    href="https://lin.ee/ppRvZLM"
+    href="https://lin.ee/7nY5vo5"
     target="_blank"
     rel="noopener noreferrer"
   >
@@ -4641,6 +4641,16 @@ async function prepareLINELogin() {
 
             scopes:
               "openid profile",
+
+            /*
+             * 2026-11-15：LINE 首次授權時同時提示加入 HABAO 官方帳號好友
+             * （https://lin.ee/7nY5vo5）。需在 LINE Developers 的
+             * LINE Login channel 設定「Linked LINE Official Account」才會出現。
+             */
+            queryParams: {
+              bot_prompt:
+                "normal"
+            },
 
             skipBrowserRedirect:
               true

@@ -39,7 +39,7 @@
 1. **Supabase 讀取與修改均已撤銷，連接已移除。** 不得改走 HTTP、SQL、CLI、瀏覽器或舊金鑰繞過。
 2. **GitHub 可以直接讀取；每次修改須先取得使用者允許。** 本次五項前台改動已獲單次授權並完成，不能推論後續修改也獲授權。
 3. 後端目前採「提供程式／SQL，由使用者自行執行」方式。
-4. LINE 更換延後，尚未提供新網址；目前不得更換。
+4. LINE 客服網址已於 2026-11-15 統一換為 `https://lin.ee/7nY5vo5`（見 §11）。
 5. 使用者偏好：繁體中文、先說結論、操作要指出檔案、搜尋位置、替換起訖、保留區段與是否 Commit。
 
 ## 1. 專案目標與核心理念
@@ -401,7 +401,6 @@ DRtg = 由對手得分效率建立
 - MLB 新版實場、球員權重回測／校準：尚未完成。
 - NBA 球員對總分的修正：尚未實作；既有 margin-only 不可冒充已完成。
 - 全模型勝率校準、樣本外評估、ROI／EV 穩健性、版本比較：沒有完整可接受證據。
-- 三處 LINE 網址更換：延後，等待新網址。
 - 2026-11-13 批次兩場疑似扣三點（帳號 `google_2d3cef6b6e2d`，NBA）：2026-11-15 以 `deploy/fixes-20261115/01_investigate_20261113_readonly.sql` 匯出。結果：
   - 批次為台灣 08:16 的 17113、17114 T-2，`basketball_v2_stage_claims` 恰有 2 筆；T-2／T-15 原子 RPC 的扣點與寫入同一交易，**不可能扣點卻沒有紀錄，所以這條路徑只扣了 2 點**。
   - 當天沒有 `analysis_jobs`（此批次不經批次工作表），足球、MLB 無紀錄。
@@ -445,7 +444,7 @@ DRtg = 由對手得分效率建立
 5. 移除誤導性的過時 README 指令（pilot-only、舊 T-10 文案、舊未納入 MLB 球員等，主要在 `deploy/*/README.md`），保留歷史時間標記。根目錄 `README.md` 幾乎是空的，且 `\n` 未轉成換行，需重寫。
 8. `index.html` 約 5013 行註解仍寫「QA 完成後才正式升級為 home.html」，與現況（`home.html` 已無任何入站連結、正式首頁為 `home-v2.html`）相反，應更正。
 6. 處理隊徽破圖、三語文字、手機長表、載入錯誤與重試。使用者先前圖片曾顯示足球／太陽隊徽問題，沒有完整最新驗收結論。
-7. LINE 三處待換；合作平台等後台動態連結需另行盤點，不包含在寫死 URL 清單內。
+7. LINE 三處已換（§11）；合作平台等後台動態連結需另行盤點。
 
 ## 8. 不可隨意修改的地方
 
@@ -535,15 +534,15 @@ node tests/football-recommendation-parity.test.cjs   # 足球會員推薦 vs 公
 
 舊 `deploy/nba-fixtures-20261114/live-validation.json` 記錄的是續訂前失敗，不應蓋過後來續訂成功的對話證據；同理，部署驗證 JSON 都是時間點紀錄，不能當作永久健康證明。
 
-## 11. LINE 連結待辦（尚未修改）
+## 11. LINE 連結（2026-11-15 已更換）
 
-| 入口 | 檔案 | 現有 URL |
+| 入口 | 檔案 | 網址 |
 |---|---|---|
-| 登入頁客服 | `index.html` | `https://lin.ee/ppRvZLM` |
-| 首頁浮動客服 | `home-v2.html` | `https://lin.ee/ppRvZLM` |
-| 積分不足聯絡客服 | `football.html` | `https://lin.ee/xmU6Cn8` |
+| 登入頁客服 | `index.html` | `https://lin.ee/7nY5vo5`（原 `ppRvZLM`） |
+| 首頁浮動客服 | `home-v2.html` | `https://lin.ee/7nY5vo5`（原 `ppRvZLM`） |
+| 積分不足聯絡客服 | `football.html` | `https://lin.ee/7nY5vo5`（原 `xmU6Cn8`） |
 
-只確認前台寫死的三處。新的連結、是否全部統一及動態後台連結都待使用者提供／確認。不要替換 LINE OAuth 授權 URL。
+LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `queryParams.bot_prompt = "normal"`：會員首次授權 LINE 登入時，同意畫面會出現「加入官方帳號好友」選項。前提是 LINE Developers 的 LINE Login channel 已在「Linked LINE Official Account」綁定這個官方帳號（需同一 Provider）。Supabase 自訂 provider 是否把此參數轉給 LINE 待實測；若同意畫面沒出現，先檢查 LINE 後台綁定。OAuth 授權網址本身未更動；`line-login-test.html` 為測試頁，未加。合作平台等後台動態連結不在此表。
 
 ## 12. 下一位維護者應回報的內容
 
