@@ -152,7 +152,8 @@ flowchart TD
   3. 每日免費用完（或非 VIP）時扣 `analysis_credits`（付費／儲值）。
   4. 兩者皆為 0 回傳 `success=false, consumed_type='none'`。
   5. **無限權限不在此函式**：三個 `claim_*_atomic` 在 `members.analysis_unlimited` 為 true 時直接略過呼叫。
-  6. 函式為 `SECURITY DEFINER` 且未設定 `search_path`；EXECUTE 權限（anon／authenticated 是否可直接呼叫）**待確認**。
+  6. 函式為 `SECURITY DEFINER` 且未設定 `search_path`。EXECUTE 權限**線上確認**只有 `postgres`、`service_role`，anon／authenticated 不能直接呼叫。
+- **會員等級與點數設計（使用者 2026-11-15 說明）**：首次註冊登入為一般會員，只有註冊贈送的 3 點，**沒有每日免費點數**；註冊前台連接的合作平台後直接升級為 VIP，才有每日免費點數。因此上述「只有 VIP 扣每日免費點數」符合設計，**不是 bug，不要改**。扣點順序對所有會員相同：先每日免費（只有 VIP 會有）→ 再付費／贈送點數。註冊贈送 3 點存在哪個欄位（推測 `analysis_credits`）、升級 VIP 與每日發點由哪個函式／排程執行，**待確認**。
 - `claim_football_v2_stage_analysis_atomic(...)`、`claim_nba_stage_atomic(...)`、`claim_mlb_stage_atomic(...)`：領取與扣點在同一交易完成，重複領取回傳舊結果。
 - `reserve_football_v2_stage_capture_lease(...)`／`release_football_v2_stage_capture_lease(...)`：足球擷取鎖。
 - `acquire_nba_stage_capture(...)`／`acquire_mlb_stage_capture(...)`：NBA／MLB 階段租約。
