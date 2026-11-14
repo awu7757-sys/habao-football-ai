@@ -4643,13 +4643,13 @@ async function prepareLINELogin() {
               "openid profile",
 
             /*
-             * 2026-11-15：LINE 首次授權時同時提示加入 HABAO 官方帳號好友
+             * 2026-11-15：LINE 首次授權後另開整頁畫面邀請加入 HABAO 官方帳號好友（aggressive）
              * （https://line.me/R/ti/p/@804dlhod）。需在 LINE Developers 的
              * LINE Login channel 設定「Linked LINE Official Account」才會出現。
              */
             queryParams: {
               bot_prompt:
-                "normal"
+                "aggressive"
             },
 
             skipBrowserRedirect:
