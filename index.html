@@ -5011,10 +5011,8 @@ if (message) {
 }
 
 /*
- * V2 功能遷移測試期間，
- * OAuth 登入成功後先進入 home-v2.html。
- * 等 V2 全部 QA 完成後，
- * 才正式升級為 home.html。
+ * OAuth 登入成功後進入正式會員首頁 home-v2.html。
+ * home.html 為舊首頁，已無任何頁面導向，勿當作修改目標。
  */
 const currentLanguage =
   localStorage.getItem(
