@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<script src="./habao-loading.js?v=1" defer></script>
+<script src="./habao-loading.js?v=2" defer></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#071521" />
@@ -275,6 +275,13 @@
 .coming-panels{grid-template-columns:1fr}
     }
 
+    /* 2026-11-15：切換球類／區間時的載入狀態（舊內容變暗＋明確文字），避免看起來像當機或數字變 0 */
+    #footballPerformance{transition:opacity .18s,filter .18s}
+    body.perf-loading #footballPerformance{opacity:.38;filter:saturate(.5);pointer-events:none}
+    #perfLoadingNotice{display:none;position:sticky;top:10px;z-index:30;margin:0 auto 10px;width:max-content;max-width:92%;align-items:center;gap:10px;padding:10px 16px;border:1px solid rgba(242,189,75,.55);border-radius:999px;background:rgba(7,13,21,.96);box-shadow:0 8px 26px rgba(0,0,0,.45);color:#ffd877;font-weight:800;font-size:13px}
+    body.perf-loading #perfLoadingNotice{display:flex}
+    #perfLoadingNotice .ring{width:16px;height:16px;border:2.5px solid rgba(242,189,75,.22);border-top-color:#f2bd4b;border-right-color:#f2bd4b;border-radius:50%;animation:perfSpin .7s linear infinite}
+    @keyframes perfSpin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -338,6 +345,7 @@
       aria-live="polite"
     ></div>
 
+    <div id="perfLoadingNotice" role="status" aria-live="polite"><span class="ring" aria-hidden="true"></span><span id="perfLoadingText">戰績讀取中…</span></div>
     <div id="footballPerformance">
     <section class="summarybar">
       <div>
@@ -810,7 +818,16 @@ function renderTrend(){
   for(const x of arr){
     wins+=num(x.m?.effective_wins);losses+=num(x.m?.effective_losses);
     const den=wins+losses;
-    cumulative.push({date:x.date,rate:den?wins/den*100:0,total:den});
+    // 2026-11-15：尚未有任何已驗證場次的日子不畫 0%，避免走勢從 0 起跳、顯示「+65%」的假上升
+    if(den>0)cumulative.push({date:x.date,rate:wins/den*100,total:den});
+  }
+  if(!cumulative.length){
+    box.innerHTML=`<div class="empty">${esc(tr("insufficient"))}</div>`;
+    document.getElementById("trendCurrent").textContent="--";
+    document.getElementById("trendChange").textContent="--";
+    document.getElementById("trendState").textContent=tr("insufficient");
+    document.getElementById("trendSample").textContent="--";
+    return;
   }
 
   const W=520,H=150,L=38,R=10,T=10,B=27;
@@ -1024,14 +1041,17 @@ async function switchSport(sport){
     applySportLabels();
     const requestId=++performanceSportRequestId;
     history.replaceState(null,"",location.pathname+(sport==="football"?"":"?sport="+sport));
+    const loading=!perfCached("30");if(loading)setPerfLoading(true,sport);
     try{
-      const recent=await fetchData("30");
+      const recent=await fetchDataCached("30");
       if(requestId!==performanceSportRequestId)return;
       topData=lowerData=recordsData=recent;
     }catch(e){
       if(requestId!==performanceSportRequestId)return;
       console.error("SPORT PERFORMANCE ERROR",e);
       allData=topData=lowerData=recordsData=emptyPerformanceData();
+    }finally{
+      if(loading)setPerfLoading(false);
     }
 
     renderAll();
@@ -1126,6 +1146,27 @@ function emptyPerformanceData(){return{summary:{verified_matches:0},markets:{},r
 function renderTop(){document.getElementById("verifiedMatches").textContent=num(topData?.summary?.verified_matches);const pill=document.getElementById("sampleKindPill");if(pill){const isSimulation=!topDays&&String(topData?.summary?.backtest_kind||"")==="simulation"&&num(topData?.summary?.backtest_matches)>0;pill.textContent=tr("simulationSample");pill.classList.toggle("show",isSimulation);pill.title=isSimulation?String(topData?.summary?.backtest_note||""):"";}renderRange();renderMarkets()}
 function renderLower(){renderRecent();renderTrend();renderLeagues();renderRecords()}
 function renderAll(){renderTop();renderLower()}
+/* 2026-11-15：同一球類＋區間的戰績在本頁 5 分鐘內重用，切回已看過的球類立即顯示；
+   公開戰績最快每小時才更新一次，短暫重用不影響正確性。 */
+const PERF_CACHE_TTL=5*60*1000;
+const perfCache=new Map();
+function perfSportLabel(sport){return sport==="basketball"?tr("basketball"):sport==="baseball"?tr("baseball"):tr("football")}
+let perfLoadingCount=0;
+function setPerfLoading(on,sport=currentSport){
+  perfLoadingCount=Math.max(0,perfLoadingCount+(on?1:-1));
+  const text=document.getElementById("perfLoadingText");
+  if(text&&on)text.textContent=`${perfSportLabel(sport)} 戰績讀取中…`;
+  document.body.classList.toggle("perf-loading",perfLoadingCount>0);
+}
+async function fetchDataCached(days=""){
+  const key=`${currentSport}|${days}`,hit=perfCache.get(key);
+  if(hit&&Date.now()-hit.t<PERF_CACHE_TTL)return hit.promise;
+  const promise=fetchData(days);
+  perfCache.set(key,{t:Date.now(),promise});
+  promise.catch(()=>{if(perfCache.get(key)?.promise===promise)perfCache.delete(key);});
+  return promise;
+}
+function perfCached(days=""){const hit=perfCache.get(`${currentSport}|${days}`);return !!hit&&Date.now()-hit.t<PERF_CACHE_TTL;}
 async function fetchData(days=""){
   const base=currentSport==="basketball"?BASKETBALL_PERFORMANCE_API:currentSport==="baseball"?BASEBALL_PERFORMANCE_API:AI_PERFORMANCE_API;
   const url=days?`${base}?days=${encodeURIComponent(days)}`:base;
@@ -1153,13 +1194,17 @@ async function fetchData(days=""){
 }
 async function loadTopView(){
   const token=++topViewRequestId,sport=currentSport;
-  try{const data=await fetchData(topDays);if(token!==topViewRequestId||sport!==currentSport)return;topData=data;renderTop();}
+  const loading=!perfCached(topDays);if(loading)setPerfLoading(true,sport);
+  try{const data=await fetchDataCached(topDays);if(token!==topViewRequestId||sport!==currentSport)return;topData=data;renderTop();}
   catch(e){if(token!==topViewRequestId||sport!==currentSport)return;console.error("AI PERFORMANCE TOP ERROR",e);topData=emptyPerformanceData();renderTop();}
+  finally{if(loading)setPerfLoading(false);}
 }
 async function loadLowerView(){
   const token=++lowerViewRequestId,sport=currentSport;
-  try{const data=await fetchData(String(lowerDays));if(token!==lowerViewRequestId||sport!==currentSport)return;lowerData=data;renderLower();}
+  const loading=!perfCached(String(lowerDays));if(loading)setPerfLoading(true,sport);
+  try{const data=await fetchDataCached(String(lowerDays));if(token!==lowerViewRequestId||sport!==currentSport)return;lowerData=data;renderLower();}
   catch(e){if(token!==lowerViewRequestId||sport!==currentSport)return;console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower();}
+  finally{if(loading)setPerfLoading(false);}
 }
 async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");await switchSport(["football","basketball","baseball"].includes(sport)?sport:"football")}
 

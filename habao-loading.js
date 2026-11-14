@@ -2,15 +2,21 @@
 (function () {
   'use strict';
   if (window.HABAO_LOADING) return;
-  const DELAY = 230;
+  // 2026-11-15：使用者要求切換時清楚看出正在緩衝 → 縮短延遲、加大提示、加頂部進度條。
+  const DELAY = 120;
   const ID = 'habao-mini-loading';
+  const BAR = 'habao-top-progress';
   let timer = null, timeout = null, seq = 0, pending = 0, recent = null;
   const css = `
-#${ID}{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid rgba(242,189,75,.35);border-radius:999px;background:rgba(7,13,21,.94);box-shadow:0 6px 25px rgba(0,0,0,.3);color:#f8d47b;font:600 12px/1.2 system-ui,"Noto Sans TC",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}
-#${ID}.visible{opacity:1}
-#${ID} .habao-mini-ring{width:19px;height:19px;border:2px solid rgba(242,189,75,.23);border-top-color:#f2bd4b;border-right-color:#f2bd4b;border-radius:50%;animation:habao-mini-spin .75s linear infinite;flex:none}
+#${ID}{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom,0px));left:50%;transform:translate(-50%,8px);z-index:2147483000;display:flex;align-items:center;gap:10px;padding:11px 18px;border:1px solid rgba(242,189,75,.55);border-radius:999px;background:rgba(7,13,21,.96);box-shadow:0 10px 32px rgba(0,0,0,.45),0 0 0 4px rgba(242,189,75,.08);color:#ffd877;font:700 14px/1.2 system-ui,"Noto Sans TC",sans-serif;letter-spacing:.02em;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s}
+#${ID}.visible{opacity:1;transform:translate(-50%,0)}
+#${ID} .habao-mini-ring{width:20px;height:20px;border:2.5px solid rgba(242,189,75,.22);border-top-color:#f2bd4b;border-right-color:#f2bd4b;border-radius:50%;animation:habao-mini-spin .7s linear infinite;flex:none}
+#${BAR}{position:fixed;top:0;left:0;right:0;height:3px;z-index:2147483001;pointer-events:none;opacity:0;transition:opacity .15s;overflow:hidden;background:rgba(242,189,75,.12)}
+#${BAR}.visible{opacity:1}
+#${BAR}::before{content:"";position:absolute;top:0;bottom:0;left:-40%;width:40%;background:linear-gradient(90deg,transparent,#f2bd4b,#ffe08a,#f2bd4b,transparent);animation:habao-bar-slide 1s ease-in-out infinite}
 @keyframes habao-mini-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){#${ID} .habao-mini-ring{animation-duration:2s}}
+@keyframes habao-bar-slide{to{left:100%}}
+@media(prefers-reduced-motion:reduce){#${ID} .habao-mini-ring{animation-duration:2s}#${BAR}::before{animation-duration:2.5s}}
 `;
   function language() {
     const value = String(localStorage.getItem('habao_lang') || localStorage.getItem('habao_language') || document.documentElement.lang || '').toLowerCase();
@@ -25,15 +31,20 @@
       document.body.appendChild(n);
     }
     n.querySelector('.habao-mini-label').textContent = language();
+    if (!document.getElementById(BAR)) {
+      const bar = document.createElement('div'); bar.id = BAR; bar.setAttribute('aria-hidden','true');
+      document.body.appendChild(bar);
+    }
     return n;
   }
   function hide() {
     clearTimeout(timer);clearTimeout(timeout);timer=null;timeout=null;
     const n = document.getElementById(ID); if(n)n.classList.remove('visible');
+    const b = document.getElementById(BAR); if(b)b.classList.remove('visible');
   }
   function show() {
     const id = ++seq;hide();
-    timer = setTimeout(() => { if(id!==seq)return;const n=node();if(n)n.classList.add('visible'); },DELAY);
+    timer = setTimeout(() => { if(id!==seq)return;const n=node();if(n)n.classList.add('visible');const b=document.getElementById(BAR);if(b)b.classList.add('visible'); },DELAY);
     timeout = setTimeout(() => { if(id===seq){++seq;pending=0;hide();} },30000);
     return id;
   }

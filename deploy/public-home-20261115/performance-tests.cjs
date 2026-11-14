@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),a=require('node:assert/strict');
 const html=fs.readFileSync(__dirname+'/../../performance.html','utf8');
 const nodes=new Map(),make=()=>({innerHTML:'',textContent:'',style:{},dataset:{},classList:{toggle(){},remove(){},add(){}},addEventListener(){},querySelectorAll(){return []}});
-const document={documentElement:{lang:"zh-Hant"},querySelectorAll:()=>[],querySelector:()=>null,getElementById:id=>{if(!nodes.has(id))nodes.set(id,make());return nodes.get(id)}};
+const document={documentElement:{lang:"zh-Hant"},body:make(),querySelectorAll:()=>[],querySelector:()=>null,getElementById:id=>{if(!nodes.has(id))nodes.set(id,make());return nodes.get(id)}};
 const requests=[];let fail=false;
 const c=vm.createContext({document,console,localStorage:{getItem:()=>null},URLSearchParams,Date,AbortSignal,Intl,setTimeout,clearTimeout,location:{search:'',pathname:'/performance.html'},history:{replaceState(){}},window:{addEventListener(){}},fetch:async url=>{
  requests.push(url);const sport=url.includes('basketball')?'basketball':url.includes('baseball')?'baseball':'football';
