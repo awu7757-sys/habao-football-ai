@@ -7285,6 +7285,14 @@ async function confirmNbaApiRenewal(button){
     window.nbaApiDailyLimit=Number(d.settings?.nba_api_daily_limit||7500);
     window.nbaApiStartDate=d.settings?.nba_api_start_date||window.nbaApiStartDate||null;
     window.nbaApiRenewalDate=d.settings?.nba_api_renewal_date||null;
+    
+    nbaProviderUsage = {
+  ...nbaProviderUsage,
+  plan: window.nbaApiPlan,
+  daily_limit: window.nbaApiDailyLimit,
+  start_date: window.nbaApiStartDate,
+  renewal_date: window.nbaApiRenewalDate
+  };
 
     renderDashboard();
     renderApiPage();
