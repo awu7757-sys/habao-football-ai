@@ -1,0 +1,58 @@
+[
+  {
+    "date": "2026-11-14",
+    "status": 502,
+    "success": false,
+    "errors": {
+      "nba": [
+        {
+          "status": 200,
+          "errors": {
+            "plan": "Free plans do not have access to this season, try from 2022 to 2024."
+          }
+        },
+        {
+          "status": 200,
+          "errors": {
+            "plan": "Free plans do not have access to this season, try from 2022 to 2024."
+          }
+        }
+      ],
+      "world_cup": []
+    },
+    "counts": {
+      "nba": 0,
+      "world_cup": 0,
+      "total": 0
+    },
+    "fixtures": []
+  },
+  {
+    "date": "2026-11-15",
+    "status": 502,
+    "success": false,
+    "errors": {
+      "nba": [
+        {
+          "status": 200,
+          "errors": {
+            "plan": "Free plans do not have access to this season, try from 2022 to 2024."
+          }
+        },
+        {
+          "status": 200,
+          "errors": {
+            "plan": "Free plans do not have access to this season, try from 2022 to 2024."
+          }
+        }
+      ],
+      "world_cup": []
+    },
+    "counts": {
+      "nba": 0,
+      "world_cup": 0,
+      "total": 0
+    },
+    "fixtures": []
+  }
+]
