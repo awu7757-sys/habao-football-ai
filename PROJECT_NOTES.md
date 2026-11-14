@@ -39,7 +39,7 @@
 1. **Supabase 讀取與修改均已撤銷，連接已移除。** 不得改走 HTTP、SQL、CLI、瀏覽器或舊金鑰繞過。
 2. **GitHub 可以直接讀取；每次修改須先取得使用者允許。** 本次五項前台改動已獲單次授權並完成，不能推論後續修改也獲授權。
 3. 後端目前採「提供程式／SQL，由使用者自行執行」方式。
-4. LINE 客服網址已於 2026-11-15 統一換為 `https://lin.ee/7nY5vo5`（見 §11）。
+4. LINE 客服網址已於 2026-11-15 統一換為 `https://line.me/R/ti/p/@804dlhod`（見 §11）。
 5. 使用者偏好：繁體中文、先說結論、操作要指出檔案、搜尋位置、替換起訖、保留區段與是否 Commit。
 
 ## 1. 專案目標與核心理念
@@ -536,11 +536,13 @@ node tests/football-recommendation-parity.test.cjs   # 足球會員推薦 vs 公
 
 ## 11. LINE 連結（2026-11-15 已更換）
 
+官方帳號：HB 台彩賽事Ai（`@804dlhod`）。`lin.ee` 短網址會變動，一律使用以 ID 組成的固定加好友網址 `https://line.me/R/ti/p/@804dlhod`。
+
 | 入口 | 檔案 | 網址 |
 |---|---|---|
-| 登入頁客服 | `index.html` | `https://lin.ee/7nY5vo5`（原 `ppRvZLM`） |
-| 首頁浮動客服 | `home-v2.html` | `https://lin.ee/7nY5vo5`（原 `ppRvZLM`） |
-| 積分不足聯絡客服 | `football.html` | `https://lin.ee/7nY5vo5`（原 `xmU6Cn8`） |
+| 登入頁客服 | `index.html` | `https://line.me/R/ti/p/@804dlhod`（原 `ppRvZLM`） |
+| 首頁浮動客服 | `home-v2.html` | `https://line.me/R/ti/p/@804dlhod`（原 `ppRvZLM`） |
+| 積分不足聯絡客服 | `football.html` | `https://line.me/R/ti/p/@804dlhod`（原 `xmU6Cn8`） |
 
 LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `queryParams.bot_prompt = "normal"`：會員首次授權 LINE 登入時，同意畫面會出現「加入官方帳號好友」選項。前提是 LINE Developers 的 LINE Login channel 已在「Linked LINE Official Account」綁定這個官方帳號（需同一 Provider）。Supabase 自訂 provider 是否把此參數轉給 LINE 待實測；若同意畫面沒出現，先檢查 LINE 後台綁定。OAuth 授權網址本身未更動；`line-login-test.html` 為測試頁，未加。合作平台等後台動態連結不在此表。
 
