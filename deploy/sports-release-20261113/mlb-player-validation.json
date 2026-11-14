@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-14",
+  "deployment": [
+    {
+      "function": "baseball-analysis",
+      "version": 35,
+      "status": "ACTIVE",
+      "source_matches": true
+    },
+    {
+      "function": "baseball-v2-stage-runner",
+      "version": 2,
+      "status": "ACTIVE",
+      "source_matches": true
+    }
+  ],
+  "checks": {
+    "player": 15,
+    "integration": 5,
+    "atomic_claim": 8,
+    "contract": 45,
+    "queue_auth": 2
+  },
+  "source_probe": {
+    "request_id": 77653,
+    "http_status": 200,
+    "game_id": 849799,
+    "historical_fixture": true,
+    "source_only": true,
+    "snapshot_written": false,
+    "member_credits_consumed": 0,
+    "home_hitters": 22,
+    "away_hitters": 29,
+    "home_pitchers": 33,
+    "away_pitchers": 34,
+    "lineup_applied": true,
+    "bullpen_injury_applied": true
+  },
+  "limitations": [
+    "No upcoming MLB fixture was used for pregame live verification.",
+    "Heuristic player coefficients have not been accuracy-backtested."
+  ],
+  "sha256": {
+    "baseball-analysis.index.txt": "7a900dc76635b460943fad8d12312b1ff06c5cadb86d4500a1b1a417164b96ce",
+    "baseball-v2-stage-runner.index.txt": "8181131251661131df91d2e1be90dcf491e7ccbde38f736737e6dd383f7199db",
+    "mlb-player-adjustment.js": "0c720929c8876887c84438b9e739694ac70e7975b7cbc50e1eb7e9e5ba6613bc"
+  }
+}

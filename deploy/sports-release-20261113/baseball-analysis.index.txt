@@ -1,0 +1,392 @@
+/** HABAO MLB T-10 analysis candidate v1.3 — read-only, probabilistic research only; formal picks unchanged. */
+type Any = Record<string, any>;
+const JSON_HEADERS = {"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"};
+function respond(status:number, body:unknown){return new Response(JSON.stringify(body,null,2),{status,headers:JSON_HEADERS});}
+const n=(v:unknown):number|null=>{const x=Number(v);return v===null||v===undefined||v===""||!Number.isFinite(x)?null:x;};
+const round=(v:number,d=2)=>Number(v.toFixed(d));
+const timeout=()=>AbortSignal.timeout(12000);
+async function fetchJson(url:string):Promise<Any>{const r=await fetch(url,{headers:{Accept:"application/json"},signal:timeout()});if(!r.ok)throw Error(`provider_http_${r.status}`);return await r.json();}
+function statValue(s:any,keys:string[]):number|null{for(const key of keys){const val=n(s?.[key]);if(val!==null)return val;}return null;}
+/** Team stats cache is advisory only. Keep T-10 immutable; no missing-data fabrication. */
+async function teamSummaryWithCache(teamId:number,season:number){
+ const base=Deno.env.get('SUPABASE_URL')?.replace(/\/$/,'');
+ const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+ if(base&&key){
+  try {
+   const u=new URL(base+'/rest/v1/baseball_team_stats_cache');
+   u.searchParams.set('select','stats,fetched_at');u.searchParams.set('team_id','eq.'+teamId);
+   u.searchParams.set('season','eq.'+season);u.searchParams.set('limit','1');
+   const r=await fetch(u,{headers:{apikey:key,Authorization:'Bearer '+key},signal:AbortSignal.timeout(3500)});
+   if(r.ok){
+    const rows=await r.json();const row=rows?.[0],ts=Date.parse(row?.fetched_at||'');
+    const age=Date.now()-ts;
+    // Only use healthy cache from last 24h; stats were fetched before analysis clock.
+    if(Number.isFinite(ts)&&age>=0&&age<=86400000&&
+       row?.stats?.team_id===teamId&&Number(row?.stats?.games_played)>=5&&
+       Number.isFinite(row?.stats?.runs_per_game)&&Number.isFinite(row?.stats?.runs_allowed_per_game))
+      return {...row.stats,cache_source:'prefetched_last_24h',cache_fetched_at:row.fetched_at};
+   }
+  }catch{/* fall through to live official stats */}
+ }
+ const live=await teamSummary(teamId,season);
+ return {...live,cache_source:'live_official'};
+}
+
+async function teamSummary(teamId:number,season:number){
+ const u=new URL(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats`);
+ u.searchParams.set("stats","season");u.searchParams.set("group","hitting,pitching");u.searchParams.set("season",String(season));
+ const data=await fetchJson(u.toString());const entries=(data.stats||[]) as any[];
+ const hitting=entries.find(x=>String(x.group?.displayName||x.group?.name||"").toLowerCase().includes("hitt"));
+ const pitching=entries.find(x=>String(x.group?.displayName||x.group?.name||"").toLowerCase().includes("pitch"));
+ const h=hitting?.splits?.[0]?.stat||{};const p=pitching?.splits?.[0]?.stat||{};
+ const games=statValue(h,["gamesPlayed"])??statValue(p,["gamesPlayed"]);
+ const runs=statValue(h,["runs"]);const allowed=statValue(p,["runs"]);
+ return {team_id:teamId,games_played:games,runs_scored:runs,runs_allowed:allowed,
+  runs_per_game:games&&runs!==null?round(runs/games,3):null,
+  runs_allowed_per_game:games&&allowed!==null?round(allowed/games,3):null,
+  batting_avg:statValue(h,["avg"]),ops:statValue(h,["ops"]),era:statValue(p,["era"]),whip:statValue(p,["whip"])};
+}
+// Only completed, earlier games contribute to recent form; never use future results.
+async function recentTeamForm(teamId:number,asOf:string,limit=10){
+ const end=new Date(Date.parse(asOf)-8*3600000); // conservative finished-game buffer
+ const start=new Date(end.getTime()-35*86400000);
+ const iso=(d:Date)=>d.toISOString().slice(0,10);
+ const u=new URL("https://statsapi.mlb.com/api/v1/schedule");
+ u.searchParams.set("sportId","1");u.searchParams.set("teamId",String(teamId));
+ u.searchParams.set("startDate",iso(start));u.searchParams.set("endDate",iso(end));
+ const d=await fetchJson(u.toString());
+ const all=(d.dates||[]).flatMap((x:any)=>x.games||[])
+  .filter((g:any)=>Date.parse(g.gameDate)<=Date.parse(asOf)-8*3600000
+    && ["F","O"].includes(String(g.status?.abstractGameCode||""))
+    && g.teams?.home?.score!=null && g.teams?.away?.score!=null
+    && Number.isFinite(Number(g.teams.home.score)) && Number.isFinite(Number(g.teams.away.score))
+    && (g.teams?.home?.team?.id===teamId||g.teams?.away?.team?.id===teamId))
+  .sort((a:any,b:any)=>Date.parse(b.gameDate)-Date.parse(a.gameDate)).slice(0,limit);
+ const samples=all.map((g:any)=>{
+  const isHome=g.teams.home.team.id===teamId;
+  const mine=Number(isHome?g.teams.home.score:g.teams.away.score);
+  const opp=Number(isHome?g.teams.away.score:g.teams.home.score);
+  return {game_id:g.gamePk,date:g.gameDate,runs_for:mine,runs_against:opp,win:mine>opp};
+ });
+ const count=samples.length;
+ return {team_id:teamId,games_used:count,wins:samples.filter((g:any)=>g.win).length,
+  runs_per_game:count?round(samples.reduce((a:number,g:any)=>a+g.runs_for,0)/count,3):null,
+  runs_allowed_per_game:count?round(samples.reduce((a:number,g:any)=>a+g.runs_against,0)/count,3):null,
+  sample_game_ids:samples.map((g:any)=>g.game_id)};
+}
+async function pitcherSummary(pitcherId:number|null,season:number){
+ if(!pitcherId)return {pitcher_id:null,era:null,whip:null,innings:null,available:false};
+ const u=new URL(`https://statsapi.mlb.com/api/v1/people/${pitcherId}/stats`);
+ u.searchParams.set("stats","season");u.searchParams.set("group","pitching");u.searchParams.set("season",String(season));
+ try {const d=await fetchJson(u.toString());const s=d?.stats?.[0]?.splits?.[0]?.stat||{};
+  return {pitcher_id:pitcherId,era:n(s.era),whip:n(s.whip),innings:String(s.inningsPitched??""),available:n(s.era)!==null};
+ }catch{return {pitcher_id:pitcherId,era:null,whip:null,innings:null,available:false};}
+}
+function median(values:number[]):number|null{if(!values.length)return null;const a=[...values].sort((x,y)=>x-y);const m=Math.floor(a.length/2);return round(a.length%2?a[m]:(a[m-1]+a[m])/2,2);}
+function matchingEvent(events:any[],home:string,away:string,kickoff:string){return events.find(e=>e.home_team===home&&e.away_team===away&&Math.abs(Date.parse(e.commence_time)-Date.parse(kickoff))<=6*3600000);}
+/** Official T-10 candidates read cached earliest complete lines only; ZERO Odds API calls here. */
+async function readOpeningOdds(gameId:number,home:string,away:string,kickoff:string,asOf:string){
+ const base=Deno.env.get('SUPABASE_URL')?.replace(/\/$/,'');
+ const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+ if(!base||!key)return {status:'opening_cache_settings_missing',lines:null,quota:null};
+ try{
+  const u=new URL(`${base}/rest/v1/baseball_opening_lines`);
+  u.searchParams.set('select','game_id,home_team,away_team,kickoff_at,observed_at,odds_event_id,origin,bookmakers_count,lines');
+  u.searchParams.set('game_id',`eq.${gameId}`);
+  const r=await fetch(u,{headers:{apikey:key,Authorization:`Bearer ${key}`},signal:timeout()});
+  if(!r.ok)return {status:'opening_cache_http_'+r.status,lines:null,quota:null};
+  const records=await r.json();
+  // Deterministic earliest quote on or before T-10 analysis time; never read a future observation.
+  const cutoff=Date.parse(asOf);
+  const line=(Array.isArray(records)?records:[])
+   .filter((x:any)=>x.home_team===home&&x.away_team===away&&
+     Number.isFinite(Date.parse(x.kickoff_at))&&Math.abs(Date.parse(x.kickoff_at)-Date.parse(kickoff))<=45*60000&&
+     Number.isFinite(Date.parse(x.observed_at))&&Date.parse(x.observed_at)<=cutoff)
+   .sort((a:any,b:any)=>Date.parse(a.observed_at)-Date.parse(b.observed_at))[0];
+  if(!line)return {status:'opening_cache_missing_or_future_only',lines:null,quota:null};
+  return {status:'found',line_origin:'earliest_recorded_historical_or_live_not_verified_opening',
+   original_observation_origin:line.origin,observed_at:line.observed_at,event_id:line.odds_event_id,
+   bookmakers_count:line.bookmakers_count,lines:line.lines,quota:{used_last:'0',remaining:null},
+   source:'baseball_opening_lines_earliest_saved'};
+ }catch{return {status:'opening_cache_unavailable',lines:null,quota:null};}
+}
+/**
+ * Research-only probability diagnostics. These probabilities approximate nine-inning
+ * scoring with independent Poisson runs; they are NOT calibrated MLB win/cover rates.
+ * Extra innings, correlated offense, overdispersion, bullpen usage and weather are not
+ * accounted for. Values must NEVER change formal model.markets.*.pick by themselves.
+ */
+function poissonRunProbabilities(expected:number):number[]|null {
+ if(!Number.isFinite(expected)||expected<0.5||expected>20)return null;
+ let term=Math.exp(-expected),sum=term;
+ const probabilities=[term];
+ for(let runs=1;runs<=90;runs++){
+  term*=expected/runs;
+  probabilities.push(term);
+  sum+=term;
+  if(runs>=expected&&1-sum<1e-12)break;
+ }
+ if(!Number.isFinite(sum)||sum<0.99999999)return null;
+ return probabilities.map(v=>v/sum);
+}
+const validatedOddsPrice=(v:unknown):number|null=>
+ typeof v==='number'&&Number.isFinite(v)&&v>1&&v<=1000?v:null;
+const probabilityRounding=(v:number)=>round(v,6);
+function projectedProbabilityResearch(projection:any,odds:any,asOf:string):Any|null {
+ const h=poissonRunProbabilities(projection?.home_runs),a=poissonRunProbabilities(projection?.away_runs);
+ if(!h||!a)return null;
+ const sourceTime=Date.parse(odds?.observed_at||'');
+ const readTime=Date.parse(asOf);
+ const trustedMarket=odds?.status==='found'&&typeof odds?.bookmakers_count==='number'&&
+  odds.bookmakers_count>0&&Number.isFinite(sourceTime)&&Number.isFinite(readTime)&&sourceTime<=readTime;
+ const lines=trustedMarket?odds?.lines||{}:{};
+ const totalLine=typeof lines.total==='number'&&Number.isFinite(lines.total)&&lines.total>0&&lines.total<40?lines.total:null;
+ const spreadLine=typeof lines.home_spread==='number'&&Number.isFinite(lines.home_spread)&&Math.abs(lines.home_spread)<=30?lines.home_spread:null;
+ let homeWin=0,awayWin=0,tie=0,over=0,under=0,totalPush=0,spreadHome=0,spreadAway=0,spreadPush=0;
+ for(let i=0;i<h.length;i++)for(let j=0;j<a.length;j++){
+  const weight=h[i]*a[j];
+  if(i>j)homeWin+=weight;
+  else if(i<j)awayWin+=weight;
+  else tie+=weight;
+  if(totalLine!==null){
+   const diff=i+j-totalLine;
+   if(diff>1e-9)over+=weight;else if(diff< -1e-9)under+=weight;else totalPush+=weight;
+  }
+  if(spreadLine!==null){
+   const diff=i-j+spreadLine;
+   if(diff>1e-9)spreadHome+=weight;else if(diff< -1e-9)spreadAway+=weight;else spreadPush+=weight;
+  }
+ }
+ // Tie probability is reported separately; renormalization is a proxy ONLY,
+ // not an actual extra-inning forecast.
+ const nonTie=homeWin+awayWin;
+ const homeProxy=nonTie>0?homeWin/nonTie:null;
+ const awayProxy=nonTie>0?awayWin/nonTie:null;
+ const homePrice=trustedMarket?validatedOddsPrice(lines.home_moneyline_decimal):null;
+ const awayPrice=trustedMarket?validatedOddsPrice(lines.away_moneyline_decimal):null;
+ const fullMLPrice=homePrice!==null&&awayPrice!==null;
+ const marketSum=fullMLPrice?1/homePrice!+1/awayPrice!:null;
+ const overPrice=trustedMarket?validatedOddsPrice(lines.over_decimal):null;
+ const underPrice=trustedMarket?validatedOddsPrice(lines.under_decimal):null;
+ const spreadHomePrice=trustedMarket?validatedOddsPrice(lines.home_spread_decimal):null;
+ const spreadAwayPrice=trustedMarket?validatedOddsPrice(lines.away_spread_decimal):null;
+ const unitEv=(win:number,loss:number,price:number|null)=>
+  price===null?null:probabilityRounding(win*(price-1)-loss);
+ const result:Any={
+  version:'habao-mlb-probability-research-v1',research_only:true,
+  affects_official_pick:false,
+  model:'independent_poisson_nine_inning_proxy_uncalibrated',
+  limitations:['unvalidated_probability_calibration','no_extra_inning_model','no_bullpen_weather_adjustment','no_score_overdispersion'],
+  source:{bookmaker_observation_usable:trustedMarket,observed_at:odds?.observed_at||null,
+   bookmaker_opening_verified:false},
+  score:{expected_home_runs:projection.home_runs,expected_away_runs:projection.away_runs,
+   nine_inning_home_outscores:probabilityRounding(homeWin),nine_inning_away_outscores:probabilityRounding(awayWin),
+   nine_inning_tie:probabilityRounding(tie)},
+  moneyline:{home_win_proxy:homeProxy===null?null:probabilityRounding(homeProxy),
+   away_win_proxy:awayProxy===null?null:probabilityRounding(awayProxy),
+   market_home_no_vig:marketSum===null?null:probabilityRounding((1/homePrice!)/marketSum),
+   market_away_no_vig:marketSum===null?null:probabilityRounding((1/awayPrice!)/marketSum),
+   market_overround:marketSum===null?null:probabilityRounding(marketSum),
+   home_ev_proxy:!fullMLPrice||homeProxy===null?null:unitEv(homeProxy,1-homeProxy,homePrice),
+   away_ev_proxy:!fullMLPrice||awayProxy===null?null:unitEv(awayProxy,1-awayProxy,awayPrice)},
+  totals:{line:totalLine,over_probability:totalLine===null?null:probabilityRounding(over),
+   under_probability:totalLine===null?null:probabilityRounding(under),
+   push_probability:totalLine===null?null:probabilityRounding(totalPush),
+   over_ev_proxy:totalLine===null?null:unitEv(over,under,overPrice),
+   under_ev_proxy:totalLine===null?null:unitEv(under,over,underPrice)},
+  spread:{home_line:spreadLine,home_cover_probability:spreadLine===null?null:probabilityRounding(spreadHome),
+   away_cover_probability:spreadLine===null?null:probabilityRounding(spreadAway),
+   push_probability:spreadLine===null?null:probabilityRounding(spreadPush),
+   home_ev_proxy:spreadLine===null?null:unitEv(spreadHome,spreadAway,spreadHomePrice),
+   away_ev_proxy:spreadLine===null?null:unitEv(spreadAway,spreadHome,spreadAwayPrice)}
+ };
+ return result;
+}
+function innings(v){const m=/^(\d+)(?:\.([012]))?$/.exec(String(v??''));return m?Number(m[1])+Number(m[2]||0)/3:0;}
+
+async function mlbPlayerContext(gameId,expected,now=new Date().toISOString()){
+ const feed=await fetchJson('https://statsapi.mlb.com/api/v1.1/game/'+gameId+'/feed/live');const gd=feed.gameData||{};
+ if(Number(gd.game?.pk)!==Number(gameId)||Number(gd.teams?.home?.id)!==Number(expected.home.id)||Number(gd.teams?.away?.id)!==Number(expected.away.id)||Math.abs(Date.parse(gd.datetime?.dateTime)-Date.parse(expected.kickoff_at))>60000)throw Error('mlb_context_fixture_mismatch');
+ const teams=[],items=[],pitchers={};const day=new Date(now).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+ for(const side of ['home','away']){
+  const t=gd.teams[side],box=feed.liveData?.boxscore?.teams?.[side]||{},order=Array.isArray(box.battingOrder)?box.battingOrder:[];
+  const unique=[...new Set(order.map(Number).filter(x=>Number.isSafeInteger(x)&&x>0))],players=box.players||{};
+  const names=unique.map(id=>({id,name:players['ID'+id]?.person?.fullName||gd.players?.['ID'+id]?.fullName||''}));
+  const confirmed=names.length===9&&names.every(x=>x.name);teams.push({side,team_id:t.id,status:confirmed?'confirmed':names.length?'partial':'not_published',batting_order:names});
+  const pitcher=gd.probablePitchers?.[side];pitchers[side]=pitcher?.id?{id:pitcher.id,name:pitcher.fullName,status:'expected'}:null;
+  try{const roster=await fetchJson('https://statsapi.mlb.com/api/v1/teams/'+t.id+'/roster?rosterType=fullRoster&date='+day);if(!Array.isArray(roster.roster))throw Error('invalid_roster');
+   teams.find(x=>x.side===side).active_roster_ids=roster.roster.filter(p=>p.status?.code==='A').map(p=>Number(p.person?.id));
+   for(const p of roster.roster)if(/^D(7|10|15|60)$|^IL/.test(String(p.status?.code||''))||/injured|disabled/i.test(String(p.status?.description||'')))items.push({side,team_id:t.id,id:p.person?.id,name:p.person?.fullName,status:'out',reason:p.status.description});
+   teams.find(x=>x.side===side).roster_status='data_returned';
+  }catch{teams.find(x=>x.side===side).roster_status='source_unavailable';}
+ }
+ const rosterOk=teams.every(t=>t.roster_status==='data_returned');
+ return {availability:{source:'mlb_official_dated_full_roster',status:rosterOk?(items.length?'data_returned':'no_rows_returned'):'partial',items,fetched_at:now},lineups:{source:'mlb_official_game_feed',status:teams.every(t=>t.status==='confirmed')?'data_returned':teams.some(t=>t.status==='confirmed')?'partial_confirmed':teams.some(t=>t.batting_order.length)?'partial':'not_published',teams,probable_pitchers:pitchers,fetched_at:now},fixture_status:gd.status?.abstractGameState||'',raw_started:gd.status?.abstractGameState==='Live'||gd.status?.abstractGameState==='Final'};
+}
+
+// Shared by T-10, T-2 and T-15. Conservative, uncalibrated run-rate heuristics.
+// Never reconstruct historical availability from a current roster or change saved results.
+const MLB_PLAYER_MODEL='mlb-player-context-v1';
+const mlbClamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+function mlbStatRows(payload,teamId,season,group){
+ const blocks=(payload?.stats||[]).filter(x=>String(x.group?.displayName||'').toLowerCase()===group);
+ const rows=blocks.flatMap(x=>x.splits||[]).filter(x=>Number(x.team?.id)===Number(teamId)&&Number(x.season)===Number(season)&&Number(x.player?.id)>0);
+ // Duplicate player splits are ambiguous; do not double-count or choose arbitrarily.
+ const counts=new Map();for(const r of rows)counts.set(r.player.id,(counts.get(r.player.id)||0)+1);
+ return rows.filter(r=>counts.get(r.player.id)===1).map(r=>({id:Number(r.player.id),name:r.player.fullName,stat:r.stat||{}}));
+}
+async function mlbPlayerStats(teamId,season,asOf){
+ // This loader is current-time only. Past date replay must supply frozen inputs.
+ if(Math.abs(Date.now()-Date.parse(asOf))>5*60000)throw Error('player_stats_current_time_only');
+ const url='https://statsapi.mlb.com/api/v1/stats?'+new URLSearchParams({stats:'season',group:'hitting,pitching',season:String(season),sportIds:'1',teamId:String(teamId),playerPool:'ALL',limit:'1000'});
+ try{const p=await fetchJson(url);return {status:'data_returned',team_id:teamId,season,requested_at:asOf,fetched_at:new Date().toISOString(),source:'mlb_official_team_player_season_stats',hitters:mlbStatRows(p,teamId,season,'hitting'),pitchers:mlbStatRows(p,teamId,season,'pitching')};}
+ catch(e){return {status:'source_unavailable',team_id:teamId,season,requested_at:asOf,reason:String(e?.message||e).slice(0,100),hitters:[],pitchers:[]};}
+}
+function mlbSideAdjustment(context,side,stats,team){
+ const out={side,mode:'not_applied',batting_fraction:0,bullpen_opponent_runs:0,lineup_applied:false,injury_applied:false,used:[],skipped:[]};
+ const lineup=context.lineups?.teams?.find(t=>t.side===side),injuries=(context.availability?.items||[]).filter(p=>p.side===side&&p.status==='out');
+ const injured=new Set(injuries.map(p=>Number(p.id)));
+ if(stats?.status!=='data_returned'){out.skipped.push('player_stats_unavailable');return out;}
+ const batters=stats.hitters.filter(p=>n(p.stat.plateAppearances)>0&&n(p.stat.ops)!==null&&n(p.stat.ops)>=0&&n(p.stat.ops)<=3);
+ const totalPa=batters.reduce((s,p)=>s+Number(p.stat.plateAppearances),0);
+ const baseline=totalPa?batters.reduce((s,p)=>s+Number(p.stat.plateAppearances)*Number(p.stat.ops),0)/totalPa:0;
+ const shrunk=p=>baseline+(Number(p.stat.ops)-baseline)*Number(p.stat.plateAppearances)/(Number(p.stat.plateAppearances)+100);
+ const active=new Set((lineup?.active_roster_ids||[]).map(Number));
+ if(totalPa>=500&&baseline>0){
+  if(lineup?.status==='confirmed'){
+   const ids=(lineup.batting_order||[]).map(p=>Number(p.id)),unique=new Set(ids);
+   const players=ids.map(id=>batters.find(p=>p.id===id));
+   if(ids.length!==9||unique.size!==9||players.some(p=>!p))out.skipped.push('confirmed_lineup_missing_player_stats');
+   else if(ids.some(id=>injured.has(id)))out.skipped.push('lineup_injury_conflict');
+   else{
+    // Equal batting slots: no invented PA advantage for batting-order position.
+    const lineupOps=players.reduce((s,p)=>s+shrunk(p),0)/9;
+    out.batting_fraction=mlbClamp(lineupOps/baseline-1,-.20,.20);
+    out.lineup_applied=true;out.mode='confirmed_lineup';
+    out.used=players.map(p=>({id:p.id,plate_appearances:Number(p.stat.plateAppearances),ops:Number(p.stat.ops),shrunk_ops:round(shrunk(p),4)}));
+    out.skipped.push('hitter_injuries_already_represented_by_lineup');
+   }
+  }else if(lineup?.roster_status==='data_returned'){
+   const available=batters.filter(p=>active.has(p.id)&&!injured.has(p.id));
+   // Backup pool is the lower-PA active hitters, not an invented replacement value.
+   const regulars=[...available].sort((a,b)=>Number(b.stat.plateAppearances)-Number(a.stat.plateAppearances)).slice(0,9);
+   const regularIds=new Set(regulars.map(p=>p.id));
+   const bench=available.filter(p=>!regularIds.has(p.id)),benchPa=bench.reduce((s,p)=>s+Number(p.stat.plateAppearances),0);
+   const missing=batters.filter(p=>injured.has(p.id)&&Number(p.stat.plateAppearances)>=30);
+   if(missing.length&&benchPa>=30){
+    const replacement=bench.reduce((s,p)=>s+shrunk(p)*Number(p.stat.plateAppearances),0)/benchPa;
+    out.batting_fraction=mlbClamp(missing.reduce((s,p)=>s+(replacement-shrunk(p))/baseline*Number(p.stat.plateAppearances)/totalPa,0),-.20,.20);
+    out.injury_applied=true;out.mode='injury_replacement';
+    out.used=missing.map(p=>({id:p.id,plate_appearances:Number(p.stat.plateAppearances),shrunk_ops:round(shrunk(p),4),replacement_ops:round(replacement,4),historical_pa_share:round(Number(p.stat.plateAppearances)/totalPa,4)}));
+   }else out.skipped.push(missing.length?'replacement_sample_insufficient':'no_qualified_injured_hitter');
+  }else out.skipped.push('roster_unavailable');
+ }else out.skipped.push('team_batting_sample_insufficient');
+ // Relief injuries affect opponent scoring independently of the batting lineup.
+ const relievers=stats.pitchers.filter(p=>innings(p.stat.inningsPitched)>=10&&n(p.stat.era)!==null&&n(p.stat.era)>=0&&Number(p.stat.gamesStarted||0)/Math.max(1,Number(p.stat.gamesPitched||0))<.2);
+ const ready=relievers.filter(p=>active.has(p.id)&&!injured.has(p.id));
+ const readyIp=ready.reduce((s,p)=>s+innings(p.stat.inningsPitched),0);
+ if(lineup?.roster_status==='data_returned'&&readyIp>=20&&Number(team.games_played)>=5&&n(team.era)!==null){
+  const era=p=>(Number(p.stat.era)*innings(p.stat.inningsPitched)+Number(team.era)*20)/(innings(p.stat.inningsPitched)+20);
+  const replacement=ready.reduce((s,p)=>s+era(p)*innings(p.stat.inningsPitched),0)/readyIp;
+  const missing=relievers.filter(p=>injured.has(p.id));
+  if(missing.length){
+   out.bullpen_opponent_runs=mlbClamp(missing.reduce((s,p)=>s+(replacement-era(p))*Math.min(1,innings(p.stat.inningsPitched)/Number(team.games_played))/9,0),-.35,.35);
+   out.injury_applied=true;
+   out.bullpen_used=missing.map(p=>({id:p.id,innings:innings(p.stat.inningsPitched),shrunk_era:round(era(p),4),replacement_era:round(replacement,4)}));
+  }
+ }
+ out.batting_fraction=round(out.batting_fraction,6);out.bullpen_opponent_runs=round(out.bullpen_opponent_runs,6);
+ return out;
+}
+function applyMlbPlayers(projection,context,homeStats,awayStats,hs,as){
+ const home=mlbSideAdjustment(context,'home',homeStats,hs),away=mlbSideAdjustment(context,'away',awayStats,as);
+ // Base projection mixes team attack and opponent defense 50/50. Change attack share only.
+ const hd=Number(hs.runs_per_game)*.5*home.batting_fraction+away.bullpen_opponent_runs;
+ const ad=Number(as.runs_per_game)*.5*away.batting_fraction+home.bullpen_opponent_runs;
+ const h=Math.max(.5,projection.home_runs+hd),a=Math.max(.5,projection.away_runs+ad);
+ const adjustment={version:MLB_PLAYER_MODEL,status:[home,away].some(x=>x.lineup_applied||x.injury_applied)?'applied':'not_applied',lineup_adjustment_applied:home.lineup_applied||away.lineup_applied,injury_adjustment_applied:home.injury_applied||away.injury_applied,home,away,home_run_delta:round(h-projection.home_runs,4),away_run_delta:round(a-projection.away_runs,4),baseline_projection:projection,limitations:'OPS run-rate proxy and relief replacement heuristics; not backtest-calibrated. Missing inputs are skipped, not zero-filled. Confirmed batting lineups replace hitter injury adjustments.'};
+ return {projection:{...projection,home_runs:round(h),away_runs:round(a),total_runs:round(h+a),home_run_margin:round(h-a),winner:h>=a?'home':'away',method:'season_recent_starters_plus_players_v0.4'},adjustment};
+}
+async function mlbContextOrUnavailable(gameId,fixture,now){
+ try{return await mlbPlayerContext(gameId,fixture,now);}catch(e){if(String(e?.message||e).includes('fixture_mismatch'))throw e;return {availability:{status:'source_unavailable',items:[]},lineups:{status:'source_unavailable',teams:[],probable_pitchers:{}},reason:String(e?.message||e).slice(0,100)};}
+}
+
+Deno.serve(async(req:Request)=>{
+ if(req.method!=="GET")return respond(405,{success:false,error:"GET_only"});
+ const token=Deno.env.get("HABAO_MLB_TEST_TOKEN");
+ if(!token||token.length<32||req.headers.get("x-habao-mlb-token")!==token)return respond(403,{success:false,error:"not_authorized"});
+ const u=new URL(req.url);const raw=u.searchParams.get("game_id");
+ if(!raw||!/^[1-9]\d{0,11}$/.test(raw))return respond(400,{success:false,error:"game_id_required",example:"?game_id=849805"});
+ const gameId=Number(raw);const includeOdds=u.searchParams.get("include_odds")==="1";
+ try{
+  const data=await fetchJson(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&gamePk=${gameId}&hydrate=probablePitcher`);
+  const g=(data.dates||[]).flatMap((d:any)=>d.games||[]).find((x:any)=>x.gamePk===gameId);
+  if(!g||!["R","F","D","L","W"].includes(String(g.gameType)))return respond(404,{success:false,error:"mlb_game_not_found"});
+  const kickoffMs=Date.parse(g.gameDate);
+  if(!Number.isFinite(kickoffMs))return respond(502,{success:false,error:"invalid_kickoff"});
+  const t10Ms=kickoffMs-10*3600000;
+
+const testNow = u.searchParams.get("test_now");
+if (testNow !== null) {
+  return respond(400, {
+    success: false,
+    error: "test_now_not_supported",
+    note: "Live MLB statistics cannot be simulated as historical data. Use baseball-t10-dryrun to test time boundaries."
+  });
+}
+const readAtMs = Date.now();
+
+  // Current-time provider stats ONLY. Valid from T-10 until kickoff; no simulated clocks.
+  if(readAtMs<t10Ms)return respond(409,{success:false,error:"before_t10_window",game_id:gameId,t10_at:new Date(t10Ms).toISOString()});
+  if(readAtMs>=kickoffMs)return respond(409,{success:false,error:"game_started",game_id:gameId});
+  const dataAsOf=new Date(readAtMs).toISOString();
+  const season=n(g.season)??new Date(g.gameDate).getUTCFullYear();
+  const home=g.teams.home.team,away=g.teams.away.team;
+  if(!home?.id||!away?.id)return respond(502,{success:false,error:"team_ids_missing"});
+  const context=await mlbContextOrUnavailable(gameId,{home,away,kickoff_at:g.gameDate},dataAsOf);
+  if(context.raw_started)return respond(409,{success:false,error:'game_started',game_id:gameId});
+  const [hs,as,hp,ap,hr,ar,homePlayers,awayPlayers]=await Promise.all([
+   teamSummaryWithCache(home.id,season),teamSummaryWithCache(away.id,season),
+   pitcherSummary(n(g.teams.home.probablePitcher?.id),season),pitcherSummary(n(g.teams.away.probablePitcher?.id),season),
+   recentTeamForm(home.id,dataAsOf).catch(()=>null),recentTeamForm(away.id,dataAsOf).catch(()=>null),mlbPlayerStats(home.id,season,dataAsOf),mlbPlayerStats(away.id,season,dataAsOf)]);
+  // Only calculate when full-season team run production and run prevention exist. No fabricated fill-ins.
+  const valid=[hs.runs_per_game,hs.runs_allowed_per_game,as.runs_per_game,as.runs_allowed_per_game].every(x=>typeof x==="number")
+   && (hs.games_played??0)>=5 && (as.games_played??0)>=5;
+  let projection:any=null,playerAdjustment:any=null;
+  const outIds=new Set(context.availability.items.filter(p=>p.status==='out').map(p=>Number(p.id)));
+  if(valid){
+   // Recent-form share increases gradually with the number of completed games (max 25%).
+   const blend=(seasonValue:number,recentValue:number|null,count:number)=>{
+    const weight=recentValue===null?0:0.25*Math.min(10,count)/10;
+    return seasonValue*(1-weight)+(recentValue??seasonValue)*weight;
+   };
+   const homeAttack=blend(hs.runs_per_game,hr?.runs_per_game??null,hr?.games_used??0);
+   const awayAttack=blend(as.runs_per_game,ar?.runs_per_game??null,ar?.games_used??0);
+   const homeDefense=blend(hs.runs_allowed_per_game,hr?.runs_allowed_per_game??null,hr?.games_used??0);
+   const awayDefense=blend(as.runs_allowed_per_game,ar?.runs_allowed_per_game??null,ar?.games_used??0);
+   let homeRuns=(homeAttack+awayDefense)/2;
+   let awayRuns=(awayAttack+homeDefense)/2;
+   // Starter ERA shifts expected runs mildly, capped to prevent one noisy statistic dominating.
+   // Starter impact requires a valid ERA and >= 20 innings this season.
+   const ip=(v:any)=>{const match=/^(\d+)(?:\.([012]))?$/.exec(String(v??""));return match?Number(match[1])+(Number(match[2]||0)/3):0;};
+   if(!outIds.has(Number(hp.pitcher_id))&&hp.era!==null&&ip(hp.innings)>=20&&hs.era!==null)awayRuns+=Math.max(-0.65,Math.min(0.65,(hp.era-hs.era)*0.15));
+   if(!outIds.has(Number(ap.pitcher_id))&&ap.era!==null&&ip(ap.innings)>=20&&as.era!==null)homeRuns+=Math.max(-0.65,Math.min(0.65,(ap.era-as.era)*0.15));
+   homeRuns=Math.max(0.5,homeRuns+0.14); // Small home-field adjustment, heuristic only.
+   awayRuns=Math.max(0.5,awayRuns);
+   projection={home_runs:round(homeRuns),away_runs:round(awayRuns),total_runs:round(homeRuns+awayRuns),home_run_margin:round(homeRuns-awayRuns),winner:homeRuns>=awayRuns?"home":"away",method:"season_recent10_blend_plus_qualified_starters_v0.3"};
+  }
+  if(projection){const adjusted=applyMlbPlayers(projection,context,homePlayers,awayPlayers,hs,as);projection=adjusted.projection;playerAdjustment=adjusted.adjustment;}
+  if(Date.now()>=kickoffMs)return respond(409,{success:false,error:"capture_finished_after_kickoff",game_id:gameId});
+  const odds=includeOdds?await readOpeningOdds(gameId,home.name,away.name,g.gameDate,dataAsOf):{status:"not_requested",lines:null,quota:null};
+  let markets:any=null;
+  if(projection){const total=odds.lines?.total??null;const homeSpread=odds.lines?.home_spread??null;
+   markets={moneyline:{pick:projection.winner},totals:{model_total:projection.total_runs,market_line:total,pick:total===null?null:projection.total_runs>total?"over":"under"},spread:{model_home_margin:projection.home_run_margin,market_home_spread:homeSpread,pick:homeSpread===null?null:projection.home_run_margin+homeSpread>0?"home":"away"}};
+  }
+  const probabilityResearch=projection?projectedProbabilityResearch(projection,odds,dataAsOf):null;
+  return respond(200,{success:true,mode:"t10_candidate_read_only",version:"habao-mlb-analysis-candidate-v1.4-player-context",sport:"baseball",
+   as_of:dataAsOf,t10_at:new Date(t10Ms).toISOString(),fixture:{game_id:gameId,kickoff_at:g.gameDate,season,game_type:g.gameType,home:{id:home.id,name:home.name,probable_pitcher:g.teams.home.probablePitcher?.fullName??null},away:{id:away.id,name:away.name,probable_pitcher:g.teams.away.probablePitcher?.fullName??null}},
+   data:{home_team:hs,away_team:as,home_recent:hr,away_recent:ar,home_starter:hp,away_starter:ap,home_players:homePlayers,away_players:awayPlayers,player_context:context},model:{status:valid?"candidate_projection_available":"insufficient_official_team_stats",projection,markets,player_context_adjustment:playerAdjustment,probability_research:probabilityResearch},odds,
+   warning:"Unvalidated live T-10 candidate. Probability research is uncalibrated and must not determine the official pick. No historical reconstruction, DB insert, quota deduction, AI request, or cron."});
+ }catch(e){return respond(502,{success:false,error:"mlb_provider_unavailable",detail:String(e instanceof Error?e.message:e)});}
+});
+
