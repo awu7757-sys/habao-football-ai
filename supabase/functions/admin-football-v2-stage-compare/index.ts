@@ -94,7 +94,8 @@ function expectedReturn(cells: Array<{h:number;a:number;p:number}>, line: number
 }
 
 // ===== 2026-11-15 研究：市場融合版（只讀、只在後台顯示，不影響正式推薦）=====
-// 版本 1.1（依 GPT 2026-11-15 審查 R1～R5 修正）：
+// 版本 1.1（依 GPT 2026-11-15 審查 R1～R5 修正）；1.2（第二輪複審 A～F）：市場擷取時間須嚴格早於開賽且不晚於快照；
+//   分批以資料指紋（set_hash）鎖定同一評估集合，資料變動即回報 research_dataset_changed；研究路徑不再重算整批舊比較。
 // - 從快照當時主盤口（market_context.total／handicap，最多莊家）去水機率反推「市場隱含」主客預期進球。
 //   去水採雙邊倒數賠率比例正規化（假設，非已證明的真實機率）。
 // - 「過盤權重比」= 拆盤後贏注權重 /（贏 + 輸），排除走盤；這是公平賠率的反推量，不是整張注單獲利機率。
@@ -106,7 +107,7 @@ function expectedReturn(cells: Array<{h:number;a:number;p:number}>, line: number
 // - 結算用賠率 2 只作命中分類（半贏算命中、半輸算未中、走盤不計），不代表真實賠率報酬。
 // - CPU 保護：每次呼叫最多計算 RESEARCH_BATCH_FIXTURES 場（依開賽時間新到舊、同時間依賽事 ID），
 //   以 research_offset 分批，前端合併；回傳賽事 ID 供前端檢查不漏不重。
-const RESEARCH_VERSION = "football-market-blend-research-1.1-20261115";
+const RESEARCH_VERSION = "football-market-blend-research-1.2-20261115";
 const RESEARCH_BLEND_WEIGHT = 0.5;
 const RESEARCH_BTTS_THRESHOLD = 0.58;
 const RESEARCH_FIT_TOLERANCE = 0.002;          // 反推後兩個市場機率殘差上限（0.2 個百分點，依數值精度事先固定）
@@ -182,9 +183,11 @@ function researchPicks(homeXg: number, awayXg: number, context: any, hs: number,
   out.btts_hit = out.btts_pick === null ? null : (out.btts_pick === "yes") === (hs > 0 && as > 0);
   return out;
 }
+// 時間資格：快照與市場擷取時間都必須「嚴格早於」開賽；市場在快照流程中先擷取、快照完成時間在後，
+// 所以市場時間也不得晚於快照時間（原 1.1 容許晚 60 秒，沒有可確認的需求，1.2 移除）。
 function researchTimesValid(snap: any, context: any) {
   const kick = Date.parse(String(snap?.kickoff_at || "")), cap = Date.parse(String(snap?.captured_at || "")), mcap = Date.parse(String(context?.captured_at || ""));
-  return Number.isFinite(kick) && Number.isFinite(cap) && Number.isFinite(mcap) && cap < kick && mcap <= kick && mcap <= cap + 60000;
+  return Number.isFinite(kick) && Number.isFinite(cap) && Number.isFinite(mcap) && cap < kick && mcap < kick && mcap <= cap;
 }
 // 一個「場次×階段」的研究結果；只用快照資料選方向，比分只用於結算。
 function researchStage(snap: any, hs: number, as: number) {
@@ -199,24 +202,52 @@ function researchStage(snap: any, hs: number, as: number) {
     blend: researchPicks(w * mh + (1 - w) * implied.home, w * ma + (1 - w) * implied.away, context, hs, as),
     market: researchPicks(implied.home, implied.away, context, hs, as) };
 }
-function researchBatch(paired: any[], byFixture: Map<number, Map<string, any>>, offset: number) {
-  const order = paired.map(r => ({ id: Number(r.fixture_id), kick: Date.parse(r.kickoff_at), hs: r.home_score, as: r.away_score }))
-    .sort((a, b) => b.kick - a.kick || a.id - b.id);
+// 研究用配對清單：與 pairedData 相同的資格（三階段快照都在、比分合法、未排除），但不做舊比較的計算。
+function researchOrder(byFixture: Map<number, Map<string, any>>, results: Map<number, any>) {
+  const order: Array<{ id: number; kick: number; hs: number; as: number }> = [];
+  for (const [id, result] of results) {
+    const stages = byFixture.get(id);
+    if (!stages || !STAGES.every(s => stages.has(s))) continue;
+    const hs = num(result.home_score), as = num(result.away_score);
+    if (!Number.isInteger(hs) || !Number.isInteger(as) || hs === null || as === null || hs < 0 || as < 0 || result.excluded_from_public === true) continue;
+    order.push({ id: Number(id), kick: Date.parse(String(result.kickoff_at || "")), hs, as });
+  }
+  return order.sort((a, b) => b.kick - a.kick || a.id - b.id);
+}
+// 評估集合指紋：研究版本、期間、每場 ID／開賽／比分，以及每階段快照的擷取時間、xG、盤口內容。
+// 任何一項改變（新增、排除、更正比分或快照）指紋就不同；分批期間不同即中止，不混合新舊資料。
+function researchFingerprint(order: Array<{ id: number; kick: number; hs: number; as: number }>, byFixture: Map<number, Map<string, any>>, days: number) {
+  let h = 0x811c9dc5;
+  const feed = (text: string) => { for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } };
+  feed(RESEARCH_VERSION + "|" + days + "|" + order.length);
+  for (const f of order) {
+    feed("|" + f.id + ":" + f.kick + ":" + f.hs + "-" + f.as);
+    for (const stage of STAGES) {
+      const snap = byFixture.get(f.id)?.get(stage);
+      feed("|" + stage + ":" + String(snap?.captured_at || "") + ":" + String(snap?.home_xg ?? "") + ":" + String(snap?.away_xg ?? "") + ":" +
+        (typeof snap?.market_context === "string" ? snap.market_context : JSON.stringify(snap?.market_context ?? null)));
+    }
+  }
+  return h.toString(16).padStart(8, "0") + "-" + order.length;
+}
+function researchBatch(order: Array<{ id: number; kick: number; hs: number; as: number }>, byFixture: Map<number, Map<string, any>>, offset: number, setHash: string) {
   const slice = order.slice(offset, offset + RESEARCH_BATCH_FIXTURES);
   const counts: any = {}, exclusions: Record<string, number> = {};
   const bump = (period: string, market: string, variant: string, stage: string, hit: unknown) => {
     const x = (((counts[period] ??= {})[market] ??= {})[variant] ??= {})[stage] ??= { candidates: 0, correct: 0, total: 0 };
     x.candidates++; if (typeof hit === "boolean") { x.total++; if (hit) x.correct++; }
   };
-  const fixturesWithAnyStage: number[] = [];
+  // 各期間：任一階段合格的不同賽事、各階段合格場數、三階段都合格的賽事
+  const used: Record<string, number[]> = { exploration: [], out_of_sample: [] }, allStages: Record<string, number[]> = { exploration: [], out_of_sample: [] };
+  const stageValid: any = { exploration: { t10: 0, t2: 0, t15: 0 }, out_of_sample: { t10: 0, t2: 0, t15: 0 } };
   for (const f of slice) {
     const period = f.kick >= RESEARCH_OUT_OF_SAMPLE_FROM ? "out_of_sample" : "exploration";
-    let used = false;
+    let okStages = 0;
     for (const stage of STAGES) {
       const snap = byFixture.get(f.id)?.get(stage); if (!snap) continue;
       const r: any = researchStage(snap, f.hs, f.as);
       if (!r.ok) { exclusions[r.reason] = (exclusions[r.reason] || 0) + 1; continue; }
-      used = true;
+      okStages++; stageValid[period][stage]++;
       for (const v of ["model", "blend", "market"]) {
         bump(period, "moneyline", v, stage, r[v].moneyline_hit);
         bump(period, "total", v, stage, r[v].total?.hit);
@@ -224,13 +255,14 @@ function researchBatch(paired: any[], byFixture: Map<number, Map<string, any>>, 
         bump(period, "btts", v, stage, r[v].btts_hit);
       }
     }
-    if (used) fixturesWithAnyStage.push(f.id);
+    if (okStages > 0) used[period].push(f.id);
+    if (okStages === STAGES.length) allStages[period].push(f.id);
   }
-  return { version: RESEARCH_VERSION, weight: RESEARCH_BLEND_WEIGHT, btts_threshold: RESEARCH_BTTS_THRESHOLD,
+  return { version: RESEARCH_VERSION, set_hash: setHash, weight: RESEARCH_BLEND_WEIGHT, btts_threshold: RESEARCH_BTTS_THRESHOLD,
     fit_tolerance: RESEARCH_FIT_TOLERANCE, out_of_sample_from: new Date(RESEARCH_OUT_OF_SAMPLE_FROM).toISOString(),
     offset, batch_size: RESEARCH_BATCH_FIXTURES, total_fixtures: order.length,
     next_offset: offset + RESEARCH_BATCH_FIXTURES < order.length ? offset + RESEARCH_BATCH_FIXTURES : null,
-    batch_fixture_ids: slice.map(f => f.id), used_fixture_ids: fixturesWithAnyStage, counts, exclusions };
+    batch_fixture_ids: slice.map(f => f.id), used_fixture_ids: used, all_stage_fixture_ids: allStages, stage_valid: stageValid, counts, exclusions };
 }
 function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<number, any>) {
   const rows: any[] = [];
@@ -423,12 +455,16 @@ Deno.serve(async req => {
       if (meta?.capture_mode === "late_pre_match_recovery" || meta?.eligible_for_stage_metrics === false) continue;
       const m = byFixture.get(id) || new Map<string, any>(); if (!m.has(stage)) m.set(stage, r); byFixture.set(id, m);
     }
-    const paired = pairedData(byFixture, results);
-    // 研究分批：action=research 只回傳研究結果（前端依 next_offset 逐批讀取後合併）。
+    // 研究分批：action=research 只建立研究配對清單（不重算舊比較），並核對評估集合指紋。
+    const rOrder = researchOrder(byFixture, results), rHash = researchFingerprint(rOrder, byFixture, days);
     if (body?.action === "research") {
+      const expected = String(body?.research_set_hash || ""), expectedVersion = String(body?.research_version || "");
+      if (expectedVersion !== RESEARCH_VERSION) return reply(409, { success: false, error: "research_version_changed", research_version: RESEARCH_VERSION });
+      if (!expected || expected !== rHash) return reply(409, { success: false, error: "research_dataset_changed", research_set_hash: rHash });
       const researchOffsetOnly = Math.max(0, Math.floor(Number(body?.research_offset) || 0));
-      return reply(200, { success: true, research_only: true, window_days: days, research_metrics: researchBatch(paired, byFixture, researchOffsetOnly), no_writes: true, football_api_calls: 0 });
+      return reply(200, { success: true, research_only: true, window_days: days, research_metrics: researchBatch(rOrder, byFixture, researchOffsetOnly, rHash), no_writes: true, football_api_calls: 0 });
     }
+    const paired = pairedData(byFixture, results);
     const metrics: Record<string, any> = {
       moneyline: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.moneyline_hit)])),
       btts: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.btts_hit)]))
@@ -436,8 +472,7 @@ Deno.serve(async req => {
     metrics.totals_market_line = marketMetrics(paired, "total");
     metrics.handicap_market_line = marketMetrics(paired, "handicap");
     const llm_metrics = llmMetrics(paired);
-    const researchOffset = Math.max(0, Math.floor(Number(body?.research_offset) || 0));
-    const research_metrics = researchBatch(paired, byFixture, researchOffset);
+    const research_metrics = researchBatch(rOrder, byFixture, 0, rHash);
     return reply(200, {
       success: true, research_only: true, model_version: VERSION, window_days: days,
       verified_result_fixtures: resultRows.filter(x => x.excluded_from_public !== true).length,

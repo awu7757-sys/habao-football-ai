@@ -217,50 +217,88 @@ function renderFootballV2StageCompare(){
   '</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場。每階段使用該場當時保存的市場線；缺盤會明確顯示，走盤不列入命中率。</p>';
 }
 
-// ===== 研究：市場融合版（分批合併）=====
+// ===== 研究：市場融合版（分批合併）v1.2 =====
+// 合併前先驗證：研究版本、評估集合指紋、offset 連續、總場數一致、賽事 ID 不重複且數量正確；
+// 任一不符即標為無效並停止，絕不把可疑批次加進統計。完成條件：最後一批且實際處理賽事數＝總場數。
 let footballV2Research=null,footballV2ResearchGen=0;
+function v2NewResearchAcc(){return {seen:new Set(),used:{exploration:new Set(),out_of_sample:new Set()},full:{exploration:new Set(),out_of_sample:new Set()},stageValid:{exploration:{t10:0,t2:0,t15:0},out_of_sample:{t10:0,t2:0,t15:0}},exclusions:{},counts:{},batches:0,complete:false,invalid:null,meta:null,expectedOffset:0};}
 function v2MergeResearch(acc,batch){
- const seen=acc.seen;
- for(const id of batch.batch_fixture_ids||[]){if(seen.has(id))acc.duplicate=true;seen.add(id);}
- for(const id of batch.used_fixture_ids||[])acc.used.add(id);
+ if(acc.invalid)return false;
+ const fail=reason=>{acc.invalid=reason;return false;};
+ if(!batch||typeof batch!=="object")return fail("批次資料缺失");
+ if(acc.meta){
+  if(batch.version!==acc.meta.version)return fail("研究版本不一致");
+  if(batch.set_hash!==acc.meta.set_hash)return fail("評估資料集合不一致");
+  if(batch.total_fixtures!==acc.meta.total_fixtures)return fail("總場數不一致");
+ }
+ if(batch.offset!==acc.expectedOffset)return fail("批次順序錯誤（offset 不連續）");
+ const ids=Array.isArray(batch.batch_fixture_ids)?batch.batch_fixture_ids:[];
+ const expectedLen=Math.max(0,Math.min(Number(batch.batch_size)||0,(Number(batch.total_fixtures)||0)-batch.offset));
+ if(ids.length!==expectedLen)return fail("批次場數不正確");
+ if(new Set(ids).size!==ids.length||ids.some(id=>acc.seen.has(id)))return fail("批次賽事重複");
+ // 通過驗證才修改累計
+ if(!acc.meta)acc.meta=batch;
+ ids.forEach(id=>acc.seen.add(id));
+ for(const period of ["exploration","out_of_sample"]){
+  (batch.used_fixture_ids?.[period]||[]).forEach(id=>acc.used[period].add(id));
+  (batch.all_stage_fixture_ids?.[period]||[]).forEach(id=>acc.full[period].add(id));
+  for(const st of ["t10","t2","t15"])acc.stageValid[period][st]+=Number(batch.stage_valid?.[period]?.[st]||0);
+ }
  for(const [k,v] of Object.entries(batch.exclusions||{}))acc.exclusions[k]=(acc.exclusions[k]||0)+Number(v||0);
  for(const [period,mk] of Object.entries(batch.counts||{}))for(const [market,vs] of Object.entries(mk))for(const [variant,sts] of Object.entries(vs))for(const [stage,x] of Object.entries(sts)){
   const t=((((acc.counts[period]??={})[market]??={})[variant]??={})[stage]??={candidates:0,correct:0,total:0});
   t.candidates+=x.candidates||0;t.correct+=x.correct||0;t.total+=x.total||0;}
- acc.meta=batch;acc.total_fixtures=batch.total_fixtures;
+ acc.batches++;
+ if(batch.next_offset==null){
+  if(acc.seen.size!==acc.meta.total_fixtures)return fail("最後一批後實際處理場數與總場數不符");
+  acc.complete=true;
+ }else acc.expectedOffset=batch.next_offset;
+ return true;
 }
 async function loadFootballV2Research(first){
- const gen=++footballV2ResearchGen;
- const acc={seen:new Set(),used:new Set(),exclusions:{},counts:{},duplicate:false,complete:false,batches:0};
- footballV2Research=acc;
+ const gen=++footballV2ResearchGen,acc=v2NewResearchAcc();footballV2Research=acc;
+ const days=Number(document.getElementById("footballV2StageDays")?.value??90);
  try{
-  let batch=first,days=Number(document.getElementById("footballV2StageDays")?.value??90);
-  while(batch&&acc.batches<30&&gen===footballV2ResearchGen){
-   v2MergeResearch(acc,batch);acc.batches++;if(gen===footballV2ResearchGen)renderFootballV2Research();
-   if(batch.next_offset==null){acc.complete=true;break;}
-   const res=await fetch(FOOTBALL_V2_STAGE_API,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify({action:"research",days,research_offset:batch.next_offset}),cache:"no-store",signal:AbortSignal.timeout(70000)});
-   const packet=await res.json().catch(()=>({}));if(!res.ok||packet?.success!==true)throw Error(packet?.error||"HTTP "+res.status);
+  let batch=first;
+  while(gen===footballV2ResearchGen&&acc.batches<60){
+   if(!v2MergeResearch(acc,batch))break;
+   renderFootballV2Research();
+   if(acc.complete)break;
+   const res=await fetch(FOOTBALL_V2_STAGE_API,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify({action:"research",days,research_offset:acc.expectedOffset,research_set_hash:acc.meta.set_hash,research_version:acc.meta.version}),cache:"no-store",signal:AbortSignal.timeout(70000)});
+   const packet=await res.json().catch(()=>({}));
+   if(packet?.error==="research_dataset_changed"){acc.invalid="讀取期間資料有變動（新增、排除或更正），本次結果作廢，請按「更新比較」重新評估";break;}
+   if(packet?.error==="research_version_changed"){acc.invalid="研究版本已更新，請重新整理頁面後再評估";break;}
+   if(!res.ok||packet?.success!==true){acc.invalid="讀取中斷："+(packet?.error||"HTTP "+res.status);break;}
    batch=packet.research_metrics;
   }
- }catch(e){acc.error=e?.message||String(e);}
+  if(!acc.complete&&!acc.invalid&&gen===footballV2ResearchGen)acc.invalid="批次數超過上限，未完成";
+ }catch(e){acc.invalid="讀取中斷："+(e?.message||String(e));}
  finally{if(gen===footballV2ResearchGen)renderFootballV2Research();}
 }
 function renderFootballV2Research(){
  const host=document.getElementById("footballV2ResearchMount"),r=footballV2Research;if(!host)return;
- if(!r||!r.meta){host.innerHTML='<div class="page-desc">研究資料讀取中…</div>';return;}
- const stages=["t10","t2","t15"],meta=r.meta;
+ if(!r||(!r.meta&&!r.invalid)){host.innerHTML='<div class="page-desc">研究資料讀取中…</div>';return;}
+ const title='<div class="panel-title" style="font-size:15px">研究：市場融合版（只在後台，不影響正式推薦）</div>';
+ if(r.invalid){host.innerHTML=title+'<p class="page-desc" style="color:#ff9a9a;margin-top:6px">⚠ 本次研究結果無效，不顯示統計：'+v2esc(r.invalid)+'</p>';return;}
+ const meta=r.meta;
+ if(!r.complete){host.innerHTML=title+'<p class="page-desc" style="margin-top:6px">分批讀取中…已處理 '+r.seen.size+'／'+meta.total_fixtures+' 場（未完成前不顯示統計）</p>';return;}
+ const stages=["t10","t2","t15"];
  const vLabel={model:"模型（現行進球預估）",blend:"融合（模型＋市場各半）",market:"純市場（兩種盤口反推）"};
  const mLabel={moneyline:"獨贏（最高機率）",total:"大小球（主盤）",handicap:"讓分（主盤）",btts:"BTTS（機率≥58%才推）"};
- const cell=(x,mk)=>{if(!x||!x.total)return "—";const rate=(x.correct/x.total*100).toFixed(1)+"%（"+x.correct+"／"+x.total+"）";return mk==="btts"?rate+"<br><small>推薦 "+x.total+"／候選 "+x.candidates+"</small>":rate;};
+ const cell=(x,mk)=>{
+  if(!x||!x.candidates)return "—";
+  const rate=x.total?(x.correct/x.total*100).toFixed(1)+"%（"+x.correct+"／"+x.total+"）":"—";
+  return mk==="btts"?rate+"<br><small>推薦 "+x.total+"／候選 "+x.candidates+"</small>":rate;
+ };
  const table=period=>{const c=r.counts?.[period];if(!c)return '<p class="page-desc">此期間尚無可比較的場次。</p>';
   return '<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>項目／版本</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+
   Object.keys(mLabel).flatMap(mk=>["model","blend","market"].map((v,i)=>'<tr><th>'+(i===0?mLabel[mk]+'<br>':'')+'<small>'+vLabel[v]+'</small></th>'+stages.map(st=>'<td>'+cell(c?.[mk]?.[v]?.[st],mk)+'</td>').join("")+'</tr>')).join("")+'</tbody></table></div>';};
+ const periodInfo=period=>'不同賽事 '+r.used[period].size+' 場｜三階段都合格 '+r.full[period].size+' 場｜各階段合格：T-10 '+r.stageValid[period].t10+'、T-2 '+r.stageValid[period].t2+'、T-15 '+r.stageValid[period].t15;
  const reasonLabel={no_valid_market:"沒有有效盤口",single_market_only:"只有大小或讓分其中一種",no_solution_total:"大小盤反推無解",no_solution_handicap:"讓分盤反推無解",fit_residual_exceeded:"反推殘差超標",time_invalid_or_missing:"擷取時間不合法或缺失",invalid_model_xg:"模型預期進球不合法"};
  const ex=Object.entries(r.exclusions).map(([k,v])=>(reasonLabel[k]||k)+" "+v).join("、")||"無";
- const status=r.error?"讀取中斷："+v2esc(r.error):r.complete?"已完成":"分批讀取中…（第 "+r.batches+" 批）";
- host.innerHTML='<div class="panel-title" style="font-size:15px">研究：市場融合版（只在後台，不影響正式推薦）</div>'+
-  '<p class="page-desc" style="margin:6px 0 10px">版本 '+v2esc(meta.version)+'｜'+status+'｜三階段配對賽事 '+(r.total_fixtures||0)+' 場，納入比較 '+r.used.size+' 場（不同賽事）'+(r.duplicate?'｜⚠ 分批出現重複':'')+'<br>'+
-  '用快照當時「大小＋讓分」兩種主盤口反推市場預期進球，與模型各取一半（權重與 58% 門檻固定，不依結果調整）。三版本選法相同、只差預期進球；只計入兩種盤口都有效、時間合法、反推殘差 ≤ '+(Number(meta.fit_tolerance)*100).toFixed(1)+' 個百分點的場次×階段。研究獨贏未套正式「與熱門相反不推薦」規則；以賠率 2 只作命中分類，不代表報酬。同場三階段相關，「約 200 場」以不同賽事計。<br>排除：'+ex+'</p>'+
-  '<div class="panel-title" style="font-size:14px;margin-top:8px">樣本外（11/16 起開賽，未參與參數選擇）</div>'+table("out_of_sample")+
-  '<div class="panel-title" style="font-size:14px;margin-top:14px">探索期（11/15 以前開賽，曾用於選門檻，只供參考）</div>'+table("exploration");
+ host.innerHTML=title+
+  '<p class="page-desc" style="margin:6px 0 10px">版本 '+v2esc(meta.version)+'｜評估集合 '+v2esc(meta.set_hash)+'｜已完成（'+r.batches+' 批，處理 '+r.seen.size+'／'+meta.total_fixtures+' 場三階段配對賽事）<br>'+
+  '用快照當時「大小＋讓分」兩種主盤口反推市場預期進球，與模型各取一半（權重與 58% 門檻固定，不依結果調整）。三版本選法相同、只差預期進球；只計入兩種盤口都有效、擷取時間早於開賽、反推殘差 ≤ '+(Number(meta.fit_tolerance)*100).toFixed(1)+' 個百分點的場次×階段。研究獨贏未套正式「與熱門相反不推薦」規則；以賠率 2 只作命中分類，不代表報酬。各階段場數不可相加當不同賽事。<br>排除（場次×階段）：'+ex+'</p>'+
+  '<div class="panel-title" style="font-size:14px;margin-top:8px">樣本外（11/16 起開賽，未參與參數選擇）</div><p class="page-desc">'+periodInfo("out_of_sample")+'</p>'+table("out_of_sample")+
+  '<div class="panel-title" style="font-size:14px;margin-top:14px">探索期（11/15 以前開賽，曾用於選門檻，只供參考）</div><p class="page-desc">'+periodInfo("exploration")+'</p>'+table("exploration");
 }

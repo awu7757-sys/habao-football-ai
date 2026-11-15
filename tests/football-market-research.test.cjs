@@ -6,7 +6,7 @@ const {stripTypeScriptTypes}=require('node:module');
 const src=fs.readFileSync(path.join(__dirname,'../supabase/functions/admin-football-v2-stage-compare/index.ts'),'utf8');
 const code=src.slice(src.indexOf('function num('),src.indexOf('function pairedData('));
 const ctx={Math,Number,Array,String,Object,JSON,Date,GRID_MAX:18,STAGES:['t10','t2','t15']};vm.createContext(ctx);
-vm.runInContext(stripTypeScriptTypes(code,{mode:'strip'})+';Object.assign(this,{marketImpliedXg,researchStage,researchBatch,legWinShare,scoreGrid,bisect,RESEARCH_FIT_TOLERANCE,RESEARCH_BATCH_FIXTURES});',ctx);
+vm.runInContext(stripTypeScriptTypes(code,{mode:'strip'})+';Object.assign(this,{marketImpliedXg,researchStage,researchBatch,researchOrder,researchFingerprint,legWinShare,scoreGrid,bisect,RESEARCH_FIT_TOLERANCE,RESEARCH_BATCH_FIXTURES,RESEARCH_VERSION});',ctx);
 const fair=(hx,ax,tl,hl)=>{const g=ctx.scoreGrid(hx,ax),po=ctx.legWinShare(g,tl,'over'),ph=ctx.legWinShare(g,hl,'home');
   return {captured_at:'2026-11-20T10:00:00Z',total:{line:tl,over_odds:1/po,under_odds:1/(1-po)},handicap:{home_line:hl,away_line:-hl,home_odds:1/ph,away_odds:1/(1-ph)}};};
 // R1：整數、半球、±0.25／±0.75 盤都能還原
@@ -38,11 +38,89 @@ for(const v of ['model','blend','market']){assert.equal(s1[v].total.pick,s2[v].t
 assert.equal(ctx.researchStage({...snap,captured_at:'2026-11-20T12:05:00Z'},1,1).reason,'time_invalid_or_missing','賽後擷取應排除');
 assert.equal(ctx.researchStage({...snap,market_context:JSON.stringify({...fair(1.5,1.1,2.5,-0.25),captured_at:undefined})},1,1).reason,'time_invalid_or_missing','市場擷取時間缺失應排除');
 console.log('PASS R3 比分只影響結算；賽後／缺時間排除');
-// R5：分批合併不漏不重、同資料重跑一致
-const paired=[],byFixture=new Map();
-for(let i=0;i<300;i++){const kick=new Date(Date.parse('2026-11-01T00:00:00Z')+(i%37)*86400000).toISOString();paired.push({fixture_id:1000+i,kickoff_at:kick,home_score:i%3,away_score:i%2});
-  const m=new Map();for(const st of ['t10','t2','t15'])m.set(st,{...snap,kickoff_at:kick,captured_at:new Date(Date.parse(kick)-3600000).toISOString(),market_context:JSON.stringify({...fair(1.5,1.1,2.5,-0.25),captured_at:new Date(Date.parse(kick)-3600000).toISOString()})});byFixture.set(1000+i,m);}
-const seen=new Set();let off=0,batches=0;while(off!==null){const r=ctx.researchBatch(paired,byFixture,off);for(const id of r.batch_fixture_ids){assert.ok(!seen.has(id),'分批不應重複');seen.add(id);}off=r.next_offset;batches++;}
-assert.equal(seen.size,300,'分批應涵蓋全部場次');
-const r1=ctx.researchBatch(paired,byFixture,0),r2=ctx.researchBatch(paired,byFixture,0);assert.deepEqual(JSON.parse(JSON.stringify(r1)),JSON.parse(JSON.stringify(r2)),'同資料重跑應一致');
-console.log(`PASS R5 ${batches} 批合併 300 場不漏不重，重跑一致`);
+// A（第二輪）：時間邊界
+{
+  const kick=Date.parse('2026-11-20T12:00:00Z'),iso=t=>new Date(t).toISOString(),q=fair(1.5,1.1,2.5,-0.25);
+  const mk=(cap,mcap)=>({kickoff_at:iso(kick),captured_at:cap,home_xg:1.4,away_xg:1.2,market_context:JSON.stringify({...q,captured_at:mcap})});
+  assert.ok(ctx.researchStage(mk(iso(kick-1),iso(kick-1)),1,0).ok,'開賽前 1 毫秒應可通過');
+  assert.equal(ctx.researchStage(mk(iso(kick-1),iso(kick)),1,0).reason,'time_invalid_or_missing','市場時間等於開賽應排除');
+  assert.equal(ctx.researchStage(mk(iso(kick-1),iso(kick+1)),1,0).reason,'time_invalid_or_missing','市場時間晚於開賽應排除');
+  assert.equal(ctx.researchStage(mk(iso(kick),iso(kick-60000)),1,0).reason,'time_invalid_or_missing','快照時間等於開賽應排除');
+  assert.equal(ctx.researchStage(mk(iso(kick+1),iso(kick-60000)),1,0).reason,'time_invalid_or_missing','快照時間晚於開賽應排除');
+  assert.equal(ctx.researchStage(mk(iso(kick-60000),iso(kick-30000)),1,0).reason,'time_invalid_or_missing','市場時間晚於快照應排除');
+  assert.equal(ctx.researchStage(mk(undefined,iso(kick-60000)),1,0).reason,'time_invalid_or_missing','快照時間缺值應排除');
+  assert.equal(ctx.researchStage(mk('not-a-date',iso(kick-60000)),1,0).reason,'time_invalid_or_missing','時間無法解析應排除');
+  console.log('PASS A 時間邊界（開賽前 1 毫秒通過；等於／晚於開賽、晚於快照、缺值、無法解析排除）');
+}
+// 建立 300 場合成資料（研究配對清單與結果表）
+const byFixture=new Map(),results=new Map();
+for(let i=0;i<300;i++){const kick=new Date(Date.parse('2026-11-01T00:00:00Z')+(i%37)*86400000).toISOString(),cap=new Date(Date.parse(kick)-3600000).toISOString();
+  results.set(1000+i,{fixture_id:1000+i,kickoff_at:kick,home_score:i%3,away_score:i%2,excluded_from_public:false});
+  const m=new Map();for(const st of ['t10','t2','t15'])m.set(st,{...snap,kickoff_at:kick,captured_at:cap,market_context:JSON.stringify({...fair(1.2+(i%5)*0.2,1.1,2.5,-0.25),captured_at:cap})});byFixture.set(1000+i,m);}
+const order=ctx.researchOrder(byFixture,results),hash=ctx.researchFingerprint(order,byFixture,90);
+for(let i=1;i<order.length;i++)assert.ok(order[i-1].kick>order[i].kick||(order[i-1].kick===order[i].kick&&order[i-1].id<order[i].id),'同時開賽應依 ID 穩定排序');
+// B：任何資料變動都改變評估集合指紋
+{
+  const clone=()=>new Map([...results].map(([k,v])=>[k,{...v}]));
+  const r1=clone();r1.set(9999,{fixture_id:9999,kickoff_at:'2026-12-31T00:00:00Z',home_score:1,away_score:0});const b1=new Map(byFixture);b1.set(9999,byFixture.get(1000));
+  assert.notEqual(ctx.researchFingerprint(ctx.researchOrder(b1,r1),b1,90),hash,'新增賽果應改變指紋');
+  const r2=clone();r2.get(1005).excluded_from_public=true;assert.notEqual(ctx.researchFingerprint(ctx.researchOrder(byFixture,r2),byFixture,90),hash,'排除一場應改變指紋');
+  const r3=clone();r3.get(1007).home_score=9;assert.notEqual(ctx.researchFingerprint(ctx.researchOrder(byFixture,r3),byFixture,90),hash,'更正比分應改變指紋');
+  const b4=new Map(byFixture),m4=new Map(byFixture.get(1010));m4.set('t2',{...m4.get('t2'),home_xg:2.2});b4.set(1010,m4);
+  assert.notEqual(ctx.researchFingerprint(order,b4,90),hash,'更正快照應改變指紋');
+  assert.notEqual(ctx.researchFingerprint(order,byFixture,30),hash,'查詢期間不同應改變指紋');
+  assert.equal(ctx.researchFingerprint(ctx.researchOrder(byFixture,clone()),byFixture,90),hash,'資料不變指紋應相同');
+  console.log('PASS B 新增／排除／更正比分／更正快照／期間不同都會改變評估集合指紋（後端回 research_dataset_changed 中止）');
+}
+// 基準：一次算完所有場次的統計
+const baseline={};
+for(const f of order){const period=f.kick>=Date.parse('2026-11-16T00:00:00+08:00')?'out_of_sample':'exploration';
+  for(const st of ['t10','t2','t15']){const r=ctx.researchStage(byFixture.get(f.id).get(st),f.hs,f.as);if(!r.ok)continue;
+    for(const v of ['model','blend','market'])for(const [mk,h] of [['moneyline',r[v].moneyline_hit],['total',r[v].total?.hit],['handicap',r[v].handicap?.hit],['btts',r[v].btts_hit]]){
+      const x=((((baseline[period]??={})[mk]??={})[v]??={})[st]??={candidates:0,correct:0,total:0});x.candidates++;if(typeof h==='boolean'){x.total++;if(h)x.correct++;}}}}
+const batches=[];for(let off=0;off!==null;){const b=ctx.researchBatch(order,byFixture,off,hash);batches.push(JSON.parse(JSON.stringify(b)));off=b.next_offset;}
+assert.deepEqual(JSON.parse(JSON.stringify(ctx.researchBatch(order,byFixture,0,hash))),batches[0],'同資料重跑應一致');
+// C：真正的前端合併函式
+{
+  const fe=fs.readFileSync(path.join(__dirname,'../admin-football-v2.js'),'utf8');
+  const doc={getElementById:()=>null,addEventListener(){}};
+  const fctx={document:doc,window:{addEventListener(){}},setInterval(){},console,Map,Set,Object,Number,String,JSON,Math,Array,Date};vm.createContext(fctx);vm.runInContext(fe,fctx);
+  const mergeAll=list=>{const acc=fctx.v2NewResearchAcc();for(const b of list){if(!fctx.v2MergeResearch(acc,JSON.parse(JSON.stringify(b))))break;}return acc;};
+  const ok=mergeAll(batches);
+  assert.ok(ok.complete&&!ok.invalid,'完整分批應完成：'+ok.invalid);
+  assert.equal(ok.seen.size,300);assert.deepEqual(JSON.parse(JSON.stringify(ok.counts)),JSON.parse(JSON.stringify(baseline)),'分批合併應與一次性基準完全相同（含 candidates／correct／total）');
+  // 同一批重送
+  const dup=mergeAll([batches[0],batches[0]]);assert.ok(dup.invalid);assert.deepEqual(JSON.parse(JSON.stringify(dup.counts)),JSON.parse(JSON.stringify(mergeAll([batches[0]]).counts)),'重送批次不得加兩次');
+  // 部分重疊
+  const ov={...batches[1],batch_fixture_ids:[batches[0].batch_fixture_ids[0],...batches[1].batch_fixture_ids.slice(1)]};
+  const ovAcc=mergeAll([batches[0],ov]);assert.ok(ovAcc.invalid);assert.equal(ovAcc.seen.size,batches[0].batch_fixture_ids.length,'重疊批次不得合併');
+  // 版本／評估集合／總場數不一致
+  assert.ok(mergeAll([batches[0],{...batches[1],version:'other'}]).invalid,'不同研究版本不得合併');
+  assert.ok(mergeAll([batches[0],{...batches[1],set_hash:'x'}]).invalid,'不同評估集合不得合併');
+  assert.ok(mergeAll([batches[0],{...batches[1],total_fixtures:301}]).invalid,'總場數不同不得合併');
+  // 缺批、錯誤 offset
+  const gap=mergeAll([batches[0],batches[2]]);assert.ok(gap.invalid&&!gap.complete,'缺批不得完成');
+  // 最後一批但場數不足
+  const short=mergeAll([{...batches[batches.length-1],offset:0,batch_fixture_ids:batches[batches.length-1].batch_fixture_ids,batch_size:80}]);assert.ok(!short.complete,'場數不足不得標示完成');
+  // 讀取中斷（只合併前兩批）
+  const cut=mergeAll(batches.slice(0,2));assert.ok(!cut.complete&&!cut.invalid,'中斷時為未完成，不是完成');
+  console.log(`PASS C 前端合併：${batches.length} 批與一次性基準相同；重送、重疊、版本／集合／總數不符、缺批、場數不足、中斷都不會被當成完成或重複累加`);
+}
+// E：BTTS 零推薦也顯示候選數
+{
+  const fe=fs.readFileSync(path.join(__dirname,'../admin-football-v2.js'),'utf8');
+  const host={innerHTML:''};const fctx={document:{getElementById:id=>id==='footballV2ResearchMount'?host:null,addEventListener(){}},window:{addEventListener(){}},setInterval(){},console,Map,Set,Object,Number,String,JSON,Math,Array,Date,v2esc:x=>String(x)};
+  vm.createContext(fctx);vm.runInContext(fe,fctx);
+  const acc=fctx.v2NewResearchAcc();
+  fctx.v2MergeResearch(acc,{version:'v',set_hash:'h',offset:0,batch_size:80,total_fixtures:1,next_offset:null,batch_fixture_ids:[1],used_fixture_ids:{exploration:[1],out_of_sample:[]},all_stage_fixture_ids:{exploration:[1],out_of_sample:[]},stage_valid:{exploration:{t10:1,t2:0,t15:0},out_of_sample:{t10:0,t2:0,t15:0}},
+    counts:{exploration:{btts:{model:{t10:{candidates:100,correct:0,total:0}},blend:{t10:{candidates:100,correct:30,total:50}}}}},exclusions:{},fit_tolerance:0.002});
+  vm.runInContext('footballV2Research=this.__acc;',Object.assign(fctx,{__acc:acc}));fctx.renderFootballV2Research();
+  assert.ok(host.innerHTML.includes('推薦 0／候選 100'),'有候選但零推薦應顯示候選數');
+  assert.ok(host.innerHTML.includes('60.0%（30／50）<br><small>推薦 50／候選 100'),'有推薦時顯示命中率與推薦／候選');
+  console.log('PASS E BTTS 零候選顯示「—」、有候選零推薦顯示「推薦 0／候選 N」、有推薦顯示命中率');
+}
+// D：期間分開計數
+{
+  const p0=batches[0];assert.ok(Array.isArray(p0.used_fixture_ids.exploration)&&Array.isArray(p0.used_fixture_ids.out_of_sample));
+  console.log('PASS D 探索期／樣本外分別回傳不同賽事、三階段合格與各階段合格數');
+}
