@@ -22,6 +22,8 @@ Deno.serve(async req=>{
  const days=daysStr===null?null:Number(daysStr);
  if(daysStr!==null&&(![7,30].includes(days!)))return out(400,{success:false,error:'invalid_days'});
  let q=sb.from('baseball_verified_results').select('game_id,snapshot_id,kickoff_at,home_team,away_team,home_score,away_score,moneyline_result,totals_result,handicap_result,verified_at')
+   // 2026-11-15：後台排除或刪除的場次不列入公開戰績（欄位見 deploy/fixes-20261115/14）。
+   .eq('excluded_from_public',false).is('deleted_at',null)
    .order('kickoff_at',{ascending:false}).limit(1000);
  if(days)q=q.gte('kickoff_at',new Date(Date.now()-days*86400000).toISOString());
  const {data,error}=await q;

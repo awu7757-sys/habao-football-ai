@@ -5344,7 +5344,8 @@ async function loadPerformanceAdmin(force = false) {
             limit: 400
           }
         ),
-        fetch("https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-performance-api",{cache:"no-store"}).then(async r=>{const v=await r.json();if(!r.ok||!v.success)throw Error(v.error||"MLB performance failed");return v})
+        // 2026-11-15：MLB 改由 admin-baseball 讀取（含已排除場次，才能「恢復計入」）。
+        adminBaseballRequest({action:"performance",limit:400})
       ]);
 
     const footballSnapshots =
@@ -5368,11 +5369,11 @@ async function loadPerformanceAdmin(force = false) {
     const baseballSnapshots = baseballResult.status==="fulfilled"
       ? (baseballResult.value.matches||[]).map(row=>({
           sport:"baseball",fixture_id:Number(row.game_id||0),league_name:"MLB",
-          kickoff_at:row.kickoff_at,home_team:row.home,away_team:row.away,
-          home_score:/^\d+\s*-\s*\d+$/.test(String(row.final_score||""))?Number(String(row.final_score).split("-")[0]):null,
-          away_score:/^\d+\s*-\s*\d+$/.test(String(row.final_score||""))?Number(String(row.final_score).split("-")[1]):null,
-          status:"verified",excluded_from_public:false,
-          settlement:{moneyline:row.moneyline_result,handicap:row.handicap_result,over_under:row.over_under_result}
+          kickoff_at:row.kickoff_at,home_team:row.home_team,away_team:row.away_team,
+          home_score:row.home_score==null?null:Number(row.home_score),
+          away_score:row.away_score==null?null:Number(row.away_score),
+          status:"verified",excluded_from_public:row.excluded_from_public===true,
+          settlement:{moneyline:row.moneyline_result,handicap:row.handicap_result,over_under:row.totals_result}
         })) : [];
 
     performanceSnapshots = [
@@ -5652,9 +5653,7 @@ function renderPerformanceAdmin() {
       <td title="讓分">${row?.sport==="football"&&adminHandicapResult(row)?resultBadge(adminHandicapResult(row)):marketResultBadge(row,"handicap")}</td>
       <td><div class="row-actions">
         <button class="action-btn gold" onclick='showPerformanceAnalysisSummary("${row?.sport}",${Number(row?.fixture_id)})'>查看摘要</button>
-        ${isMlb?
-          '<button type="button" class="action-btn red" disabled title="MLB 排除需要專用後端支援，尚未啟用" style="opacity:.44;cursor:not-allowed">排除</button><button type="button" class="action-btn red" disabled title="避免誤刪 MLB 正式驗證資料，尚未啟用" style="opacity:.44;cursor:not-allowed">刪除</button>'
-          :`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
+        ${`<button class="action-btn ${row?.excluded_from_public?"green":"red"}" onclick="togglePerformanceExcluded('${row?.sport}',${Number(row?.fixture_id)},${!row?.excluded_from_public})">${row?.excluded_from_public?"恢復計入":"排除"}</button>
         <button class="action-btn red" onclick="deletePerformanceSnapshot('${row?.sport}',${Number(row?.fixture_id)})">刪除</button>`}
       </div></td>
     </tr>`;
@@ -7105,7 +7104,9 @@ async function togglePerformanceExcluded(sport,fixtureId,excluded){
   if(!confirm(msg))return;
 
   try{
-    if(sport==="basketball"){
+    if(sport==="baseball"){
+      await adminBaseballRequest({action:"performance_toggle_excluded",fixture_id:Number(fixtureId),excluded});
+    }else if(sport==="basketball"){
       await adminServiceRequest(
         ADMIN_BASKETBALL_PERFORMANCE_URL,
         {
@@ -7131,11 +7132,13 @@ async function deletePerformanceSnapshot(sport,fixtureId){
   const id=Number(fixtureId||0);
   if(!id){alert("賽事 ID 無效");return;}
 
-  const sportLabel=sport==="basketball"?"NBA":"足球";
+  const sportLabel=sport==="basketball"?"NBA":sport==="baseball"?"MLB":"足球";
   if(!confirm(`確定永久刪除 ${sportLabel} 賽事 ${id} 的公開戰績？\n\n刪除後無法直接恢復，預測、比分與結算資料都會一起移除。`))return;
 
   try{
-    if(sport==="basketball"){
+    if(sport==="baseball"){
+      await adminBaseballRequest({action:"performance_delete",fixture_id:id});
+    }else if(sport==="basketball"){
       await adminServiceRequest(
         ADMIN_BASKETBALL_PERFORMANCE_URL,
         {

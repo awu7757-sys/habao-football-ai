@@ -64,6 +64,30 @@ Deno.serve(async req => {
       return answer(200,{success:true,operation:'manual_result_verification',runner:result});
     }catch{return answer(503,{success:false,error:'result_runner_timeout_or_unavailable'});}
   }
+  // 2026-11-15：MLB 公開戰績後台列表與排除／刪除（與足球／NBA 相同）。
+  // 欄位見 deploy/fixes-20261115/14_mlb_performance_exclude.sql；刪除為軟刪除，避免結果 runner 自動補回。
+  if(action==='performance'||action==='performance_toggle_excluded'||action==='performance_delete'){
+    if(admin.is_super_admin!==true&&!permissions.includes('performance'))
+      return answer(403,{success:false,error:'admin_performance_permission_required'});
+    const pdb=createClient(url,secret,{auth:{persistSession:false,autoRefreshToken:false}});
+    if(action==='performance'){
+      const limit=Math.min(Math.max(Number(payload?.limit)||400,1),1000);
+      const {data,error}=await pdb.from('baseball_verified_results')
+        .select('game_id,kickoff_at,home_team,away_team,home_score,away_score,moneyline_result,totals_result,handicap_result,excluded_from_public,excluded_at,verified_at')
+        .is('deleted_at',null).order('kickoff_at',{ascending:false}).limit(limit);
+      if(error)return answer(502,{success:false,error:'mlb_performance_query_failed'});
+      return answer(200,{success:true,sport:'baseball',matches:data||[]});
+    }
+    const gameId=Number(payload?.fixture_id??payload?.game_id);
+    if(!Number.isSafeInteger(gameId)||gameId<=0)return answer(400,{success:false,error:'invalid_game_id'});
+    const patch=action==='performance_delete'
+      ?{deleted_at:new Date().toISOString()}
+      :{excluded_from_public:payload?.excluded===true,excluded_at:payload?.excluded===true?new Date().toISOString():null};
+    const {data,error}=await pdb.from('baseball_verified_results').update(patch).eq('game_id',gameId).is('deleted_at',null).select('game_id');
+    if(error)return answer(502,{success:false,error:'mlb_performance_update_failed'});
+    if(!data?.length)return answer(404,{success:false,error:'mlb_performance_not_found'});
+    return answer(200,{success:true,game_id:gameId,...patch});
+  }
   if(action==='readiness'){
     if(admin.is_super_admin!==true&&!permissions.some((p:string)=>['fixtures','performance','analysis_logs'].includes(p)))
       return answer(403,{success:false,error:'admin_readiness_permission_required'});
