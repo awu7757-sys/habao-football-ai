@@ -1781,7 +1781,7 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
           </div>
         </div>
 
-        <div class="stats-grid" style="margin-bottom:15px">
+        <div class="stats-grid" style="margin-bottom:15px;grid-template-columns:repeat(3,minmax(0,1fr))">
           <div class="stat-card gold">
             <div class="stat-label">正常待驗證</div>
             <div id="performancePendingCount" class="stat-value gold-text">0</div>
@@ -1793,10 +1793,6 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
           <div class="stat-card">
             <div class="stat-label">逾期待驗證</div>
             <div id="performanceOverdueCount" class="stat-value" style="color:#ff9696">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">市場二命中</div>
-            <div id="performanceOuRate" class="stat-value">—</div>
           </div>
         </div>
 
@@ -5680,9 +5676,6 @@ function renderPerformanceAdmin() {
   setText("performancePendingCount",normalPending);
   setText("performanceOverdueCount",overdue);
   setText("performanceVerifiedCount",verified);
-  const results=scoped.filter(x=>x?.status==="verified"&&x?.excluded_from_public!==true).map(x=>settlementResult(x?.settlement,"over_under")).filter(x=>["win","loss","half_win","half_loss"].includes(x));
-  const points=results.reduce((v,x)=>v+(x==="win"?1:x==="half_win"?.5:0),0);
-  setText("performanceOuRate",results.length?(points/results.length*100).toFixed(1)+"%":"—");
 }
 /* ---------- Admin Users ---------- */
 
