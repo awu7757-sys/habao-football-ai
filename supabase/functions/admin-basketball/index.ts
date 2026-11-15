@@ -656,6 +656,8 @@ async function getApiUsagePayload(
   let nbaStatusError:
     string | null =
       null;
+  // 2026-11-15：到期日改用供應商 subscription.end（與 API-Football 相同），不必再手動確認續費。
+  let nbaProviderEnd: string | null = null;
 
   if (nbaApiKey) {
     try {
@@ -764,6 +766,7 @@ async function getApiUsagePayload(
             ?.plan ||
           nbaPlan,
         );
+        nbaProviderEnd = providerResponse?.subscription?.end ? String(providerResponse.subscription.end).slice(0, 10) : null;
 
       nbaStatusFetchedAt =
         new Date()
@@ -988,9 +991,12 @@ async function getApiUsagePayload(
           ?.nba_api_start_date ||
         null,
       renewal_date:
+        nbaProviderEnd ||
         settings
           ?.nba_api_renewal_date ||
         null,
+      renewal_source:
+        nbaProviderEnd ? "provider" : "manual",
       last_provider_snapshot:
         nbaStatusFetchedAt,
       status_source:
