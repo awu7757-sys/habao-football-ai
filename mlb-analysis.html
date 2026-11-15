@@ -4350,6 +4350,20 @@ ${getAnalysisLeagueName(
 
 
 
+        ${window.HabaoStageCore.sport(savedData)==="football" ? `
+        <!-- 2026-11-15：恢復足球 BTTS（11-13 三球類統一時誤刪）；NBA／MLB 只有三個市場。預測比分仍不顯示。 -->
+        <div class="pick-card">
+          <div class="pick-label">BTTS</div>
+          <div class="pick-value">
+            ${localizeAnalysisText(btts.pick) || analysisT("noRecommendation", "暫不推薦")}
+          </div>
+          <div class="confidence">
+            ${recommendationConfidenceHtml(btts)}
+          </div>
+          <div class="bar">
+            <div style="width:${recommendationBar(btts)}%"></div>
+          </div>
+        </div>` : ""}
 </div>
 
       </div>
