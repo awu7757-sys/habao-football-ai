@@ -9427,7 +9427,10 @@ const allMatches =
 window.habaoHistoryAllMatches =
   allMatches;
 
-window.habaoHistorySport = ["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football";
+const habaoReturnHistorySport=new URLSearchParams(window.HabaoPageRuntime?.search?.()||location.search).get("history_sport");
+window.habaoHistorySport = ["football","basketball","baseball"].includes(habaoReturnHistorySport)
+  ? habaoReturnHistorySport
+  : (["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football");
 
 renderAnalysisHistory(
   allMatches,
@@ -11674,7 +11677,7 @@ analysisResultNotFound: "Analysis result not found"
 
 <script src="nba-stages.js?v=20261113-5"></script>
 <script src="sports-stage-core.js?v=20261113-2"></script>
-<script src="sports-stages.js?v=20261113-2"></script>
+<script src="sports-stages.js?v=20261115"></script>
 <script src="mlb-match-center.js?v=20261113-14"></script>
 <script src="habao-back-to-top-v2.js?v=2"></script>  
 

@@ -342,6 +342,8 @@ DRtg = 由對手得分效率建立
 - 使用者要求：切換時要清楚知道正在緩衝，不要以為當機（取代先前「小型、自然」的偏好）。
 - `habao-loading.js`（全站共用，版本參數改 `?v=2`）：延遲 230→120 ms；提示膠囊加大（14px、金框）並移到底部導覽列上方；新增頁面頂端金色進度條。
 - `analysis.html`／`mlb-analysis.html`：恢復足球 BTTS 卡片（11-13 `dc8991a` 三球類統一時被刪；使用者確認只有預測比分不顯示，BTTS 要顯示）。兩檔維持完全相同。
+- 結果頁返回：從「我的分析」點開的結果，左上角顯示「我的分析」，回到 `football.html?view=history&history_sport=<球類>` 同一球類分頁；從賽事中心分析（單場／批次）維持「賽事中心」。來源以 `sessionStorage.habao_analysis_return` 標記（`sports-stages.js` 的 `viewHistory` 設定、`open`／`batch` 清除）。`sports-stages.js` 版本參數改 `?v=20261115`。
+- 「補領 T-10／T-2」按鈕：是在後段時間領取**尚未領過**的前一階段快照（首次會扣 1 點），不是重看；已領過的階段不會出現補領，重看一律在「我的分析」。
 - `football.html`「我的分析」：預設分頁為當下所在球類（原本即如此）。五支歷史 API 原本依序等待，改為同時發出；改用 `habaoHistoryFetch` 對 5xx／429／網路錯誤最多重試 2 次。
 - 已知舊測試失敗（修改前後相同，非本次造成）：`tests/football-ui.test.cjs` 1 項、`tests/nba-batch.test.cjs` 4 項、`tests/nba-frontend.test.cjs` 1 項，`football-atomic`／`football-settlement-repair`／`nba-live-settlement` 需 PGlite 等依賴無法直接執行；待整理。
 - 頁面可設 `<body data-habao-loading="bar">` 只保留頂部進度條、不顯示底部提示；`performance.html` 已設定（避免與頁內「戰績讀取中…」重複）。

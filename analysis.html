@@ -3079,6 +3079,7 @@ const analysisTranslations = {
     moneyline: "獨贏",
     handicap: "讓分",
     overUnder: "大小球",
+    backToMyAnalysis: "我的分析",
     btts: "BTTS",
 
     noRecommendation: "暫不推薦",
@@ -3134,6 +3135,7 @@ const analysisTranslations = {
     moneyline: "独赢",
     handicap: "让分",
     overUnder: "大小球",
+    backToMyAnalysis: "我的分析",
     btts: "BTTS",
 
     noRecommendation: "暂不推荐",
@@ -3189,6 +3191,7 @@ const analysisTranslations = {
     moneyline: "Moneyline",
     handicap: "Handicap",
     overUnder: "Over / Under",
+    backToMyAnalysis: "My Analysis",
     btts: "BTTS",
 
     noRecommendation: "No Recommendation",
@@ -4422,14 +4425,23 @@ function applyAnalysisStaticLanguage() {
       "AI 賽事分析｜哈寶足球 AI"
     );
 
-  const backText =
+    const backText =
     document.querySelector(
       ".back span:last-child"
     );
-
+  /* 2026-11-15：從「我的分析」點進來的結果頁，左上角改為「返回我的分析」並回到同一球類分頁；
+     從賽事中心分析進來的維持「賽事中心」。 */
+  let analysisReturn=null;
+  try{analysisReturn=JSON.parse(sessionStorage.getItem("habao_analysis_return")||"null");}catch{}
+  const fromHistory=analysisReturn?.view==="history"&&["football","basketball","baseball"].includes(analysisReturn.sport);
+  const backLink=document.querySelector("a.back");
+  if (backLink) {
+    backLink.setAttribute("href", fromHistory ? "football.html?view=history&history_sport="+analysisReturn.sport : "football.html");
+  }
   if (backText) {
-    backText.textContent =
-      analysisT(
+    backText.textContent = fromHistory
+      ? analysisT("backToMyAnalysis", "我的分析")
+      : analysisT(
         "matchCenter",
         "賽事中心"
       );
