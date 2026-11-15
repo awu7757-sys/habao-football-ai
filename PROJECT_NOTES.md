@@ -342,6 +342,7 @@ DRtg = 由對手得分效率建立
 - 使用者要求：切換時要清楚知道正在緩衝，不要以為當機（取代先前「小型、自然」的偏好）。
 - `habao-loading.js`（全站共用，版本參數改 `?v=2`）：延遲 230→120 ms；提示膠囊加大（14px、金框）並移到底部導覽列上方；新增頁面頂端金色進度條。
 - `analysis.html`／`mlb-analysis.html`：恢復足球 BTTS 卡片（11-13 `dc8991a` 三球類統一時被刪；使用者確認只有預測比分不顯示，BTTS 要顯示）。兩檔維持完全相同。
+- 「我的分析」載入：一進入立即顯示「我的分析讀取中…」與全站提示；同帳號 5 分鐘內的紀錄先從 `sessionStorage.habao_history_cache_v1` 立即顯示，背景重新讀取後更新（若會員已離開我的分析畫面則不覆蓋）。
 - 結果頁返回：從「我的分析」點開的結果，左上角顯示「我的分析」，回到 `football.html?view=history&history_sport=<球類>` 同一球類分頁；從賽事中心分析（單場／批次）維持「賽事中心」。來源以 `sessionStorage.habao_analysis_return` 標記（`sports-stages.js` 的 `viewHistory` 設定、`open`／`batch` 清除）。`sports-stages.js` 版本參數改 `?v=20261115`。
 - **三球類共用同一套模板（使用者確認為長期規則）**：賽事卡片按鈕／顏色／補領／批次勾選由 `sports-stages.js`（configs：football、basketball、baseball）統一產生，足球舊的 `renderFootballV2StageButton` 已被覆蓋為空函式；時段判斷用 `sports-stage-core.js`；結果頁 `analysis.html`（`mlb-analysis.html` 必須與其完全相同）；我的分析 `renderHistory`。日後 T-10／T-2／T-15 的任何顯示修改都改這幾個共用檔，不要在單一球類頁面分叉。
 - 【使用者決策 2026-11-15】賽事卡片上「重看 T-x 分析」批次勾選移除：本階段已領取時隱藏批次勾選，重看一律到「我的分析」（`sports-stages.js`，版本 `?v=20261115b`）。補領按鈕保留。`deploy/nba-stages-20261113/stage-batch-tests.cjs` 修改前後皆 14 過 9 失敗（舊測試，待整理）。

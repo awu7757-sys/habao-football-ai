@@ -9243,6 +9243,23 @@ async function openAnalysisHistory() {
       return;
     }
 
+// 2026-11-15：一進入就顯示「我的分析讀取中」，有近 5 分鐘的快取先立即顯示，背景再更新。
+const habaoHistoryToken=(window.habaoHistoryLoadToken=(window.habaoHistoryLoadToken||0)+1);
+const habaoHistorySportPick=(()=>{const q=new URLSearchParams(window.HabaoPageRuntime?.search?.()||location.search).get("history_sport");return ["football","basketball","baseball"].includes(q)?q:(["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football");})();
+let habaoHistoryShownFromCache=false;
+try{
+  const cache=JSON.parse(sessionStorage.getItem("habao_history_cache_v1")||"null");
+  if(cache&&cache.account===member.account&&Date.now()-cache.t<5*60*1000&&Array.isArray(cache.rows)){
+    window.habaoHistoryAllMatches=cache.rows;window.habaoHistorySport=habaoHistorySportPick;
+    renderAnalysisHistory(cache.rows,habaoHistorySportPick);habaoHistoryShownFromCache=true;
+  }
+}catch{}
+if(!habaoHistoryShownFromCache){
+  const title=document.getElementById("fixtureSectionTitle");if(title)title.textContent="我的分析";
+  const box=document.getElementById("matchesContainer");
+  if(box)box.innerHTML='<div class="ai-note habao-history-loading" role="status" aria-live="polite" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:28px 12px;font-weight:800;color:#ffd877"><span style="width:18px;height:18px;border:2.5px solid rgba(242,189,75,.22);border-top-color:#f2bd4b;border-right-color:#f2bd4b;border-radius:50%;animation:habao-mini-spin .7s linear infinite"></span>我的分析讀取中…</div>';
+  window.HABAO_LOADING?.show?.();
+}
 // 先同時啟動 NBA 階段與 MLB 紀錄讀取，不必等足球／NBA T-10 回來
 const nbaStageHistoryPromise=(async()=>{
   try{
@@ -9428,9 +9445,15 @@ window.habaoHistoryAllMatches =
   allMatches;
 
 const habaoReturnHistorySport=new URLSearchParams(window.HabaoPageRuntime?.search?.()||location.search).get("history_sport");
-window.habaoHistorySport = ["football","basketball","baseball"].includes(habaoReturnHistorySport)
+window.HABAO_LOADING?.hide?.();
+// 期間會員若已切到其他畫面（今天／明天）或又重新開啟我的分析，就不再覆蓋畫面
+const habaoStillOnHistory=habaoHistoryToken===window.habaoHistoryLoadToken&&!!document.querySelector("#matchesContainer .history-sport-tabs, #matchesContainer .habao-history-loading");
+try{sessionStorage.setItem("habao_history_cache_v1",JSON.stringify({account:member.account,t:Date.now(),rows:allMatches}));}catch{}
+if(!habaoStillOnHistory)return;
+const habaoVisibleHistorySport=habaoHistoryShownFromCache&&["football","basketball","baseball"].includes(window.habaoHistorySport)?window.habaoHistorySport:null;
+window.habaoHistorySport = habaoVisibleHistorySport || (["football","basketball","baseball"].includes(habaoReturnHistorySport)
   ? habaoReturnHistorySport
-  : (["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football");
+  : (["football","basketball","baseball"].includes(currentHabaoSport)?currentHabaoSport:"football"));
 
 renderAnalysisHistory(
   allMatches,
@@ -9438,6 +9461,7 @@ renderAnalysisHistory(
 );
 
   } catch (error) {
+    window.HABAO_LOADING?.hide?.();
     console.error(error);
     alert(
   (
