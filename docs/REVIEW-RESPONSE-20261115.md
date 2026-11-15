@@ -36,3 +36,17 @@
 - 研究方法變更（時間資格）→ 版本升為 `football-market-blend-research-1.2-20261115`；樣本外起算日不變（11/16），因 11/16 尚無資料，未混用 1.1 結果。
 - 正式推薦、扣點、會員結果、歷史公開戰績：**未變更**。
 - 部署：GitHub 已修改；`admin-football-v2-stage-compare` **待使用者部署確認**，確認前不視為已上線。
+
+---
+
+# 第三輪複審回覆（GPT 基準 `62def4a`）
+
+| 項目 | 處理 | 說明 |
+|---|---|---|
+| B 指紋缺快照 kickoff_at | **已修正** | `researchFingerprint` 逐階段納入快照自身的 `kickoff_at`。已核對：`researchStage`／`researchTimesValid` 使用的快照欄位（kickoff_at、captured_at、home_xg、away_xg、market_context 含其 captured_at）全部在指紋內；排序、期間、結算與資格所用的賽果列欄位（fixture_id、kickoff_at、比分、excluded_from_public→決定是否入列）由集合與指紋涵蓋。 |
+| 回歸測試 | **已新增** | 只改 T-10／T-2／T-15 任一階段快照 kickoff_at（賽果列不變）：研究資格改變、指紋改變（三階段各測）。另以 vm 執行**實際 HTTP 處理函式**（stub 資料庫）：首次比較取得指紋 → 資料不變續批 200 → 只更正 T-2 快照開賽時間後用舊指紋續批 **409 `research_dataset_changed`**；版本不符 → `research_version_changed`。原有測試全部通過。 |
+| 可之後再做 | 暫緩 | D 精確數值斷言、部署後量測請求耗時、改用更強雜湊：依 GPT 建議不在本輪處理。 |
+
+- 研究方法未變，版本維持 `football-market-blend-research-1.2-20261115`；指紋內容增加快照 kickoff_at（指紋值會與修正前不同，部署後重新評估即可，不影響已作廢機制）。
+- 正式推薦、扣點、會員結果、歷史公開戰績：未變更。
+- 部署：GitHub 已修改；`admin-football-v2-stage-compare`（495 行）待使用者部署確認。

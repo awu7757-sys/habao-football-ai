@@ -214,7 +214,8 @@ function researchOrder(byFixture: Map<number, Map<string, any>>, results: Map<nu
   }
   return order.sort((a, b) => b.kick - a.kick || a.id - b.id);
 }
-// 評估集合指紋：研究版本、期間、每場 ID／開賽／比分，以及每階段快照的擷取時間、xG、盤口內容。
+// 評估集合指紋：研究版本、期間、每場 ID／開賽／比分，以及每階段快照的開賽時間、擷取時間、xG、盤口內容
+// （= researchStage／researchTimesValid 用到的全部快照欄位；GPT 第三輪複審補上快照 kickoff_at）。
 // 任何一項改變（新增、排除、更正比分或快照）指紋就不同；分批期間不同即中止，不混合新舊資料。
 function researchFingerprint(order: Array<{ id: number; kick: number; hs: number; as: number }>, byFixture: Map<number, Map<string, any>>, days: number) {
   let h = 0x811c9dc5;
@@ -224,7 +225,7 @@ function researchFingerprint(order: Array<{ id: number; kick: number; hs: number
     feed("|" + f.id + ":" + f.kick + ":" + f.hs + "-" + f.as);
     for (const stage of STAGES) {
       const snap = byFixture.get(f.id)?.get(stage);
-      feed("|" + stage + ":" + String(snap?.captured_at || "") + ":" + String(snap?.home_xg ?? "") + ":" + String(snap?.away_xg ?? "") + ":" +
+      feed("|" + stage + ":" + String(snap?.kickoff_at || "") + ":" + String(snap?.captured_at || "") + ":" + String(snap?.home_xg ?? "") + ":" + String(snap?.away_xg ?? "") + ":" +
         (typeof snap?.market_context === "string" ? snap.market_context : JSON.stringify(snap?.market_context ?? null)));
     }
   }

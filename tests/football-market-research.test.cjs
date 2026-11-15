@@ -69,6 +69,12 @@ for(let i=1;i<order.length;i++)assert.ok(order[i-1].kick>order[i].kick||(order[i
   const b4=new Map(byFixture),m4=new Map(byFixture.get(1010));m4.set('t2',{...m4.get('t2'),home_xg:2.2});b4.set(1010,m4);
   assert.notEqual(ctx.researchFingerprint(order,b4,90),hash,'更正快照應改變指紋');
   assert.notEqual(ctx.researchFingerprint(order,byFixture,30),hash,'查詢期間不同應改變指紋');
+  // 第三輪複審：只改某一階段快照的 kickoff_at（賽果列不變）也必須改變指紋；三個階段各測一次
+  for(const st of ['t10','t2','t15']){const b5=new Map(byFixture),m5=new Map(byFixture.get(1020));const orig=m5.get(st);
+    m5.set(st,{...orig,kickoff_at:new Date(Date.parse(orig.kickoff_at)-70*60000).toISOString()});b5.set(1020,m5);
+    const f=byFixture.get(1020),ord=order.find(x=>x.id===1020);
+    assert.notEqual(ctx.researchStage(b5.get(1020).get(st),ord.hs,ord.as).ok,ctx.researchStage(orig,ord.hs,ord.as).ok,st+' 案例應改變研究資格');
+    assert.notEqual(ctx.researchFingerprint(order,b5,90),hash,'只改 '+st+' 快照開賽時間應改變指紋');}
   assert.equal(ctx.researchFingerprint(ctx.researchOrder(byFixture,clone()),byFixture,90),hash,'資料不變指紋應相同');
   console.log('PASS B 新增／排除／更正比分／更正快照／期間不同都會改變評估集合指紋（後端回 research_dataset_changed 中止）');
 }
@@ -124,3 +130,29 @@ assert.deepEqual(JSON.parse(JSON.stringify(ctx.researchBatch(order,byFixture,0,h
   const p0=batches[0];assert.ok(Array.isArray(p0.used_fixture_ids.exploration)&&Array.isArray(p0.used_fixture_ids.out_of_sample));
   console.log('PASS D 探索期／樣本外分別回傳不同賽事、三階段合格與各階段合格數');
 }
+
+// 第三輪複審：以更正前指紋請求後續批次，實際 HTTP 處理函式回 409 research_dataset_changed
+(async()=>{
+  const kick='2026-11-20T12:00:00.000Z',cap='2026-11-20T11:45:00.000Z',mc=JSON.stringify({...fair(1.5,1.1,2.5,-0.25),captured_at:'2026-11-20T11:44:00.000Z'});
+  let snaps=['t10','t2','t15'].map(st=>({fixture_id:77,stage:st,kickoff_at:kick,captured_at:cap,home_xg:1.4,away_xg:1.2,probabilities:'{}',market_context:mc,source_meta:'{}',model_version:'v',data_quality:'q',research_only:true}));
+  const resultsRows=[{fixture_id:77,kickoff_at:kick,home_score:1,away_score:0,verified_at:kick,excluded_from_public:false}];
+  let handler=null;
+  const fetchStub=async(url)=>{url=String(url);
+    if(url.includes('/functions/v1/admin-center'))return {ok:true,json:async()=>({admin:{is_super_admin:true}})};
+    const rows=url.includes('football_v2_shadow_stage_snapshots')?snaps:url.includes('ai_prediction_snapshots')?resultsRows:[];
+    return {ok:true,json:async()=>rows,text:async()=>''};};
+  const hctx={Math,Number,Array,String,Object,JSON,Date,Map,Set,URLSearchParams,Response:class{constructor(b,i){this.body=b;this.status=i.status}},AbortSignal:{timeout:()=>null},console,fetch:fetchStub,
+    Deno:{env:{get:k=>k==='SUPABASE_URL'?'https://x':'role'},serve:fn=>{handler=fn;}}};
+  vm.createContext(hctx);vm.runInContext(stripTypeScriptTypes(src,{mode:'strip'}),hctx);
+  const call=async body=>{const r=await handler({method:'POST',headers:{get:()=> 'token'},json:async()=>body});return {status:r.status,body:JSON.parse(r.body)};};
+  const first=await call({action:'compare',days:0});assert.equal(first.status,200,'首次比較應成功');
+  const h0=first.body.research_metrics.set_hash,v0=first.body.research_metrics.version;
+  const same=await call({action:'research',days:0,research_offset:0,research_set_hash:h0,research_version:v0});assert.equal(same.status,200,'資料未變時指紋應相同、可繼續');
+  assert.equal(same.body.research_metrics.set_hash,h0);
+  snaps=snaps.map(x=>x.stage==='t2'?{...x,kickoff_at:'2026-11-20T11:40:00.000Z'}:x);   // 只更正 T-2 快照開賽時間
+  const changed=await call({action:'research',days:0,research_offset:0,research_set_hash:h0,research_version:v0});
+  assert.equal(changed.status,409);assert.equal(changed.body.error,'research_dataset_changed','舊指紋應被拒絕');
+  const wrongVer=await call({action:'research',days:0,research_offset:0,research_set_hash:h0,research_version:'old'});
+  assert.equal(wrongVer.body.error,'research_version_changed');
+  console.log('PASS B 回歸：只更正 T-2 快照開賽時間後，以舊指紋請求後續批次 → 409 research_dataset_changed；版本不符 → research_version_changed');
+})().catch(e=>{console.error(e);process.exit(1);});
