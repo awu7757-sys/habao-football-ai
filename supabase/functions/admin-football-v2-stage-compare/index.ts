@@ -92,6 +92,83 @@ function expectedReturn(cells: Array<{h:number;a:number;p:number}>, line: number
   }
   return returned - 1;
 }
+
+// ===== 2026-11-15 研究：市場融合版（只讀、只在後台顯示，不影響正式推薦）=====
+// 從快照當時的主盤口（最多莊家：market_context.total／handicap）去水後的機率，反推「市場隱含」主客預期進球，
+// 再與模型預期進球 50/50 平均（權重事先固定，不依結果調整）。三種進球預估用完全相同的選法比較：
+// 獨贏取最高機率；大小、讓分只用主盤口、選過盤機率較高的一邊；BTTS 機率 ≥58% 才推。
+const RESEARCH_BLEND_WEIGHT = 0.5;
+// CPU 時間保護：每次最多計算 450 個「場次×階段」（約 150 場，依開賽時間由新到舊）。
+const RESEARCH_MAX_STAGE_ROWS = 450;
+let researchRowsUsed = 0;
+function legWinShare(cells: Array<{h:number;a:number;p:number}>, line: number, side: "over" | "home") {
+  let win = 0, lose = 0;
+  for (const c of cells) for (const leg of splitLine(line)) {
+    const r = marketLegResult(side === "over" ? c.h + c.a : c.h - c.a, leg, side);
+    if (r === "win") win += c.p; else if (r === "loss") lose += c.p;
+  }
+  return win + lose > 0 ? win / (win + lose) : 0.5;
+}
+function devig(a: unknown, b: unknown): number | null {
+  const x = num(a), y = num(b);
+  if (x === null || y === null || x <= 1 || y <= 1) return null;
+  return (1 / x) / (1 / x + 1 / y);
+}
+// 反推用的小網格（0～10 球）與較少迭代，控制 Edge Function CPU 時間；最終選法仍用完整網格。
+function fitGrid(homeXg: number, awayXg: number) {
+  const hp = Array.from({ length: 11 }, (_, i) => poisson(homeXg, i)), ap = Array.from({ length: 11 }, (_, i) => poisson(awayXg, i));
+  const mass = hp.reduce((s, p) => s + p, 0) * ap.reduce((s, p) => s + p, 0);
+  const cells: Array<{ h: number; a: number; p: number }> = [];
+  for (let h = 0; h <= 10; h++) for (let a = 0; a <= 10; a++) cells.push({ h, a, p: hp[h] * ap[a] / mass });
+  return cells;
+}
+function bisect(f: (x: number) => number, lo: number, hi: number, target: number) {
+  for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (f(mid) < target) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+function marketImpliedXg(context: any, modelHome: number, modelAway: number) {
+  const total = context?.total, handicap = context?.handicap;
+  const overP = devig(total?.over_odds, total?.under_odds), homeP = devig(handicap?.home_odds, handicap?.away_odds);
+  const totalLine = num(total?.line), homeLine = num(handicap?.home_line);
+  const useTotal = overP !== null && totalLine !== null, useHandicap = homeP !== null && homeLine !== null;
+  if (!useTotal && !useHandicap) return null;
+  let sum = modelHome + modelAway, share = sum > 0 ? modelHome / sum : 0.5;
+  for (let round = 0; round < 2; round++) {
+    if (useTotal) sum = bisect(x => legWinShare(fitGrid(x * share, x * (1 - share)), totalLine!, "over"), 0.3, 7, overP!);
+    if (useHandicap) share = bisect(x => legWinShare(fitGrid(sum * x, sum * (1 - x)), homeLine!, "home"), 0.05, 0.95, homeP!);
+  }
+  return { home: sum * share, away: sum * (1 - share), used: { total: useTotal, handicap: useHandicap } };
+}
+function researchPicks(homeXg: number, awayXg: number, context: any, hs: number, as: number) {
+  const cells = scoreGrid(homeXg, awayXg);
+  let ph = 0, pd = 0, pa = 0, pb = 0;
+  for (const c of cells) { if (c.h > c.a) ph += c.p; else if (c.h === c.a) pd += c.p; else pa += c.p; if (c.h > 0 && c.a > 0) pb += c.p; }
+  const winner = [["home", ph], ["draw", pd], ["away", pa]].sort((x: any, y: any) => y[1] - x[1])[0][0];
+  const actual = hs > as ? "home" : hs < as ? "away" : "draw";
+  const out: any = { home_xg: Number(homeXg.toFixed(3)), away_xg: Number(awayXg.toFixed(3)), moneyline_pick: winner, moneyline_hit: winner === actual };
+  const tl = num(context?.total?.line);
+  if (tl !== null) { const over = legWinShare(cells, tl, "over") >= 0.5; out.total = { line: tl, pick: over ? "over" : "under", ...settlement(hs + as, tl, over ? "over" : "under", 2) }; }
+  const hl = num(context?.handicap?.home_line);
+  if (hl !== null) { const home = legWinShare(cells, hl, "home") >= 0.5; out.handicap = { home_line: hl, pick: home ? "home" : "away", ...settlement(home ? hs - as : as - hs, home ? hl : -hl, home ? "home" : "away", 2) }; }
+  out.btts_pick = Math.max(pb, 1 - pb) >= 0.58 ? (pb >= 0.5 ? "yes" : "no") : null;
+  out.btts_hit = out.btts_pick === null ? null : (out.btts_pick === "yes") === (hs > 0 && as > 0);
+  return out;
+}
+function researchMetrics(rows: any[]) {
+  const variants = ["model", "blend", "market"], markets = ["moneyline", "total", "handicap", "btts"];
+  const hitOf = (x: any, m: string) => m === "moneyline" ? x?.moneyline_hit : m === "btts" ? x?.btts_hit : x?.[m]?.hit;
+  const result: any = { weight: RESEARCH_BLEND_WEIGHT, stage_rows: researchRowsUsed, capped: researchRowsUsed >= RESEARCH_MAX_STAGE_ROWS, by_market: {} };
+  for (const m of markets) {
+    result.by_market[m] = {};
+    for (const v of variants) result.by_market[m][v] = Object.fromEntries(STAGES.map(stage => {
+      // 只算三種版本都能計算（有市場盤口）的同一批場次，才公平。
+      const bets = rows.map(r => r.predictions?.[stage]?.research).filter((x: any) => x && x.market)
+        .map((x: any) => ({ hit: hitOf(x[v], m) }));
+      return [stage, summarizeBets(bets)];
+    }));
+  }
+  return result;
+}
 function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<number, any>) {
   const rows: any[] = [];
   for (const [id, result] of results) {
@@ -157,7 +234,18 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
             total_settlements: totalSettlements, handicap_settlements: handicapSettlements }
         };
       }
+      const researchContext = json(snap.market_context);
+      const implied = researchRowsUsed < RESEARCH_MAX_STAGE_ROWS ? marketImpliedXg(researchContext, homeXg, awayXg) : null;
+      if (implied) researchRowsUsed++;
+      const research = implied ? {
+        model: researchPicks(homeXg, awayXg, researchContext, hs, as),
+        blend: researchPicks(RESEARCH_BLEND_WEIGHT * homeXg + (1 - RESEARCH_BLEND_WEIGHT) * implied.home,
+          RESEARCH_BLEND_WEIGHT * awayXg + (1 - RESEARCH_BLEND_WEIGHT) * implied.away, researchContext, hs, as),
+        market: researchPicks(implied.home, implied.away, researchContext, hs, as),
+        market_lines_used: implied.used,
+      } : null;
       predictions[stage] = {
+        research,
         moneyline_pick: winner, moneyline_hit: winner === null ? null : winner === actualWinner,
         btts_pick: bttsProb === null ? null : bttsProb >= 0.5 ? "yes" : "no",
         btts_hit: bttsProb === null ? null : (bttsProb >= 0.5) === (hs > 0 && as > 0),
@@ -283,6 +371,7 @@ Deno.serve(async req => {
       if (meta?.capture_mode === "late_pre_match_recovery" || meta?.eligible_for_stage_metrics === false) continue;
       const m = byFixture.get(id) || new Map<string, any>(); if (!m.has(stage)) m.set(stage, r); byFixture.set(id, m);
     }
+    researchRowsUsed = 0;
     const paired = pairedData(byFixture, results);
     const metrics: Record<string, any> = {
       moneyline: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.moneyline_hit)])),
@@ -291,12 +380,13 @@ Deno.serve(async req => {
     metrics.totals_market_line = marketMetrics(paired, "total");
     metrics.handicap_market_line = marketMetrics(paired, "handicap");
     const llm_metrics = llmMetrics(paired);
+    const research_metrics = researchMetrics(paired);
     return reply(200, {
       success: true, research_only: true, model_version: VERSION, window_days: days,
       verified_result_fixtures: resultRows.filter(x => x.excluded_from_public !== true).length,
       paired_fixture_count: paired.length,
       comparison_method: "每場每階段逐條使用實際市場線及雙邊賠率；V2以Poisson分數矩陣選期望報酬較高的一邊。GPT與Claude各自讀取同一份凍結特徵、V2結果及市場報價，獨立產生影子選擇。三種模型結果均按實際比分結算；走盤不計命中率分母，大小球與讓分另按線別列統計。只供後台研究，不進公開戰績。",
-      market_lines: "all_fixture_stage_quotes", market_metrics: { totals: metrics.totals_market_line, handicap: metrics.handicap_market_line }, llm_metrics, metrics,
+      market_lines: "all_fixture_stage_quotes", market_metrics: { totals: metrics.totals_market_line, handicap: metrics.handicap_market_line }, llm_metrics, research_metrics, metrics,
       stages: Object.fromEntries(STAGES.map(s => [s, coverage(s, snaps, audits, paired)])),
       paired_rows: paired.slice(0, 300),
       truncated: snaps.length >= MAX_ROWS || audits.length >= MAX_ROWS || resultRows.length >= MAX_ROWS,

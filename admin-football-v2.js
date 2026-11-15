@@ -180,6 +180,14 @@ function renderFootballV2StageCompare(){
  });
  const m=document.getElementById("footballV2StageMetrics");
  if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分會依每場當時實際開出的盤線結算，模型每場各選一個結果；不固定用大 2.5、大 3 或大 4，不同賽事的盤線可以不同。缺少盤口不列入統計；走盤不算命中或未中，半贏算命中、半輸算未中。'+v2esc(p.note||"")+'</p>';
+ // 2026-11-15 研究：市場融合版（同一套選法，只換進球預估）
+ const rm=p.research_metrics;
+ if(m&&rm&&rm.by_market){
+  const vLabel={model:"模型（現行進球預估）",blend:"融合（模型＋市場各半）",market:"純市場（盤口反推）"};
+  const mLabel={moneyline:"獨贏",total:"大小球（主盤）",handicap:"讓分（主盤）",btts:"BTTS（機率≥58%才推）"};
+  const rrows=Object.keys(mLabel).flatMap(mk=>["model","blend","market"].map((v,i)=>'<tr><th>'+(i===0?mLabel[mk]+'<br>':'')+'<small>'+vLabel[v]+'</small></th>'+stages.map(st=>'<td>'+v2esc(v2StageRate(rm.by_market?.[mk]?.[v]?.[st]))+'</td>').join("")+'</tr>'));
+  m.insertAdjacentHTML("beforeend",'<div style="margin-top:18px"><div class="panel-title" style="font-size:15px">研究：市場融合版（只在後台，不影響正式推薦）</div><p class="page-desc" style="margin:6px 0 10px">用快照當時的主盤口反推「市場預期進球」，再和模型預期進球各取一半。三種版本用完全相同的選法比較，只差在進球預估；只計入有市場盤口的同一批場次'+(rm.capped?'（為控制計算量，只算最近約 150 場）':'')+'。半贏算命中、半輸算未中，走盤不計。</p><div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>項目／版本</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rrows.join("")+'</tbody></table></div></div>');
+ }
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<details><summary style="cursor:pointer">展開快照與資料狀況</summary><div style="overflow-x:auto;margin-top:10px"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>階段</th><th>準時快照</th><th>晚到補抓<br><small>不計入比對</small></th><th>排程檢查</th><th>平均擷取時間</th><th>配對且已驗證</th></tr></thead><tbody>'+
   stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",statusLabel={ready:"資料就緒",already_ready:"已完成",failed:"失敗",pending:"等待中",skipped:"略過"},states=Object.entries(x.audit_statuses||{}).map(([k,v])=>(statusLabel[k]||k)+" "+v+" 筆").join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.late_recovery_snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+
