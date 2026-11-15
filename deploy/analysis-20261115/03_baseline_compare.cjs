@@ -1,11 +1,11 @@
 // 用 03_football_stage_export_readonly.sql 匯出的 CSV 重算推薦並與「跟莊家熱門」比較。執行：node deploy/analysis-20261115/03_baseline_compare.cjs <csv路徑>
 const fs=require('fs'),vm=require('vm');const {stripTypeScriptTypes:st}=require('node:module');
-const src=fs.readFileSync('require("path").resolve(__dirname,"../..")+"/"supabase/functions/football-v2-stage-member/index.ts','utf8');
+const src=fs.readFileSync(require('path').resolve(__dirname,'../../supabase/functions/football-v2-stage-member/index.ts'),'utf8');
 const code=src.slice(src.indexOf('function scoreGrid('),src.indexOf('\nDeno.serve('));
 const ctx={VERSION:'x',Math,Number,Array,String,Date,Object,JSON};vm.createContext(ctx);vm.runInContext(st(code,{mode:'strip'})+';this.toAnalysis=toAnalysis;this.splitLine=splitLine;this.legResult=legResult;this.scoreGrid=scoreGrid;this.expectedReturn=expectedReturn',ctx);
 // csv parse
 function parse(t){const rows=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){row.push(f);f=''}else if(c=='\n'){row.push(f);rows.push(row);row=[];f=''}else if(c!='\r')f+=c}if(f||row.length){row.push(f);rows.push(row)}return rows}
-const R=parse(fs.readFileSync('process.argv[2]','utf8'));const H=R[0];const data=R.slice(1).filter(r=>r.length===H.length).map(r=>Object.fromEntries(H.map((h,i)=>[h,r[i]])));
+const R=parse(fs.readFileSync(process.argv[2],'utf8'));const H=R[0];const data=R.slice(1).filter(r=>r.length===H.length).map(r=>Object.fromEntries(H.map((h,i)=>[h,r[i]])));
 function settle(value,line,side){const parts=ctx.splitLine(line);let s=0;for(const p of parts)s+=ctx.legResult(value,p,side);s/=parts.length;return s>0.75?'win':s>0?'half_win':s===0?'push':s>-0.75?'half_loss':'loss';}
 const pts={win:1,half_win:.5,half_loss:0,loss:0};
 const agg={};function add(k,res){if(!res||res==='push')return;const a=agg[k]||(agg[k]={n:0,p:0});a.n++;a.p+=pts[res];}
