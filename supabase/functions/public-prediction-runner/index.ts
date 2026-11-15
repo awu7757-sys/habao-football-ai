@@ -392,7 +392,15 @@ Deno.serve(async (req) => {
       report.checked = fixtureMap.size;
       const terminal = new Set(["FT", "AET", "PEN", "CANC", "PST", "ABD", "AWD", "WO"]);
       const jobs: Array<{fixture_id: number; kickoff_at: string; fixture_data: any}> = [];
+      // 2026-11-15：公開戰績只收會員可分析的 12 個聯賽（與 football-v2 runner 的 SPORTS 相同）。
+      // 英超、西甲、德甲、義甲、法甲、歐冠、歐霸、荷甲、日職、韓職、中超、巴甲。
+      // 已知聯賽 ID 且不在清單內才跳過；取不到 ID 的仍保留並計數，避免資料格式變動時整批漏掉。
+      const PUBLIC_LEAGUES = new Set([39, 140, 78, 135, 61, 2, 3, 88, 98, 292, 169, 71]);
+      let skippedLeague = 0, unknownLeague = 0;
       for (const item of fixtureMap.values()) {
+        const leagueId = Number(item?.league?.id || item?.league?.leagueId || item?.leagueId || 0);
+        if (leagueId > 0 && !PUBLIC_LEAGUES.has(leagueId)) { skippedLeague++; continue; }
+        if (!(leagueId > 0)) unknownLeague++;
         const id = Number(item?.fixtureId);
         const kick = Date.parse(String(item?.time || ""));
         const status = String(item?.status || "").toUpperCase();
@@ -400,6 +408,9 @@ Deno.serve(async (req) => {
           jobs.push({ fixture_id: id, kickoff_at: new Date(kick).toISOString(), fixture_data: item });
         }
       }
+
+      (report as any).skipped_non_public_league = skippedLeague;
+      (report as any).unknown_league_id = unknownLeague;
 
       if (jobs.length > 0) {
         try {

@@ -504,6 +504,7 @@ DRtg = 由對手得分效率建立
    - 門檻無效：足球大小、足球讓分、NBA 大小（約 52%）、NBA 讓分。MLB 快照沒有信心值、僅 5 場。
    - **警訊**：足球大小較舊一半 77.8% → 較新一半（10/22 後）54.0%；讓分 61.4→56.6、BTTS 64.3→52.6，10 月下旬後全面下滑，待查原因（模型版本、盤口選擇、聯賽組成）。
    - 原則：門檻只套用設定後開賽的比賽，記錄生效時間，不改寫歷史。T-2／T-15 階段比較等每球類約 100 場後再做。
+5j. 【2026-11-15】`public-prediction-runner`（足球 T-10 公開快照）登記賽事時只收 12 個聯賽（`PUBLIC_LEAGUES`，與 football-v2 runner `SPORTS` 相同）；取不到聯賽 ID 的保留並計入 `unknown_league_id`，跳過數記在 `skipped_non_public_league`。已在佇列中的非 12 聯賽場次仍會產生快照直到開賽，之後不再新增。歷史上的 MLS／英冠／Liga MX 等快照不刪除（使用者決定）。
 5c. 【2026-11-15】後台「AI 分析紀錄」加入 T-2／T-15：`admin-center`（足球 `football_v2_shadow_stage_snapshots`、`football_v2_stage_member_claims`）、`admin-basketball`（`basketball_v2_stage_snapshots`、`basketball_v2_stage_claims`）、`admin-baseball`（`baseball_v2_stage_snapshots`、`baseball_v2_stage_claims`）的 `analysis_history` 回傳每筆 `stage`；`admin.html` 新增「階段」欄與階段篩選，日期改依**開賽日（台灣）**篩選（今日開賽／明日開賽／近 3／近 7 天），摘要顯示階段與來源。三支函式已部署（11/15 驗證 NBA 正常）。
    - **摘要統一格式（11/15 決定）**：三種球類、三個階段的「查看摘要」都用同一格式：獨贏／大小分／讓分／（足球）BTTS／預測比分（最多 3 個）／分析時間。足球 T-2／T-15 系統快照表本身不存推薦，但推薦**只由快照決定**（xG、機率、快照當下的 `market_context`），所以 `admin-center` 內放了一份 `football-v2-stage-member` `toAnalysis()` 的**逐字複本**（BEGIN/END COPY 區塊）重算，結果與會員領取相同；`tests/football-recommendation-parity.test.cjs` 會檢查複本一致，改算法時兩邊一起改。後台摘要把「主勝／客勝」顯示為「主隊／客隊」與 T-10 一致。MLB 摘要的預測比分補讀 `analysis.model.projection` 與 `predicted_scores`（MLB 無賽事，待開季驗證）。
 6. 「確認已續費」只是手動追蹤，提示為今天＋一個月，不是付款也不是供應商到期日同步。跨日重按可能算錯追蹤日期；之後可改成明確輸入實際到期日，但需另獲授權。
