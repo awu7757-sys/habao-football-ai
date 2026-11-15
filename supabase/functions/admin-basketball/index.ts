@@ -1804,6 +1804,14 @@ Deno.serve(
           historyRows =
             histories.data ||
             [];
+
+          // 2026-11-15：分析會員／可推播改為三階段都算（T-10 + T-2／T-15 領取）。
+          const stageClaims = await supabase
+            .from("basketball_v2_stage_claims")
+            .select("game_id,account")
+            .in("game_id", gameIds);
+          if (stageClaims.error) throw stageClaims.error;
+          historyRows = historyRows.concat(stageClaims.data || []);
         }
 
         const cacheById =

@@ -183,6 +183,19 @@ Deno.serve(async req => {
       return answer(200,{success:true,fixture_meta:result,
         member_counts_available:false,push_counts_available:false,live_push_available:Deno.env.get('HABAO_SPORT_PUSH_ENABLED')==='true'});
     }
+    // 2026-11-15：分析會員／可推播改為三階段都算（T-10 + T-2／T-15 領取）。
+    const stageClaims=await db.from('baseball_v2_stage_claims').select('game_id,account').in('game_id',ids).limit(30000);
+    if(stageClaims.error){
+      for(const id of ids){result[String(id)].analysis_member_count=null;result[String(id)].push_member_count=null;}
+      return answer(200,{success:true,fixture_meta:result,
+        member_counts_available:false,push_counts_available:false,live_push_available:Deno.env.get('HABAO_SPORT_PUSH_ENABLED')==='true'});
+    }
+    for(const row of stageClaims.data||[]){
+      const id=Number(row?.game_id),account=String(row?.account||'').trim();
+      if(!result[String(id)]||!account)continue;
+      if(!byGame.has(id))byGame.set(id,new Set());
+      byGame.get(id)!.add(account);
+    }
     const allAccounts=Array.from(new Set(Array.from(byGame.values()).flatMap(s=>Array.from(s))));
     let pushOk=true;
     const active=new Set<string>(),subscribed=new Set<string>();

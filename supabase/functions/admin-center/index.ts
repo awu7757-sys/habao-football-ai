@@ -3219,6 +3219,7 @@ if (action === "analysis_history") {
           targetResult,
           subscriptionResult,
           memberResult,
+          stageClaimResult,
         ] = await Promise.all([
           supabase
             .from("member_analysis_history")
@@ -3237,10 +3238,21 @@ if (action === "analysis_history") {
           supabase
             .from("members")
             .select("account,is_active"),
+
+          // 2026-11-15：分析會員／可推播改為三階段都算（T-10 + T-2／T-15 領取）。
+          supabase
+            .from("football_v2_stage_member_claims")
+            .select("fixture_id,account")
+            .eq("claim_state", "claimed")
+            .in("fixture_id", fixtureIds),
         ]);
 
         if (historyResult.error) {
           throw historyResult.error;
+        }
+
+        if (stageClaimResult.error) {
+          throw stageClaimResult.error;
         }
 
         if (targetResult.error) {
@@ -3275,7 +3287,7 @@ if (action === "analysis_history") {
         const analysisAccountsByFixture =
           new Map<number, Set<string>>();
 
-        for (const row of historyResult.data ?? []) {
+        for (const row of [...(historyResult.data ?? []), ...(stageClaimResult.data ?? [])]) {
           const fixtureId = Number(row?.fixture_id || 0);
           const account = String(row?.account || "").trim();
 
