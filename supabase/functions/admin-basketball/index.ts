@@ -1508,7 +1508,75 @@ Deno.serve(
           .filter((row: any) =>
             Number.isFinite(row._sort_ms) && row._sort_ms >= Date.now() - 7 * 86400000
           );
-        const records = [...memberRecords, ...systemRecords]
+             // 2026-11-15：補上 T-2／T-15 系統階段快照與會員階段領取（原本只有 T-10）。
+      const stageCutoffIso = new Date(Date.now() - 7 * 86400000).toISOString();
+      const [stageSnapRes, stageClaimRes] = await Promise.all([
+        supabase.from("basketball_v2_stage_snapshots")
+          .select("game_id,stage,fixture_time,captured_at,status,result_data,source_meta,model_version,updated_at")
+          .gte("fixture_time", stageCutoffIso)
+          .order("updated_at", { ascending: false })
+          .limit(500),
+        supabase.from("basketball_v2_stage_claims")
+          .select("account,game_id,stage,fixture_time,result_data,claimed_at")
+          .gte("claimed_at", stageCutoffIso)
+          .order("claimed_at", { ascending: false })
+          .limit(500),
+      ]);
+      if (stageSnapRes.error) throw stageSnapRes.error;
+      if (stageClaimRes.error) throw stageClaimRes.error;
+      const nbaName = (v: any) => typeof v === "string" ? v : (v?.name || v?.api_name || "—");
+      const officialById = new Map((officialRows || []).map((row: any) => [Number(row?.game_id), row]));
+      const stageSystemRecords = (stageSnapRes.data || []).map((row: any) => {
+        const fx = row?.result_data?.fixture || {};
+        const t10 = officialById.get(Number(row?.game_id));
+        return {
+          id: `SYSTEM_STAGE_NBA_${row?.game_id}_${row?.stage}`,
+          admin_key: `basketball:SYSTEM_STAGE_${row?.game_id}_${row?.stage}`,
+          account: "SYSTEM_AUTO｜系統自動分析",
+          sport: "basketball",
+          record_source: "system_auto",
+          stage: row?.stage,
+          stage_status: row?.status || null,
+          capture_mode: row?.source_meta?.capture_mode || null,
+          fixture_id: row?.game_id,
+          game_id: row?.game_id,
+          fixture_time: row?.fixture_time || null,
+          home_team: nbaName(fx?.home) !== "—" ? nbaName(fx?.home) : (t10?.home_team || "—"),
+          away_team: nbaName(fx?.away) !== "—" ? nbaName(fx?.away) : (t10?.away_team || "—"),
+          league_name: "NBA",
+          match_status: "NS",
+          result_data: row?.status === "ready" ? row?.result_data : { v2_stage: row?.stage, status: row?.status },
+          updated_at: row?.captured_at || row?.updated_at || null,
+          created_at: row?.captured_at || row?.updated_at || null,
+        };
+      });
+      const stageMemberRecords = (stageClaimRes.data || []).map((row: any) => {
+        const fx = row?.result_data?.fixture || {};
+        return {
+          id: `MEMBER_STAGE_NBA_${row?.account}_${row?.game_id}_${row?.stage}`,
+          admin_key: `basketball:MEMBER_STAGE_${row?.account}_${row?.game_id}_${row?.stage}`,
+          account: row?.account || "—",
+          sport: "basketball",
+          record_source: "member",
+          stage: row?.stage,
+          fixture_id: row?.game_id,
+          game_id: row?.game_id,
+          fixture_time: row?.fixture_time || null,
+          home_team: nbaName(fx?.home),
+          away_team: nbaName(fx?.away),
+          league_name: "NBA",
+          match_status: "NS",
+          result_data: row?.result_data || null,
+          updated_at: row?.claimed_at || null,
+          created_at: row?.claimed_at || null,
+        };
+      });
+      const records = [
+        ...memberRecords.map((row: any) => ({ ...row, stage: row?.stage || "t10" })),
+        ...systemRecords.map((row: any) => ({ ...row, stage: "t10" })),
+        ...stageSystemRecords,
+        ...stageMemberRecords,
+      ]
           .sort((a: any,b: any) =>
             new Date(b?.updated_at || 0).getTime() - new Date(a?.updated_at || 0).getTime()
           )

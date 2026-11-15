@@ -2641,14 +2641,83 @@ if (action === "analysis_history") {
       });
 
   // ==========================================
-  // 3. 合併會員 + 系統自動分析
-  // ==========================================
-
-  const records =
-    [
-      ...(memberResult.data ?? []),
-      ...systemRecords,
-    ]
+ // 2b. 2026-11-15：T-2／T-15 系統階段快照與會員階段領取
+ // 原本此頁只有 T-10；三階段上線後補上，前台以 stage 欄位區分。
+ // ==========================================
+ const stageCutoffIso = new Date(cutoff).toISOString();
+ const [stageSnapResult, stageClaimResult] = await Promise.all([
+ supabase.from("football_v2_shadow_stage_snapshots")
+ .select("fixture_id,stage,kickoff_at,captured_at,home_xg,away_xg,probabilities,source_meta,model_version")
+ .in("stage", ["t2", "t15"])
+ .gte("kickoff_at", stageCutoffIso)
+ .order("captured_at", { ascending: false })
+ .limit(500),
+ supabase.from("football_v2_stage_member_claims")
+ .select("id,account,fixture_id,stage,claim_state,fixture_data,result_data,claimed_at,created_at")
+ .gte("created_at", stageCutoffIso)
+ .order("created_at", { ascending: false })
+ .limit(500),
+ ]);
+ if (stageSnapResult.error) throw stageSnapResult.error;
+ if (stageClaimResult.error) throw stageClaimResult.error;
+ const t10Names = new Map<number, any>();
+ for (const row of (snapshotResult.data ?? [])) t10Names.set(Number(row?.fixture_id), row);
+ const teamName = (v: any) => typeof v === "string" ? v : (v?.name || v?.api_name || "");
+ const stageSystemRecords = (stageSnapResult.data ?? []).map((row: any) => {
+ const named = t10Names.get(Number(row?.fixture_id));
+ return {
+ id: `SYSTEM_STAGE_${row?.fixture_id}_${row?.stage}`,
+ account: "SYSTEM_AUTO｜系統自動分析",
+ record_source: "system_auto",
+ stage: row?.stage,
+ capture_mode: row?.source_meta?.capture_mode || null,
+ fixture_id: row?.fixture_id,
+ league_name: named?.league_name || "其他聯賽",
+ home_team: named?.home_team || "—",
+ away_team: named?.away_team || "—",
+ fixture_time: row?.kickoff_at || null,
+ match_status: named?.status === "verified" ? "FT" : "NS",
+ result_data: {
+ v2_stage: row?.stage,
+ model_version: row?.model_version || null,
+ home_xg: row?.home_xg ?? null,
+ away_xg: row?.away_xg ?? null,
+ probabilities: row?.probabilities || null,
+ },
+ updated_at: row?.captured_at || null,
+ created_at: row?.captured_at || null,
+ };
+ });
+ const stageMemberRecords = (stageClaimResult.data ?? []).map((row: any) => {
+ const fx = row?.fixture_data || row?.result_data?.fixture || {};
+ const named = t10Names.get(Number(row?.fixture_id));
+ return {
+ id: `MEMBER_STAGE_${row?.id}`,
+ account: row?.account || "—",
+ record_source: "member",
+ stage: row?.stage,
+ claim_state: row?.claim_state || null,
+ fixture_id: row?.fixture_id,
+ league_name: teamName(fx?.league) || named?.league_name || "其他聯賽",
+ home_team: teamName(fx?.home) || named?.home_team || "—",
+ away_team: teamName(fx?.away) || named?.away_team || "—",
+ fixture_time: fx?.date || named?.kickoff_at || null,
+ match_status: named?.status === "verified" ? "FT" : "NS",
+ result_data: row?.result_data || null,
+ updated_at: row?.claimed_at || row?.created_at || null,
+ created_at: row?.created_at || null,
+ };
+ });
+ // ==========================================
+ // 3. 合併會員 + 系統自動分析
+ // ==========================================
+ const records =
+ [
+ ...(memberResult.data ?? []).map((row: any) => ({ ...row, stage: row?.stage || "t10" })),
+ ...systemRecords.map((row: any) => ({ ...row, stage: "t10" })),
+ ...stageSystemRecords,
+ ...stageMemberRecords,
+ ]
       .sort(
         (a: any, b: any) => {
 

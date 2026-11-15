@@ -228,7 +228,26 @@ Deno.serve(async req => {
       over_under:{pick:s.analysis?.model?.markets?.totals?.pick||null,line:s.analysis?.model?.markets?.totals?.market_line??null}
     }}}
   }));
-  const members=(history.data||[]).map(m=>({...m,sport:'baseball',fixture_id:m.game_id,record_source:'member'}));
-  return answer(200,{success:true,sport:'baseball',records:[...auto,...members].sort((a,b)=>Date.parse(b.updated_at||'')-Date.parse(a.updated_at||'')).slice(0,400),
+  const members=(history.data||[]).map(m=>({...m,sport:'baseball',fixture_id:m.game_id,record_source:'member',stage:'t10'}));
+  // 2026-11-15：補上 T-2／T-15 系統階段快照與會員階段領取（原本只有 T-10）。
+  const stageCutoff=new Date(Date.now()-7*86400000).toISOString();
+  const [stageSnaps,stageClaims]=await Promise.all([
+    db.from('baseball_v2_stage_snapshots').select('game_id,stage,fixture_time,captured_at,status,result_data,source_meta,model_version,updated_at').gte('fixture_time',stageCutoff).order('updated_at',{ascending:false}).limit(500),
+    db.from('baseball_v2_stage_claims').select('account,game_id,stage,fixture_time,result_data,claimed_at').gte('claimed_at',stageCutoff).order('claimed_at',{ascending:false}).limit(500)
+  ]);
+  if(stageSnaps.error||stageClaims.error)return answer(502,{success:false,error:'mlb_stage_logs_query_failed'});
+  const mlbName=(v:any)=>typeof v==='string'?v:(v?.name||v?.api_name||'—');
+  const t10ById=new Map((snapshots.data||[]).map((s:any)=>[Number(s.game_id),s]));
+  const stageAuto=(stageSnaps.data||[]).map((r:any)=>{const fx=r.result_data?.fixture||{},t10:any=t10ById.get(Number(r.game_id));return {
+    id:'system_stage:'+r.game_id+':'+r.stage,account:'SYSTEM_AUTO',sport:'baseball',record_source:'system_auto',stage:r.stage,stage_status:r.status||null,
+    capture_mode:r.source_meta?.capture_mode||null,game_id:r.game_id,fixture_id:r.game_id,league_name:'MLB',fixture_time:r.fixture_time,
+    home_team:mlbName(fx.home)!=='—'?mlbName(fx.home):(t10?.home_team||'—'),away_team:mlbName(fx.away)!=='—'?mlbName(fx.away):(t10?.away_team||'—'),
+    created_at:r.captured_at||r.updated_at,updated_at:r.captured_at||r.updated_at,match_status:'scheduled',status:r.status,
+    result_data:r.status==='ready'?r.result_data:{v2_stage:r.stage,status:r.status}};});
+  const stageMembers=(stageClaims.data||[]).map((r:any)=>{const fx=r.result_data?.fixture||{};return {
+    id:'member_stage:'+r.account+':'+r.game_id+':'+r.stage,account:r.account,sport:'baseball',record_source:'member',stage:r.stage,
+    game_id:r.game_id,fixture_id:r.game_id,league_name:'MLB',fixture_time:r.fixture_time,home_team:mlbName(fx.home),away_team:mlbName(fx.away),
+    created_at:r.claimed_at,updated_at:r.claimed_at,match_status:'scheduled',status:'completed',result_data:r.result_data||null};});
+  return answer(200,{success:true,sport:'baseball',records:[...auto.map(x=>({...x,stage:'t10'})),...members,...stageAuto,...stageMembers].sort((a,b)=>Date.parse(b.updated_at||'')-Date.parse(a.updated_at||'')).slice(0,400),
     snapshot_count:auto.length,member_history_count:members.length});
 });

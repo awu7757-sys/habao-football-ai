@@ -495,6 +495,7 @@ DRtg = 由對手得分效率建立
    - 2026-11-15 08:41 使用者部署後驗收：API-Football 33／7500（供應商，到期 2026-11-30）、API-NBA 91／7500（08:00 已歸零；先前看到的 383 是頁面未重新整理的前一日數字）、The Odds 962／20000（資料時間 11-14 23:00）。The Odds 的數字只在特定賠率快取更新時才刷新，其他模組呼叫不會更新它，可能落後最多約一天。
    - API-Sports 每日額度 7,500 於 00:00 UTC（台灣 08:00）歸零；The Odds 每月額度於供應商帳單週期換月時歸零。「確認已續費」只改追蹤日期，不會也不應把用量歸零。
 5b. 【2026-11-15 使用者要求簡化】後台 API 配額／系統資源頁：移除 MLB Stats 檢查卡、Football 與 NBA「確認已續費」按鈕（到期日改讀供應商 `subscription.end`；NBA 新版 `admin-basketball` 已於 2026-11-15 08:51 部署，畫面顯示 2026/12/14（供應商））、近 7 天 API 使用紀錄表、NBA 近 7 天快照表、今日來源統計、固定續費總覽、足球即時比分推播 V2 估算區與說明紅字；系統資源只顯示資料庫與檔案儲存，另加「查看 Supabase 真實用量」連結。只有 The Odds 保留手動「確認已續費」（供應商無到期日查詢）。
+5c. 【2026-11-15】後台「AI 分析紀錄」加入 T-2／T-15：`admin-center`（足球 `football_v2_shadow_stage_snapshots`、`football_v2_stage_member_claims`）、`admin-basketball`（`basketball_v2_stage_snapshots`、`basketball_v2_stage_claims`）、`admin-baseball`（`baseball_v2_stage_snapshots`、`baseball_v2_stage_claims`）的 `analysis_history` 回傳每筆 `stage`；`admin.html` 新增「階段」欄與階段篩選，日期改依**開賽日（台灣）**篩選（今日開賽／明日開賽／近 3／近 7 天），摘要顯示階段與來源。足球 T-2／T-15 系統快照只有 xG 與機率，摘要顯示機率並註明推薦於會員領取時產生。三支函式需使用者部署。
 6. 「確認已續費」只是手動追蹤，提示為今天＋一個月，不是付款也不是供應商到期日同步。跨日重按可能算錯追蹤日期；之後可改成明確輸入實際到期日，但需另獲授權。
 7. 檢查各 history API 回傳上限／可見期間，避免首頁已分析只加總被截斷集合；現行程式若缺場次 ID 會顯示失敗，不猜測資料庫 row ID 是 game ID。
 
