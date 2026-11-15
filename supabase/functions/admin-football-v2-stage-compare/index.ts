@@ -94,13 +94,24 @@ function expectedReturn(cells: Array<{h:number;a:number;p:number}>, line: number
 }
 
 // ===== 2026-11-15 研究：市場融合版（只讀、只在後台顯示，不影響正式推薦）=====
-// 從快照當時的主盤口（最多莊家：market_context.total／handicap）去水後的機率，反推「市場隱含」主客預期進球，
-// 再與模型預期進球 50/50 平均（權重事先固定，不依結果調整）。三種進球預估用完全相同的選法比較：
-// 獨贏取最高機率；大小、讓分只用主盤口、選過盤機率較高的一邊；BTTS 機率 ≥58% 才推。
+// 版本 1.1（依 GPT 2026-11-15 審查 R1～R5 修正）：
+// - 從快照當時主盤口（market_context.total／handicap，最多莊家）去水機率反推「市場隱含」主客預期進球。
+//   去水採雙邊倒數賠率比例正規化（假設，非已證明的真實機率）。
+// - 「過盤權重比」= 拆盤後贏注權重 /（贏 + 輸），排除走盤；這是公平賠率的反推量，不是整張注單獲利機率。
+// - 只有大小盤與讓分盤都有效、時間合法、反推有解且最終殘差合格的「場次×階段」才納入比較；
+//   缺一種市場、無解、殘差超標、時間不合法分別計數排除，不混入成功樣本（純市場不再沿用模型補足）。
+// - 融合 = 模型 xG 與市場 xG 各 50%；BTTS 推薦門檻 58%。兩者為固定參數，不依結果調整；
+//   58% 曾參考 11/15 以前資料（PROJECT_NOTES 5n），故 11/16 以前開賽列為「探索期」，11/16 起才算「樣本外」。
+// - 研究獨贏取最高機率，未套正式規則「與熱門相反暫不推薦」，研究命中率不等於會員正式成績。
+// - 結算用賠率 2 只作命中分類（半贏算命中、半輸算未中、走盤不計），不代表真實賠率報酬。
+// - CPU 保護：每次呼叫最多計算 RESEARCH_BATCH_FIXTURES 場（依開賽時間新到舊、同時間依賽事 ID），
+//   以 research_offset 分批，前端合併；回傳賽事 ID 供前端檢查不漏不重。
+const RESEARCH_VERSION = "football-market-blend-research-1.1-20261115";
 const RESEARCH_BLEND_WEIGHT = 0.5;
-// CPU 時間保護：每次最多計算 450 個「場次×階段」（約 150 場，依開賽時間由新到舊）。
-const RESEARCH_MAX_STAGE_ROWS = 450;
-let researchRowsUsed = 0;
+const RESEARCH_BTTS_THRESHOLD = 0.58;
+const RESEARCH_FIT_TOLERANCE = 0.002;          // 反推後兩個市場機率殘差上限（0.2 個百分點，依數值精度事先固定）
+const RESEARCH_BATCH_FIXTURES = 80;
+const RESEARCH_OUT_OF_SAMPLE_FROM = Date.parse("2026-11-16T00:00:00+08:00");
 function legWinShare(cells: Array<{h:number;a:number;p:number}>, line: number, side: "over" | "home") {
   let win = 0, lose = 0;
   for (const c of cells) for (const leg of splitLine(line)) {
@@ -109,65 +120,117 @@ function legWinShare(cells: Array<{h:number;a:number;p:number}>, line: number, s
   }
   return win + lose > 0 ? win / (win + lose) : 0.5;
 }
-function devig(a: unknown, b: unknown): number | null {
-  const x = num(a), y = num(b);
-  if (x === null || y === null || x <= 1 || y <= 1) return null;
-  return (1 / x) / (1 / x + 1 / y);
+function validOdds(x: unknown) { const n = num(x); return n !== null && n > 1 && n <= 100 ? n : null; }
+function quarterStep(x: number) { return Math.abs(x * 4 - Math.round(x * 4)) < 1e-6; }
+function researchMarkets(context: any) {
+  const t = context?.total, h = context?.handicap;
+  const tl = num(t?.line), ov = validOdds(t?.over_odds), un = validOdds(t?.under_odds);
+  const total = tl !== null && quarterStep(tl) && tl >= 0.5 && tl <= 10 && ov !== null && un !== null
+    ? { line: tl, p: (1 / ov) / (1 / ov + 1 / un) } : null;
+  const hl = num(h?.home_line), al = num(h?.away_line), ho = validOdds(h?.home_odds), ao = validOdds(h?.away_odds);
+  const handicap = hl !== null && al !== null && Math.abs(hl + al) < 1e-6 && quarterStep(hl) && Math.abs(hl) <= 10 && ho !== null && ao !== null
+    ? { line: hl, p: (1 / ho) / (1 / ho + 1 / ao) } : null;
+  return { total, handicap };
 }
-// 反推用的小網格（0～10 球）與較少迭代，控制 Edge Function CPU 時間；最終選法仍用完整網格。
+// 反推用 0～12 球網格（控制 CPU）；最後一律用 0～18 完整網格驗證殘差。
 function fitGrid(homeXg: number, awayXg: number) {
-  const hp = Array.from({ length: 11 }, (_, i) => poisson(homeXg, i)), ap = Array.from({ length: 11 }, (_, i) => poisson(awayXg, i));
+  const hp = Array.from({ length: 13 }, (_, i) => poisson(homeXg, i)), ap = Array.from({ length: 13 }, (_, i) => poisson(awayXg, i));
   const mass = hp.reduce((s, p) => s + p, 0) * ap.reduce((s, p) => s + p, 0);
   const cells: Array<{ h: number; a: number; p: number }> = [];
-  for (let h = 0; h <= 10; h++) for (let a = 0; a <= 10; a++) cells.push({ h, a, p: hp[h] * ap[a] / mass });
+  for (let h = 0; h <= 12; h++) for (let a = 0; a <= 12; a++) cells.push({ h, a, p: hp[h] * ap[a] / mass });
   return cells;
 }
-function bisect(f: (x: number) => number, lo: number, hi: number, target: number) {
-  for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (f(mid) < target) lo = mid; else hi = mid; }
+// 單調遞增函數的二分法；目標不在端點值之間時回傳 null（無解），不回傳邊界值。
+function bisect(f: (x: number) => number, lo: number, hi: number, target: number): number | null {
+  const flo = f(lo), fhi = f(hi);
+  if (!(target >= flo - 1e-9 && target <= fhi + 1e-9)) return null;
+  for (let i = 0; i < 32; i++) { const mid = (lo + hi) / 2; if (f(mid) < target) lo = mid; else hi = mid; }
   return (lo + hi) / 2;
 }
-function marketImpliedXg(context: any, modelHome: number, modelAway: number) {
-  const total = context?.total, handicap = context?.handicap;
-  const overP = devig(total?.over_odds, total?.under_odds), homeP = devig(handicap?.home_odds, handicap?.away_odds);
-  const totalLine = num(total?.line), homeLine = num(handicap?.home_line);
-  const useTotal = overP !== null && totalLine !== null, useHandicap = homeP !== null && homeLine !== null;
-  if (!useTotal && !useHandicap) return null;
-  let sum = modelHome + modelAway, share = sum > 0 ? modelHome / sum : 0.5;
-  for (let round = 0; round < 2; round++) {
-    if (useTotal) sum = bisect(x => legWinShare(fitGrid(x * share, x * (1 - share)), totalLine!, "over"), 0.3, 7, overP!);
-    if (useHandicap) share = bisect(x => legWinShare(fitGrid(sum * x, sum * (1 - x)), homeLine!, "home"), 0.05, 0.95, homeP!);
+// 回傳 { ok:true, home, away, residual } 或 { ok:false, reason }。
+function marketImpliedXg(context: any, initHome: number, initAway: number) {
+  const m = researchMarkets(context);
+  if (!m.total || !m.handicap) return { ok: false, reason: !m.total && !m.handicap ? "no_valid_market" : "single_market_only" };
+  let sum = initHome + initAway > 0 ? initHome + initAway : 2.6, share = initHome + initAway > 0 ? initHome / (initHome + initAway) : 0.5;
+  for (let round = 0; round < 10; round++) {
+    const s2 = bisect(x => legWinShare(fitGrid(x * share, x * (1 - share)), m.total!.line, "over"), 0.2, 9, m.total.p);
+    if (s2 === null) return { ok: false, reason: "no_solution_total" };
+    sum = s2;
+    const sh = bisect(x => legWinShare(fitGrid(sum * x, sum * (1 - x)), m.handicap!.line, "home"), 0.02, 0.98, m.handicap.p);
+    if (sh === null) return { ok: false, reason: "no_solution_handicap" };
+    share = sh;
+    const g = fitGrid(sum * share, sum * (1 - share));
+    if (Math.abs(legWinShare(g, m.total.line, "over") - m.total.p) < RESEARCH_FIT_TOLERANCE / 4 &&
+        Math.abs(legWinShare(g, m.handicap.line, "home") - m.handicap.p) < RESEARCH_FIT_TOLERANCE / 4) break;
   }
-  return { home: sum * share, away: sum * (1 - share), used: { total: useTotal, handicap: useHandicap } };
+  const home = sum * share, away = sum * (1 - share), full = scoreGrid(home, away);
+  const residual = Math.max(Math.abs(legWinShare(full, m.total.line, "over") - m.total.p),
+    Math.abs(legWinShare(full, m.handicap.line, "home") - m.handicap.p));
+  if (!(residual <= RESEARCH_FIT_TOLERANCE)) return { ok: false, reason: "fit_residual_exceeded" };
+  return { ok: true, home, away, residual };
 }
 function researchPicks(homeXg: number, awayXg: number, context: any, hs: number, as: number) {
-  const cells = scoreGrid(homeXg, awayXg);
+  const cells = scoreGrid(homeXg, awayXg), m = researchMarkets(context);
   let ph = 0, pd = 0, pa = 0, pb = 0;
   for (const c of cells) { if (c.h > c.a) ph += c.p; else if (c.h === c.a) pd += c.p; else pa += c.p; if (c.h > 0 && c.a > 0) pb += c.p; }
   const winner = [["home", ph], ["draw", pd], ["away", pa]].sort((x: any, y: any) => y[1] - x[1])[0][0];
   const actual = hs > as ? "home" : hs < as ? "away" : "draw";
   const out: any = { home_xg: Number(homeXg.toFixed(3)), away_xg: Number(awayXg.toFixed(3)), moneyline_pick: winner, moneyline_hit: winner === actual };
-  const tl = num(context?.total?.line);
-  if (tl !== null) { const over = legWinShare(cells, tl, "over") >= 0.5; out.total = { line: tl, pick: over ? "over" : "under", ...settlement(hs + as, tl, over ? "over" : "under", 2) }; }
-  const hl = num(context?.handicap?.home_line);
-  if (hl !== null) { const home = legWinShare(cells, hl, "home") >= 0.5; out.handicap = { home_line: hl, pick: home ? "home" : "away", ...settlement(home ? hs - as : as - hs, home ? hl : -hl, home ? "home" : "away", 2) }; }
-  out.btts_pick = Math.max(pb, 1 - pb) >= 0.58 ? (pb >= 0.5 ? "yes" : "no") : null;
+  if (m.total) { const over = legWinShare(cells, m.total.line, "over") >= 0.5; out.total = { line: m.total.line, pick: over ? "over" : "under", ...settlement(hs + as, m.total.line, over ? "over" : "under", 2) }; }
+  if (m.handicap) { const hl = m.handicap.line, home = legWinShare(cells, hl, "home") >= 0.5; out.handicap = { home_line: hl, pick: home ? "home" : "away", ...settlement(home ? hs - as : as - hs, home ? hl : -hl, home ? "home" : "away", 2) }; }
+  out.btts_pick = Math.max(pb, 1 - pb) >= RESEARCH_BTTS_THRESHOLD ? (pb >= 0.5 ? "yes" : "no") : null;
   out.btts_hit = out.btts_pick === null ? null : (out.btts_pick === "yes") === (hs > 0 && as > 0);
   return out;
 }
-function researchMetrics(rows: any[]) {
-  const variants = ["model", "blend", "market"], markets = ["moneyline", "total", "handicap", "btts"];
-  const hitOf = (x: any, m: string) => m === "moneyline" ? x?.moneyline_hit : m === "btts" ? x?.btts_hit : x?.[m]?.hit;
-  const result: any = { weight: RESEARCH_BLEND_WEIGHT, stage_rows: researchRowsUsed, capped: researchRowsUsed >= RESEARCH_MAX_STAGE_ROWS, by_market: {} };
-  for (const m of markets) {
-    result.by_market[m] = {};
-    for (const v of variants) result.by_market[m][v] = Object.fromEntries(STAGES.map(stage => {
-      // 只算三種版本都能計算（有市場盤口）的同一批場次，才公平。
-      const bets = rows.map(r => r.predictions?.[stage]?.research).filter((x: any) => x && x.market)
-        .map((x: any) => ({ hit: hitOf(x[v], m) }));
-      return [stage, summarizeBets(bets)];
-    }));
+function researchTimesValid(snap: any, context: any) {
+  const kick = Date.parse(String(snap?.kickoff_at || "")), cap = Date.parse(String(snap?.captured_at || "")), mcap = Date.parse(String(context?.captured_at || ""));
+  return Number.isFinite(kick) && Number.isFinite(cap) && Number.isFinite(mcap) && cap < kick && mcap <= kick && mcap <= cap + 60000;
+}
+// 一個「場次×階段」的研究結果；只用快照資料選方向，比分只用於結算。
+function researchStage(snap: any, hs: number, as: number) {
+  const context = json(snap.market_context), mh = num(snap.home_xg), ma = num(snap.away_xg);
+  if (mh === null || ma === null || mh < 0 || ma < 0 || mh > 12 || ma > 12) return { ok: false, reason: "invalid_model_xg" };
+  if (!researchTimesValid(snap, context)) return { ok: false, reason: "time_invalid_or_missing" };
+  const implied: any = marketImpliedXg(context, mh, ma);
+  if (!implied.ok) return { ok: false, reason: implied.reason };
+  const w = RESEARCH_BLEND_WEIGHT;
+  return { ok: true, residual: implied.residual,
+    model: researchPicks(mh, ma, context, hs, as),
+    blend: researchPicks(w * mh + (1 - w) * implied.home, w * ma + (1 - w) * implied.away, context, hs, as),
+    market: researchPicks(implied.home, implied.away, context, hs, as) };
+}
+function researchBatch(paired: any[], byFixture: Map<number, Map<string, any>>, offset: number) {
+  const order = paired.map(r => ({ id: Number(r.fixture_id), kick: Date.parse(r.kickoff_at), hs: r.home_score, as: r.away_score }))
+    .sort((a, b) => b.kick - a.kick || a.id - b.id);
+  const slice = order.slice(offset, offset + RESEARCH_BATCH_FIXTURES);
+  const counts: any = {}, exclusions: Record<string, number> = {};
+  const bump = (period: string, market: string, variant: string, stage: string, hit: unknown) => {
+    const x = (((counts[period] ??= {})[market] ??= {})[variant] ??= {})[stage] ??= { candidates: 0, correct: 0, total: 0 };
+    x.candidates++; if (typeof hit === "boolean") { x.total++; if (hit) x.correct++; }
+  };
+  const fixturesWithAnyStage: number[] = [];
+  for (const f of slice) {
+    const period = f.kick >= RESEARCH_OUT_OF_SAMPLE_FROM ? "out_of_sample" : "exploration";
+    let used = false;
+    for (const stage of STAGES) {
+      const snap = byFixture.get(f.id)?.get(stage); if (!snap) continue;
+      const r: any = researchStage(snap, f.hs, f.as);
+      if (!r.ok) { exclusions[r.reason] = (exclusions[r.reason] || 0) + 1; continue; }
+      used = true;
+      for (const v of ["model", "blend", "market"]) {
+        bump(period, "moneyline", v, stage, r[v].moneyline_hit);
+        bump(period, "total", v, stage, r[v].total?.hit);
+        bump(period, "handicap", v, stage, r[v].handicap?.hit);
+        bump(period, "btts", v, stage, r[v].btts_hit);
+      }
+    }
+    if (used) fixturesWithAnyStage.push(f.id);
   }
-  return result;
+  return { version: RESEARCH_VERSION, weight: RESEARCH_BLEND_WEIGHT, btts_threshold: RESEARCH_BTTS_THRESHOLD,
+    fit_tolerance: RESEARCH_FIT_TOLERANCE, out_of_sample_from: new Date(RESEARCH_OUT_OF_SAMPLE_FROM).toISOString(),
+    offset, batch_size: RESEARCH_BATCH_FIXTURES, total_fixtures: order.length,
+    next_offset: offset + RESEARCH_BATCH_FIXTURES < order.length ? offset + RESEARCH_BATCH_FIXTURES : null,
+    batch_fixture_ids: slice.map(f => f.id), used_fixture_ids: fixturesWithAnyStage, counts, exclusions };
 }
 function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<number, any>) {
   const rows: any[] = [];
@@ -234,18 +297,7 @@ function pairedData(byFixture: Map<number, Map<string, any>>, results: Map<numbe
             total_settlements: totalSettlements, handicap_settlements: handicapSettlements }
         };
       }
-      const researchContext = json(snap.market_context);
-      const implied = researchRowsUsed < RESEARCH_MAX_STAGE_ROWS ? marketImpliedXg(researchContext, homeXg, awayXg) : null;
-      if (implied) researchRowsUsed++;
-      const research = implied ? {
-        model: researchPicks(homeXg, awayXg, researchContext, hs, as),
-        blend: researchPicks(RESEARCH_BLEND_WEIGHT * homeXg + (1 - RESEARCH_BLEND_WEIGHT) * implied.home,
-          RESEARCH_BLEND_WEIGHT * awayXg + (1 - RESEARCH_BLEND_WEIGHT) * implied.away, researchContext, hs, as),
-        market: researchPicks(implied.home, implied.away, researchContext, hs, as),
-        market_lines_used: implied.used,
-      } : null;
       predictions[stage] = {
-        research,
         moneyline_pick: winner, moneyline_hit: winner === null ? null : winner === actualWinner,
         btts_pick: bttsProb === null ? null : bttsProb >= 0.5 ? "yes" : "no",
         btts_hit: bttsProb === null ? null : (bttsProb >= 0.5) === (hs > 0 && as > 0),
@@ -371,8 +423,12 @@ Deno.serve(async req => {
       if (meta?.capture_mode === "late_pre_match_recovery" || meta?.eligible_for_stage_metrics === false) continue;
       const m = byFixture.get(id) || new Map<string, any>(); if (!m.has(stage)) m.set(stage, r); byFixture.set(id, m);
     }
-    researchRowsUsed = 0;
     const paired = pairedData(byFixture, results);
+    // 研究分批：action=research 只回傳研究結果（前端依 next_offset 逐批讀取後合併）。
+    if (body?.action === "research") {
+      const researchOffsetOnly = Math.max(0, Math.floor(Number(body?.research_offset) || 0));
+      return reply(200, { success: true, research_only: true, window_days: days, research_metrics: researchBatch(paired, byFixture, researchOffsetOnly), no_writes: true, football_api_calls: 0 });
+    }
     const metrics: Record<string, any> = {
       moneyline: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.moneyline_hit)])),
       btts: Object.fromEntries(STAGES.map(s => [s, accuracy(paired, s, p => p.btts_hit)]))
@@ -380,7 +436,8 @@ Deno.serve(async req => {
     metrics.totals_market_line = marketMetrics(paired, "total");
     metrics.handicap_market_line = marketMetrics(paired, "handicap");
     const llm_metrics = llmMetrics(paired);
-    const research_metrics = researchMetrics(paired);
+    const researchOffset = Math.max(0, Math.floor(Number(body?.research_offset) || 0));
+    const research_metrics = researchBatch(paired, byFixture, researchOffset);
     return reply(200, {
       success: true, research_only: true, model_version: VERSION, window_days: days,
       verified_result_fixtures: resultRows.filter(x => x.excluded_from_public !== true).length,

@@ -159,7 +159,7 @@ async function loadFootballV2StageCompare(force=false){
   if(!canAccessAdminPage("footballV2ComparePage"))throw Error("沒有公開戰績查閱權限");
   const res=await fetch(FOOTBALL_V2_STAGE_API,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify({action:"compare",days}),cache:"no-store",signal:AbortSignal.timeout(70000)});
   const packet=await res.json().catch(()=>({}));if(!res.ok||packet?.success!==true)throw Error(packet?.error||"HTTP "+res.status);
-  footballV2StageData=packet;renderFootballV2StageCompare();
+  footballV2StageData=packet;renderFootballV2StageCompare();loadFootballV2Research(packet.research_metrics);
   if(status)status.textContent="更新完成｜三階段配對賽事 "+(packet.paired_fixture_count||0)+" 場｜模型 "+(packet.model_version||"");
  }catch(e){if(status)status.textContent="無法載入："+(e?.message||String(e));if(!footballV2StageData){const el=document.getElementById("footballV2StageMetrics");if(el)el.innerHTML='<div class="fvc-empty">'+v2esc(e?.message||"尚未有比較資料")+'</div>';}}
  finally{footballV2StageLoading=false;}
@@ -180,14 +180,9 @@ function renderFootballV2StageCompare(){
  });
  const m=document.getElementById("footballV2StageMetrics");
  if(m)m.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>比較項目</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div><p class="page-desc" style="margin-top:10px">看法：百分比是命中率；獨贏、BTTS 括號內是「命中場數／有效場數」，大小球、讓分會依每場當時實際開出的盤線結算，模型每場各選一個結果；不固定用大 2.5、大 3 或大 4，不同賽事的盤線可以不同。缺少盤口不列入統計；走盤不算命中或未中，半贏算命中、半輸算未中。'+v2esc(p.note||"")+'</p>';
- // 2026-11-15 研究：市場融合版（同一套選法，只換進球預估）
- const rm=p.research_metrics;
- if(m&&rm&&rm.by_market){
-  const vLabel={model:"模型（現行進球預估）",blend:"融合（模型＋市場各半）",market:"純市場（盤口反推）"};
-  const mLabel={moneyline:"獨贏",total:"大小球（主盤）",handicap:"讓分（主盤）",btts:"BTTS（機率≥58%才推）"};
-  const rrows=Object.keys(mLabel).flatMap(mk=>["model","blend","market"].map((v,i)=>'<tr><th>'+(i===0?mLabel[mk]+'<br>':'')+'<small>'+vLabel[v]+'</small></th>'+stages.map(st=>'<td>'+v2esc(v2StageRate(rm.by_market?.[mk]?.[v]?.[st]))+'</td>').join("")+'</tr>'));
-  m.insertAdjacentHTML("beforeend",'<div style="margin-top:18px"><div class="panel-title" style="font-size:15px">研究：市場融合版（只在後台，不影響正式推薦）</div><p class="page-desc" style="margin:6px 0 10px">用快照當時的主盤口反推「市場預期進球」，再和模型預期進球各取一半。三種版本用完全相同的選法比較，只差在進球預估；只計入有市場盤口的同一批場次'+(rm.capped?'（為控制計算量，只算最近約 150 場）':'')+'。半贏算命中、半輸算未中，走盤不計。</p><div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>項目／版本</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+rrows.join("")+'</tbody></table></div></div>');
- }
+ // 2026-11-15 研究：市場融合版 v1.1（依 GPT 審查修正）。結果分批讀取後在前端合併，見 loadFootballV2Research。
+ if(m)m.insertAdjacentHTML("beforeend",'<div id="footballV2ResearchMount" style="margin-top:18px"></div>');
+ renderFootballV2Research();
  const c=document.getElementById("footballV2StageCoverage");
  if(c)c.innerHTML='<details><summary style="cursor:pointer">展開快照與資料狀況</summary><div style="overflow-x:auto;margin-top:10px"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>階段</th><th>準時快照</th><th>晚到補抓<br><small>不計入比對</small></th><th>排程檢查</th><th>平均擷取時間</th><th>配對且已驗證</th></tr></thead><tbody>'+
   stages.map(s=>{const x=p.stages?.[s]||{},lead=x.average_minutes_before_kickoff==null?"—":Number(x.average_minutes_before_kickoff).toFixed(1)+" 分鐘前",statusLabel={ready:"資料就緒",already_ready:"已完成",failed:"失敗",pending:"等待中",skipped:"略過"},states=Object.entries(x.audit_statuses||{}).map(([k,v])=>(statusLabel[k]||k)+" "+v+" 筆").join("、")||"—";return '<tr><th>'+v2StageLabels[s]+'</th><td>'+Number(x.snapshots||0)+'</td><td>'+Number(x.late_recovery_snapshots||0)+'</td><td>'+Number(x.audit_rows||0)+'<br><small>'+v2esc(states)+'</small></td><td>'+v2esc(lead)+'</td><td>'+Number(x.paired_verified||0)+'</td></tr>';}).join("")+
@@ -220,4 +215,52 @@ function renderFootballV2StageCompare(){
  host.innerHTML='<div style="overflow-x:auto"><table class="data-table" style="min-width:1020px;width:100%"><thead><tr><th>賽事 ID</th><th>實際比分</th>'+stages.map(s=>'<th>'+v2StageLabels[s]+'</th>').join("")+'</tr></thead><tbody>'+
   list.slice(0,150).map(r=>'<tr><td>'+v2esc(r.fixture_id)+'</td><td>'+v2esc(r.home_score+" : "+r.away_score)+'</td>'+stages.map(s=>'<td>'+stageSummary(r.predictions?.[s]||{})+'</td>').join("")+'</tr>').join("")+
   '</tbody></table></div><p class="page-desc" style="margin-top:8px">最多列出 150 場。每階段使用該場當時保存的市場線；缺盤會明確顯示，走盤不列入命中率。</p>';
+}
+
+// ===== 研究：市場融合版（分批合併）=====
+let footballV2Research=null,footballV2ResearchGen=0;
+function v2MergeResearch(acc,batch){
+ const seen=acc.seen;
+ for(const id of batch.batch_fixture_ids||[]){if(seen.has(id))acc.duplicate=true;seen.add(id);}
+ for(const id of batch.used_fixture_ids||[])acc.used.add(id);
+ for(const [k,v] of Object.entries(batch.exclusions||{}))acc.exclusions[k]=(acc.exclusions[k]||0)+Number(v||0);
+ for(const [period,mk] of Object.entries(batch.counts||{}))for(const [market,vs] of Object.entries(mk))for(const [variant,sts] of Object.entries(vs))for(const [stage,x] of Object.entries(sts)){
+  const t=((((acc.counts[period]??={})[market]??={})[variant]??={})[stage]??={candidates:0,correct:0,total:0});
+  t.candidates+=x.candidates||0;t.correct+=x.correct||0;t.total+=x.total||0;}
+ acc.meta=batch;acc.total_fixtures=batch.total_fixtures;
+}
+async function loadFootballV2Research(first){
+ const gen=++footballV2ResearchGen;
+ const acc={seen:new Set(),used:new Set(),exclusions:{},counts:{},duplicate:false,complete:false,batches:0};
+ footballV2Research=acc;
+ try{
+  let batch=first,days=Number(document.getElementById("footballV2StageDays")?.value??90);
+  while(batch&&acc.batches<30&&gen===footballV2ResearchGen){
+   v2MergeResearch(acc,batch);acc.batches++;if(gen===footballV2ResearchGen)renderFootballV2Research();
+   if(batch.next_offset==null){acc.complete=true;break;}
+   const res=await fetch(FOOTBALL_V2_STAGE_API,{method:"POST",headers:adminAuthHeaders(),body:JSON.stringify({action:"research",days,research_offset:batch.next_offset}),cache:"no-store",signal:AbortSignal.timeout(70000)});
+   const packet=await res.json().catch(()=>({}));if(!res.ok||packet?.success!==true)throw Error(packet?.error||"HTTP "+res.status);
+   batch=packet.research_metrics;
+  }
+ }catch(e){acc.error=e?.message||String(e);}
+ finally{if(gen===footballV2ResearchGen)renderFootballV2Research();}
+}
+function renderFootballV2Research(){
+ const host=document.getElementById("footballV2ResearchMount"),r=footballV2Research;if(!host)return;
+ if(!r||!r.meta){host.innerHTML='<div class="page-desc">研究資料讀取中…</div>';return;}
+ const stages=["t10","t2","t15"],meta=r.meta;
+ const vLabel={model:"模型（現行進球預估）",blend:"融合（模型＋市場各半）",market:"純市場（兩種盤口反推）"};
+ const mLabel={moneyline:"獨贏（最高機率）",total:"大小球（主盤）",handicap:"讓分（主盤）",btts:"BTTS（機率≥58%才推）"};
+ const cell=(x,mk)=>{if(!x||!x.total)return "—";const rate=(x.correct/x.total*100).toFixed(1)+"%（"+x.correct+"／"+x.total+"）";return mk==="btts"?rate+"<br><small>推薦 "+x.total+"／候選 "+x.candidates+"</small>":rate;};
+ const table=period=>{const c=r.counts?.[period];if(!c)return '<p class="page-desc">此期間尚無可比較的場次。</p>';
+  return '<div style="overflow-x:auto"><table class="data-table" style="min-width:760px;width:100%"><thead><tr><th>項目／版本</th><th>T-10 小時</th><th>T-2 小時</th><th>T-15 分鐘</th></tr></thead><tbody>'+
+  Object.keys(mLabel).flatMap(mk=>["model","blend","market"].map((v,i)=>'<tr><th>'+(i===0?mLabel[mk]+'<br>':'')+'<small>'+vLabel[v]+'</small></th>'+stages.map(st=>'<td>'+cell(c?.[mk]?.[v]?.[st],mk)+'</td>').join("")+'</tr>')).join("")+'</tbody></table></div>';};
+ const reasonLabel={no_valid_market:"沒有有效盤口",single_market_only:"只有大小或讓分其中一種",no_solution_total:"大小盤反推無解",no_solution_handicap:"讓分盤反推無解",fit_residual_exceeded:"反推殘差超標",time_invalid_or_missing:"擷取時間不合法或缺失",invalid_model_xg:"模型預期進球不合法"};
+ const ex=Object.entries(r.exclusions).map(([k,v])=>(reasonLabel[k]||k)+" "+v).join("、")||"無";
+ const status=r.error?"讀取中斷："+v2esc(r.error):r.complete?"已完成":"分批讀取中…（第 "+r.batches+" 批）";
+ host.innerHTML='<div class="panel-title" style="font-size:15px">研究：市場融合版（只在後台，不影響正式推薦）</div>'+
+  '<p class="page-desc" style="margin:6px 0 10px">版本 '+v2esc(meta.version)+'｜'+status+'｜三階段配對賽事 '+(r.total_fixtures||0)+' 場，納入比較 '+r.used.size+' 場（不同賽事）'+(r.duplicate?'｜⚠ 分批出現重複':'')+'<br>'+
+  '用快照當時「大小＋讓分」兩種主盤口反推市場預期進球，與模型各取一半（權重與 58% 門檻固定，不依結果調整）。三版本選法相同、只差預期進球；只計入兩種盤口都有效、時間合法、反推殘差 ≤ '+(Number(meta.fit_tolerance)*100).toFixed(1)+' 個百分點的場次×階段。研究獨贏未套正式「與熱門相反不推薦」規則；以賠率 2 只作命中分類，不代表報酬。同場三階段相關，「約 200 場」以不同賽事計。<br>排除：'+ex+'</p>'+
+  '<div class="panel-title" style="font-size:14px;margin-top:8px">樣本外（11/16 起開賽，未參與參數選擇）</div>'+table("out_of_sample")+
+  '<div class="panel-title" style="font-size:14px;margin-top:14px">探索期（11/15 以前開賽，曾用於選門檻，只供參考）</div>'+table("exploration");
 }
