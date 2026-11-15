@@ -49,4 +49,4 @@
 
 - 研究方法未變，版本維持 `football-market-blend-research-1.2-20261115`；指紋內容增加快照 kickoff_at（指紋值會與修正前不同，部署後重新評估即可，不影響已作廢機制）。
 - 正式推薦、扣點、會員結果、歷史公開戰績：未變更。
-- 部署：GitHub 已修改；`admin-football-v2-stage-compare`（495 行）待使用者部署確認。
+- 部署：`admin-football-v2-stage-compare`（495 行）使用者已部署（2026-11-15 14:15 確認）。GPT 最後確認待其用量恢復後進行。
