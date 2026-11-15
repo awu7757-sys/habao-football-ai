@@ -1058,10 +1058,6 @@ tr:last-child td{border-bottom:0}
         <span class="nav-icon">AI</span> AI 分析紀錄
       </button>
 
-      <button class="nav-btn" data-page="jobsPage" onclick="switchPage('jobsPage',this)">
-        <span class="nav-icon">J</span> 分析任務
-      </button>
-
       <button class="nav-btn" data-page="fixturesPage" onclick="switchPage('fixturesPage',this)">
         <span class="nav-icon"><svg class="sport-icon sport-icon--small" aria-hidden="true"><use href="#habao-sport-football"></use></svg></span> 賽事管理
       </button>
@@ -1164,12 +1160,6 @@ tr:last-child td{border-bottom:0}
             <div class="stat-label">今日 / 明日賽事</div>
             <div id="dashFixtureCount" class="stat-value sport-fixture-summary"><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-football"></use></svg><span>0/0</span></span><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-basketball"></use></svg><span>0/0</span></span><span class="sport-fixture-count"><svg class="sport-icon" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg><span>0/0</span></span></div>
             <div class="stat-note">足球、NBA、MLB 賽事快取</div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">分析任務進行中</div>
-            <div id="dashRunningJobs" class="stat-value">0</div>
-            <div class="stat-note">排隊中＋執行中</div>
           </div>
 
           <div class="stat-card gold">
@@ -1648,76 +1638,6 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
         </div>
       </section>
 
-      <!-- JOBS -->
-      <section id="jobsPage" class="page">
-        <div class="page-head">
-          <div>
-            <div class="page-kicker">ANALYSIS QUEUE</div>
-            <div class="page-title">分析任務</div>
-            <div class="page-desc">最多顯示近 7 天背景分析工作，可選擇今日／近 3 天／近 7 天。</div>
-          </div>
-          <button class="ghost-btn" onclick="refreshAdminSection(this,'jobs')">↻ 更新</button>
-        </div>
-
-        <div class="stats-grid" style="margin-bottom:15px">
-          <div class="stat-card">
-            <div class="stat-label">排隊中</div>
-            <div id="jobQueuedCount" class="stat-value">0</div>
-          </div>
-          <div class="stat-card blue">
-            <div class="stat-label">執行中</div>
-            <div id="jobProcessingCount" class="stat-value">0</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">已完成</div>
-            <div id="jobCompletedCount" class="stat-value green-text">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">失敗 / 部分失敗</div>
-            <div id="jobFailedCount" class="stat-value">0</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="toolbar">
-            <div class="filters">
-              <input id="jobSearch" class="input search" placeholder="搜尋會員或任務 ID..." oninput="renderJobs()">
-              <select id="jobStatusFilter" class="input" onchange="renderJobs()">
-                <option value="all">全部狀態</option>
-                <option value="queued">排隊中</option>
-                <option value="processing">執行中</option>
-                <option value="completed">已完成</option>
-                <option value="partial">部分失敗</option>
-                <option value="failed">失敗</option>
-              </select>
-              <select id="jobDaysFilter" class="input" onchange="renderJobs()">
-                <option value="1" selected>今日</option>
-                <option value="3">近 3 天</option>
-                <option value="7">近 7 天</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="table-shell">
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>建立時間</th>
-                    <th>會員</th>
-                    <th>賽事數</th>
-                    <th>進度</th>
-                    <th>狀態</th>
-                    <th>失敗原因</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody id="jobsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- FIXTURES -->
       <section id="fixturesPage" class="page">
@@ -2092,16 +2012,8 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
             <div id="healthFixtureTime" class="stat-value" style="font-size:16px">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">最後分析任務</div>
-            <div id="healthJobStatus" class="stat-value" style="font-size:18px">—</div>
-          </div>
-          <div class="stat-card">
             <div class="stat-label">分析鎖</div>
             <div id="healthLockCount" class="stat-value">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">近期失敗任務</div>
-            <div id="healthFailedCount" class="stat-value">0</div>
           </div>
         </div>
 
@@ -2121,26 +2033,6 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
         <div class="panel">
           <div class="panel-head"><div><div class="panel-title">分析鎖列表</div><div class="panel-desc">只允許清除已過期或疑似殘留的分析鎖。</div></div><button class="ghost-btn" onclick="clearExpiredLocks(this)">清除過期分析鎖</button></div>
           <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>賽事 ID</th><th>建立時間</th><th>最後更新</th><th>expires_at</th><th>狀態</th></tr></thead><tbody id="healthLocksBody"></tbody></table></div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">近期失敗 / 部分失敗任務</div>
-          <div class="table-shell" style="margin-top:12px">
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>時間</th>
-                    <th>任務 ID</th>
-                    <th>會員</th>
-                    <th>狀態</th>
-                    <th>錯誤</th>
-                    <th>詳細</th>
-                  </tr>
-                </thead>
-                <tbody id="healthFailedJobsBody"></tbody>
-              </table>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -2396,7 +2288,6 @@ let nbaAdminOverview = {};
 let mlbTodayMemberFirstClaims = 0;
 let mlbAdminLogsAvailable = false;
 let analysisHistoryRecords = [];
-let analysisJobs = [];
 let fixtureCacheRows = [];
 let nbaFixtureRows = [];
 let nbaFixtureCacheRows = [];
@@ -2449,7 +2340,6 @@ const PAGE_NAMES = {
   pushPage: "推播通知",
   apiPage: "API 配額",
   analysisLogPage: "AI 分析紀錄",
-  jobsPage: "分析任務",
   fixturesPage: "賽事管理",
   performanceAdminPage: "公開 AI 戰績",
   footballV2ComparePage: "足球 V2 三階段比對",
@@ -2467,7 +2357,6 @@ const PAGE_PERMISSIONS = {
   pushPage: "push",
   apiPage: "api",
   analysisLogPage: "analysis_logs",
-  jobsPage: "analysis_jobs",
   fixturesPage: "fixtures",
   performanceAdminPage: "performance",
   footballV2ComparePage: "performance",
@@ -2485,7 +2374,6 @@ const ADMIN_PERMISSION_LABELS = {
   push: "推播通知",
   api: "API 配額",
   analysis_logs: "AI 分析紀錄",
-  analysis_jobs: "分析任務",
   fixtures: "賽事管理",
   performance: "公開 AI 戰績",
   partners: "合作平台",
@@ -2727,7 +2615,6 @@ async function logoutAdmin() {
   adminOverview = {};
   nbaAdminOverview = {};
   analysisHistoryRecords = [];
-  analysisJobs = [];
   fixtureCacheRows = [];
   nbaFixtureRows = [];
   nbaFixtureCacheRows = [];
@@ -4321,11 +4208,6 @@ async function loadAdminOverview() {
     );
 
     setText(
-      "dashRunningJobs",
-      adminOverview.running_jobs || 0
-    );
-
-    setText(
       "dashPendingSnapshots",
       `${Number(adminOverview.normal_pending_snapshots||0)} / 逾期 ${Number(adminOverview.overdue_pending_snapshots||0)}`
     );
@@ -4353,7 +4235,6 @@ function ensurePageData(pageId) {
   if (pageId === "membersPage") loadMembers();
   else if (pageId === "announcementPage") loadAnnouncementSettings();
   else if (pageId === "analysisLogPage") loadAnalysisHistory(false);
-  else if (pageId === "jobsPage") loadJobs(false);
   else if (pageId === "fixturesPage") loadFixtures(false);
   else if (pageId === "apiPage") {}
   else if (pageId === "performanceAdminPage") loadPerformanceAdmin(false);
@@ -4369,7 +4250,6 @@ function ensurePageData(pageId) {
 function refreshPageData(pageId) {
   if (!canAccessAdminPage(pageId)) return;
   if (pageId === "analysisLogPage") return loadAnalysisHistory(true);
-  if (pageId === "jobsPage") return loadJobs(true);
   if (pageId === "fixturesPage") return loadFixtures(true);
   if (pageId === "performanceAdminPage") return loadPerformanceAdmin(true);
   if (pageId === "footballV2ComparePage") return loadFootballV2StageCompare(true);
@@ -4615,92 +4495,7 @@ function renderAnalysisHistory() {
   setText("analysisPayloadCount",payloadCount);
 }
 
-/* ---------- Jobs ---------- */
-
-async function loadJobs(force = false) {
-  try {
-    const data =
-      await adminCenterRequest({
-        action: "jobs",
-        limit: 400
-      });
-
-    analysisJobs =
-      data.jobs || [];
-
-    renderJobs();
-
-  } catch (error) {
-    console.error(
-      "JOBS ERROR:",
-      error
-    );
-
-    if (force) {
-      alert(
-        "分析任務資料讀取失敗：" +
-        (error?.message || "")
-      );
-    }
-  }
-}
-
-function renderJobs() {
-  const body=document.getElementById("jobsBody"); if(!body)return;
-  const search=String(document.getElementById("jobSearch")?.value||"").trim().toLowerCase();
-  const status=document.getElementById("jobStatusFilter")?.value||"all";
-  const days=Number(document.getElementById("jobDaysFilter")?.value||1);
-  const filtered=analysisJobs.filter(job=>{
-    const h=`${job?.id||""} ${job?.account||""}`.toLowerCase();
-    return isWithinAdminDays(job?.created_at,days)&&(!search||h.includes(search))&&(status==="all"||String(job?.status)===status);
-  });
-
-  body.innerHTML=filtered.length?filtered.map(job=>{
-    const completed=Number(job?.completed_count||0),failed=Number(job?.failed_count||0),total=Number(job?.total_count||job?.fixture_ids?.length||0);
-    const retryable=["failed","partial"].includes(String(job?.status));
-    const reason=job?.error_message||job?.failures?.[0]?.message||"—";
-    const progress=total?`${completed+failed}/${total}`:"—";
-    const stuck=job?.suspected_stuck===true;
-    return `<tr><td>${formatDate(job?.created_at)}</td><td class="account-name">${escapeHtml(job?.account||"—")}</td><td>${total}</td><td>${progress}</td><td>${statusBadge(job?.status)}${stuck?'<div class="subline stale">疑似卡住</div>':""}</td><td>${escapeHtml(reason)}</td><td><div class="row-actions"><button class="action-btn" onclick='showJsonModal("分析任務詳細", analysisJobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>詳細</button>${retryable?`<button class="action-btn gold" onclick='retryAnalysisJob("${String(job?.id)}")'>重新執行</button>`:""}</div></td></tr>`;
-  }).join(""):'<tr><td colspan="7" class="empty">此時間範圍目前沒有分析任務</td></tr>';
-
-  setText("jobQueuedCount",filtered.filter(j=>j?.status==="queued").length);
-  setText("jobProcessingCount",filtered.filter(j=>j?.status==="processing").length);
-  setText("jobCompletedCount",filtered.filter(j=>j?.status==="completed").length);
-  setText("jobFailedCount",filtered.filter(j=>["failed","partial"].includes(j?.status)).length);
-}
-
-async function retryAnalysisJob(jobId) {
-  if (
-    !confirm(
-      "確定重新執行此失敗分析任務？"
-    )
-  ) {
-    return;
-  }
-
-  try {
-    await adminCenterRequest({
-      action: "retry_job",
-      job_id: jobId
-    });
-
-    alert(
-      "已建立重新執行任務"
-    );
-
-    setTimeout(
-      () => loadJobs(true),
-      800
-    );
-
-  } catch (error) {
-    alert(
-      "重試失敗：" +
-      (error?.message || "")
-    );
-  }
-}
+/* 分析任務頁（analysis_jobs，舊版足球批次排隊）2026-11-15 移除：三階段改版後前台不再寫入。 */
 
 
 /* MLB + NBA shared Chinese display layer: presentation only, no writes. */
@@ -6805,26 +6600,20 @@ async function loadHealth(force = false) {
 
 function renderHealth() {
   if(!healthPayload)return;
-  const latestFixture=healthPayload.latest_fixture, latestJob=healthPayload.latest_job, locks=healthPayload.processing_locks||[], failed=healthPayload.failed_jobs||[];
+  const latestFixture=healthPayload.latest_fixture, locks=healthPayload.processing_locks||[];
   setText("healthFixtureTime",latestFixture?.fetched_at?formatDate(latestFixture.fetched_at):"—");
-  setText("healthJobStatus",statusLabel(latestJob?.status||"—"));
   setText("healthLockCount",locks.length);
-  setText("healthFailedCount",failed.length);
   const services=document.getElementById("healthServiceList");
   if(services) services.innerHTML=`
     <div class="mini-item"><span class="mini-key">賽事快取資料</span><span class="mini-val ${latestFixture?"health-ok":"health-warn"}">${latestFixture?"正常":"無資料"}</span></div>
-    <div class="mini-item"><span class="mini-key">分析任務</span><span class="mini-val">${escapeHtml(statusLabel(latestJob?.status||"無紀錄"))}</span></div>
     <div class="mini-item"><span class="mini-key">公開戰績</span><span class="mini-val">已驗證 ${Number(healthPayload.verified_snapshots||0)}｜正常待驗證 ${Math.max(0,Number(healthPayload.pending_snapshots||0)-Number(healthPayload.overdue_pending_snapshots||0))}｜逾期 ${Number(healthPayload.overdue_pending_snapshots||0)}</span></div>
     <div class="mini-item"><span class="mini-key">防重複分析鎖</span><span class="mini-val ${locks.some(x=>x?.is_expired)?"health-warn":"health-ok"}">正常 ${locks.filter(x=>!x?.is_expired).length}｜過期 ${locks.filter(x=>x?.is_expired).length}</span></div>`;
   const debug=document.getElementById("healthDebugInfo");
-  if(debug) debug.innerHTML=`近期失敗 / 部分失敗任務：<strong>${failed.length}</strong> 筆。<br>錯誤以中文摘要顯示，不另建立大型 Log 系統。`;
+  if(debug) debug.innerHTML=`錯誤以中文摘要顯示，不另建立大型 Log 系統。`;
   const lockBody=document.getElementById("healthLocksBody");
   if(lockBody) lockBody.innerHTML=locks.map(row=>`<tr><td class="mono">${escapeHtml(row?.fixture_id??"—")}</td><td>${formatDate(row?.created_at)}</td><td>${formatDate(row?.updated_at)}</td><td>${formatDate(row?.expires_at)}</td><td>${row?.is_expired?'<span class="status off">疑似殘留 / 過期</span>':'<span class="status active">正常</span>'}</td></tr>`).join("");
-  const body=document.getElementById("healthFailedJobsBody");
-  if(body) body.innerHTML=failed.map(job=>`<tr><td>${formatDate(job?.created_at)}</td><td class="mono">${escapeHtml(job?.id||"—")}</td><td>${escapeHtml(job?.account||"—")}</td><td>${statusBadge(job?.status)}</td><td>${escapeHtml(classifyJobError(job))}</td><td><button class="action-btn" onclick='showJsonModal("失敗任務", healthPayload.failed_jobs.find(x=>String(x.id)==="${String(job?.id)}")||{})'>查看</button></td></tr>`).join("");
 }
 function statusLabel(value){const key=String(value||"").toLowerCase();const m={queued:"排隊中",processing:"執行中",completed:"已完成",failed:"失敗",partial:"部分失敗",pending:"待驗證",verified:"已驗證",ft:"已完賽",aet:"延長賽完賽",pen:"點球完賽"};return m[key]||String(value||"—");}
-function classifyJobError(job){const text=String(job?.error_message||job?.failures?.[0]?.message||"").toLowerCase();if(!text)return "其他錯誤";if(text.includes("credit")||text.includes("次數")||text.includes("積分"))return "會員分析次數不足";if(text.includes("network")||text.includes("fetch")||text.includes("api")||text.includes("timeout"))return "API / 網路錯誤";if(text.includes("boot")||text.includes("config")||text.includes("啟動"))return "系統啟動失敗";return "其他錯誤";}
 
 async function refreshPartnerButton(button){
   const original=button?.textContent||"↻ 更新";
@@ -6837,7 +6626,7 @@ async function refreshAdminSection(button, section) {
   const original=button?.textContent||"↻ 更新";
   if(button){button.disabled=true;button.textContent="更新中…";}
   try{
-    const map={analysis:loadAnalysisHistory,jobs:loadJobs,fixtures:loadFixtures,performance:loadPerformanceAdmin,api:loadApiStats,health:loadHealth};
+    const map={analysis:loadAnalysisHistory,fixtures:loadFixtures,performance:loadPerformanceAdmin,api:loadApiStats,health:loadHealth};
     await map[section]?.(false);
     if (hasAdminPermission("dashboard")) await loadAdminOverview();
     if(button) button.textContent="已更新 ✓";
