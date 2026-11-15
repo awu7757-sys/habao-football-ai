@@ -6697,11 +6697,15 @@ function analysisSummaryHtml(item){
     '</div>';
 }
 function showAnalysisSummaryById(id){const item=analysisHistoryRecords.find(x=>String(x.admin_key||x.id)===String(id)); setText("jsonModalTitle","分析摘要"); const pre=document.getElementById("jsonModalContent"); if(pre){pre.style.whiteSpace="normal";pre.innerHTML=analysisSummaryHtml(item||{});} document.getElementById("jsonModal")?.classList.remove("hidden");}
-function findOfficialRecordForPerformance(records,sport,fixtureId){
+// 2026-11-15：AI 分析紀錄加入 T-2／T-15 後，同一場會有多筆系統快照；
+// 公開戰績的摘要必須取「公開戰績實際採用的階段」（預設 T-10），不能取到最新的 T-15。
+function findOfficialRecordForPerformance(records,sport,fixtureId,stage="t10"){
+  const wanted=["t2","t15"].includes(String(stage))?String(stage):"t10";
   const matched=(Array.isArray(records)?records:[]).filter(item=>
     String(item?.sport||sport)===String(sport)&&
     String(item?.fixture_id??item?.game_id??"")===String(fixtureId)&&
-    item?.result_data!=null
+    item?.result_data!=null&&
+    String(item?.stage||"t10")===wanted
   );
   const priority=item=>(
     String(item?.record_source||"").toLowerCase()==="system_auto"||
@@ -6721,8 +6725,9 @@ async function showPerformanceAnalysisSummary(sport,fixtureId){
   const pre=document.getElementById("jsonModalContent");
   if(pre){pre.style.whiteSpace="normal";pre.textContent="正在讀取正式分析紀錄…";}
   document.getElementById("jsonModal")?.classList.remove("hidden");
-  const cacheKey=sport+":"+id;
-  let record=findOfficialRecordForPerformance(analysisHistoryRecords,sport,id)
+  const publicStage=String(row?.public_stage||"t10");
+  const cacheKey=sport+":"+id+":"+publicStage;
+  let record=findOfficialRecordForPerformance(analysisHistoryRecords,sport,id,publicStage)
     ||performanceSummaryCache.get(cacheKey)||null;
   if(!record){
     try{
@@ -6735,7 +6740,7 @@ async function showPerformanceAnalysisSummary(sport,fixtureId){
         response=await adminCenterRequest({action:"analysis_history",limit:400});
       }
       const records=(response?.records||[]).map(item=>({...item,sport}));
-      record=findOfficialRecordForPerformance(records,sport,id);
+      record=findOfficialRecordForPerformance(records,sport,id,publicStage);
       if(record)performanceSummaryCache.set(cacheKey,record);
     }catch(error){
       console.warn("PUBLIC PERFORMANCE SUMMARY HISTORY UNAVAILABLE",sport,id,error);
