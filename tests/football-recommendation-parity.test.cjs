@@ -93,3 +93,11 @@ for (let i = 0; i < N; i++) {
   passed++;
 }
 console.log(`PASS ${passed} 筆合成快照：會員推薦與公開戰績推薦一致`);
+
+// ---- 後台：admin-center 的逐字複本（2026-11-15）----
+// 後台 AI 分析紀錄用同一份 toAnalysis 顯示 T-2／T-15 系統快照推薦，必須和會員端一字不差。
+const adminSrc = fs.readFileSync(path.join(root, 'supabase/functions/admin-center/index.ts'), 'utf8');
+const adminBlock = between(adminSrc, 'const STAGE_MODEL_VERSION', '// ===== END COPY: football-v2-stage-member toAnalysis', 'admin-center copy');
+const adminCode = adminBlock.slice(adminBlock.indexOf('function scoreGrid(')).replace(/\bSTAGE_MODEL_VERSION\b/g, 'VERSION').trim();
+assert.equal(adminCode, memberCode.trim(), 'admin-center 的 toAnalysis 複本與 football-v2-stage-member 不一致，請同步');
+console.log('PASS admin-center toAnalysis 複本與會員端一致');

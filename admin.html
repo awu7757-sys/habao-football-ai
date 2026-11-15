@@ -6892,6 +6892,7 @@ function analysisSummaryHtml(item){
       "Home Team":"主隊","Away Team":"客隊","Draw":"和局",
       "No Recommendation":"暫不推薦","Yes":"是","No":"否",
       "home":"主隊","away":"客隊","draw":"和局",
+      "主勝":"主隊","客勝":"客隊",
       "HOME":"主隊","AWAY":"客隊",
       "over":"大分","under":"小分","Over":"大分","Under":"小分",
       "Home or Draw":"主隊或和局",
@@ -6906,7 +6907,7 @@ function analysisSummaryHtml(item){
     const direction=localizePick(first(v.pick,v.selection,v.value,v.prediction));
     const line=first(v.line,v.point,v.handicap);
     const hasLine=/\d/.test(direction);
-    const suffix=withLine&&!hasLine&&line!==undefined&&line!==null&&String(line).trim()!==""?" "+line:"";
+    const suffix=withLine&&!hasLine&&line!==undefined&&line!==null&&String(line).trim()!==""?(/^[大小]$/.test(direction)?"":" ")+line:"";
     return escapeHtml(direction+suffix);
   };
   const textValue=(v)=>v===undefined||v===null||v===""?"—":escapeHtml(String(v));
@@ -6921,21 +6922,24 @@ function analysisSummaryHtml(item){
     if(score?.home!=null&&score?.away!=null)
       predictedScores=escapeHtml(String(score.home)+"-"+String(score.away));
   }else if(isBaseball){
-    const score=first(d?.model?.projection,d?.model?.predicted_score,analysis?.predicted_score,d?.predicted_score);
+    const score=first(d?.model?.projection,analysis?.model?.projection,d?.model?.predicted_score,analysis?.predicted_score,d?.predicted_score);
     const h=first(score?.home_runs,score?.home,score?.home_score);
     const a=first(score?.away_runs,score?.away,score?.away_score);
     if(h!=null&&a!=null)predictedScores=escapeHtml(String(h)+"-"+String(a));
-  }else{
+  }
+  // MLB 階段快照／會員領取若沒有 projection，改用標準 predicted_scores（與足球相同欄位）。
+  if(!isBasketball&&predictedScores==="—"){
     const possible=first(analysis?.predicted_scores,d?.predicted_scores);
     if(Array.isArray(possible)){
       const list=possible.map(x=>typeof x==="string"?x:x?.score).filter(Boolean);
-      if(list.length)predictedScores=list.map(escapeHtml).join("、");
+      if(list.length)predictedScores=list.slice(0,3).map(escapeHtml).join("、");
     }else if(typeof possible==="string"&&possible.trim()){
       predictedScores=escapeHtml(possible);
     }
   }
   const homeAwayLabel=escapeHtml(home)+" vs "+escapeHtml(away);
-  // 2026-11-15：階段標示；足球 T-2／T-15 系統快照只存 xG 與機率，推薦於會員領取時依當下盤口產生。
+  // 2026-11-15：階段標示。足球 T-2／T-15 系統快照由 admin-center 依會員領取的同一套算法算出推薦，
+  // 與籃球同格式顯示；下方 footballStageOnly 只在後端重算失敗（舊版後端或快照資料不全）時備用。
   const stageText=item?.stage==="t15"?"T-15 最終分析":item?.stage==="t2"?"T-2 深度分析":"T-10 賽前分析";
   const sourceText=item?.record_source==="system_auto"||String(item?.account||"").includes("SYSTEM_AUTO")?"系統快照":"會員領取";
   const footballStageOnly=isFootball&&item?.record_source==="system_auto"&&item?.stage&&item.stage!=="t10"&&d?.home_xg!=null;
