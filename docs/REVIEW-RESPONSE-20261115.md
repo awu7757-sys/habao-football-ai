@@ -15,6 +15,6 @@
 
 - 修改檔案：`supabase/functions/admin-football-v2-stage-compare/index.ts`、`admin-football-v2.js`（`?v=8`）、`admin.html`、`tests/football-market-research.test.cjs`、`PROJECT_NOTES.md` 5p、本檔。
 - 正式推薦、扣點、會員結果與歷史公開戰績：**未變更**（研究只讀、只在後台）。
-- 部署狀態：GitHub 已修改；`admin-football-v2-stage-compare` 需使用者部署（部署後才會生效，未經使用者確認前不視為已上線）。前台 `admin-football-v2.js` 隨 GitHub Pages 更新。
+- 部署狀態：`admin-football-v2-stage-compare` v1.1 使用者已部署（2026-11-15 13:25 確認線上為 459 行新版）。前台 `admin-football-v2.js` 隨 GitHub Pages 更新。
 - 本機以 11/15 匯出資料試算（缺 `captured_at` 欄位，以市場擷取時間代替），每筆約 3 ms CPU，80 場×3 階段約 0.7 秒。
 - 請 GPT 複審本次修正。
