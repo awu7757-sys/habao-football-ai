@@ -533,7 +533,7 @@ DRtg = 由對手得分效率建立
    - 呈現（1.2）：探索期／樣本外分別顯示不同賽事數、三階段都合格賽事數、各階段合格場數；BTTS 有候選零推薦時顯示「推薦 0／候選 N」。
    - 測試：`tests/football-market-research.test.cjs`（140 例反推還原、無解／不合法拒絕、單邊排除、初始化無關、只換比分方向不變、時間邊界 8 例、指紋對新增／排除／更正比分／更正快照／期間敏感、**真正前端合併函式**：與一次性基準相同、重送／重疊／版本或集合不符／缺批／場數不足／中斷皆不完成且不重複累加、BTTS 候選顯示）。
    - 本機 11/15 匯出資料（探索期）：174 筆中排除 44（沒有有效盤口 35、時間 9）；獨贏 模型 56.2%／融合 61.5%／市場 59.2%；讓分 50.0／52.5／46.7；大小 52.3／45.4／40.8；BTTS58 63.3／63.1／69.4。**僅探索性結果。**
-   - GPT 審查回覆見 `docs/REVIEW-RESPONSE-20261115.md`。
+   - GPT 審查回覆見 `docs/REVIEW-RESPONSE-20261115.md`。**三輪交叉審查已於 2026-11-15 21:03 通過**；v1.2（495 行）已部署。
 5c. 【2026-11-15】後台「AI 分析紀錄」加入 T-2／T-15：`admin-center`（足球 `football_v2_shadow_stage_snapshots`、`football_v2_stage_member_claims`）、`admin-basketball`（`basketball_v2_stage_snapshots`、`basketball_v2_stage_claims`）、`admin-baseball`（`baseball_v2_stage_snapshots`、`baseball_v2_stage_claims`）的 `analysis_history` 回傳每筆 `stage`；`admin.html` 新增「階段」欄與階段篩選，日期改依**開賽日（台灣）**篩選（今日開賽／明日開賽／近 3／近 7 天），摘要顯示階段與來源。三支函式已部署（11/15 驗證 NBA 正常）。
    - **摘要統一格式（11/15 決定）**：三種球類、三個階段的「查看摘要」都用同一格式：獨贏／大小分／讓分／（足球）BTTS／預測比分（最多 3 個）／分析時間。足球 T-2／T-15 系統快照表本身不存推薦，但推薦**只由快照決定**（xG、機率、快照當下的 `market_context`），所以 `admin-center` 內放了一份 `football-v2-stage-member` `toAnalysis()` 的**逐字複本**（BEGIN/END COPY 區塊）重算，結果與會員領取相同；`tests/football-recommendation-parity.test.cjs` 會檢查複本一致，改算法時兩邊一起改。後台摘要把「主勝／客勝」顯示為「主隊／客隊」與 T-10 一致。MLB 摘要的預測比分補讀 `analysis.model.projection` 與 `predicted_scores`（MLB 無賽事，待開季驗證）。
 6. 「確認已續費」只是手動追蹤，提示為今天＋一個月，不是付款也不是供應商到期日同步。跨日重按可能算錯追蹤日期；之後可改成明確輸入實際到期日，但需另獲授權。
