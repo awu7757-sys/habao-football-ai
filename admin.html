@@ -1659,17 +1659,14 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
             <div class="table-tools">
-              <button class="ghost-btn" onclick="habaoCheckSportReadiness('football')">檢查足球系統狀態</button><button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
+              <button class="ghost-btn" onclick="refreshFixtureSource(0)">更新今日賽事</button>
               <button class="ghost-btn" onclick="refreshFixtureSource(1)">更新明日賽事</button>
             </div>
           </div>
 
-          <div id="footballReadyStatus" class="panel-desc" role="status" aria-live="polite" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">尚未檢查。按「檢查足球系統狀態」讀取資料庫運作紀錄。</div>
-          <div class="stats-grid" style="margin-bottom:15px">
-            <div class="stat-card gold"><div class="stat-label">今日足球</div><div id="fixtureTodayCount" class="stat-value gold-text">0</div></div>
-            <div class="stat-card"><div class="stat-label">明日足球</div><div id="fixtureTomorrowCount" class="stat-value">0</div></div>
-            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="fixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
-            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="fixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
+          <div class="stats-grid" style="margin-bottom:15px;grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="stat-card gold"><div class="stat-label">今日／明日 足球</div><div class="stat-value gold-text"><span id="fixtureTodayCount">0</span> <span style="color:#91a7b4;font-size:.7em">/</span> <span id="fixtureTomorrowCount" style="color:#e8eef2">0</span></div></div>
+            <div class="stat-card"><div class="stat-label">快取更新</div><div class="stat-value" style="font-size:14px;line-height:1.7">今日：<span id="fixtureTodayFetched">—</span><br>明日：<span id="fixtureTomorrowFetched">—</span></div></div>
           </div>
 
           <div class="toolbar">
@@ -1713,15 +1710,12 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
               <div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-basketball"></use></svg>NBA 賽事管理</div>
               <div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div>
             </div>
-            <div class="table-tools"><button class="ghost-btn" onclick="habaoCheckSportReadiness('basketball')">檢查 NBA 系統狀態</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
+            <div class="table-tools"><button class="ghost-btn" onclick="refreshNbaScoreSource(this,0)">更新今日賽事</button><button class="ghost-btn" onclick="refreshNbaScoreSource(this,1)">更新明日賽事</button></div>
           </div>
 
-          <div id="nbaReadyStatus" class="panel-desc" role="status" aria-live="polite" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">尚未檢查。按「檢查 NBA 系統狀態」讀取資料庫運作紀錄。</div>
-          <div class="stats-grid" style="margin-bottom:15px">
-            <div class="stat-card gold"><div class="stat-label">今日 NBA</div><div id="nbaFixtureTodayCount" class="stat-value gold-text">0</div></div>
-            <div class="stat-card"><div class="stat-label">明日 NBA</div><div id="nbaFixtureTomorrowCount" class="stat-value">0</div></div>
-            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="nbaFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
-            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="nbaFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
+          <div class="stats-grid" style="margin-bottom:15px;grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="stat-card gold"><div class="stat-label">今日／明日 NBA</div><div class="stat-value gold-text"><span id="nbaFixtureTodayCount">0</span> <span style="color:#91a7b4;font-size:.7em">/</span> <span id="nbaFixtureTomorrowCount" style="color:#e8eef2">0</span></div></div>
+            <div class="stat-card"><div class="stat-label">快取更新</div><div class="stat-value" style="font-size:14px;line-height:1.7">今日：<span id="nbaFixtureTodayFetched">—</span><br>明日：<span id="nbaFixtureTomorrowFetched">—</span></div></div>
           </div>
 
           <div class="toolbar">
@@ -1760,14 +1754,12 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
         </div>
 
         <div class="panel" style="margin-top:16px">
-          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbReadiness(true)">檢查 MLB 寫入開關</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
-          <div id="mlbReadyStatus" class="panel-desc" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.10);border-radius:8px">MLB 開關狀態尚未檢查，按「檢查 MLB 寫入開關」讀取。</div>
-          <div class="stats-grid" style="margin-bottom:15px">
-            <div class="stat-card gold"><div class="stat-label">今日 MLB</div><div id="mlbFixtureTodayCount" class="stat-value gold-text">0</div></div>
-            <div class="stat-card"><div class="stat-label">明日 MLB</div><div id="mlbFixtureTomorrowCount" class="stat-value">0</div></div>
-            <div class="stat-card"><div class="stat-label">今日快取更新</div><div id="mlbFixtureTodayFetched" class="stat-value" style="font-size:16px">—</div></div>
-            <div class="stat-card"><div class="stat-label">明日快取更新</div><div id="mlbFixtureTomorrowFetched" class="stat-value" style="font-size:16px">—</div></div>
+          <div class="panel-head" style="margin-bottom:12px"><div><div class="panel-title sport-heading"><svg class="sport-icon sport-icon--heading" aria-hidden="true"><use href="#habao-sport-baseball"></use></svg>MLB 賽事管理</div><div class="panel-desc">今日／明日賽程、快取更新、會員分析人數與推播管理。</div></div><div class="table-tools"><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,0)">更新今日賽事</button><button class="ghost-btn" onclick="loadMlbAdminFixtures(true,1)">更新明日賽事</button></div></div>
+          <div class="stats-grid" style="margin-bottom:15px;grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="stat-card gold"><div class="stat-label">今日／明日 MLB</div><div class="stat-value gold-text"><span id="mlbFixtureTodayCount">0</span> <span style="color:#91a7b4;font-size:.7em">/</span> <span id="mlbFixtureTomorrowCount" style="color:#e8eef2">0</span></div></div>
+            <div class="stat-card"><div class="stat-label">快取更新</div><div class="stat-value" style="font-size:14px;line-height:1.7">今日：<span id="mlbFixtureTodayFetched">—</span><br>明日：<span id="mlbFixtureTomorrowFetched">—</span></div></div>
           </div>
+
           <div class="toolbar"><div class="filters"><input id="mlbFixtureSearch" class="input search" placeholder="搜尋聯盟、隊伍、賽事 ID..." oninput="renderMlbAdminFixtures()"><select id="mlbFixtureDateFilter" class="input" onchange="renderMlbAdminFixtures()"><option value="all">今日＋明日</option><option value="today">今日</option><option value="tomorrow">明日</option></select></div></div>
           <div class="table-shell"><div class="table-scroll"><table><thead><tr><th>日期</th><th>時間</th><th>賽事 ID</th><th>聯賽</th><th>主隊</th><th>客隊</th><th>狀態</th><th>比分</th><th>分析會員</th><th>可推播</th><th>比分推播</th></tr></thead><tbody id="mlbFixturesBody"><tr><td colspan="11" class="empty">載入 MLB 賽程中…</td></tr></tbody></table></div></div>
         </div>
@@ -4587,62 +4579,7 @@ async function loadMlbAdminFixtures(force=false,onlyOffset=null){
   if(force&&results.some(r=>r.status==="rejected"))alert("部分 MLB 賽程取得失敗："+results.filter(r=>r.status==="rejected").map(r=>r.reason?.message||"未知錯誤").join("；"));
 }
 
-/* Read-only, on-demand checks. Never call sports providers, AI or write APIs here. */
-async function habaoCheckSportReadiness(sport) {
-  const football = sport === "football";
-  if (!football && sport !== "basketball") return;
-  const id = football ? "footballReadyStatus" : "nbaReadyStatus";
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = "讀取既有運作紀錄中…";
-  try {
-    if (football) {
-      const data = await adminCenterRequest({action:"health"});
-      if (data?.success !== true || !data.health) throw new Error(data?.error || "無法取得足球健康資訊");
-      const h = data.health;
-      const n = v => v == null ? "不可用" : String(v);
-      const recent = h.latest_snapshot || null;
-      el.textContent = "足球｜已驗證快照："+n(h.verified_snapshots)+
-        "｜待驗證："+n(h.pending_snapshots)+
-        "｜逾期待驗證："+n(h.overdue_pending_snapshots)+
-        "｜最近快照賽事："+n(recent?.fixture_id)+
-        "｜最近快照狀態："+n(recent?.status)+
-        "。此為既有資料庫紀錄，不代表 T-10 準時或賽後結果全部正確。";
-    } else {
-      const data = await adminBasketballRequest({action:"overview"});
-      if (data?.success !== true || !data.overview) throw new Error(data?.error || "無法取得 NBA 概況");
-      const o = data.overview;
-      const n = v => v == null ? "不可用" : String(v);
-      el.textContent = "NBA｜正式快照紀錄："+n(o.snapshot_count)+
-        "｜可用分析快取："+n(o.ready_cache_count)+
-        "｜今日賽程："+n(o.today_fixtures)+
-        "｜明日賽程："+n(o.tomorrow_fixtures)+
-        "｜今日快取更新："+n(o.today_fetched_at)+
-        "。此為既有資料庫紀錄，不代表 T-10 準時或賽後結果全部正確。";
-    }
-  } catch (e) {
-    el.textContent = "檢查未完成："+String(e?.message||e)+"（不代表分析功能已停用）";
-  }
-}
-async function loadMlbReadiness(showAlert=false){
-  const info=document.getElementById("mlbReadyStatus");if(info)info.textContent="檢查中…";
-  try{
-    const data=await adminBaseballRequest({action:"readiness"});
-    const stats=data.team_stats_cache||{},snap=data.t10_snapshots||{},results=data.verified_results||{},member=data.member_analysis||{};
-    const count=(obj,key)=>obj.available===true?String(obj[key]??0):"不可用";
-    setText("mlbReadyCache",count(stats,"recent_24h_count"));
-    setText("mlbReadyT10",count(snap,"checked_rows"));
-    setText("mlbReadyVerified",count(results,"checked_rows"));
-    setText("mlbReadyMember",count(member,"history_count"));
-    const gate=data.write_gates||{};
-    const status="讀取："+formatDate(data.generated_at)+"｜T-10："+(gate.t10?"開啟":"關閉")+"｜會員扣次："+(gate.member?"開啟":"關閉")+"｜賽後寫入："+(gate.result?"開啟":"關閉")+"｜MLB 推播："+(data.push?.enabled===true?"開啟":"關閉")+"。快照／結果筆數只是最近載入筆數，不代表排程執行成功。";
-    if(info)info.textContent=status;
-  }catch(e){
-    if(info)info.textContent="就緒檢查未連線："+String(e?.message||e)+"。請先部署本次 admin-baseball 修正版。";
-    ["mlbReadyCache","mlbReadyT10","mlbReadyVerified","mlbReadyMember"].forEach(id=>setText(id,"—"));
-    if(showAlert)alert("MLB 正式運作檢查失敗："+String(e?.message||e));
-  }
-}
+/* 2026-11-15：賽事管理頁移除「檢查系統狀態／寫入開關」按鈕與其讀取程式（使用者同意簡化）。 */
 async function habaoToggleSportPush(sport,gameId,enabled){
   if(!["basketball","baseball"].includes(sport))return;
   const item=sport==="basketball"
