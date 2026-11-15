@@ -1139,6 +1139,12 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
   const probs = probabilities(snapshot, grid), context = snapshot.market_context || {};
   const home = Number(probs.home), draw = Number(probs.draw), away = Number(probs.away);
   const money = [{ pick: "主勝", p: home }, { pick: "和局", p: draw }, { pick: "客勝", p: away }].sort((a,b) => b.p-a.p)[0];
+  // 2026-11-15 規則：模型獨贏方向與莊家看好的一方（主讓分盤：主隊讓球＝主隊熱門）相反時暫不推薦。
+  // 只套用 2026-11-16 00:00（台灣）以後開賽的比賽；讓分盤為 0 或沒有盤口時不判斷。
+  const mainHandicapLine = Number(context?.handicap?.home_line);
+  const marketFavorite = Number.isFinite(mainHandicapLine) && mainHandicapLine !== 0 ? (mainHandicapLine < 0 ? "主勝" : "客勝") : null;
+  const moneyAgainstMarket = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00")
+    && marketFavorite !== null && money.pick !== "和局" && money.pick !== marketFavorite;
   const bttsYes = Number(probs.btts), bttsPick = bttsYes >= 0.5;
   const confidence = (p: number) => Math.max(0, Math.min(100, Math.round(p * 100)));
   const totalQuotes = Array.isArray(context.totals) ? context.totals : context.total ? [context.total] : [];
@@ -1200,7 +1206,9 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
     analysis: {
       model_version: snapshot.model_version || STAGE_MODEL_VERSION,
       recommendations: {
-        moneyline: { pick: money.pick, confidence: confidence(money.p), reason: "取模型勝和負機率最高的一項" },
+        moneyline: moneyAgainstMarket
+          ? { pick: "暫不推薦", confidence: 0, reason: "模型方向與莊家看好的一方相反，本場獨贏暫不推薦" }
+          : { pick: money.pick, confidence: confidence(money.p), reason: "取模型勝和負機率最高的一項" },
         over_under: { pick: totalPick, line: totalLine, confidence: totalConfidence, reason: totalReason },
         handicap: { pick: handicapPick, line: handicapLine, confidence: handicapConfidence, reason: handicapReason },
         btts: { pick: bttsPick ? "是" : "否", confidence: confidence(bttsPick ? bttsYes : 1-bttsYes), reason: "依模型雙方進球機率" },

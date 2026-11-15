@@ -4566,6 +4566,17 @@ head_to_head:
     const v2Outcomes = [{ key: "home" as const, p: v2PHome }, { key: "draw" as const, p: v2PDraw }, { key: "away" as const, p: v2PAway }].sort((a, b) => b.p - a.p);
     const v2Winner = v2Outcomes[0];
     const v2MoneyPick = v2Winner.key === "home" ? "主隊" : v2Winner.key === "away" ? "客隊" : "和局";
+    // 2026-11-15 規則：模型獨贏方向與莊家看好的一方（1X2 平均賠率較低者）相反時暫不推薦。
+    // 只套用 2026-11-16 00:00（台灣）以後開賽；沒有 1X2 賠率或兩邊相同時不判斷。T-2／T-15 同規則（以主讓分盤判斷熱門）。
+    const v2AvgOneXTwo = (side: string): number | null => {
+      const prices = (Array.isArray(marketOdds?.oneXtwo) ? marketOdds.oneXtwo : [])
+        .filter((x: any) => x?.side === side).map((x: any) => Number(x?.odds)).filter((n: number) => Number.isFinite(n) && n > 1 && n <= 100);
+      return prices.length ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length : null;
+    };
+    const v2HomeOdds = v2AvgOneXTwo("home"), v2AwayOdds = v2AvgOneXTwo("away");
+    const v2MarketFavorite = v2HomeOdds !== null && v2AwayOdds !== null && v2HomeOdds !== v2AwayOdds ? (v2HomeOdds < v2AwayOdds ? "home" : "away") : null;
+    const v2MoneyAgainstMarket = Date.parse(String(match?.fixture?.date || "")) >= Date.parse("2026-11-16T00:00:00+08:00")
+      && v2MarketFavorite !== null && v2Winner.key !== "draw" && v2Winner.key !== v2MarketFavorite;
     const v2Line = Number.isFinite(mainOverUnderLine) ? Number(mainOverUnderLine) : null;
     const v2OverP = v2Line === null ? null : v2TotalsOver(v2Line);
     const v2TotalPick = v2OverP === null ? "暫不推薦" : v2OverP >= .5 ? `大${v2Line}` : `小${v2Line}`;
@@ -4603,7 +4614,7 @@ head_to_head:
       goal_analysis: `模型總進球期望 ${ (v2Hxg+v2Axg).toFixed(2) }；BTTS 是機率 ${(v2PBtts*100).toFixed(1)}%。`,
       market_analysis: v2Line === null ? "未取得有效大小球主流盤口，大小球不給推薦。" : `採用 The Odds API 主流大小球盤 ${v2Line}。`,
       recommendations: {
-        moneyline: { pick: v2MoneyPick, confidence: v2Confidence(v2Winner.p, 1/3), reason: `V2 Poisson 機率：主勝 ${(v2PHome*100).toFixed(1)}%、和局 ${(v2PDraw*100).toFixed(1)}%、客勝 ${(v2PAway*100).toFixed(1)}%。` },
+        moneyline: v2MoneyAgainstMarket ? { pick: "暫不推薦", confidence: 0, reason: `模型方向與莊家看好的一方相反，本場獨贏暫不推薦（V2 Poisson 機率：主勝 ${(v2PHome*100).toFixed(1)}%、和局 ${(v2PDraw*100).toFixed(1)}%、客勝 ${(v2PAway*100).toFixed(1)}%）。` } : { pick: v2MoneyPick, confidence: v2Confidence(v2Winner.p, 1/3), reason: `V2 Poisson 機率：主勝 ${(v2PHome*100).toFixed(1)}%、和局 ${(v2PDraw*100).toFixed(1)}%、客勝 ${(v2PAway*100).toFixed(1)}%。` },
         over_under: { pick: v2TotalPick, line: v2Line, confidence: v2Confidence(v2TotalP), reason: v2Line === null ? "沒有真實大小球盤口。" : `模型在 ${v2Line} 線的大球機率 ${(v2OverP!*100).toFixed(1)}%。`, market_source: v2Line === null ? null : "the_odds_api" },
         btts: { pick: v2BttsPick, confidence: v2Confidence(v2BttsP), reason: `BTTS 是機率 ${(v2PBtts*100).toFixed(1)}%。` },
         handicap: { pick: v2HandicapPick, line: v2Handicap?.line ?? null, confidence: v2Handicap ? v2Confidence(v2Handicap.p) : 0, reason: v2Handicap ? `V2比分分布估算 ${v2Handicap.side === "home" ? "主隊" : "客隊"}過盤機率 ${(v2Handicap.p*100).toFixed(1)}%。` : "沒有可用的真實讓分盤口。", market_source: v2Handicap ? "the_odds_api" : null },

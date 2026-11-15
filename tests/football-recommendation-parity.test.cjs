@@ -72,7 +72,9 @@ function makeSnapshot() {
     for (let i = 0; i < 19; i++) for (let j = 0; j < 19; j++) { const p = hp[i] * ap[j] / mass; if (i > j) h += p; else if (i === j) d += p; else a += p; if (i && j) bt += p; }
     probabilities = { home_win: h, draw: d, away_win: a, btts_yes: bt };
   }
-  return { fixture_id: 1, kickoff_at: '2026-11-15T12:00:00Z', home_xg: hx, away_xg: ax, probabilities, market_context: { totals, handicaps }, source_meta: {} };
+  // 2026-11-15：獨贏「與莊家熱門相反暫不推薦」規則只套用 11/16 起開賽，前後各一半樣本；主讓分盤取第一條。
+  const kickoff_at = rand() < 0.5 ? '2026-11-15T12:00:00Z' : '2026-11-16T12:00:00Z';
+  return { fixture_id: 1, kickoff_at, home_xg: hx, away_xg: ax, probabilities, market_context: { totals, handicaps, handicap: handicaps[0] }, source_meta: {} };
 }
 
 const norm = r => ({
@@ -93,6 +95,15 @@ for (let i = 0; i < N; i++) {
   passed++;
 }
 console.log(`PASS ${passed} 筆合成快照：會員推薦與公開戰績推薦一致`);
+// 規則確實有作用（避免兩邊都沒套用也通過）
+{
+  const s1 = { fixture_id: 1, kickoff_at: '2026-11-16T12:00:00Z', home_xg: 0.8, away_xg: 1.9, probabilities: {}, market_context: { handicap: { home_line: -0.5, away_line: 0.5, home_odds: 1.9, away_odds: 1.9 } }, source_meta: {} };
+  assert.equal(memberCtx.toAnalysis(s1, {}, 't2').analysis.recommendations.moneyline.pick, '暫不推薦', '11/16 後與熱門相反應暫不推薦');
+  assert.equal(perfCtx.perfRecommend(s1, { home_score: 1, away_score: 1 }).recommendations.moneyline.pick, '暫不推薦');
+  const s0 = { ...s1, kickoff_at: '2026-11-15T12:00:00Z' };
+  assert.equal(memberCtx.toAnalysis(s0, {}, 't2').analysis.recommendations.moneyline.pick, '客勝', '11/16 前維持原規則');
+  console.log('PASS 獨贏與莊家熱門相反規則（11/16 起）兩邊一致');
+}
 
 // ---- 後台：admin-center 的逐字複本（2026-11-15）----
 // 後台 AI 分析紀錄用同一份 toAnalysis 顯示 T-2／T-15 系統快照推薦，必須和會員端一字不差。

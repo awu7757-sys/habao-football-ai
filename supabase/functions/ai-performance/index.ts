@@ -227,6 +227,11 @@ Deno.serve(async (req) => {
           const both = Number.isFinite(bttsP) ? bttsP : scoreGrid.filter(x => x.h > 0 && x.a > 0).reduce((s,x)=>s+x.p,0);
           const money = [{ pick:"主勝", p:home },{ pick:"和局", p:draw },{ pick:"客勝", p:away }].sort((a,b)=>b.p-a.p)[0];
           const market = snapshot.market_context || {};
+          // 與 football-v2-stage-member 相同：2026-11-16 起，模型獨贏與莊家熱門（主讓分盤）相反時暫不推薦。
+          const mainHandicapLine = Number(market?.handicap?.home_line);
+          const marketFavorite = Number.isFinite(mainHandicapLine) && mainHandicapLine !== 0 ? (mainHandicapLine < 0 ? "主勝" : "客勝") : null;
+          const moneyAgainstMarket = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00")
+            && marketFavorite !== null && money.pick !== "和局" && money.pick !== marketFavorite;
           const totalQuotes = Array.isArray(market.totals) ? market.totals : market.total ? [market.total] : [];
           const handicapQuotes = Array.isArray(market.handicaps) ? market.handicaps : market.handicap ? [market.handicap] : [];
           let totalPick: any = null, handicapPick: any = null;
@@ -246,14 +251,14 @@ Deno.serve(async (req) => {
           if (handicapOptions.length) { const best=handicapOptions[0]; handicapPick={pick:best.pick,line:best.line,reason:`比較所選階段所有實際讓分盤線後選出：${best.line}`}; }
           const bttsPick = both >= 0.5 ? "是" : "否";
           const recommendations = {
-            moneyline:{pick:money.pick,confidence:Math.round(money.p*100)},
+            moneyline:moneyAgainstMarket?{pick:"暫不推薦",confidence:0}:{pick:money.pick,confidence:Math.round(money.p*100)},
             over_under:totalPick || {pick:"暫不推薦",line:null,confidence:0},
             handicap:handicapPick || {pick:"暫不推薦",line:null,confidence:0},
             btts:{pick:bttsPick,confidence:Math.round(Math.max(both,1-both)*100)},
           };
           const actualWinner = Number(row.home_score) > Number(row.away_score) ? "主勝" : Number(row.home_score) < Number(row.away_score) ? "客勝" : "和局";
           const settlement: any = {
-            moneyline:{result:money.pick === actualWinner ? "win" : "loss",pick:money.pick,decided:true},
+            moneyline:moneyAgainstMarket?{result:"no_pick",pick:"暫不推薦",decided:false}:{result:money.pick === actualWinner ? "win" : "loss",pick:money.pick,decided:true},
             btts:{result:(bttsPick === "是") === (Number(row.home_score)>0 && Number(row.away_score)>0) ? "win" : "loss",pick:bttsPick,decided:true},
           };
           if (totalPick) settlement.over_under = {result:settle(Number(row.home_score)+Number(row.away_score),Number(totalPick.line),totalPick.pick === "大" ? "over" : "under"),pick:totalPick.pick,line:totalPick.line,decided:true};
