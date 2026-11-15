@@ -113,6 +113,13 @@ console.log(`PASS ${passed} 筆合成快照：會員推薦與公開戰績推薦�
   const mh0 = memberCtx.toAnalysis({ ...s2, kickoff_at: '2026-11-15T12:00:00Z' }, {}, 't15').analysis.recommendations.handicap;
   assert.equal(Math.abs(mh0.line), 1.5, '11/16 前維持最高期望回報選盤');
   console.log('PASS 讓分主盤規則（11/16 起）兩邊一致');
+  // BTTS：11/16 起機率不到 58% 暫不推薦
+  const s3 = { ...s2, probabilities: { btts_yes: 0.55 } };
+  assert.equal(memberCtx.toAnalysis(s3, {}, 't15').analysis.recommendations.btts.pick, '暫不推薦');
+  assert.equal(perfCtx.perfRecommend(s3, { home_score: 1, away_score: 1 }).recommendations.btts.pick, '暫不推薦');
+  assert.equal(memberCtx.toAnalysis({ ...s3, probabilities: { btts_yes: 0.6 } }, {}, 't15').analysis.recommendations.btts.pick, '是');
+  assert.equal(memberCtx.toAnalysis({ ...s3, kickoff_at: '2026-11-15T12:00:00Z' }, {}, 't15').analysis.recommendations.btts.pick, '是');
+  console.log('PASS BTTS 58% 規則（11/16 起）兩邊一致');
 }
 
 // ---- 後台：admin-center 的逐字複本（2026-11-15）----

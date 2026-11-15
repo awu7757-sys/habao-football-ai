@@ -1220,7 +1220,10 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
           : { pick: money.pick, confidence: confidence(money.p), reason: "取模型勝和負機率最高的一項" },
         over_under: { pick: totalPick, line: totalLine, confidence: totalConfidence, reason: totalReason },
         handicap: { pick: handicapPick, line: handicapLine, confidence: handicapConfidence, reason: handicapReason },
-        btts: { pick: bttsPick ? "是" : "否", confidence: confidence(bttsPick ? bttsYes : 1-bttsYes), reason: "依模型雙方進球機率" },
+        // 2026-11-15 規則（11/16 起開賽）：BTTS 機率不到 58%（或不低於 42%）時暫不推薦，避免永遠推「是」。
+        btts: newMarketRules && Math.max(bttsYes, 1-bttsYes) < 0.58
+          ? { pick: "暫不推薦", confidence: 0, reason: `模型雙方進球機率 ${(bttsYes*100).toFixed(1)}%，把握不足，本場 BTTS 暫不推薦` }
+          : { pick: bttsPick ? "是" : "否", confidence: confidence(bttsPick ? bttsYes : 1-bttsYes), reason: "依模型雙方進球機率" },
       },
       summary: `${stage === "t2" ? "T-2 深度分析" : "T-15 最終分析"}：模型預估主隊 ${Number(snapshot.home_xg).toFixed(2)} 球、客隊 ${Number(snapshot.away_xg).toFixed(2)} 球。獨贏依勝和負機率最高項目；大小球與讓分使用本階段市場實際盤線。`,
       market_analysis: `本階段市場盤線：大小球 ${totalLine === null ? "未取得" : totalLine}；讓分 ${handicapLine === null ? "未取得" : handicapLine}。傷停：${injurySummary}。先發：${lineupSummary}。${evidence.note}`,

@@ -256,16 +256,18 @@ Deno.serve(async (req) => {
           }).sort((a: any,b: any)=>b.ev-a.ev);
           if (handicapOptions.length) { const best=handicapOptions[0]; handicapPick={pick:best.pick,line:best.line,reason:`比較所選階段所有實際讓分盤線後選出：${best.line}`}; }
           const bttsPick = both >= 0.5 ? "是" : "否";
+          // 與 football-v2-stage-member 相同：11/16 起 BTTS 機率不到 58% 暫不推薦。
+          const bttsNoPick = newMarketRules && Math.max(both, 1-both) < 0.58;
           const recommendations = {
             moneyline:moneyAgainstMarket?{pick:"暫不推薦",confidence:0}:{pick:money.pick,confidence:Math.round(money.p*100)},
             over_under:totalPick || {pick:"暫不推薦",line:null,confidence:0},
             handicap:handicapPick || {pick:"暫不推薦",line:null,confidence:0},
-            btts:{pick:bttsPick,confidence:Math.round(Math.max(both,1-both)*100)},
+            btts:bttsNoPick?{pick:"暫不推薦",confidence:0}:{pick:bttsPick,confidence:Math.round(Math.max(both,1-both)*100)},
           };
           const actualWinner = Number(row.home_score) > Number(row.away_score) ? "主勝" : Number(row.home_score) < Number(row.away_score) ? "客勝" : "和局";
           const settlement: any = {
             moneyline:moneyAgainstMarket?{result:"no_pick",pick:"暫不推薦",decided:false}:{result:money.pick === actualWinner ? "win" : "loss",pick:money.pick,decided:true},
-            btts:{result:(bttsPick === "是") === (Number(row.home_score)>0 && Number(row.away_score)>0) ? "win" : "loss",pick:bttsPick,decided:true},
+            btts:bttsNoPick?{result:"no_pick",pick:"暫不推薦",decided:false}:{result:(bttsPick === "是") === (Number(row.home_score)>0 && Number(row.away_score)>0) ? "win" : "loss",pick:bttsPick,decided:true},
           };
           if (totalPick) settlement.over_under = {result:settle(Number(row.home_score)+Number(row.away_score),Number(totalPick.line),totalPick.pick === "大" ? "over" : "under"),pick:totalPick.pick,line:totalPick.line,decided:true};
           if (handicapPick) settlement.handicap = {result:settle(handicapPick.pick === "主隊" ? Number(row.home_score)-Number(row.away_score) : Number(row.away_score)-Number(row.home_score),Number(handicapPick.line),handicapPick.pick === "主隊" ? "home" : "away"),pick:handicapPick.pick,line:handicapPick.line,decided:true};

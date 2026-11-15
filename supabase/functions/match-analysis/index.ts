@@ -4581,7 +4581,9 @@ head_to_head:
     const v2OverP = v2Line === null ? null : v2TotalsOver(v2Line);
     const v2TotalPick = v2OverP === null ? "暫不推薦" : v2OverP >= .5 ? `大${v2Line}` : `小${v2Line}`;
     const v2TotalP = v2OverP === null ? 0 : Math.max(v2OverP, 1 - v2OverP);
-    const v2BttsPick = v2PBtts >= .5 ? "是" : "否";
+    // 2026-11-15 規則（11/16 00:00 台灣起開賽）：BTTS 機率不到 58%（或不低於 42%）暫不推薦。T-2／T-15 同規則。
+    const v2BttsPick = Date.parse(String(match?.fixture?.date || "")) >= Date.parse("2026-11-16T00:00:00+08:00") && Math.max(v2PBtts, 1 - v2PBtts) < 0.58
+      ? "暫不推薦" : v2PBtts >= .5 ? "是" : "否";
     const v2BttsP = Math.max(v2PBtts, 1 - v2PBtts);
     const v2HandicapQuotes = Array.isArray(marketOdds?.handicap) ? marketOdds.handicap : [];
     const v2HandicapCandidates = v2HandicapQuotes.map((q: any) => {
@@ -4633,7 +4635,7 @@ head_to_head:
       recommendations: {
         moneyline: v2MoneyAgainstMarket ? { pick: "暫不推薦", confidence: 0, reason: `模型方向與莊家看好的一方相反，本場獨贏暫不推薦（V2 Poisson 機率：主勝 ${(v2PHome*100).toFixed(1)}%、和局 ${(v2PDraw*100).toFixed(1)}%、客勝 ${(v2PAway*100).toFixed(1)}%）。` } : { pick: v2MoneyPick, confidence: v2Confidence(v2Winner.p, 1/3), reason: `V2 Poisson 機率：主勝 ${(v2PHome*100).toFixed(1)}%、和局 ${(v2PDraw*100).toFixed(1)}%、客勝 ${(v2PAway*100).toFixed(1)}%。` },
         over_under: { pick: v2TotalPick, line: v2Line, confidence: v2Confidence(v2TotalP), reason: v2Line === null ? "沒有真實大小球盤口。" : `模型在 ${v2Line} 線的大球機率 ${(v2OverP!*100).toFixed(1)}%。`, market_source: v2Line === null ? null : "the_odds_api" },
-        btts: { pick: v2BttsPick, confidence: v2Confidence(v2BttsP), reason: `BTTS 是機率 ${(v2PBtts*100).toFixed(1)}%。` },
+        btts: { pick: v2BttsPick, confidence: v2BttsPick === "暫不推薦" ? 0 : v2Confidence(v2BttsP), reason: v2BttsPick === "暫不推薦" ? `BTTS 是機率 ${(v2PBtts*100).toFixed(1)}%，把握不足，暫不推薦。` : `BTTS 是機率 ${(v2PBtts*100).toFixed(1)}%。` },
         handicap: { pick: v2HandicapPick, line: v2Handicap?.line ?? null, confidence: v2Handicap ? v2Confidence(v2Handicap.p) : 0, reason: v2Handicap ? `V2比分分布估算 ${v2Handicap.side === "home" ? "主隊" : "客隊"}過盤機率 ${(v2Handicap.p*100).toFixed(1)}%。` : "沒有可用的真實讓分盤口。", market_source: v2Handicap ? "the_odds_api" : null },
       },
       predicted_scores: v2Scores.map(v2FormatScore),
