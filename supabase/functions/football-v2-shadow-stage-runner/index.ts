@@ -176,6 +176,20 @@ function sameTeam(a:unknown,b:unknown){
   const x=normTeam(a),y=normTeam(b);
   return !!x&&!!y&&(x===y||(Math.min(x.length,y.length)>=7&&(x.includes(y)||y.includes(x))));
 }
+// ===== 隊名配對（2026-11-15）：stage-runner 與 match-analysis 共用同一套規則，改動需兩邊同步 =====
+function habaoTeamNorm(x:unknown):string{return String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss').replace(/\bmunchen\b/g,'munich').replace(/\b(football club|futbol club|fc|afc|cf|sc|ac|sv|fk|cd|ud|club|the)\b/g,' ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function habaoTeamStrong(a:unknown,b:unknown):boolean{const x=habaoTeamNorm(a).replace(/ /g,''),y=habaoTeamNorm(b).replace(/ /g,'');return !!x&&!!y&&(x===y||(Math.min(x.length,y.length)>=6&&(x.includes(y)||y.includes(x))));}
+const HABAO_GENERIC_TEAM_WORDS=new Set(['real','united','city','sport','sporting','deportivo','athletic','borussia','dynamo','racing','olympique','stade','town','rovers','wanderers']);
+function habaoTeamLoose(a:unknown,b:unknown):boolean{if(habaoTeamStrong(a,b))return true;const ta=habaoTeamNorm(a).split(' ').filter((t:string)=>t.length>=4&&!HABAO_GENERIC_TEAM_WORDS.has(t)),tb=habaoTeamNorm(b).split(' ').filter((t:string)=>t.length>=4&&!HABAO_GENERIC_TEAM_WORDS.has(t));if(ta.some((t:string)=>tb.includes(t)))return true;return !!ta[0]&&!!tb[0]&&ta[0].slice(0,4)===tb[0].slice(0,4);}
+// 同聯賽、開賽 ±90 分鐘內：兩隊名稱都確定對上優先；否則只在「剛好一場、兩隊都有共同關鍵字且沒有主客顛倒」時採用。
+function habaoPickOddsEvent(events:any,kickoffMs:number,home:unknown,away:unknown):any{
+  const near=(Array.isArray(events)?events:[]).filter((g:any)=>{const t=Date.parse(g?.commence_time);return Number.isFinite(t)&&Number.isFinite(kickoffMs)&&Math.abs(t-kickoffMs)<=90*60*1000;})
+    .sort((a:any,b:any)=>Math.abs(Date.parse(a.commence_time)-kickoffMs)-Math.abs(Date.parse(b.commence_time)-kickoffMs));
+  const both=near.find((g:any)=>habaoTeamStrong(home,g.home_team)&&habaoTeamStrong(away,g.away_team));if(both)return both;
+  // 主客顛倒（我方主隊確定對上對方客隊）一律不採用。
+  const loose=near.filter((g:any)=>!habaoTeamStrong(home,g.away_team)&&!habaoTeamStrong(away,g.home_team)&&habaoTeamLoose(home,g.home_team)&&habaoTeamLoose(away,g.away_team));
+  return loose.length===1?loose[0]:null;
+}
 function consensusAll<T extends Record<string,number>>(rows:T[],lineKey:string,oddsKeys:string[]){
   const groups=new Map<string,T[]>();for(const row of rows){const line=Number(row[lineKey]);if(!Number.isFinite(line))continue;const key=line.toFixed(2);groups.set(key,[...(groups.get(key)||[]),row]);}
   return [...groups.entries()].map(([key,list])=>{
@@ -195,7 +209,7 @@ async function captureStageMarkets(f:Fixture):Promise<Record<string,unknown>>{
     const url=new URL(`https://api.the-odds-api.com/v4/sports/${sport}/odds/`);url.searchParams.set('apiKey',cfg.oddsKey);url.searchParams.set('regions','eu');url.searchParams.set('markets','totals,spreads');url.searchParams.set('oddsFormat','decimal');url.searchParams.set('dateFormat','iso');
     const r=await fetch(url,{signal:AbortSignal.timeout(15000)});if(!r.ok)return {source:'the_odds_api',status:`http_${r.status}`,captured_at:new Date().toISOString()};
     const games=await r.json();if(!Array.isArray(games))return {source:'the_odds_api',status:'invalid_payload',captured_at:new Date().toISOString()};
-    const kickoff=Date.parse(f.fixture.date),game=games.filter((g:any)=>Number.isFinite(Date.parse(g.commence_time))&&Math.abs(Date.parse(g.commence_time)-kickoff)<=90*MINUTE&&sameTeam(f.teams.home.name,g.home_team)&&sameTeam(f.teams.away.name,g.away_team)).sort((a:any,b:any)=>Math.abs(Date.parse(a.commence_time)-kickoff)-Math.abs(Date.parse(b.commence_time)-kickoff))[0];
+    const kickoff=Date.parse(f.fixture.date),game=habaoPickOddsEvent(games,kickoff,f.teams.home.name,f.teams.away.name);
     if(!game)return {source:'the_odds_api',status:'fixture_not_matched',captured_at:new Date().toISOString()};
     const totals:any[]=[],spreads:any[]=[];
     for(const book of game.bookmakers||[])for(const market of book.markets||[]){
@@ -203,7 +217,7 @@ async function captureStageMarkets(f:Fixture):Promise<Record<string,unknown>>{
         const pairs=new Map<number,any>();for(const o of market.outcomes||[]){const line=Number(o.point),price=Number(o.price),name=String(o.name||'').toLowerCase();if(!Number.isFinite(line)||line<0||line>10||!Number.isFinite(price)||price<=1)continue;const pair=pairs.get(line)||{line};if(name==='over')pair.over=price;if(name==='under')pair.under=price;pairs.set(line,pair);}
         for(const pair of pairs.values())if(pair.over&&pair.under)totals.push({...pair,bookmaker:String(book.key||'')});
       }else if(market.key==='spreads'){
-        let home:any=null,away:any=null;for(const o of market.outcomes||[]){const line=Number(o.point),price=Number(o.price);if(!Number.isFinite(line)||Math.abs(line)>10||!Number.isFinite(price)||price<=1)continue;if(sameTeam(o.name,f.teams.home.name))home={line,odds:price};else if(sameTeam(o.name,f.teams.away.name))away={line,odds:price};}
+        let home:any=null,away:any=null;for(const o of market.outcomes||[]){const line=Number(o.point),price=Number(o.price);if(!Number.isFinite(line)||Math.abs(line)>10||!Number.isFinite(price)||price<=1)continue;if(o.name===game.home_team||sameTeam(o.name,f.teams.home.name))home={line,odds:price};else if(o.name===game.away_team||sameTeam(o.name,f.teams.away.name))away={line,odds:price};}
         if(home&&away&&Math.abs(home.line+away.line)<=0.26)spreads.push({home_line:home.line,away_line:away.line,home_odds:home.odds,away_odds:away.odds,bookmaker:String(book.key||'')});
       }
     }

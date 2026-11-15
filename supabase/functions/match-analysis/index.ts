@@ -276,6 +276,20 @@ function habaoTeamMatches(left: string, right: string): boolean {
   return Boolean(a && b && (a === b || (Math.min(a.length,b.length) >= 7 &&
     (a.includes(b) || b.includes(a)))));
 }
+// ===== 隊名配對（2026-11-15）：stage-runner 與 match-analysis 共用同一套規則，改動需兩邊同步 =====
+function habaoTeamNorm(x:unknown):string{return String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss').replace(/\bmunchen\b/g,'munich').replace(/\b(football club|futbol club|fc|afc|cf|sc|ac|sv|fk|cd|ud|club|the)\b/g,' ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function habaoTeamStrong(a:unknown,b:unknown):boolean{const x=habaoTeamNorm(a).replace(/ /g,''),y=habaoTeamNorm(b).replace(/ /g,'');return !!x&&!!y&&(x===y||(Math.min(x.length,y.length)>=6&&(x.includes(y)||y.includes(x))));}
+const HABAO_GENERIC_TEAM_WORDS=new Set(['real','united','city','sport','sporting','deportivo','athletic','borussia','dynamo','racing','olympique','stade','town','rovers','wanderers']);
+function habaoTeamLoose(a:unknown,b:unknown):boolean{if(habaoTeamStrong(a,b))return true;const ta=habaoTeamNorm(a).split(' ').filter((t:string)=>t.length>=4&&!HABAO_GENERIC_TEAM_WORDS.has(t)),tb=habaoTeamNorm(b).split(' ').filter((t:string)=>t.length>=4&&!HABAO_GENERIC_TEAM_WORDS.has(t));if(ta.some((t:string)=>tb.includes(t)))return true;return !!ta[0]&&!!tb[0]&&ta[0].slice(0,4)===tb[0].slice(0,4);}
+// 同聯賽、開賽 ±90 分鐘內：兩隊名稱都確定對上優先；否則只在「剛好一場、兩隊都有共同關鍵字且沒有主客顛倒」時採用。
+function habaoPickOddsEvent(events:any,kickoffMs:number,home:unknown,away:unknown):any{
+  const near=(Array.isArray(events)?events:[]).filter((g:any)=>{const t=Date.parse(g?.commence_time);return Number.isFinite(t)&&Number.isFinite(kickoffMs)&&Math.abs(t-kickoffMs)<=90*60*1000;})
+    .sort((a:any,b:any)=>Math.abs(Date.parse(a.commence_time)-kickoffMs)-Math.abs(Date.parse(b.commence_time)-kickoffMs));
+  const both=near.find((g:any)=>habaoTeamStrong(home,g.home_team)&&habaoTeamStrong(away,g.away_team));if(both)return both;
+  // 主客顛倒（我方主隊確定對上對方客隊）一律不採用。
+  const loose=near.filter((g:any)=>!habaoTeamStrong(home,g.away_team)&&!habaoTeamStrong(away,g.home_team)&&habaoTeamLoose(home,g.home_team)&&habaoTeamLoose(away,g.away_team));
+  return loose.length===1?loose[0]:null;
+}
 async function habaoLoadOddsV4(leagueId: number, kickoff: string, home: string, away: string): Promise<any|null> {
   const sport = HABAO_SOCCER_ODDS_KEYS[Number(leagueId)];
   const key = Deno.env.get("THE_ODDS_API_KEY") || Deno.env.get("ODDS_API_KEY") || "";
@@ -303,13 +317,7 @@ async function habaoLoadOddsV4(leagueId: number, kickoff: string, home: string, 
     } catch(err) { console.warn("HABAO_SOCCER_ODDS_FETCH_ERROR", String(err)); return null; }
   }
   const ms = new Date(kickoff).getTime();
-  const matched = (events as any[]).filter(event => {
-    const ems = new Date(event?.commence_time || "").getTime();
-    return Number.isFinite(ms) && Number.isFinite(ems) &&
-      Math.abs(ems - ms) <= 90 * 60 * 1000 &&
-      habaoTeamMatches(home, event?.home_team) &&
-      habaoTeamMatches(away, event?.away_team);
-  }).sort((a,b) => Math.abs(new Date(a.commence_time).getTime()-ms)-Math.abs(new Date(b.commence_time).getTime()-ms))[0];
+  const matched = habaoPickOddsEvent(events, ms, home, away);
   if (!matched) { console.log("HABAO_SOCCER_ODDS_EVENT_NOT_MATCHED", leagueId, home, away); return null; }
   const normalized = {ok:true,source:"the_odds_api",event_id:matched.id,
     oneXtwo:[] as any[], handicap:[] as any[], totals:[] as any[], btts:[] as any[], bookmakers:[] as any[]};
@@ -325,8 +333,8 @@ async function habaoLoadOddsV4(leagueId: number, kickoff: string, home: string, 
         const price = Number(out.price);
         if(!Number.isFinite(price) || price <= 1) continue;
         const p = out.point === undefined || out.point === null ? null : Number(out.point);
-        const isHome = habaoTeamMatches(home,String(out.name || ""));
-        const isAway = habaoTeamMatches(away,String(out.name || ""));
+        const isHome = out.name === matched.home_team || habaoTeamMatches(home,String(out.name || ""));
+        const isAway = !isHome && (out.name === matched.away_team || habaoTeamMatches(away,String(out.name || "")));
         if (market.key === "h2h") {
           const side = isHome ? "home" : isAway ? "away" : String(out.name).toLowerCase()==="draw"?"draw":"";
           if (!side) continue;
