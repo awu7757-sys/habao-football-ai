@@ -557,9 +557,14 @@ function buildFixedRecommendations(
       awayWinProb,
     );
 
+  // 2026-11-15 規則：2026-11-16 00:00（台灣）起開賽，獨贏正式推薦的信心門檻由 60 提高到 70。
+  // 依據：T-10 公開戰績 122 場，全部 71.3%；信心 ≥70 為 79.2%（72 場），新舊兩段都提升。
+  const moneylineConfidenceMin =
+    Date.parse(String(payload?.fixture?.date || "")) >= Date.parse("2026-11-16T00:00:00+08:00") ? 70 : 60;
+
   const moneylineQualified =
     strongestWinProb >= 55 &&
-    modelConfidence >= 60;
+    modelConfidence >= moneylineConfidenceMin;
 
   const moneyline = {
     pick:
@@ -578,7 +583,7 @@ function buildFixedRecommendations(
         ? "依近期攻守效率、主客場表現、歷史交手、當季數據與最新傷病資訊綜合評估。"
         : strongestWinProb < 55
           ? "預測最高勝率低於 55%，不符合正式獨贏推薦條件。"
-          : "模型信心低於 60，暫不列入正式獨贏推薦。",
+          : `模型信心低於 ${moneylineConfidenceMin}，暫不列入正式獨贏推薦。`,
   };
 
   const fairHomeLine = readLine(model?.fair_spread?.home_line);
