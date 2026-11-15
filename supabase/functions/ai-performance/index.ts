@@ -228,12 +228,16 @@ Deno.serve(async (req) => {
           const money = [{ pick:"主勝", p:home },{ pick:"和局", p:draw },{ pick:"客勝", p:away }].sort((a,b)=>b.p-a.p)[0];
           const market = snapshot.market_context || {};
           // 與 football-v2-stage-member 相同：2026-11-16 起，模型獨贏與莊家熱門（主讓分盤）相反時暫不推薦。
+          const newMarketRules = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00");
           const mainHandicapLine = Number(market?.handicap?.home_line);
           const marketFavorite = Number.isFinite(mainHandicapLine) && mainHandicapLine !== 0 ? (mainHandicapLine < 0 ? "主勝" : "客勝") : null;
-          const moneyAgainstMarket = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00")
+          const moneyAgainstMarket = newMarketRules
             && marketFavorite !== null && money.pick !== "和局" && money.pick !== marketFavorite;
           const totalQuotes = Array.isArray(market.totals) ? market.totals : market.total ? [market.total] : [];
-          const handicapQuotes = Array.isArray(market.handicaps) ? market.handicaps : market.handicap ? [market.handicap] : [];
+          // 與 football-v2-stage-member 相同：11/16 起讓分只用主讓分盤、選過盤機率較高的一方。
+          const handicapQuotes = newMarketRules
+            ? (market.handicap ? [market.handicap] : [])
+            : Array.isArray(market.handicaps) ? market.handicaps : market.handicap ? [market.handicap] : [];
           let totalPick: any = null, handicapPick: any = null;
           const totalOptions = totalQuotes.flatMap((quote: any) => {
             const line = Number(quote?.line), overOdds = Number(quote?.over_odds), underOdds = Number(quote?.under_odds);
@@ -245,7 +249,9 @@ Deno.serve(async (req) => {
           const handicapOptions = handicapQuotes.flatMap((quote: any) => {
             const homeLine = Number(quote?.home_line), awayLine = Number(quote?.away_line), homeOdds = Number(quote?.home_odds), awayOdds = Number(quote?.away_odds);
             if (quote?.home_line==null || quote?.away_line==null || typeof quote.home_line==="boolean" || typeof quote.away_line==="boolean" || String(quote.home_line).trim()==="" || String(quote.away_line).trim()==="" || !Number.isFinite(homeLine) || !Number.isFinite(awayLine) || Math.abs(homeLine+awayLine)>1e-6 || Math.abs(homeLine*4-Math.round(homeLine*4))>1e-6 || !(homeOdds > 1) || !(awayOdds > 1)) return [];
-            const homeEv = expected(scoreGrid,homeLine,"home",homeOdds), awayEv = expected(scoreGrid,awayLine,"away",awayOdds), home = homeEv >= awayEv;
+            const homeEv = expected(scoreGrid,homeLine,"home",homeOdds), awayEv = expected(scoreGrid,awayLine,"away",awayOdds);
+            const homeCover = scoreGrid.filter((x: any) => x.h-x.a+homeLine > 0).reduce((s: number,x: any)=>s+x.p,0), awayCover = scoreGrid.filter((x: any) => x.a-x.h+awayLine > 0).reduce((s: number,x: any)=>s+x.p,0);
+            const home = newMarketRules ? homeCover >= awayCover : homeEv >= awayEv;
             return [{ pick:home ? "主隊" : "客隊", line:home ? homeLine : awayLine, ev:Math.max(homeEv,awayEv) }];
           }).sort((a: any,b: any)=>b.ev-a.ev);
           if (handicapOptions.length) { const best=handicapOptions[0]; handicapPick={pick:best.pick,line:best.line,reason:`比較所選階段所有實際讓分盤線後選出：${best.line}`}; }

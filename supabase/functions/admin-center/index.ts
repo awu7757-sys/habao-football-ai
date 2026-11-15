@@ -1141,9 +1141,10 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
   const money = [{ pick: "主勝", p: home }, { pick: "和局", p: draw }, { pick: "客勝", p: away }].sort((a,b) => b.p-a.p)[0];
   // 2026-11-15 規則：模型獨贏方向與莊家看好的一方（主讓分盤：主隊讓球＝主隊熱門）相反時暫不推薦。
   // 只套用 2026-11-16 00:00（台灣）以後開賽的比賽；讓分盤為 0 或沒有盤口時不判斷。
+  const newMarketRules = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00");
   const mainHandicapLine = Number(context?.handicap?.home_line);
   const marketFavorite = Number.isFinite(mainHandicapLine) && mainHandicapLine !== 0 ? (mainHandicapLine < 0 ? "主勝" : "客勝") : null;
-  const moneyAgainstMarket = Date.parse(String(snapshot.kickoff_at || "")) >= Date.parse("2026-11-16T00:00:00+08:00")
+  const moneyAgainstMarket = newMarketRules
     && marketFavorite !== null && money.pick !== "和局" && money.pick !== marketFavorite;
   const bttsYes = Number(probs.btts), bttsPick = bttsYes >= 0.5;
   const confidence = (p: number) => Math.max(0, Math.min(100, Math.round(p * 100)));
@@ -1160,18 +1161,26 @@ function toAnalysis(snapshot: any, fixture: any, stage: string) {
     const chosen = totalOptions[0]; totalLine = chosen.line; totalPick = chosen.pick; totalConfidence = confidence(chosen.probability);
     totalReason = `比較本階段所有實際大小球盤線與雙邊賠率後，選擇模型期望回報較高的一條：${totalLine}`;
   }
-  const handicapQuotes = Array.isArray(context.handicaps) ? context.handicaps : context.handicap ? [context.handicap] : [];
+  // 2026-11-15 規則（11/16 起開賽）：讓分只用最多莊家開出的主讓分盤，選模型過盤機率較高的一方；
+  // 舊規則是比較所有盤線、取期望回報最高的一條（基準測試 39% → 主盤 47%）。
+  const handicapQuotes = newMarketRules
+    ? (context.handicap ? [context.handicap] : [])
+    : Array.isArray(context.handicaps) ? context.handicaps : context.handicap ? [context.handicap] : [];
   let handicapPick = "暫不推薦", handicapLine: number | null = null, handicapConfidence = 0, handicapReason = "此階段沒有可用的實際讓分盤線";
   const handicapOptions = handicapQuotes.flatMap((quote: any) => {
     const homeLine = Number(quote?.home_line), awayLine = Number(quote?.away_line), homeOdds = Number(quote?.home_odds), awayOdds = Number(quote?.away_odds);
     if (quote?.home_line==null || quote?.away_line==null || typeof quote.home_line==="boolean" || typeof quote.away_line==="boolean" || String(quote.home_line).trim()==="" || String(quote.away_line).trim()==="" || !Number.isFinite(homeLine) || !Number.isFinite(awayLine) || Math.abs(homeLine+awayLine)>1e-6 || Math.abs(homeLine*4-Math.round(homeLine*4))>1e-6 || !(homeOdds > 1) || !(awayOdds > 1)) return [];
-    const homeEv = expectedReturn(grid, homeLine, "home", homeOdds), awayEv = expectedReturn(grid, awayLine, "away", awayOdds), onHome = homeEv >= awayEv;
+    const homeEv = expectedReturn(grid, homeLine, "home", homeOdds), awayEv = expectedReturn(grid, awayLine, "away", awayOdds);
+    const homeCover = grid.filter(x => x.h-x.a+homeLine > 0).reduce((s,x)=>s+x.p,0), awayCover = grid.filter(x => x.a-x.h+awayLine > 0).reduce((s,x)=>s+x.p,0);
+    const onHome = newMarketRules ? homeCover >= awayCover : homeEv >= awayEv;
     const line = onHome ? homeLine : awayLine, probability = grid.filter(x => onHome ? x.h-x.a+homeLine > 0 : x.a-x.h+awayLine > 0).reduce((s,x)=>s+x.p,0);
     return [{ line, pick: onHome ? "主隊" : "客隊", ev: Math.max(homeEv, awayEv), probability }];
   }).sort((a: any,b: any)=>b.ev-a.ev);
   if (handicapOptions.length) {
     const chosen = handicapOptions[0]; handicapLine = chosen.line; handicapPick = chosen.pick; handicapConfidence = confidence(chosen.probability);
-    handicapReason = `比較本階段所有實際讓分盤線與雙邊賠率後，選擇模型期望回報較高的一條：${handicapLine > 0 ? "+" : ""}${handicapLine}`;
+    handicapReason = newMarketRules
+      ? `採用最多莊家開出的主讓分盤 ${handicapLine > 0 ? "+" : ""}${handicapLine}，選模型過盤機率較高的一方`
+      : `比較本階段所有實際讓分盤線與雙邊賠率後，選擇模型期望回報較高的一條：${handicapLine > 0 ? "+" : ""}${handicapLine}`;
   }
   const scoreRows = [...grid].sort((a,b)=>b.p-a.p).slice(0,5).map(x=>({score:`${x.h}-${x.a}`,confidence:confidence(x.p)}));
   const bttsMarket = context.btts || {};

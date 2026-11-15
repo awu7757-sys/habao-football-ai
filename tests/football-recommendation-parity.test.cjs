@@ -103,6 +103,16 @@ console.log(`PASS ${passed} 筆合成快照：會員推薦與公開戰績推薦�
   const s0 = { ...s1, kickoff_at: '2026-11-15T12:00:00Z' };
   assert.equal(memberCtx.toAnalysis(s0, {}, 't2').analysis.recommendations.moneyline.pick, '客勝', '11/16 前維持原規則');
   console.log('PASS 獨贏與莊家熱門相反規則（11/16 起）兩邊一致');
+  // 讓分：11/16 起只用主讓分盤（market_context.handicap），即使其他盤線期望回報更高
+  const s2 = { fixture_id: 1, kickoff_at: '2026-11-16T12:00:00Z', home_xg: 1.4, away_xg: 1.2, probabilities: {}, source_meta: {},
+    market_context: { handicap: { home_line: -0.5, away_line: 0.5, home_odds: 1.9, away_odds: 1.9 },
+      handicaps: [{ home_line: -0.5, away_line: 0.5, home_odds: 1.9, away_odds: 1.9 }, { home_line: 1.5, away_line: -1.5, home_odds: 3.5, away_odds: 1.2 }] } };
+  const mh = memberCtx.toAnalysis(s2, {}, 't15').analysis.recommendations.handicap;
+  assert.equal(Math.abs(mh.line), 0.5, '11/16 後讓分應只用主盤');
+  assert.deepEqual(norm(perfCtx.perfRecommend(s2, { home_score: 1, away_score: 1 }).recommendations).handicap, [mh.pick, mh.line]);
+  const mh0 = memberCtx.toAnalysis({ ...s2, kickoff_at: '2026-11-15T12:00:00Z' }, {}, 't15').analysis.recommendations.handicap;
+  assert.equal(Math.abs(mh0.line), 1.5, '11/16 前維持最高期望回報選盤');
+  console.log('PASS 讓分主盤規則（11/16 起）兩邊一致');
 }
 
 // ---- 後台：admin-center 的逐字複本（2026-11-15）----

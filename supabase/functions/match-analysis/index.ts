@@ -4589,8 +4589,25 @@ head_to_head:
       const line = v2N(q?.line); if (!side || line === null) return null;
       return { q, side, line, p: v2Expected(side, line) };
     }).filter(Boolean) as Array<{q:any;side:"home"|"away";line:number;p:number}>;
-    const v2Handicap = v2HandicapCandidates.sort((a, b) => b.p - a.p)[0];
-    const v2HandicapPick = v2Handicap && v2Handicap.p >= .5 ? (v2Handicap.side === "home" ? "主隊" : "客隊") : "暫不推薦";
+    // 2026-11-15 規則（11/16 00:00 台灣起開賽）：讓分只用最多莊家開出的主讓分盤（以主隊盤線計數，同數取絕對值較小），
+    // 選模型過盤機率較高的一方，不再從所有盤線挑過盤機率最高的一條（那會選到最寬鬆的盤）。T-2／T-15 同規則。
+    const v2NewMarketRules = Date.parse(String(match?.fixture?.date || "")) >= Date.parse("2026-11-16T00:00:00+08:00");
+    const v2MainHomeLine = (() => {
+      const books = new Map<number, Set<string>>();
+      for (const c of v2HandicapCandidates) {
+        const homeLine = c.side === "home" ? c.line : -c.line;
+        if (!books.has(homeLine)) books.set(homeLine, new Set());
+        books.get(homeLine)!.add(String(c.q?.bookmaker || ""));
+      }
+      return [...books.entries()].sort((a, b) => b[1].size - a[1].size || Math.abs(a[0]) - Math.abs(b[0]))[0]?.[0] ?? null;
+    })();
+    const v2Handicap = v2NewMarketRules
+      ? (v2MainHomeLine === null ? undefined : [
+          { q: null, side: "home" as const, line: v2MainHomeLine, p: v2Expected("home", v2MainHomeLine) },
+          { q: null, side: "away" as const, line: -v2MainHomeLine, p: v2Expected("away", -v2MainHomeLine) },
+        ].sort((a, b) => b.p - a.p)[0])
+      : v2HandicapCandidates.sort((a, b) => b.p - a.p)[0];
+    const v2HandicapPick = v2Handicap && (v2NewMarketRules || v2Handicap.p >= .5) ? (v2Handicap.side === "home" ? "主隊" : "客隊") : "暫不推薦";
     const v2Scores = v2Grid.sort((a, b) => b.p - a.p).slice(0, 3);
     const v2FormatScore = (x: {h:number;a:number;p:number}) => ({ score: `${x.h}-${x.a}`, confidence: Math.round(x.p * 100) });
     const v2SourceInfo = {
