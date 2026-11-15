@@ -9200,6 +9200,22 @@ const ANALYSIS_HISTORY_URL =
 const BASKETBALL_ANALYSIS_HISTORY_URL =
   "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-member-analysis-history";
 
+/* 2026-11-15：我的分析讀取加速＋暫時性錯誤重試。
+   以前五支歷史 API 依序等待（足球／NBA → NBA 階段 → MLB → MLB 階段），現在同時發出；
+   全部是唯讀，遇 5xx／429／網路錯誤最多再試 2 次。 */
+async function habaoHistoryFetch(url,options){
+  const delays=[600,1500];
+  for(let attempt=0;;attempt++){
+    try{
+      const response=await fetch(url,options);
+      if((response.status>=500||response.status===429)&&attempt<delays.length){await new Promise(r=>setTimeout(r,delays[attempt]));continue;}
+      return response;
+    }catch(error){
+      if(attempt>=delays.length)throw error;
+      await new Promise(r=>setTimeout(r,delays[attempt]));
+    }
+  }
+}
 async function openAnalysisHistory() {
   try {
     document
@@ -9227,6 +9243,60 @@ async function openAnalysisHistory() {
       return;
     }
 
+// 先同時啟動 NBA 階段與 MLB 紀錄讀取，不必等足球／NBA T-10 回來
+const nbaStageHistoryPromise=(async()=>{
+  try{
+    if(!window.habaoNbaStages?.history)throw new Error("NBA 階段功能尚未載入，請重新整理後再試");
+    return {matches:await window.habaoNbaStages.history()};
+  }catch(error){return {error};}
+})();
+// Load real MLB member records (game_id is not the football history id).
+const baseballMatchesPromise = (async () => {
+  window.habaoBaseballHistoryLoadError="";
+  try{
+    const session=(await supabaseAuth.auth.getSession()).data?.session;
+    if(!session?.access_token)throw new Error("請先重新登入會員");
+    const [response,stageResponse]=await Promise.all([
+      habaoHistoryFetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis-history",{
+        method:"GET",cache:"no-store",
+        headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
+      }),
+      habaoHistoryFetch(SUPABASE_URL+"/functions/v1/baseball-v2-stage-member",{method:"POST",headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify({action:"history",account:member.account})})
+    ]);
+    const data=await response.json();
+    if(!response.ok||data?.success!==true||!Array.isArray(data.matches))
+      throw new Error(data?.error||"MLB 歷史紀錄 API 未正常回傳");
+    const stagePacket=await stageResponse.json();
+    if(!stageResponse.ok||stagePacket.success!==true)throw new Error("MLB 階段紀錄未就緒");
+    return [...data.matches,...(stagePacket.matches||[])].map(match=>{
+      const gameId=match?.game_id??match?.fixture_id??match?.game?.id??match?.snapshot?.game_id??match?.id;
+      if(!Number.isSafeInteger(Number(gameId))||Number(gameId)<=0)return null;
+      const rawKey=String(match?.history_key||(
+        "baseball:"+String(gameId)+":"+String(match?.id??match?.snapshot_id??"official")
+      ));
+      const home=match?.home_team??match?.home?.name??match?.fixture?.home?.name??"";
+      const away=match?.away_team??match?.away?.name??match?.fixture?.away?.name??"";
+      const logo=side=>{
+        const id=Number(match?.[side+"_id"]??match?.[side+"_team_id"]??match?.[side]?.id);
+        return Number.isSafeInteger(id)&&id>0?"https://www.mlbstatic.com/team-logos/"+id+".svg":"";
+      };
+      return {...match,sport:"baseball",
+        game_id:Number(gameId),id:match?.id??gameId,
+        history_key:rawKey.startsWith("baseball:")?rawKey:"baseball:"+rawKey,
+        league_name:"MLB",
+        fixture_time:match?.fixture_time??match?.kickoff_at??match?.game_date??match?.fixture?.kickoff_at??null,
+        home_team:typeof home==="object"?(home?.name||""):home,
+        away_team:typeof away==="object"?(away?.name||""):away,
+        home_logo:match?.home_logo??match?.home?.logo??logo("home"),
+        away_logo:match?.away_logo??match?.away?.logo??logo("away")
+      };
+    }).filter(Boolean);
+  }catch(error){
+    console.warn("MLB history loading failed",error);
+    window.habaoBaseballHistoryLoadError=String(error?.message||"MLB 歷史紀錄讀取失敗");
+    return [];
+  }
+})();
 const historyHeaders = await footballV2StageHeaders();
 
 const historyQuery =
@@ -9239,7 +9309,7 @@ const [
   footballResponse,
   basketballResponse
 ] = await Promise.all([
-  fetch(
+  habaoHistoryFetch(
     ANALYSIS_HISTORY_URL +
       historyQuery,
     {
@@ -9248,7 +9318,7 @@ const [
         historyHeaders
     }
   ),
-  fetch(
+  habaoHistoryFetch(
     BASKETBALL_ANALYSIS_HISTORY_URL +
       historyQuery,
     {
@@ -9328,57 +9398,13 @@ const basketballMatches =
 
 // Add isolated claimed NBA stages without replacing official T-10 history rows.
 window.habaoNbaStageHistoryError=false;
-try {
-  if(!window.habaoNbaStages?.history)throw new Error("NBA 階段功能尚未載入，請重新整理後再試");
-  const stageMatches=await window.habaoNbaStages?.history();
-  if(Array.isArray(stageMatches))basketballMatches.push(...stageMatches);
-} catch(error) { window.habaoNbaStageHistoryError=true;console.warn('NBA_STAGE_HISTORY_UNAVAILABLE',error?.message||error); }
+{
+  const nbaStage=await nbaStageHistoryPromise;
+  if(nbaStage.error){window.habaoNbaStageHistoryError=true;console.warn('NBA_STAGE_HISTORY_UNAVAILABLE',nbaStage.error?.message||nbaStage.error);}
+  else if(Array.isArray(nbaStage.matches))basketballMatches.push(...nbaStage.matches);
+}
 
-// Load real MLB member records (game_id is not the football history id).
-const baseballMatches = await (async () => {
-  window.habaoBaseballHistoryLoadError="";
-  try{
-    const session=(await supabaseAuth.auth.getSession()).data?.session;
-    if(!session?.access_token)throw new Error("請先重新登入會員");
-    const response=await fetch(SUPABASE_URL+"/functions/v1/baseball-member-analysis-history",{
-      method:"GET",cache:"no-store",
-      headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token}
-    });
-    const data=await response.json();
-    if(!response.ok||data?.success!==true||!Array.isArray(data.matches))
-      throw new Error(data?.error||"MLB 歷史紀錄 API 未正常回傳");
-    const stageResponse=await fetch(SUPABASE_URL+"/functions/v1/baseball-v2-stage-member",{method:"POST",headers:{apikey:FIXTURES_PUBLISHABLE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify({action:"history",account:member.account})});
-    const stagePacket=await stageResponse.json();
-    if(!stageResponse.ok||stagePacket.success!==true)throw new Error("MLB 階段紀錄未就緒");
-    return [...data.matches,...(stagePacket.matches||[])].map(match=>{
-      const gameId=match?.game_id??match?.fixture_id??match?.game?.id??match?.snapshot?.game_id??match?.id;
-      if(!Number.isSafeInteger(Number(gameId))||Number(gameId)<=0)return null;
-      const rawKey=String(match?.history_key||(
-        "baseball:"+String(gameId)+":"+String(match?.id??match?.snapshot_id??"official")
-      ));
-      const home=match?.home_team??match?.home?.name??match?.fixture?.home?.name??"";
-      const away=match?.away_team??match?.away?.name??match?.fixture?.away?.name??"";
-      const logo=side=>{
-        const id=Number(match?.[side+"_id"]??match?.[side+"_team_id"]??match?.[side]?.id);
-        return Number.isSafeInteger(id)&&id>0?"https://www.mlbstatic.com/team-logos/"+id+".svg":"";
-      };
-      return {...match,sport:"baseball",
-        game_id:Number(gameId),id:match?.id??gameId,
-        history_key:rawKey.startsWith("baseball:")?rawKey:"baseball:"+rawKey,
-        league_name:"MLB",
-        fixture_time:match?.fixture_time??match?.kickoff_at??match?.game_date??match?.fixture?.kickoff_at??null,
-        home_team:typeof home==="object"?(home?.name||""):home,
-        away_team:typeof away==="object"?(away?.name||""):away,
-        home_logo:match?.home_logo??match?.home?.logo??logo("home"),
-        away_logo:match?.away_logo??match?.away?.logo??logo("away")
-      };
-    }).filter(Boolean);
-  }catch(error){
-    console.warn("MLB history loading failed",error);
-    window.habaoBaseballHistoryLoadError=String(error?.message||"MLB 歷史紀錄讀取失敗");
-    return [];
-  }
-})();
+const baseballMatches = await baseballMatchesPromise;
 const allMatches =
   [
     ...footballMatches,
