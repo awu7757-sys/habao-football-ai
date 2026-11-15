@@ -1049,6 +1049,46 @@ function adminProfileResponse(
   };
 }
 
+/*
+ * 2026-11-15：API-Football 真實用量。
+ * 原本「今日使用量」只計算 api_usage（只有 tomorrow-fixtures 寫入），漏掉分析／特徵／階段擷取等呼叫，
+ * 且以台灣午夜換日，與供應商 00:00 UTC（台灣 08:00）歸零不一致。
+ * 改讀 API-Sports /status：官方說明此呼叫不計入每日額度，回傳今日已用、每日上限與方案到期日。
+ * 取得失敗時回傳 null，前台顯示「—」，不製造假數字。
+ */
+async function fetchFootballProviderStatus() {
+  const key = String(Deno.env.get("API_FOOTBALL_KEY") || "").trim();
+  const empty = { used: null, limit: null, remaining: null, plan: null, end: null, active: null, fetched_at: null };
+  if (!key) return { ...empty, error: "API_FOOTBALL_KEY missing" };
+  try {
+    const response = await fetch("https://v3.football.api-sports.io/status", {
+      method: "GET",
+      headers: { "x-apisports-key": key },
+      signal: AbortSignal.timeout(8000),
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(`API-Football status HTTP ${response.status}`);
+    const provider = Array.isArray(body?.response) ? body.response[0] : body?.response;
+    const used = Number(provider?.requests?.current);
+    const limit = Number(provider?.requests?.limit_day);
+    if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) {
+      throw new Error("API-Football status missing requests.current / requests.limit_day");
+    }
+    return {
+      used: Math.max(0, used),
+      limit,
+      remaining: Math.max(0, limit - used),
+      plan: provider?.subscription?.plan ?? null,
+      end: provider?.subscription?.end ?? null,
+      active: provider?.subscription?.active ?? null,
+      fetched_at: new Date().toISOString(),
+      error: null,
+    };
+  } catch (error) {
+    return { ...empty, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 Deno.serve(async (req) => {
 
   if (req.method === "OPTIONS") {
@@ -2332,6 +2372,10 @@ Deno.serve(async (req) => {
           today_api_count:
 
             apiToday.count,
+
+          football_provider:
+
+            await fetchFootballProviderStatus(),
 
           last_7_days_api_count:
 
@@ -4162,10 +4206,11 @@ const usageSnapshot =
     : null;
 
 return json({
-  success: true,
-  days,
-  sources,
-  usage_snapshot: usageSnapshot,
+ success: true,
+ days,
+ sources,
+ usage_snapshot: usageSnapshot,
+ football_provider: await fetchFootballProviderStatus(),
 });
 
     }

@@ -2498,6 +2498,19 @@ let nbaFixtureCacheRows = [];
 let nbaFixtureStats = {};
 let nbaFixtureDates = {};
 let nbaProviderUsage = {};
+/* 2026-11-15：API-Football 改用供應商 /status 真實用量（admin-center 回傳 football_provider），
+   取不到才退回舊的系統紀錄計數；三張卡片都標示資料時間。 */
+let footballProviderUsage = null;
+function footballProviderStatus(){
+  const fromOverview=adminOverview?.football_provider;
+  const p=(fromOverview&&fromOverview.used!=null)?fromOverview:footballProviderUsage;
+  return p&&p.used!=null&&Number(p.limit)>0?p:null;
+}
+function adminFetchedTag(iso){
+  const t=Date.parse(String(iso||""));
+  if(!Number.isFinite(t))return "";
+  return " · "+new Date(t).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})+" 更新";
+}
 let oddsProviderUsage = {};
 let performanceSnapshots = [];
 let partnerPlatforms = [];
@@ -2961,24 +2974,26 @@ function renderDashboard() {
   const nbaTodayAnalysis=Number(nbaAdminOverview?.today_analysis_usage||0);
   setText("dashTodayAnalysis",footballTodayAnalysis+nbaTodayAnalysis+(mlbAdminLogsAvailable?mlbTodayMemberFirstClaims:0));
 
-  const apiLimit=Number(window.apiDailyLimit||7500);
-  const apiUsed=Number.isFinite(Number(adminOverview?.today_api_count))?Number(adminOverview.today_api_count):dashboardData.todayApiCount;
+  const fbProvider=footballProviderStatus();
+  const apiLimit=fbProvider?Number(fbProvider.limit):Number(window.apiDailyLimit||7500);
+  const apiUsed=fbProvider?Number(fbProvider.used):(Number.isFinite(Number(adminOverview?.today_api_count))?Number(adminOverview.today_api_count):dashboardData.todayApiCount);
   const avgApi=Math.ceil((Number.isFinite(Number(adminOverview?.last_7_days_api_count))?Number(adminOverview.last_7_days_api_count):dashboardData.last7DaysApiCount)/7);
-  setText("dashTodayApi",`${apiUsed} / ${apiLimit}`);setText("dashAvgApi",String(avgApi));setText("dashAvgApiNote",`平均剩餘 ${Math.max(apiLimit-avgApi,0)} 次`);
-  setText("dashRenewalDate",window.apiRenewalDate?String(window.apiRenewalDate).replace(/-/g,"/"):"—");setText("dashRenewalDays",calculateRenewalDays(window.apiRenewalDate).text);
-  setText("dashApiProgressText",`${apiUsed} / ${apiLimit}`);setText("dashApiRemaining",`剩餘 ${Math.max(apiLimit-apiUsed,0)}`);setAdminProgressBar("dashApiProgress",apiLimit>0?apiUsed/apiLimit*100:0);
+  const fbRenewal=fbProvider?.end||window.apiRenewalDate;
+  setText("dashTodayApi",`${apiUsed} / ${apiLimit}`);setText("dashAvgApi",fbProvider?"—":String(avgApi));setText("dashAvgApiNote",fbProvider?"供應商只提供當日用量":`平均剩餘 ${Math.max(apiLimit-avgApi,0)} 次`);
+  setText("dashRenewalDate",fbRenewal?String(fbRenewal).slice(0,10).replace(/-/g,"/"):"—");setText("dashRenewalDays",calculateRenewalDays(fbRenewal?String(fbRenewal).slice(0,10):null).text+(fbProvider?.end?"（供應商）":""));
+  setText("dashApiProgressText",`${apiUsed} / ${apiLimit}`);setText("dashApiRemaining",`剩餘 ${Math.max(apiLimit-apiUsed,0)}`+(fbProvider?adminFetchedTag(fbProvider.fetched_at):"（系統紀錄，非供應商數字）"));setAdminProgressBar("dashApiProgress",apiLimit>0?apiUsed/apiLimit*100:0);
 
   const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500);
   const nbaUsed=adminNullableNumber(nbaProviderUsage?.used),nbaRemain=adminNullableNumber(nbaProviderUsage?.remaining),nbaAvg=adminNullableNumber(nbaProviderUsage?.average_7d);
   const nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
   setText("dashNbaTodayApi",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);
-  setText("dashNbaApiProgressText",nbaUsed===null?"等待配額快照":`${nbaUsed} / ${nbaLimit}`);setText("dashNbaApiRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain}`);
+  setText("dashNbaApiProgressText",nbaUsed===null?"等待配額快照":`${nbaUsed} / ${nbaLimit}`);setText("dashNbaApiRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain}`+adminFetchedTag(nbaProviderUsage?.last_provider_snapshot));
   setText("dashNbaAvgApi",nbaAvg===null?"—":String(nbaAvg));setText("dashNbaAvgApiNote",nbaAvg===null?"依供應商配額快照":`平均剩餘 ${Math.max(nbaLimit-nbaAvg,0)} 次`);
   setText("dashNbaRenewalDate",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("dashNbaRenewalDays",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("dashNbaApiProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
   const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000);
   const oddsUsed=adminNullableNumber(oddsProviderUsage?.used),oddsRemain=adminNullableNumber(oddsProviderUsage?.remaining),oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
-  setText("dashOddsUsage",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("dashOddsProgressText",oddsUsed===null?"等待市場快照":`${oddsUsed} / ${oddsLimit}`);setText("dashOddsRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain}`);
+  setText("dashOddsUsage",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("dashOddsProgressText",oddsUsed===null?"等待市場快照":`${oddsUsed} / ${oddsLimit}`);setText("dashOddsRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain}`+adminFetchedTag(oddsProviderUsage?.fetched_at));
   setText("dashOddsLastCost",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("dashOddsEvents",oddsProviderUsage?.events==null?"—":`目前快取 ${Number(oddsProviderUsage.events||0)} 場`);
   setText("dashOddsRenewalDate",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("dashOddsRenewalDays",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("dashOddsProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
 }
@@ -4293,16 +4308,18 @@ async function probeMlbStatsApi(showAlert=false){
 }
 
 function renderApiPage() {
-  const apiLimit=Number(window.apiDailyLimit||7500),apiUsed=Number(dashboardData.todayApiCount||0),avg=Math.ceil(Number(dashboardData.last7DaysApiCount||0)/7),remaining=Math.max(apiLimit-apiUsed,0),percent=apiLimit>0?Math.min(apiUsed/apiLimit*100,100):0;
-  setText("apiTodayBig",`${apiUsed} / ${apiLimit}`);setText("apiAvgText",avg);setText("apiAvgRemainingText",`平均剩餘 ${Math.max(apiLimit-avg,0)}`);setText("apiRenewalText",window.apiRenewalDate?String(window.apiRenewalDate).replace(/-/g,"/"):"—");setText("apiRenewalDaysText",calculateRenewalDays(window.apiRenewalDate).text);setText("apiPagePercent",`${percent.toFixed(1)}%`);setText("apiPageRemaining",`剩餘 ${remaining} 次`);setAdminProgressBar("apiPageProgress",percent);
+  const fbP=footballProviderStatus();
+  const apiLimit=fbP?Number(fbP.limit):Number(window.apiDailyLimit||7500),apiUsed=fbP?Number(fbP.used):Number(dashboardData.todayApiCount||0),avg=Math.ceil(Number(dashboardData.last7DaysApiCount||0)/7),remaining=Math.max(apiLimit-apiUsed,0),percent=apiLimit>0?Math.min(apiUsed/apiLimit*100,100):0;
+  const fbRenew=fbP?.end?String(fbP.end).slice(0,10):window.apiRenewalDate;
+  setText("apiTodayBig",`${apiUsed} / ${apiLimit}`);setText("apiAvgText",fbP?"—":avg);setText("apiAvgRemainingText",fbP?"供應商只提供當日用量":`平均剩餘 ${Math.max(apiLimit-avg,0)}`);setText("apiRenewalText",fbRenew?String(fbRenew).replace(/-/g,"/"):"—");setText("apiRenewalDaysText",calculateRenewalDays(fbRenew).text+(fbP?.end?"（供應商）":""));setText("apiPagePercent",`${percent.toFixed(1)}%`);setText("apiPageRemaining",`剩餘 ${remaining} 次`+(fbP?adminFetchedTag(fbP.fetched_at):"（系統紀錄，非供應商數字）"));setAdminProgressBar("apiPageProgress",percent);
 
   const nbaLimit=Number(nbaProviderUsage?.daily_limit||window.nbaApiDailyLimit||7500),nbaUsed=adminNullableNumber(nbaProviderUsage?.used),nbaRemain=adminNullableNumber(nbaProviderUsage?.remaining),nbaAvg=adminNullableNumber(nbaProviderUsage?.average_7d),nbaRenewal=nbaProviderUsage?.renewal_date||window.nbaApiRenewalDate;
-  setText("nbaApiTodayBig",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);setText("nbaApiPagePercent",nbaUsed===null||nbaLimit<=0?"—":`${(nbaUsed/nbaLimit*100).toFixed(1)}%`);setText("nbaApiPageRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain} 次`);setText("nbaApiAvgText",nbaAvg===null?"—":nbaAvg);setText("nbaApiDailyLimitText",`每日上限 ${nbaLimit.toLocaleString("en-US")}`);setText("nbaApiRenewalText",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("nbaApiRenewalDaysText",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("nbaApiPageProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
+  setText("nbaApiTodayBig",nbaUsed===null?`— / ${nbaLimit.toLocaleString("en-US")}`:`${nbaUsed} / ${nbaLimit}`);setText("nbaApiPagePercent",nbaUsed===null||nbaLimit<=0?"—":`${(nbaUsed/nbaLimit*100).toFixed(1)}%`);setText("nbaApiPageRemaining",nbaRemain===null?"—":`剩餘 ${nbaRemain} 次`+adminFetchedTag(nbaProviderUsage?.last_provider_snapshot));setText("nbaApiAvgText",nbaAvg===null?"—":nbaAvg);setText("nbaApiDailyLimitText",`每日上限 ${nbaLimit.toLocaleString("en-US")}`);setText("nbaApiRenewalText",nbaRenewal?String(nbaRenewal).replace(/-/g,"/"):"—");setText("nbaApiRenewalDaysText",calculateRenewalDays(nbaRenewal).text);setAdminProgressBar("nbaApiPageProgress",nbaUsed===null||nbaLimit<=0?0:nbaUsed/nbaLimit*100);
 
   const oddsLimit=Number(oddsProviderUsage?.monthly_limit||window.oddsApiMonthlyLimit||20000),oddsUsed=adminNullableNumber(oddsProviderUsage?.used),oddsRemain=adminNullableNumber(oddsProviderUsage?.remaining),oddsRenewal=oddsProviderUsage?.renewal_date||window.oddsApiRenewalDate;
-  setText("oddsApiTodayBig",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("oddsApiPagePercent",oddsUsed===null||oddsLimit<=0?"—":`${(oddsUsed/oddsLimit*100).toFixed(1)}%`);setText("oddsApiPageRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain} credits`);setText("oddsApiLastCostText",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("oddsApiEventsText",oddsProviderUsage?.events==null?"—":`快取 ${Number(oddsProviderUsage.events||0)} 場`);setText("oddsApiRenewalText",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("oddsApiRenewalDaysText",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("oddsApiPageProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
+  setText("oddsApiTodayBig",oddsUsed===null?`— / ${oddsLimit.toLocaleString("en-US")}`:`${oddsUsed} / ${oddsLimit}`);setText("oddsApiPagePercent",oddsUsed===null||oddsLimit<=0?"—":`${(oddsUsed/oddsLimit*100).toFixed(1)}%`);setText("oddsApiPageRemaining",oddsRemain===null?"—":`剩餘 ${oddsRemain} credits`+adminFetchedTag(oddsProviderUsage?.fetched_at));setText("oddsApiLastCostText",oddsProviderUsage?.last_cost==null?"—":`${oddsProviderUsage.last_cost} credits`);setText("oddsApiEventsText",oddsProviderUsage?.events==null?"—":`快取 ${Number(oddsProviderUsage.events||0)} 場`);setText("oddsApiRenewalText",oddsRenewal?String(oddsRenewal).replace(/-/g,"/"):"—");setText("oddsApiRenewalDaysText",calculateRenewalDays(oddsRenewal).text);setAdminProgressBar("oddsApiPageProgress",oddsUsed===null||oddsLimit<=0?0:oddsUsed/oddsLimit*100);
 
-  setText("renewalSummaryFootball",window.apiRenewalDate?`${String(window.apiRenewalDate).replace(/-/g,"/")}｜${calculateRenewalDays(window.apiRenewalDate).text}`:"—");setText("renewalSummaryNba",nbaRenewal?`${String(nbaRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(nbaRenewal).text}`:"—");setText("renewalSummaryOdds",oddsRenewal?`${String(oddsRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(oddsRenewal).text}`:"—");
+  setText("renewalSummaryFootball",fbRenew?`${String(fbRenew).replace(/-/g,"/")}｜${calculateRenewalDays(fbRenew).text}`:"—");setText("renewalSummaryNba",nbaRenewal?`${String(nbaRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(nbaRenewal).text}`:"—");setText("renewalSummaryOdds",oddsRenewal?`${String(oddsRenewal).replace(/-/g,"/")}｜${calculateRenewalDays(oddsRenewal).text}`:"—");
 }
 
 /* =========================
@@ -6452,6 +6469,7 @@ async function loadApiStats(force = false) {
 
 apiStatsPayload =
   data;
+footballProviderUsage = data?.football_provider || null;
 
 const apiDays =
   Array.isArray(data?.days)
