@@ -492,6 +492,7 @@ DRtg = 由對手得分效率建立
 5a. 【2026-11-15】後台 API 用量卡片：
    - API-Football「今日使用量」原本只計算 `api_usage`（僅 `tomorrow-fixtures` 寫入）且以台灣午夜換日，嚴重少算。改由 `admin-center` 的 `fetchFootballProviderStatus()` 讀 API-Sports `https://v3.football.api-sports.io/status`（不計額度），`api_stats` 與 `overview` 都回傳 `football_provider`；`admin.html` 優先使用，取不到才退回舊計數並標示「系統紀錄，非供應商數字」。到期日優先用供應商 `subscription.end`。近 7 天平均改顯示「—」（供應商只提供當日）。
    - API-NBA 原本即由 `admin-basketball` 讀 `v2.nba.api-sports.io/status`（真實數字）；The Odds 為最後一次賠率呼叫回傳的 used／remaining。三張卡片都加註資料時間。
+   - 2026-11-15 08:41 使用者部署後驗收：API-Football 33／7500（供應商，到期 2026-11-30）、API-NBA 91／7500（08:00 已歸零；先前看到的 383 是頁面未重新整理的前一日數字）、The Odds 962／20000（資料時間 11-14 23:00）。The Odds 的數字只在特定賠率快取更新時才刷新，其他模組呼叫不會更新它，可能落後最多約一天。
    - API-Sports 每日額度 7,500 於 00:00 UTC（台灣 08:00）歸零；The Odds 每月額度於供應商帳單週期換月時歸零。「確認已續費」只改追蹤日期，不會也不應把用量歸零。
 6. 「確認已續費」只是手動追蹤，提示為今天＋一個月，不是付款也不是供應商到期日同步。跨日重按可能算錯追蹤日期；之後可改成明確輸入實際到期日，但需另獲授權。
 7. 檢查各 history API 回傳上限／可見期間，避免首頁已分析只加總被截斷集合；現行程式若缺場次 ID 會顯示失敗，不猜測資料庫 row ID 是 game ID。
