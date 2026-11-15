@@ -343,6 +343,7 @@ DRtg = 由對手得分效率建立
 - `habao-loading.js`（全站共用，版本參數改 `?v=2`）：延遲 230→120 ms；提示膠囊加大（14px、金框）並移到底部導覽列上方；新增頁面頂端金色進度條。
 - `analysis.html`／`mlb-analysis.html`：恢復足球 BTTS 卡片（11-13 `dc8991a` 三球類統一時被刪；使用者確認只有預測比分不顯示，BTTS 要顯示）。兩檔維持完全相同。
 - 結果頁返回：從「我的分析」點開的結果，左上角顯示「我的分析」，回到 `football.html?view=history&history_sport=<球類>` 同一球類分頁；從賽事中心分析（單場／批次）維持「賽事中心」。來源以 `sessionStorage.habao_analysis_return` 標記（`sports-stages.js` 的 `viewHistory` 設定、`open`／`batch` 清除）。`sports-stages.js` 版本參數改 `?v=20261115`。
+- **三球類共用同一套模板（使用者確認為長期規則）**：賽事卡片按鈕／顏色／補領／批次勾選由 `sports-stages.js`（configs：football、basketball、baseball）統一產生，足球舊的 `renderFootballV2StageButton` 已被覆蓋為空函式；時段判斷用 `sports-stage-core.js`；結果頁 `analysis.html`（`mlb-analysis.html` 必須與其完全相同）；我的分析 `renderHistory`。日後 T-10／T-2／T-15 的任何顯示修改都改這幾個共用檔，不要在單一球類頁面分叉。
 - 【使用者決策 2026-11-15】賽事卡片上「重看 T-x 分析」批次勾選移除：本階段已領取時隱藏批次勾選，重看一律到「我的分析」（`sports-stages.js`，版本 `?v=20261115b`）。補領按鈕保留。`deploy/nba-stages-20261113/stage-batch-tests.cjs` 修改前後皆 14 過 9 失敗（舊測試，待整理）。
 - 「補領 T-10／T-2」按鈕：是在後段時間領取**尚未領過**的前一階段快照（首次會扣 1 點），不是重看；已領過的階段不會出現補領，重看一律在「我的分析」。
 - `football.html`「我的分析」：預設分頁為當下所在球類（原本即如此）。五支歷史 API 原本依序等待，改為同時發出；改用 `habaoHistoryFetch` 對 5xx／429／網路錯誤最多重試 2 次。
