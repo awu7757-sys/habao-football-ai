@@ -441,11 +441,19 @@ DRtg = 由對手得分效率建立
 | 3 | 足球 T-10 補抓佇列「開賽仍無快照」(expired) 是否歸零 | 數天後跑 `08_snapshot_timeliness_readonly.sql` | 新賽事 expired 接近 0 |
 | 4 | feature runner 10 小時內補救是否生效 | 遇到晚出現的賽事時看 `match-analysis` 日誌 | 不再出現 `FOOTBALL_V2_FEATURE_SNAPSHOT_MISSING` |
 | 5 | NBA 賽程 103 場 vs T-10 100 場，差 3 場的原因 | 查 `basketball_fixture_cache` 與 `basketball_prediction_snapshots` 差集 | 應為延賽／非正式賽 |
-| 6 | 舊管理密碼後門開關是否被其他後台函式採用 | 匯出 `admin-benefits`、`admin-basketball`、`admin-baseball` 等原始碼後檢查 `ADMIN_LEGACY_PASSWORD_FALLBACK` | 都讀同一開關 |
+| 6 | 舊管理密碼後門開關是否被其他後台函式採用 | 11-15 已查：`admin-basketball` 讀同一開關、`admin-baseball` 只用 admin-center 登入（無密碼路徑）；剩 `admin-benefits` 等未匯出者待查 | 都讀同一開關 |
 | 7 | 新會員首次 LINE 註冊（送 3 點、登入禮、加好友開關） | 有從未登入過的 LINE 帳號時實測 | 正常註冊並出現加好友開關 |
 | 8 | Log Query 用量偏高（2.5 天 26.9／100 GB） | 下週看 Usage | 回落；若持續偏高需找查詢來源 |
 | 9 | `usage-snapshot` 記錄的 edge_function_used、egress 為 0（不準） | 匯出 `usage-snapshot` 原始碼檢查 | 修正或改以後台為準 |
 | 10 | 11-13 疑似第 3 點扣點 | 匯出 `basketball-member-analysis` 檢查 T-10 重看是否重扣 | 使用者決定暫緩 |
+| 11 | 足球新規則（獨贏與熱門相反不推、讓分主盤、BTTS 58%）是否生效 | 11-16 起抽查足球 T-10／T-2／T-15 分析結果與原因文字 | 出現「模型方向與莊家看好的一方相反」「採用最多莊家開出的主讓分盤」「把握不足」 |
+| 12 | NBA T-10 獨贏門檻 70 是否生效 | 11-16 起抽查 NBA 分析 | 信心 60～69 的場次顯示「模型信心低於 70」 |
+| 13 | `public-prediction-runner` 只收 12 聯賽 | 聯賽恢復後看該函式 Logs 中 `mode:"normal"` 的 `skipped_non_public_league`、`unknown_league_id` | 有跳過數；unknown 接近 0 |
+| 14 | 賠率隊名配對改良後 `fixture_not_matched` 是否下降 | 數天後重跑 `deploy/analysis-20261115/03_football_stage_export_readonly.sql`，看 market_context.status | 由約 20% 明顯下降 |
+| 15 | MLB 公開戰績排除／刪除 | MLB 有實場或需要時實測一筆排除再恢復 | 前台公開戰績同步消失／恢復；刪除後不會被 30 分鐘補驗證補回 |
+| 16 | 只領 T-2／T-15 的會員收得到 NBA／MLB 比分推播 | 下次手動開啟某場推播時實測 | 會收到 |
+| 17 | 新規則前後命中率比較、市場融合研究樣本外結果、是否改公開 T-15 | 11-30 重跑 `deploy/analysis-20261115/01`、`03`，看後台研究表「樣本外」 | 規則有效則保留；研究版本需不同賽事約 200 場才考慮正式化 |
+| 18 | API-Football 方案到期 | **11-30 前續費** | 續費完成 |
 
 ### 6.2d 2026-11-15 單場核對：巴甲 1492312（沙佩科恩斯 vs 瓦斯科達伽馬）
 
