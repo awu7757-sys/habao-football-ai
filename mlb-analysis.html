@@ -3085,6 +3085,7 @@ const analysisTranslations = {
     noRecommendation: "暫不推薦",
     insufficientData: "資料不足",
     aiConfidence: "AI 信心",
+    stageProbability: "模型機率",
     marketLine: "盤口",
 
     betNow: "立即投注 →",
@@ -3141,6 +3142,7 @@ const analysisTranslations = {
     noRecommendation: "暂不推荐",
     insufficientData: "资料不足",
     aiConfidence: "AI 信心",
+    stageProbability: "模型概率",
     marketLine: "盘口",
 
     betNow: "立即投注 →",
@@ -3197,6 +3199,7 @@ const analysisTranslations = {
     noRecommendation: "No Recommendation",
     insufficientData: "Insufficient data",
     aiConfidence: "AI Confidence",
+    stageProbability: "Model Probability",
     marketLine: "Line",
 
     betNow: "Bet Now →",
@@ -4206,7 +4209,16 @@ const timeText = gameDate
 };
 
     const noMarketRecommendation=r=>(!r?.pick||["暫不推薦","暂不推荐","No Recommendation","no recommendation"].includes(String(r.pick).trim()));
-    const recommendationConfidenceHtml=r=>noMarketRecommendation(r)?(/優勢|門檻/.test(r.reason||"")?"模型優勢不足":"未提供推薦"):(r.confidence==null?"未提供信心值":`${analysisT("aiConfidence", "AI 信心")} ${r.confidence}% ${confidenceFire(r.confidence,r.pick)}`);
+    // 2026-11-16：足球／NBA 的 T-2／T-15 顯示的數字是「模型機率」，T-10 是綜合「AI 信心」分數，兩者不可直接比較，標籤分開。
+    const stageSport=String(data?.fixture?.sport||data?.sport||new URLSearchParams(window.HabaoPageRuntime.search()).get("sport")||"").toLowerCase();
+    const confidenceLabel=(["t2","t15"].includes(String(data?.v2_stage||""))&&stageSport!=="baseball")?analysisT("stageProbability","模型機率"):analysisT("aiConfidence","AI 信心");
+    // 暫不推薦的原因標籤：依後端 reason 文字分類（2026-11-16 補上信心門檻、與莊家方向相反、缺盤口）。
+    const noPickReasonLabel=r=>{const x=String(r?.reason||"");
+      if(/相反/.test(x))return "與莊家方向相反";
+      if(/優勢|門檻|信心低於|把握不足/.test(x))return "模型優勢不足";
+      if(/盤線|盤口|未取得|缺盤/.test(x))return "未取得盤口";
+      return "未提供推薦";};
+    const recommendationConfidenceHtml=r=>noMarketRecommendation(r)?noPickReasonLabel(r):(r.confidence==null?"未提供信心值":`${confidenceLabel} ${r.confidence}% ${confidenceFire(r.confidence,r.pick)}`);
     const recommendationBar=r=>noMarketRecommendation(r)?0:confidenceBar(r.confidence);
 
     const resultTeamLogo=team=>{
