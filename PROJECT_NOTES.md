@@ -672,3 +672,12 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 已依程式碼補正：扣點函式線上定義（§2.4）、驗證頁路徑、函式清單、`consume_member_analysis_credit` 不在 repo、足球球員只抓第 1 頁、NBA 標準差來源與 ±8 限制、首頁聯賽清單來源、`tests/` 目錄、`index.html` 過時註解。
 
 2026-11-15 已匯出全部線上資料庫函式、排程與資料表欄位至 `supabase/sql/production-export-20261115/`。仍無法確認：Edge Function 是否與 repo 同版、cron 最後成功時間、公開戰績採用階段、fixture 1557418 修正是否已執行、11/13 疑似多扣點。
+
+## 14. IG 個人連結頁（Claude 版，2026-11-16）
+
+- 新增 `links/index.html`，網址 `https://awu7757-sys.github.io/habao-football-ai/links/`，供 IG 個人簡介使用（取代 Linktree／Portaly）。
+- 純靜態獨立頁，不載入任何共用 JS、不呼叫 Supabase、不影響既有頁面；僅引用 `../habao-hb-logo.png`、`../habao-icon-192.png`。
+- 風格：使用者指定參考「深墨綠＋香檳金、金屬浮雕立體感」，沿用 HB 黑金品牌色。
+- 連結：開始分析／三球類／新會員 → `../index.html`；公開戰績 → `../performance.html`；平台介紹 → `../intro/`；LINE → `@804dlhod`。
+- 狀態：**試做版**，使用者要與 GPT 版比較；不喜歡就整個刪除 `links/` 資料夾即可。
+- 文案原則：不使用「保證」「穩賺」等字眼，頁尾保留「分析參考、不保證準確」說明。

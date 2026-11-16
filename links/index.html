@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05080a">
+  <title>HABAO 賽事預測 AI｜官方連結</title>
+  <meta name="description" content="HABAO 賽事預測 AI：足球、NBA、MLB 賽前量化分析與公開驗證戰績。">
+  <meta property="og:title" content="HABAO 賽事預測 AI｜官方連結">
+  <meta property="og:description" content="足球・NBA・MLB 賽前 AI 分析，賽前封存、賽後公開驗證。">
+  <meta property="og:image" content="https://awu7757-sys.github.io/habao-football-ai/habao-og-20261013.png">
+  <link rel="icon" href="../habao-icon-192.png">
+  <link rel="apple-touch-icon" href="../habao-icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#05080a;
+      --emerald:#0d2a22;
+      --emerald-2:#123a2f;
+      --gold:#f2bd4b;
+      --gold-light:#ffe7a8;
+      --gold-dark:#a8701a;
+      --gold-deep:#6b4410;
+      --text:#f7f3e8;
+      --muted:#b9b29d;
+      --line:#06c755;
+      --gold-grad:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%);
+      --frame:linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%}
+    body{
+      min-height:100vh;
+      font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(120% 60% at 50% -10%,rgba(242,189,75,.18),transparent 60%),
+        radial-gradient(90% 50% at 50% 45%,rgba(18,58,47,.55),transparent 70%),
+        repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 2px,transparent 2px 14px),
+        var(--bg);
+      background-attachment:fixed;
+      padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 34px);
+      -webkit-tap-highlight-color:transparent;
+    }
+    .wrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+    a{color:inherit;text-decoration:none}
+
+    /* ---------- 金框共用 ---------- */
+    .framed{
+      position:relative;border-radius:22px;padding:2px;
+      background:var(--frame);
+      box-shadow:0 14px 30px rgba(0,0,0,.6),0 0 22px rgba(242,189,75,.18);
+    }
+    .framed>.inner{
+      position:relative;border-radius:20px;overflow:hidden;
+      background:
+        linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),
+        repeating-linear-gradient(120deg,rgba(255,255,255,.025) 0 18px,transparent 18px 36px),
+        linear-gradient(180deg,var(--emerald-2),#08140f 85%);
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.12),inset 0 -6px 14px rgba(0,0,0,.55);
+    }
+
+    /* ---------- 頂部品牌 ---------- */
+    .brand{text-align:center;padding-top:6px}
+    .logo{
+      width:132px;height:132px;margin:0 auto 6px;display:block;
+      filter:drop-shadow(0 10px 22px rgba(0,0,0,.7)) drop-shadow(0 0 26px rgba(242,189,75,.35));
+      animation:float 5s ease-in-out infinite;
+    }
+    @keyframes float{50%{transform:translateY(-6px)}}
+    .title{
+      font-family:"Cinzel","Noto Sans TC",serif;font-weight:900;
+      font-size:34px;letter-spacing:.06em;line-height:1.1;
+      background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 0 #4a2e08) drop-shadow(0 4px 8px rgba(0,0,0,.8));
+    }
+    .subtitle{
+      margin-top:6px;font-size:17px;font-weight:900;letter-spacing:.18em;
+      background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 3px rgba(0,0,0,.9));
+    }
+    .tagline{margin-top:10px;color:var(--muted);font-size:13.5px;letter-spacing:.08em}
+    .chips{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+    .chip{
+      font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;color:var(--gold-light);
+      background:linear-gradient(180deg,rgba(242,189,75,.18),rgba(242,189,75,.05));
+      border:1px solid rgba(242,189,75,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+    }
+
+    /* ---------- 主橫幅 ---------- */
+    .hero .inner{padding:22px 20px 20px;text-align:center}
+    .hero .inner::before{
+      content:"";position:absolute;inset:-40% -20% auto;height:160%;
+      background:conic-gradient(from 200deg at 50% 50%,transparent 0 40%,rgba(255,231,168,.16) 48%,transparent 56%);
+      animation:sweep 7s linear infinite;pointer-events:none;
+    }
+    @keyframes sweep{to{transform:rotate(360deg)}}
+    .hero-kicker{position:relative;font-size:12px;font-weight:700;letter-spacing:.3em;color:var(--gold)}
+    .hero-head{
+      position:relative;margin:8px 0 4px;font-size:30px;font-weight:900;line-height:1.25;letter-spacing:.04em;
+      background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 0 #3d2506) drop-shadow(0 5px 10px rgba(0,0,0,.85));
+    }
+    .hero-desc{position:relative;font-size:14px;color:#e7e1cf;line-height:1.7}
+    .stages{position:relative;display:flex;justify-content:center;gap:8px;margin:14px 0 18px}
+    .stage{
+      font-size:12px;font-weight:900;padding:6px 10px;border-radius:10px;letter-spacing:.04em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 0 rgba(0,0,0,.5);
+    }
+    .s10{background:linear-gradient(180deg,#ffe08a,#c88a1c);color:#2a1a02}
+    .s2{background:linear-gradient(180deg,#7cc4ff,#1f6fc2);color:#04152a}
+    .s15{background:linear-gradient(180deg,#d6a8ff,#7a3fc8);color:#1c0636}
+
+    /* ---------- 金屬按鈕 ---------- */
+    .btn-gold{
+      position:relative;display:flex;align-items:center;justify-content:center;gap:10px;
+      height:58px;border-radius:16px;font-size:19px;font-weight:900;letter-spacing:.12em;color:#2b1a03;
+      background:linear-gradient(180deg,#fff4c8 0%,#f7d272 22%,#e0a12c 52%,#c6851a 53%,#f0bd4e 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.85),
+        inset 0 -3px 0 rgba(107,68,16,.55),
+        0 6px 0 #6b4410,
+        0 12px 22px rgba(0,0,0,.6),
+        0 0 24px rgba(242,189,75,.35);
+      text-shadow:0 1px 0 rgba(255,255,255,.55);
+      transition:transform .08s,box-shadow .08s;overflow:hidden;
+    }
+    .btn-gold::after{
+      content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);
+      transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite;
+    }
+    @keyframes shine{0%,55%{left:-60%}100%{left:140%}}
+    .btn-gold:active{transform:translateY(5px);box-shadow:inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 rgba(107,68,16,.5),0 1px 0 #6b4410,0 4px 10px rgba(0,0,0,.6)}
+
+    /* ---------- 三格立體圖示按鈕 ---------- */
+    .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .tile{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13.5px;font-weight:900;letter-spacing:.06em}
+    .tile-icon{
+      width:100%;aspect-ratio:1;border-radius:18px;padding:2px;background:var(--frame);
+      box-shadow:0 6px 0 #3a2508,0 10px 18px rgba(0,0,0,.6);
+      transition:transform .08s,box-shadow .08s;
+    }
+    .tile-icon>span{
+      width:100%;height:100%;border-radius:16px;display:grid;place-items:center;
+      background:radial-gradient(80% 70% at 50% 25%,#1f5a47,#0a1f18 75%);
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 -8px 14px rgba(0,0,0,.6);
+    }
+    .tile-icon svg{width:46%;height:46%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.8))}
+    .tile:active .tile-icon{transform:translateY(5px);box-shadow:0 1px 0 #3a2508,0 4px 8px rgba(0,0,0,.6)}
+    .tile.line .tile-icon>span{background:radial-gradient(80% 70% at 50% 25%,#13a74d,#04461f 78%)}
+
+    /* ---------- 球類卡片 ---------- */
+    .section-title{
+      display:flex;align-items:center;gap:10px;font-size:15px;font-weight:900;letter-spacing:.2em;color:var(--gold-light);
+      margin-top:4px;
+    }
+    .section-title::before,.section-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,189,75,.7),transparent)}
+    .sport{display:block;transition:transform .1s}
+    .sport:active{transform:scale(.98)}
+    .sport .inner{display:flex;align-items:center;gap:16px;padding:16px 18px;min-height:96px}
+    .sport-ball{
+      flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+      background:radial-gradient(circle at 35% 30%,#fff7da,#f2bd4b 45%,#7a4c0e 100%);
+      box-shadow:inset -4px -6px 10px rgba(0,0,0,.45),0 6px 14px rgba(0,0,0,.7),0 0 18px rgba(242,189,75,.3);
+    }
+    .sport-ball svg{width:38px;height:38px}
+    .sport-txt{flex:1;min-width:0}
+    .sport-name{font-size:21px;font-weight:900;letter-spacing:.08em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+    .sport-meta{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+    .arrow{
+      flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#2b1a03;font-weight:900;
+      background:linear-gradient(180deg,#ffe7a8,#d99821);box-shadow:inset 0 1px 0 #fff,0 3px 0 #6b4410;
+    }
+
+    /* ---------- 公告條 / 新會員 ---------- */
+    .notice{
+      display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:700;
+      background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.35));border:1px solid rgba(242,189,75,.4);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;white-space:nowrap;
+    }
+    .notice b{color:var(--gold)}
+    .marquee{overflow:hidden;flex:1;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+    .marquee span{display:inline-block;padding-left:100%;animation:marq 16s linear infinite}
+    @keyframes marq{to{transform:translateX(-100%)}}
+
+    .perk .inner{display:flex;align-items:center;gap:14px;padding:16px 18px}
+    .perk-num{
+      flex:none;font-family:"Cinzel",serif;font-size:46px;font-weight:900;line-height:1;
+      background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 0 #3d2506) drop-shadow(0 4px 8px rgba(0,0,0,.8));
+    }
+    .perk-num small{font-family:"Noto Sans TC";font-size:16px}
+    .perk-txt strong{display:block;font-size:16px;font-weight:900;color:#fff}
+    .perk-txt span{font-size:12.5px;color:var(--muted);line-height:1.6}
+
+    footer{text-align:center;font-size:11.5px;color:#8f8a7a;line-height:1.8;margin-top:6px}
+    footer b{color:var(--gold)}
+
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+
+    <!-- 品牌 -->
+    <header class="brand">
+      <img class="logo" src="../habao-hb-logo.png" alt="HB 標誌" width="132" height="132">
+      <h1 class="title">HABAO</h1>
+      <div class="subtitle">賽事預測 AI</div>
+      <p class="tagline">讓數據先說話 ・ 賽前封存 ・ 賽後公開驗證</p>
+      <div class="chips"><span class="chip">⚽ 足球</span><span class="chip">🏀 NBA</span><span class="chip">⚾ MLB</span></div>
+    </header>
+
+    <!-- 跑馬燈 -->
+    <div class="notice" role="note">
+      <span aria-hidden="true">📣</span>
+      <div class="marquee"><span>每場比賽三階段分析：<b>T-10 小時</b> 賽前分析 → <b>T-2 小時</b> 深度分析 → <b>T-15 分鐘</b> 最終分析，結果全部公開驗證</span></div>
+    </div>
+
+    <!-- 主橫幅 -->
+    <section class="framed hero">
+      <div class="inner">
+        <div class="hero-kicker">AI SPORTS ANALYTICS</div>
+        <h2 class="hero-head">三大球類<br>賽前 AI 量化分析</h2>
+        <p class="hero-desc">整合賽程、盤口、近期戰績、傷停與先發資料<br>信號不足，不勉強推薦</p>
+        <div class="stages"><span class="stage s10">T-10 賽前</span><span class="stage s2">T-2 深度</span><span class="stage s15">T-15 最終</span></div>
+        <a class="btn-gold" href="../index.html">立即開始分析 ›</a>
+      </div>
+    </section>
+
+    <!-- 三格按鈕 -->
+    <nav class="tiles" aria-label="快速連結">
+      <a class="tile" href="../performance.html">
+        <span class="tile-icon"><span>
+          <svg viewBox="0 0 48 48" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e0a12c"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs><rect x="6" y="26" width="8" height="16" rx="2" fill="url(#g1)"/><rect x="20" y="16" width="8" height="26" rx="2" fill="url(#g1)"/><rect x="34" y="8" width="8" height="34" rx="2" fill="url(#g1)"/></svg>
+        </span></span>
+        公開戰績
+      </a>
+      <a class="tile" href="../intro/">
+        <span class="tile-icon"><span>
+          <svg viewBox="0 0 48 48" fill="none"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e0a12c"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs><path d="M24 4l5.5 11.6L42 17.4l-9 8.9 2.2 12.7L24 33l-11.2 6 2.2-12.7-9-8.9 12.5-1.8z" fill="url(#g2)"/></svg>
+        </span></span>
+        平台介紹
+      </a>
+      <a class="tile line" href="https://line.me/R/ti/p/@804dlhod" target="_blank" rel="noopener">
+        <span class="tile-icon"><span>
+          <svg viewBox="0 0 48 48" fill="none"><path d="M24 7C13 7 5 14 5 22.6c0 7.7 6.4 13.4 15 14.6.6.1 1.4.4 1.6.9.2.5.1 1.2 0 1.7l-.3 1.6c-.1.5-.4 1.9 1.7 1 2-.8 11-6.5 15-11.1C41.4 28.4 43 25.6 43 22.6 43 14 35 7 24 7z" fill="#fff"/><text x="24" y="27" text-anchor="middle" font-size="9.5" font-weight="900" font-family="Arial" fill="#06a447">LINE</text></svg>
+        </span></span>
+        加入 LINE
+      </a>
+    </nav>
+
+    <!-- 球類 -->
+    <div class="section-title">賽事中心</div>
+
+    <a class="framed sport" href="../index.html">
+      <div class="inner">
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#2b1a03" stroke-width="2"/><path d="M20 11l7 5-2.7 8h-8.6L13 16z" fill="#2b1a03"/><path d="M20 3v8M27 16l8-3M24.3 24l5 7M15.7 24l-5 7M13 16l-8-3" stroke="#2b1a03" stroke-width="2"/></svg></span>
+        <div class="sport-txt"><div class="sport-name">足球</div><div class="sport-meta">主流聯賽・勝平負／大小球／讓球<br>球員傷停與先發修正</div></div>
+        <span class="arrow">›</span>
+      </div>
+    </a>
+
+    <a class="framed sport" href="../index.html">
+      <div class="inner">
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#e8742a" stroke="#2b1a03" stroke-width="2"/><path d="M3 20h34M20 3v34M8 8c6 5 6 19 0 24M32 8c-6 5-6 19 0 24" stroke="#2b1a03" stroke-width="2" fill="none"/></svg></span>
+        <div class="sport-txt"><div class="sport-name">NBA</div><div class="sport-meta">效率模型・獨贏／讓分／大小分<br>官方先發與傷停核對</div></div>
+        <span class="arrow">›</span>
+      </div>
+    </a>
+
+    <a class="framed sport" href="../index.html">
+      <div class="inner">
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fffaf0" stroke="#2b1a03" stroke-width="2"/><path d="M10 6c4 4 6 9 6 14s-2 10-6 14M30 6c-4 4-6 9-6 14s2 10 6 14" stroke="#c0392b" stroke-width="2" fill="none" stroke-dasharray="2.5 2"/></svg></span>
+        <div class="sport-txt"><div class="sport-name">MLB</div><div class="sport-meta">先發投手・打線・牛棚修正<br>獨贏／讓分／總分</div></div>
+        <span class="arrow">›</span>
+      </div>
+    </a>
+
+    <!-- 新會員 -->
+    <a class="framed perk" href="../index.html">
+      <div class="inner">
+        <div class="perk-num">3<small>點</small></div>
+        <div class="perk-txt"><strong>新會員註冊即送 3 點</strong><span>Google／LINE 一鍵登入，可加到手機主畫面當 App 使用</span></div>
+        <span class="arrow">›</span>
+      </div>
+    </a>
+
+    <footer>
+      <b>HABAO 賽事預測 AI</b><br>
+      本平台提供賽事數據分析參考，模型結果不保證準確，請理性判斷。<br>
+      © HABAO
+    </footer>
+  </main>
+</body>
+</html>
