@@ -1,0 +1,36 @@
+// HABAO｜NBA 球隊中文名稱（共用）
+// football.html（賽事中心）與 home-v2.html（首頁焦點賽事）共用同一份對照表，
+// 修改球隊譯名只改這裡。鍵為 API 原始英文隊名。
+window.HABAO_NBA_TEAM_NAME_ZH = Object.freeze({
+  "Atlanta Hawks": "亞特蘭大老鷹",
+  "Boston Celtics": "波士頓塞爾提克",
+  "Brooklyn Nets": "布魯克林籃網",
+  "Charlotte Hornets": "夏洛特黃蜂",
+  "Chicago Bulls": "芝加哥公牛",
+  "Cleveland Cavaliers": "克里夫蘭騎士",
+  "Dallas Mavericks": "達拉斯獨行俠",
+  "Denver Nuggets": "丹佛金塊",
+  "Detroit Pistons": "底特律活塞",
+  "Golden State Warriors": "金州勇士",
+  "Houston Rockets": "休士頓火箭",
+  "Indiana Pacers": "印第安納溜馬",
+  "Los Angeles Clippers": "洛杉磯快艇",
+  "LA Clippers": "洛杉磯快艇",
+  "Los Angeles Lakers": "洛杉磯湖人",
+  "Memphis Grizzlies": "曼斐斯灰熊",
+  "Miami Heat": "邁阿密熱火",
+  "Milwaukee Bucks": "密爾瓦基公鹿",
+  "Minnesota Timberwolves": "明尼蘇達灰狼",
+  "New Orleans Pelicans": "紐奧良鵜鶘",
+  "New York Knicks": "紐約尼克",
+  "Oklahoma City Thunder": "奧克拉荷馬雷霆",
+  "Orlando Magic": "奧蘭多魔術",
+  "Philadelphia 76ers": "費城76人",
+  "Phoenix Suns": "鳳凰城太陽",
+  "Portland Trail Blazers": "波特蘭拓荒者",
+  "Sacramento Kings": "沙加緬度國王",
+  "San Antonio Spurs": "聖安東尼奧馬刺",
+  "Toronto Raptors": "多倫多暴龍",
+  "Utah Jazz": "猶他爵士",
+  "Washington Wizards": "華盛頓巫師"
+});

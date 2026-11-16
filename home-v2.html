@@ -6029,6 +6029,7 @@ padding:
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./opencc.js"></script>
 <script src="./habao-i18n.js"></script>
+<script src="./nba-team-names.js?v=20261117"></script>
 <script src="./sports-stage-core.js?v=20261113"></script>
 <script src="./home-sports-stats.js?v=20261115b"></script>
   
@@ -9962,8 +9963,14 @@ ${mode === "tomorrow"
       </article>
     `;
 
+    // 足球沒有焦點賽事時（例如國際比賽週），改顯示即將開打的 NBA
+    renderV2NbaFocusFallback(container);
+
     return;
   }
+
+  // 有足球焦點時，作廢尚未返回的 NBA 備援請求
+  v2NbaFocusSerial++;
 
   container.innerHTML =
     matches
@@ -9971,6 +9978,104 @@ ${mode === "tomorrow"
         createV2FocusMatchCard(match)
       )
       .join("");
+
+}
+
+/* =========================================
+   HABAO V2｜焦點賽事 NBA 備援
+   足球今天＋明天都沒有可顯示的賽事時，
+   讀取今天＋明天的 NBA 正式賽，取最近 2 場未開賽。
+   唯讀：只呼叫公開賽程 API，不呼叫領取／扣點。
+========================================= */
+
+var V2_BASKETBALL_FIXTURES_URL =
+  "https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-fixtures";
+
+var v2NbaFocusSerial = 0;
+
+async function renderV2NbaFocusFallback(container) {
+
+  if (!container) return;
+
+  const serial = ++v2NbaFocusSerial;
+
+  try {
+
+    const packets =
+      await Promise.all(
+        [0, 1].map(offset =>
+          fetch(
+            V2_BASKETBALL_FIXTURES_URL,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": PUBLISHABLE_KEY,
+                "Authorization": "Bearer " + PUBLISHABLE_KEY
+              },
+              body: JSON.stringify({ offset })
+            }
+          ).then(r => r.ok ? r.json() : { fixtures: [] })
+        )
+      );
+
+    const now = Date.now();
+    const core = window.HabaoStageCore;
+    const names = window.HABAO_NBA_TEAM_NAME_ZH || {};
+    const seen = new Set();
+
+    const games =
+      packets
+        .flatMap(p => Array.isArray(p?.fixtures) ? p.fixtures : [])
+        .filter(g => {
+          const id = g?.fixture_id ?? g?.game_id ?? g?.id;
+          if (id == null || seen.has(id)) return false;
+          seen.add(id);
+          const kickoff = new Date(g?.kickoff_at || g?.time || 0).getTime();
+          const scheduled = core?.lifecycle
+            ? core.lifecycle(g?.status, "basketball") === "scheduled"
+            : true;
+          return (
+            g?.competition_key === "nba" &&
+            scheduled &&
+            Number.isFinite(kickoff) &&
+            kickoff > now
+          );
+        })
+        .sort((a, b) =>
+          new Date(a.kickoff_at || a.time).getTime() -
+          new Date(b.kickoff_at || b.time).getTime()
+        )
+        .slice(0, 2)
+        .map(g => ({
+          sport: "basketball",
+          fixtureId: g.fixture_id ?? g.game_id ?? g.id,
+          time: g.kickoff_at || g.time,
+          status: "NS",
+          league: { name: "NBA", api_name: "NBA" },
+          home: {
+            name: names[g?.home?.name] || g?.home?.name,
+            api_name: g?.home?.name,
+            logo: g?.home?.logo
+          },
+          away: {
+            name: names[g?.away?.name] || g?.away?.name,
+            api_name: g?.away?.name,
+            logo: g?.away?.logo
+          }
+        }));
+
+    // 較晚返回的舊請求不覆蓋新版；沒有 NBA 時保留原本空狀態
+    if (serial !== v2NbaFocusSerial || games.length === 0) return;
+
+    container.innerHTML =
+      games
+        .map(match => createV2FocusMatchCard(match))
+        .join("");
+
+  } catch (error) {
+    console.error("V2 NBA FOCUS FALLBACK ERROR:", error);
+  }
 
 }
   
@@ -10510,6 +10615,10 @@ const tomorrowUpcoming =
 
 function createV2FocusMatchCard(match) {
 
+  // 焦點賽事可能是 NBA 備援（見 renderV2NbaFocusFallback）
+  const isNbaFocus =
+    match?.sport === "basketball";
+
   const home =
     match?.home || {};
 
@@ -10680,9 +10789,9 @@ const awayName =
                 r="9"
               />
 
-              <path
-                d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"
-              />
+              ${isNbaFocus
+                ? '<path d="M3 12h18M12 3v18M6.5 5.5c3 3.5 3 9.5 0 13M17.5 5.5c-3 3.5-3 9.5 0 13"/>'
+                : '<path d="m9 8.5 3-1.5 3 1.5.8 3.3-2.3 2.4h-3l-2.3-2.4L9 8.5Z"/>'}
 
             </svg>
 
@@ -10776,7 +10885,7 @@ ${
 
 
         <a
-          href="football.html"
+          href="${isNbaFocus ? "football.html?sport=basketball" : "football.html"}"
           class="analyse"
         >
 

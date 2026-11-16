@@ -721,3 +721,11 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 3. Claude 修改前台寫死網址；舊 GitHub 網址加「自動轉址到新網址」（只在 hostname 為 github.io 時觸發）。
 4. 實測：Google／LINE 登入、會員首頁、賽事中心、後台、PWA 安裝、推播。
 5. 過渡期結束後，repo 改為 Private（免費方案 GitHub Pages 會隨之停止，舊網址失效）。
+
+## 17. 首頁焦點賽事 NBA 備援（2026-11-17）
+
+- 問題：`home-v2.html` 焦點賽事只讀足球（今天→明天）。11 月國際比賽週 12 聯賽停賽時，今天＋明天都沒有足球，區塊顯示「尚無焦點賽事」，但首頁「可分析」仍有 NBA 場次。
+- 修正：`renderV2FocusMatchCards` 遇到空清單時呼叫 `renderV2NbaFocusFallback`，讀 `basketball-fixtures`（offset 0、1）的 NBA 正式賽（`competition_key==='nba'`），以 `HabaoStageCore.lifecycle` 判斷未開賽且開賽時間在未來，依時間取最近 2 場。卡片連到 `football.html?sport=basketball`，圖示改籃球。
+- 有足球焦點時會作廢尚未返回的 NBA 請求（序號 `v2NbaFocusSerial`），避免舊回應覆蓋。沒有 NBA 時保留原空狀態。唯讀，不呼叫 claim／扣點。
+- 去重：NBA 中文隊名對照表從 `football.html` 抽到共用檔 **`nba-team-names.js`**（`window.HABAO_NBA_TEAM_NAME_ZH`），賽事中心與首頁共用；改譯名只改這一檔。
+- 驗證：模擬資料測試通過（排除已完賽／非 NBA／重複、中文隊名、排序、舊請求不覆蓋）；兩頁 inline script 語法檢查通過；`tests/home-stats-retry.test.cjs` 通過。**尚未在正式資料實機驗收。** MLB 為休賽期，未納入備援。
