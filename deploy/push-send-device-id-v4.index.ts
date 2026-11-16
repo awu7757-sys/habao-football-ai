@@ -948,7 +948,7 @@ Deno.serve(async (req) => {
     if (!vapidPrivateKey) throw new Error("VAPID_PRIVATE_KEY 尚未設定");
     const title = String(payload?.title || "").trim();
     const body = String(payload?.body || "").trim();
-    const requestedClickUrl = String(payload?.url || "https://awu7757-sys.github.io/habao-football-ai/home-v2.html");
+    const requestedClickUrl = String(payload?.url || "https://hbai-tw.pages.dev/home-v2.html");
     const memberUsername = String(payload?.member_username || "").trim();
     const audience = memberUsername
       ? "member"
@@ -961,7 +961,7 @@ Deno.serve(async (req) => {
       audience ===
         "basketball_game" &&
       basketballGameId
-        ? `https://awu7757-sys.github.io/habao-football-ai/football.html?sport=basketball&game_id=${basketballGameId}`
+        ? `https://hbai-tw.pages.dev/football.html?sport=basketball&game_id=${basketballGameId}`
         : requestedClickUrl;
 
     if (audience === "basketball_game" && !basketballGameId) {
@@ -1011,7 +1011,7 @@ Deno.serve(async (req) => {
     }
     if (!subscriptions.length) return json({success:false,error:"目前沒有符合條件的推播訂閱",total:0},404);
 
-    const message = JSON.stringify({ title, body, icon:"https://awu7757-sys.github.io/habao-football-ai/habao-icon-192.png", badge:"https://awu7757-sys.github.io/habao-football-ai/habao-icon-192.png", url:clickUrl, tag:"habao-notification" });
+    const message = JSON.stringify({ title, body, icon:"https://hbai-tw.pages.dev/habao-icon-192.png", badge:"https://hbai-tw.pages.dev/habao-icon-192.png", url:clickUrl, tag:"habao-notification" });
     let sent=0, failed=0; const expiredIds:number[]=[];
     for (const s of subscriptions) {
       try { await webpush.sendNotification({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},message); sent++; }

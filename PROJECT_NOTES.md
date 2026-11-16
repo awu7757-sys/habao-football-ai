@@ -714,7 +714,9 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - ✅ 前台寫死網址已改為新網域：`index.html` og／twitter 3 處、`admin.html` 推播點擊網址 4 處、`links/`、`intro/` og 圖片。
 - ⏳ 待使用者：新網址實測登入；後端 `push-send` 預設網址待重新部署。
 - ✅ 舊網址自動轉址（2026-11-17）：16 個頁面 `<head>` 最前面加一段 inline script，hostname 為 `*.github.io` 時以 `location.replace` 轉到 `https://hbai-tw.pages.dev` 同路徑（去掉 `/habao-football-ai` 前綴，保留 query 與 hash）；在新網域不動作。`sw.js` 對 HTML 採 network first，舊 PWA 會拿到含轉址的新版。**新增頁面時要一併加入這段**（repo 改 Private 後可整段移除）。
-- ⏳ 待使用者：Supabase Site URL 改新網址；`push-send` 線上程式改預設網址後重新部署；repo 改 Private（改後 GitHub Pages 停止，舊網址轉址也會失效）。
+- ✅ Supabase Site URL 改為 `https://hbai-tw.pages.dev/`（2026-11-17，使用者操作；舊網址仍留在 Redirect URLs）。
+- ✅ `push-send` 線上程式 4 處網址改新網域（預設點擊 `home-v2.html`、NBA 點擊 `football.html?sport=basketball&game_id=…`、icon／badge `habao-icon-192.png`），使用者部署；repo 備份 `deploy/push-send-device-id-v4.index.ts` 已同步。推播訂閱綁網域，會員需在新網址重新開啟通知。
+- ⏳ **repo 改 Private：使用者選方案 B，過渡一週，約 2026-11-24 執行**。改後 GitHub Pages 停止、舊網址轉址失效；屆時可移除 16 頁的轉址 script 與 Supabase 舊 Redirect URL。過渡期建議在 LINE 公告新網址並請會員重裝 App。
 
 步驟：
 1. 使用者建立 Cloudflare Pages 專案並連接 repo（建置指令留空、輸出目錄 `/`）。
