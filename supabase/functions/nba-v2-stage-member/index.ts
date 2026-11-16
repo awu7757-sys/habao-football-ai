@@ -1,0 +1,58 @@
+const BASE=String(Deno.env.get('SUPABASE_URL')||'').replace(/\/$/,'');
+const ROLE=String(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||Deno.env.get('SUPABASE_SECRET_KEY')||(()=>{try{return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default||''}catch{return ''}})());
+const PUBLIC=String(Deno.env.get('SUPABASE_ANON_KEY')||ROLE);
+const CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','X-Habao-Version':'nba-stages-20261113'};
+const reply=(status,body)=>new Response(JSON.stringify(body),{status,headers:{...CORS,'Content-Type':'application/json'}});
+const headers=()=>({apikey:ROLE,Authorization:'Bearer '+ROLE,'Content-Type':'application/json'});
+async function get(table,params){const r=await fetch(BASE+'/rest/v1/'+table+'?'+new URLSearchParams(params),{headers:headers(),signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('stage_storage_unavailable');const x=await r.json();if(!Array.isArray(x))throw Error('stage_storage_invalid');return x;}
+async function identity(req){
+ const bearer=req.headers.get('authorization');if(!bearer||!/^Bearer\s+\S+$/i.test(bearer))return null;
+ const r=await fetch(BASE+'/functions/v1/oauth-member-login?mode=refresh',{method:'POST',headers:{apikey:PUBLIC,Authorization:bearer,'Content-Type':'application/json'},body:JSON.stringify({action:'refresh'}),signal:AbortSignal.timeout(12000)});
+ if(r.status>=500)throw Error('identity_service_unavailable');if(!r.ok)return null;
+ const x=await r.json().catch(()=>null);return x?.success===true?String(x.member?.account||''):null;
+}
+function claimError(detail){return ['analysis_credits_empty','member_inactive','stage_access_disabled','match_already_started','stage_not_open','stage_snapshot_not_ready','invalid_stage_result'].find(x=>String(detail).includes(x))||'stage_claim_failed';}
+Deno.serve(async req=>{
+ if(req.method==='OPTIONS')return new Response(null,{status:204,headers:CORS});
+ if(req.method!=='POST')return reply(405,{success:false,error:'method_not_allowed'});
+ if(!BASE||!ROLE)return reply(503,{success:false,error:'storage_not_configured'});
+ try{
+  const b=await req.json().catch(()=>null);if(!b||typeof b!=='object'||Array.isArray(b))return reply(400,{success:false,error:'invalid_json'});
+  const account=String(b.account||'').trim(),action=String(b.action||'status');
+  if(!account||!['status','claim','history'].includes(action))return reply(400,{success:false,error:'invalid_request'});
+  const settings=(await get('basketball_v2_stage_settings',{select:'pilot_account,all_members_enabled',id:'eq.true',limit:'1'}))[0];
+  if(!settings)return reply(503,{success:false,error:'stage_settings_missing'});
+  if(settings.all_members_enabled!==true&&settings.pilot_account!==account)return reply(200,{success:true,enabled:false,stages:{},matches:[]});
+  if(await identity(req)!==account)return reply(401,{success:false,error:'member_authentication_required'});
+  const member=(await get('members',{account:'eq.'+account,select:'account,is_active',limit:'1'}))[0];
+  if(!member||member.is_active!==true)return reply(403,{success:false,error:'member_inactive'});
+  if(action==='history'){
+   const rows=await get('basketball_v2_stage_claims',{account:'eq.'+account,select:'game_id,stage,fixture_time,claimed_at,result_data',fixture_time:'gt.'+new Date(Date.now()-8*3600000).toISOString(),order:'fixture_time.asc,stage.asc',limit:'200'});
+   return reply(200,{success:true,enabled:true,matches:rows.map(x=>({id:'nba-stage:'+x.game_id+':'+x.stage,game_id:x.game_id,fixture_id:x.game_id,sport:'basketball',history_key:'basketball:stage:'+x.game_id+':'+x.stage,fixture_time:x.fixture_time,home_team:x.result_data?.fixture?.home?.name||'',away_team:x.result_data?.fixture?.away?.name||'',league_name:'NBA',updated_at:x.claimed_at,v2_stage:x.stage,v2_stage_label:x.stage==='t2'?'T-2 深度分析':'T-15 最終分析',result_data:x.result_data}))});
+  }
+  const ids=[...new Set((Array.isArray(b.game_ids)?b.game_ids:[b.game_id]).map(Number).filter(x=>Number.isSafeInteger(x)&&x>0))].slice(0,80);
+  if(!ids.length)return reply(400,{success:false,error:'game_ids_required'});
+  if(action==='claim'){
+   const stage=String(b.stage||'');if(!['t2','t15'].includes(stage)||ids.length!==1)return reply(400,{success:false,error:'invalid_stage'});
+   // Return a previously claimed stage before capture/time checks; free rewatch works after tipoff.
+   const old=(await get('basketball_v2_stage_claims',{account:'eq.'+account,game_id:'eq.'+ids[0],stage:'eq.'+stage,select:'result_data',limit:'1'}))[0];
+   if(old?.result_data)return reply(200,{success:true,already_claimed:true,result:old.result_data});
+   const ready=await get('basketball_v2_stage_snapshots',{game_id:'eq.'+ids[0],stage:'eq.'+stage,status:'eq.ready',select:'game_id',limit:'1'});
+   if(!ready.length){
+    const recovery=await fetch(BASE+'/functions/v1/nba-v2-stage-runner',{method:'POST',headers:headers(),body:JSON.stringify({action:'capture',game_id:ids[0],stage}),signal:AbortSignal.timeout(70000)});
+    if(!recovery.ok)return reply(503,{success:false,error:'stage_snapshot_not_ready',can_retry:true});
+   }
+   const r=await fetch(BASE+'/rest/v1/rpc/claim_nba_stage_atomic',{method:'POST',headers:headers(),body:JSON.stringify({p_account:account,p_game_id:ids[0],p_stage:stage}),signal:AbortSignal.timeout(15000)});
+   const packet=await r.json().catch(()=>null);if(!r.ok){const error=claimError(packet?.message);return reply(error==='analysis_credits_empty'?402:error==='member_inactive'?403:409,{success:false,error});}
+   return reply(200,packet);
+  }
+  const inIds='in.('+ids.join(',')+')';
+  const [usage,claims,snapshots]=await Promise.all([
+   get('basketball_analysis_usage',{account:'eq.'+account,game_id:inIds,select:'game_id',limit:'500'}),
+   get('basketball_v2_stage_claims',{account:'eq.'+account,game_id:inIds,select:'game_id,stage',limit:'200'}),
+   get('basketball_v2_stage_snapshots',{game_id:inIds,status:'eq.ready',select:'game_id,stage,fixture_time',limit:'200'})
+  ]);
+  const stages={};for(const id of ids)stages[id]={claimed:{t10:usage.some(x=>Number(x.game_id)===id),t2:claims.some(x=>Number(x.game_id)===id&&x.stage==='t2'),t15:claims.some(x=>Number(x.game_id)===id&&x.stage==='t15')},ready:{t2:snapshots.some(x=>Number(x.game_id)===id&&x.stage==='t2'),t15:snapshots.some(x=>Number(x.game_id)===id&&x.stage==='t15')}};
+  return reply(200,{success:true,enabled:true,stages});
+ }catch(e){console.error('NBA_STAGE_MEMBER',String(e?.message||e));return reply(503,{success:false,error:String(e?.message||'stage_service_unavailable').slice(0,80)});}
+});
