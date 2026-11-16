@@ -11339,6 +11339,12 @@ showPhoneGuide("iphone");
       notificationsUnsupported:
         "此裝置不支援通知",
 
+      notificationsNeedInstall:
+        "請先「加入主畫面」再開啟通知",
+
+      notificationsNeedInstallHelp:
+        "iPhone 只有加入主畫面的 App 才能接收通知：\n\n1. 用 Safari 開啟本網站\n2. 點下方「分享」按鈕\n3. 選「加入主畫面」\n4. 從桌面開啟 App，再按「開啟賽事通知」\n\n若桌面有舊版 App，請先刪除再重新加入。",
+
       notificationSetting:
         "通知設定中…",
 
@@ -11599,6 +11605,12 @@ toolsAvailable: "2 款工具可使用"
 
       notificationsUnsupported:
         "此设备不支持通知",
+
+      notificationsNeedInstall:
+        "请先「添加到主屏幕」再开启通知",
+
+      notificationsNeedInstallHelp:
+        "iPhone 只有添加到主屏幕的 App 才能接收通知：\n\n1. 用 Safari 打开本网站\n2. 点下方「分享」按钮\n3. 选择「添加到主屏幕」\n4. 从桌面打开 App，再点「开启赛事通知」\n\n若桌面有旧版 App，请先删除再重新添加。",
 
       notificationSetting:
         "通知设置中…",
@@ -11861,6 +11873,12 @@ toolsAvailable: "2 款工具可使用"
 
       notificationsUnsupported:
         "Notifications Not Supported",
+
+      notificationsNeedInstall:
+        "Add to Home Screen to enable notifications",
+
+      notificationsNeedInstallHelp:
+        "On iPhone, only apps added to the Home Screen can receive notifications:\n\n1. Open this site in Safari\n2. Tap the Share button\n3. Choose \"Add to Home Screen\"\n4. Open the app from your Home Screen and tap \"Enable notifications\"\n\nIf an old version is on your Home Screen, delete it first.",
 
       notificationSetting:
         "Setting Up Notifications…",
@@ -13178,6 +13196,24 @@ loadV2PartnerPlatforms();
     );
   }
 
+  /*
+   * iPhone／iPad 只有「加入主畫面」的 App 能收通知。
+   * 在 Safari 或 App 內小瀏覽器開啟時，權限會顯示為封鎖或不支援，
+   * 改提示會員先加入主畫面（2026-11-17）。
+   */
+  function habaoPushNeedsInstall() {
+    const ua =
+      navigator.userAgent || "";
+    const isIOS =
+      /iPhone|iPad|iPod/i.test(ua) ||
+      (navigator.platform === "MacIntel" &&
+        navigator.maxTouchPoints > 1);
+    const standalone =
+      navigator.standalone === true ||
+      window.matchMedia?.("(display-mode: standalone)")?.matches === true;
+    return isIOS && !standalone;
+  }
+
   function setPushButtonState(
     state
   ) {
@@ -13187,6 +13223,24 @@ loadV2PartnerPlatforms();
       );
 
     if (!btn) return;
+
+    if (
+      ["blocked", "unsupported", "idle"].includes(state) &&
+      habaoPushNeedsInstall()
+    ) {
+      state = "needInstall";
+    }
+
+    if (state === "needInstall") {
+      btn.dataset.pushState = state;
+      btn.classList.remove("is-enabled");
+      btn.textContent =
+        pushT(
+          "notificationsNeedInstall",
+          "請先「加入主畫面」再開啟通知"
+        );
+      return;
+    }
 
     btn.dataset.pushState =
       state;
@@ -13298,6 +13352,20 @@ loadV2PartnerPlatforms();
       document.getElementById(
         "v2EnablePushBtn"
       );
+
+    // iPhone 未加入主畫面：按下時說明安裝步驟，不嘗試訂閱
+    if (habaoPushNeedsInstall()) {
+      setPushButtonState("needInstall");
+      if (requestPermission) {
+        alert(
+          pushT(
+            "notificationsNeedInstallHelp",
+            "請先用 Safari 把本網站「加入主畫面」，再從桌面開啟 App 開啟通知。"
+          )
+        );
+      }
+      return false;
+    }
 
     const account =
       currentHabaoAccount();
@@ -13627,6 +13695,12 @@ loadV2PartnerPlatforms();
             "idle"
           );
         }
+      } else if (
+        habaoPushNeedsInstall()
+      ) {
+        setPushButtonState(
+          "needInstall"
+        );
       }
 
       /*

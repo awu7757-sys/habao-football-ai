@@ -3,7 +3,7 @@
 > 交接基準：2026-11-15（Asia/Taipei）。讀者：後續維護工程師、其他 AI 助手、專案負責人 Andy。
 > 這是現況說明與維護約束，不是授權執行部署、SQL 或付款的指令。本文未存放 API Key、JWT、管理員憑證或個人會員資料。
 
-> **最新交接（2026-11-15）**：先讀 `docs/HANDOFF-20261115.md`，再看第 5 節 5a～5p。
+> **最新交接（2026-11-17）**：先讀 `docs/HANDOFF-20261117.md`（正式網址已搬到 **https://hbai-tw.pages.dev/**），再看 §14～§18。前一份：`docs/HANDOFF-20261115.md`、第 5 節 5a～5p。
 >
 > **分工（使用者 2026-11-15 決定）**：程式修改一律由 Claude 負責；GPT 負責審查、提出意見與規劃，不直接修改 repo 程式。GPT 的審查結果由使用者轉給 Claude 處理，處理後由 Claude 更新本檔。
 > **交叉審查時機（2026-11-15 決定）**：模型與推薦算法、戰績結算、扣點與會員權限、資料庫結構與 SQL、準備換上正式版的新模型 → Claude 完成後主動提醒使用者交給 GPT 複審並附上要貼的內容；前後台畫面、文字、版面、小錯誤修正 → Claude 單獨完成即可。Claude 不照單全收 GPT 意見：同意的修改並說明；不同意的寫明理由交使用者決定，並記錄在回覆文件與本檔。
@@ -29,7 +29,7 @@
 |---|---|
 | GitHub | `awu7757-sys/habao-football-ai` |
 | 正式分支 | `main` |
-| 前台 | GitHub Pages：`https://awu7757-sys.github.io/habao-football-ai/` |
+| 前台 | **Cloudflare Pages：`https://hbai-tw.pages.dev/`**（2026-11-17 起；舊 GitHub Pages 網址過渡期自動轉址，見 §16） |
 | Supabase 專案 | 名稱「哈寶足球AI」；project ref：`oqtbsbohcfeghgnykwxy` |
 | 本次讀到的 main HEAD | `2c26f99cea83f603ce542d08b5dfbe501df69c27`（本文件之前） |
 | 最近前台功能提交 | `0ad0c66b731ee4c84d3518c9ce7ac2da4481a0a2`：30D 戰績、首頁三球類統計 |
@@ -733,3 +733,9 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 去重：NBA 中文隊名對照表從 `football.html` 抽到共用檔 **`nba-team-names.js`**（`window.HABAO_NBA_TEAM_NAME_ZH`），賽事中心與首頁共用；改譯名只改這一檔。
 - 【2026-11-17 補修】`renderV2FocusMatches` 中「明天也沒有足球」的分支原本自己寫死空狀態 HTML，沒有經過 `renderV2FocusMatchCards`，所以 NBA 備援沒觸發；已改為呼叫共用空狀態。
 - 驗證：模擬資料測試通過（排除已完賽／非 NBA／重複、中文隊名、排序、舊請求不覆蓋）；兩頁 inline script 語法檢查通過；`tests/home-stats-retry.test.cjs` 通過。**尚未在正式資料實機驗收。** MLB 為休賽期，未納入備援。
+
+## 18. iPhone 通知按鈕提示加入主畫面（2026-11-17）
+
+- 問題：iPhone 在 Safari 或舊 App 內小瀏覽器開啟時，`Notification.permission` 為 denied，按鈕顯示「通知已被瀏覽器封鎖」，會員誤以為手機壞了。iPhone 只有加入主畫面的 App 能收推播。
+- 修正（`home-v2.html`）：新增 `habaoPushNeedsInstall()`（iOS 且非 standalone）。`setPushButtonState` 在 blocked／unsupported／idle 時若需安裝，改為 `needInstall` 狀態「請先「加入主畫面」再開啟通知」；`syncHabaoPush` 按下時以 alert 說明安裝步驟，不嘗試訂閱。三語文字 `notificationsNeedInstall`、`notificationsNeedInstallHelp`。
+- 已加入主畫面（standalone）或非 iPhone 的行為不變。測試：模擬 iPhone UA 兩種模式通過；語法檢查通過。
