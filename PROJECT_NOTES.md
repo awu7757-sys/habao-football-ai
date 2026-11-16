@@ -698,7 +698,8 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 **原因**：①網址太長且露出 GitHub 帳號 ②GitHub Pages 規定不得用於商業服務（HB 有點數／VIP，屬商業），有被停用風險 ③repo 公開，模型參數與後端程式外流。
 **取代原方案 A（升級 GitHub Pro）**：Cloudflare Pages 免費支援私人 repo 與商業網站，不必付 Pro。
 
-目標網址（名稱以實際建立為準）：前台 `https://habao.pages.dev/`、後台 `https://habao.pages.dev/admin.html`。
+**正式網址**：前台 `https://hbai-tw.pages.dev/`、後台 `https://hbai-tw.pages.dev/admin.html`（原規劃名稱 `habao`、`hbai` 已被他人使用）。
+後續工作計畫：`docs/GPT-PLAN-20261117.md`（GPT）＋ `docs/REVIEW-RESPONSE-20261117.md`（Claude 回覆）。
 
 盤點結果（2026-11-16，程式碼確認）：
 - OAuth `redirectTo` 用 `location.origin + location.pathname`，換網域不用改程式；但 **Supabase Auth → URL Configuration 必須加入新網址**，否則登入會被擋。
