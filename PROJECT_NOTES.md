@@ -692,3 +692,11 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - **一頁式、不需捲動**：以 `100svh`＋依螢幕高度縮放的字級（`--u`）排版；已實測 390×844、390×700（IG 內建瀏覽器）、375×667（iPhone SE）皆完整放進一個畫面。新增內容時要重新驗證不會超出。
 - 保留：主標「不是每場比賽，都值得推薦。」、「知道何時不建議，同樣重要。」、三原則（免費開始／低信心不硬推／結果公開驗證，金藍綠）、三步驟（蒐集→分析→篩選）、免責聲明前半句。
 - 刪除：副標「少一點也可以更好」、與月費服務比較段落、各項長說明、免責後半句「免費體驗範圍以站內最新規則為準」。如需還原 GPT 版：`git show a0b9dfe:intro/index.html`。
+
+## 16. 待辦：程式碼保護（2026-11-16 記錄，使用者決定先不改）
+
+- 現況：GitHub repo **公開**（forks 0，2026-11-16 確認），PROJECT_NOTES 的模型參數、`supabase/` 後端程式與 SQL 匯出任何人都能讀取。
+- 使用者已選方案 **A**：升級 GitHub Pro（約 US$4／月）後把 repo 改為 Private；GitHub Pages 網站維持公開、網址不變。
+- **順序不可顛倒**：先升級 Pro，再改 Private；免費方案的 Pages 只支援公開 repo，先改私人會讓網站下線。
+- 升級入口：Settings → Billing and licensing → Licensing（新版介面沒有「Plans」）。
+- 執行後確認：Settings → Pages 仍顯示 live、來源 main；實測 `links/`、`intro/`、登入頁。
