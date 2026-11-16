@@ -149,6 +149,7 @@
       box-shadow:inset 0 2px 0 rgba(255,255,255,.18),inset 0 -8px 14px rgba(0,0,0,.6);
     }
     .tile-icon svg{width:46%;height:46%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.8))}
+    .tile-icon svg[viewBox="0 0 64 64"]{width:66%;height:66%;filter:drop-shadow(0 4px 3px rgba(0,0,0,.85)) drop-shadow(0 0 8px rgba(242,189,75,.35))}
     .tile:active .tile-icon{transform:translateY(5px);box-shadow:0 1px 0 #3a2508,0 4px 8px rgba(0,0,0,.6)}
     .tile.line .tile-icon>span{background:radial-gradient(80% 70% at 50% 25%,#13a74d,#04461f 78%)}
 
@@ -245,15 +246,25 @@
     <!-- 三格按鈕 -->
     <nav class="tiles" aria-label="快速連結">
       <a class="tile" href="../performance.html">
-        <span class="tile-icon"><span>
-          <svg viewBox="0 0 48 48" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e0a12c"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs><rect x="6" y="26" width="8" height="16" rx="2" fill="url(#g1)"/><rect x="20" y="16" width="8" height="26" rx="2" fill="url(#g1)"/><rect x="34" y="8" width="8" height="34" rx="2" fill="url(#g1)"/></svg>
-        </span></span>
+        <span class="tile-icon"><span><svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="tr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d0"/><stop offset=".35" stop-color="#f6cf6a"/><stop offset=".62" stop-color="#c88a1c"/><stop offset="1" stop-color="#7a4c0e"/></linearGradient><linearGradient id="trs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient><filter id="trg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path d="M6 40l12-10 8 6 14-16 8 5 10-11" stroke="#7cc4ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity=".9" filter="url(#trg)"/>
+<path d="M20 10h24v12c0 8-5.4 14-12 14S20 30 20 22z" fill="url(#tr)" stroke="#5a3a0c" stroke-width="1.2"/>
+<path d="M20 14h-6c0 7 3 11 7.5 12M44 14h6c0 7-3 11-7.5 12" stroke="url(#tr)" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M29 36h6v8h-6z" fill="url(#tr)"/><rect x="22" y="44" width="20" height="5" rx="1.5" fill="url(#tr)" stroke="#5a3a0c" stroke-width="1"/><rect x="18" y="49" width="28" height="6" rx="2" fill="url(#tr)" stroke="#5a3a0c" stroke-width="1"/>
+<path d="M23 12h9v10c0 4-2 8-5 9-3-2-4-5-4-9z" fill="url(#trs)"/>
+<path d="M32 17l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#fff4cc" stroke="#8a5a12" stroke-width=".6"/>
+</svg></span></span>
         公開戰績
       </a>
       <a class="tile" href="../intro/">
-        <span class="tile-icon"><span>
-          <svg viewBox="0 0 48 48" fill="none"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e0a12c"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs><path d="M24 4l5.5 11.6L42 17.4l-9 8.9 2.2 12.7L24 33l-11.2 6 2.2-12.7-9-8.9 12.5-1.8z" fill="url(#g2)"/></svg>
-        </span></span>
+        <span class="tile-icon"><span><svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d0"/><stop offset=".35" stop-color="#f6cf6a"/><stop offset=".62" stop-color="#c88a1c"/><stop offset="1" stop-color="#7a4c0e"/></linearGradient><linearGradient id="shs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient><filter id="shg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path d="M32 5l22 8v16c0 14-9.5 24-22 30C19.5 53 10 43 10 29V13z" fill="url(#sh)" stroke="#5a3a0c" stroke-width="1.2"/>
+<path d="M32 11l16 6v12c0 10.5-6.8 18-16 22.5C22.8 47 16 39.5 16 29V17z" fill="#0f1828" stroke="#f6cf6a" stroke-width="1"/>
+<rect x="23" y="21" width="18" height="18" rx="3" fill="url(#sh)" stroke="#5a3a0c" stroke-width="1"/>
+<path d="M27 21v-3M32 21v-3M37 21v-3M27 42v-3M32 42v-3M37 42v-3M23 25h-3M23 30h-3M23 35h-3M41 25h3M41 30h3M41 35h3" stroke="#f6cf6a" stroke-width="1.6" stroke-linecap="round"/>
+<text x="32" y="34" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="9" fill="#3a2506">AI</text>
+<path d="M14 15l18-7 7 2.6L16 31z" fill="url(#shs)" opacity=".7"/>
+</svg></span></span>
         平台介紹
       </a>
       <a class="tile line" href="https://line.me/R/ti/p/@804dlhod" target="_blank" rel="noopener">
@@ -264,45 +275,44 @@
       </a>
     </nav>
 
-    <!-- 球類 -->
-    <div class="section-title">賽事中心</div>
+    <!-- 會員專屬 -->
+    <div class="section-title">會員專屬</div>
 
-    <a class="framed sport" href="../index.html">
+    <a class="framed perk" href="../index.html">
       <div class="inner">
-        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#2b1a03" stroke-width="2"/><path d="M20 11l7 5-2.7 8h-8.6L13 16z" fill="#2b1a03"/><path d="M20 3v8M27 16l8-3M24.3 24l5 7M15.7 24l-5 7M13 16l-8-3" stroke="#2b1a03" stroke-width="2"/></svg></span>
-        <div class="sport-txt"><div class="sport-name">足球</div><div class="sport-meta">主流聯賽・勝平負／大小球／讓球<br>球員傷停與先發修正</div></div>
+        <div class="perk-num">3<small>點</small></div>
+        <div class="perk-txt"><strong>新會員註冊送 3 點</strong><span>Google／LINE 一鍵登入，馬上體驗</span></div>
         <span class="arrow">›</span>
       </div>
     </a>
 
     <a class="framed sport blue" href="../index.html">
       <div class="inner">
-        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#e8742a" stroke="#2b1a03" stroke-width="2"/><path d="M3 20h34M20 3v34M8 8c6 5 6 19 0 24M32 8c-6 5-6 19 0 24" stroke="#2b1a03" stroke-width="2" fill="none"/></svg></span>
-        <div class="sport-txt"><div class="sport-name">NBA</div><div class="sport-meta">效率模型・獨贏／讓分／大小分<br>官方先發與傷停核對</div></div>
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><rect x="7" y="9" width="26" height="24" rx="4" fill="#fff" stroke="#06142a" stroke-width="2"/><path d="M7 16h26" stroke="#06142a" stroke-width="2"/><path d="M14 6v6M26 6v6" stroke="#06142a" stroke-width="2.4" stroke-linecap="round"/><text x="20" y="30" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="12" fill="#1f5fb8">2</text></svg></span>
+        <div class="sport-txt"><div class="sport-name">每日 2 場免費</div><div class="sport-meta">綁定合作平台<br>一次綁定，永久每天送分析</div></div>
         <span class="arrow">›</span>
       </div>
     </a>
 
     <a class="framed sport green" href="../index.html">
       <div class="inner">
-        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fffaf0" stroke="#2b1a03" stroke-width="2"/><path d="M10 6c4 4 6 9 6 14s-2 10-6 14M30 6c-4 4-6 9-6 14s2 10 6 14" stroke="#c0392b" stroke-width="2" fill="none" stroke-dasharray="2.5 2"/></svg></span>
-        <div class="sport-txt"><div class="sport-name">MLB</div><div class="sport-meta">先發投手・打線・牛棚修正<br>獨贏／讓分／總分</div></div>
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><path d="M6 10a4 4 0 014-4h14a4 4 0 014 4v8a4 4 0 01-4 4h-9l-6 5v-5h0a3 3 0 01-3-3z" fill="#fff" stroke="#04200f" stroke-width="2" stroke-linejoin="round"/><path d="M30 14h1a3 3 0 013 3v8a3 3 0 01-3 3v5l-6-5h-7a3 3 0 01-3-3" fill="#bff5d6" stroke="#04200f" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.6" fill="#04200f"/><circle cx="17" cy="14" r="1.6" fill="#04200f"/><circle cx="22" cy="14" r="1.6" fill="#04200f"/></svg></span>
+        <div class="sport-txt"><div class="sport-name">會員討論區</div><div class="sport-meta">各界高手同場交流<br>分享賽事觀點</div></div>
         <span class="arrow">›</span>
       </div>
     </a>
 
-    <!-- 新會員 -->
-    <a class="framed perk" href="../index.html">
+    <a class="framed sport" href="../index.html">
       <div class="inner">
-        <div class="perk-num">3<small>點</small></div>
-        <div class="perk-txt"><strong>新會員註冊即送 3 點</strong><span>Google／LINE 一鍵登入，可加到手機主畫面當 App 使用</span></div>
+        <span class="sport-ball"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#fff" stroke="#2b1a03" stroke-width="2"/><path d="M20 20V6a14 14 0 0112.1 7z" fill="#2b1a03"/><path d="M20 20l12.1-7A14 14 0 0134 20z" fill="#c88a1c" stroke="#2b1a03" stroke-width="1.5"/><circle cx="20" cy="20" r="5" fill="#f6cf6a" stroke="#2b1a03" stroke-width="2"/><text x="20" y="23" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="7" fill="#2b1a03">$</text></svg></span>
+        <div class="sport-txt"><div class="sport-name">AI 資金配置</div><div class="sport-meta">不懂體育也能用<br>輸入預算，AI 依信心分配每場</div></div>
         <span class="arrow">›</span>
       </div>
     </a>
 
     <footer>
       <b>HABAO 賽事預測 AI</b><br>
-      本平台提供賽事數據分析參考，模型結果不保證準確，請理性判斷。<br>
+      本平台提供賽事數據分析參考<br>預測結果並非 100% 勝率，請理性判斷。<br>
       © HABAO
     </footer>
   </main>
