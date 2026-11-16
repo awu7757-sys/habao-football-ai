@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080c12">
+  <meta name="description" content="HABAO AI 賽事預測分析｜免費探索足球、NBA、MLB 賽事資料。信號不足，不勉強推薦。">
+  <meta property="og:title" content="HABAO AI｜不是每場比賽，都值得推薦">
+  <meta property="og:description" content="免費探索賽事分析。比起給出更多答案，我們更重視每一個答案的依據。">
+  <title>HABAO AI｜讓數據先說話</title>
+  <link rel="icon" href="../habao-icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=DM+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme:dark; --bg:#080c12; --paper:#111925; --edge:#293341; --gold:#e9b956; --white:#f7f5f0; --muted:#a9b1be; }
+    * {box-sizing:border-box}
+    html {scroll-behavior:smooth}
+    body {margin:0;background:var(--bg);color:var(--white);font-family:"DM Sans","Noto Sans TC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    body:before {content:"";position:absolute;z-index:-1;top:0;left:0;right:0;height:720px;background:radial-gradient(ellipse 62% 45% at 78% 4%,rgba(42,65,86,.24),transparent 78%);pointer-events:none}
+    a {color:inherit;text-decoration:none}
+    a:focus-visible {outline:2px solid var(--gold);outline-offset:5px;border-radius:4px}
+    .wrap {max-width:1040px;margin:0 auto;padding:0 30px}
+    header {height:92px;border-bottom:1px solid rgba(255,255,255,.07)}
+    .header-inner {display:flex;align-items:center;justify-content:space-between;height:100%}
+    .identity {display:flex;align-items:center;gap:13px}
+    .identity img {height:44px;width:44px;object-fit:contain;border-radius:12px;background:#131313}
+    .identity strong {display:block;font-size:16px;font-weight:800;letter-spacing:.01em}
+    .identity small {display:block;font-size:10px;color:#8e9aab;margin-top:3px;letter-spacing:.16em}
+    .top-link {font-size:12px;border:1px solid #38404b;border-radius:999px;padding:10px 17px;color:#e6e8ed;transition:.2s}
+    .top-link:hover {border-color:var(--gold);color:var(--gold)}
+    .hero {position:relative;overflow:hidden;border:1px solid #4b4536;border-radius:25px;margin-top:38px;min-height:450px;background:linear-gradient(104deg,#101924 9%,#101823 55%,#1e1d1a 100%);display:flex;align-items:center}
+    .hero:before {content:"";position:absolute;right:-14%;top:-55%;height:170%;width:63%;border:1px solid rgba(237,188,88,.16);border-radius:50%;transform:rotate(-24deg)}
+    .hero:after {content:"";position:absolute;right:6%;top:8%;height:82%;width:32%;background:repeating-linear-gradient(125deg,transparent 0 32px,rgba(228,189,107,.075) 33px 34px,transparent 35px 70px);mask-image:linear-gradient(to left,#000,transparent)}
+    .hero-content {position:relative;z-index:1;width:76%;padding:72px 64px 74px}
+    .eyebrow {font-size:11px;letter-spacing:.17em;color:var(--gold);font-weight:800}
+    .eyebrow:before {content:"";display:inline-block;vertical-align:middle;width:21px;height:1px;background:var(--gold);margin-right:10px}
+    h1 {font-size:clamp(35px,5.1vw,65px);line-height:1.28;letter-spacing:-.05em;margin:25px 0 23px;font-weight:900}
+    h1 em {font-style:normal;color:var(--gold)}
+    .hero p {max-width:525px;color:#bbc3cd;font-size:15px;line-height:2;letter-spacing:.012em;margin:0}
+    .actions {display:flex;flex-wrap:wrap;gap:11px;margin-top:34px}
+    .btn {display:inline-flex;align-items:center;justify-content:center;gap:12px;border-radius:10px;font-size:13px;font-weight:800;min-height:49px;padding:0 24px;transition:transform .2s,background .2s}
+    .btn:hover {transform:translateY(-2px)}
+    .btn.primary {color:#18140c;background:linear-gradient(180deg,#f6d77b,#dca33e);box-shadow:0 5px 22px rgba(218,162,62,.14)}
+    .btn.secondary {background:rgba(16,25,37,.8);border:1px solid #52606b;color:#f7f7f8}
+    .hero-index {position:absolute;bottom:26px;right:34px;z-index:1;color:#d9b266;font-weight:800;font-size:11px;letter-spacing:.22em;opacity:.6}
+    .intro-line {margin:74px 0 25px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+    .section-number {display:block;font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:800;margin-bottom:12px}
+    h2 {font-size:clamp(25px,3vw,37px);letter-spacing:-.035em;line-height:1.4;margin:0;font-weight:900}
+    .intro-line>p {margin:0 0 5px;color:#8e9bac;font-size:12px}
+    .cards {display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+    .card {background:linear-gradient(140deg,#15202e,#0e151e);border:1px solid var(--edge);border-radius:17px;padding:29px 25px 31px;min-height:230px}
+    .card .num {color:#b08b42;font-size:12px;letter-spacing:.1em;font-weight:800}
+    .card h3 {font-size:21px;margin:31px 0 11px;letter-spacing:-.035em}
+    .card p {font-size:13px;line-height:1.95;color:var(--muted);margin:0}
+    .card.featured {border-color:#655233;background:linear-gradient(145deg,#27261f,#111923 73%)}
+    .statement {margin-top:17px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;background:#101822;border:1px solid #27303b;border-radius:17px;padding:40px 47px}
+    .statement blockquote {margin:0;font-size:clamp(23px,2.8vw,34px);font-weight:900;letter-spacing:-.04em;line-height:1.55}
+    .statement blockquote span {color:var(--gold)}
+    .statement p {font-size:13px;line-height:2;color:#b1bac6;margin:0}
+    .process {padding:80px 0 0}
+    .flow {display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:27px}
+    .flow-step {padding:24px 0;border-top:1px solid #4f4431}
+    .flow-step b {font-size:11px;letter-spacing:.1em;color:var(--gold)}
+    .flow-step h3 {font-size:18px;margin:17px 0 8px}
+    .flow-step p {font-size:13px;color:var(--muted);line-height:1.85;margin:0}
+    .closing {margin:82px 0 50px;text-align:center;padding:55px 24px 59px;border:1px solid #635039;border-radius:23px;background:radial-gradient(ellipse at 50% 0,rgba(116,89,42,.18),transparent 70%),#121821}
+    .closing h2 {font-size:clamp(25px,4vw,41px)}
+    .closing p {font-size:14px;color:var(--muted);margin:14px 0 26px}
+    .closing .btn {min-width:185px}
+    footer {border-top:1px solid rgba(255,255,255,.08);padding:24px 0 38px;display:flex;justify-content:space-between;gap:24px;align-items:flex-start;color:#7f8996;font-size:11px;line-height:1.8}
+    footer p {margin:0;max-width:610px}
+    footer strong {color:#c6ac70;letter-spacing:.08em}
+    @media(max-width:740px) {
+      .wrap {padding:0 18px} header{height:73px}.identity img{width:37px;height:37px}.identity strong{font-size:13px}.identity small{font-size:8px}.top-link{font-size:11px;padding:9px 11px}
+      .hero{margin-top:18px;min-height:unset;border-radius:17px}
+      .hero-content{width:100%;padding:50px 25px 66px}.hero:after{width:54%;right:-15%;opacity:.5}
+      h1{margin:19px 0 18px;font-size:clamp(35px,9.3vw,47px)}.hero p{font-size:13px}
+      .actions{margin-top:28px}.btn{width:100%}.hero-index{bottom:17px;right:21px}
+      .intro-line{margin:59px 0 23px;display:block}.intro-line>p{margin-top:10px}.cards,.flow{grid-template-columns:1fr}
+      .card{min-height:0;padding:23px}.card h3{margin:20px 0 9px}.statement{grid-template-columns:1fr;padding:28px 23px;gap:13px}
+      .process{padding-top:63px}.flow{gap:0}.flow-step{padding:22px 0}.closing{margin:62px 0 36px;padding:38px 22px}
+      footer{flex-direction:column;gap:11px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-inner">
+      <a class="identity" href="../" aria-label="前往 HABAO AI 主站">
+        <img src="../habao-hb-logo.png" alt="HB Logo" onerror="this.src='../habao-icon-192.png'">
+        <span><strong>HABAO 賽事預測 AI</strong><small>SPORTS INTELLIGENCE</small></span>
+      </a>
+      <a class="top-link" href="../">開啟 HB.AI　↗</a>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <div class="eyebrow">HABAO AI ENGINE</div>
+        <h1 id="hero-title">不是每場比賽，<br>都<em>值得推薦。</em></h1>
+        <p>與其給出更多答案，我們更在意每個答案背後的依據。整合賽事資訊與多維數據，讓每一次分析都有所本。</p>
+        <div class="actions">
+          <a class="btn primary" href="../">免費探索 HB.AI　↗</a>
+          <a class="btn secondary" href="#difference">了解我們的不同　↓</a>
+        </div>
+      </div>
+      <div class="hero-index">DATA FIRST / 2026</div>
+    </section>
+    <section id="difference" aria-labelledby="difference-title">
+      <div class="intro-line">
+        <div><span class="section-number">01 / OUR APPROACH</span><h2 id="difference-title">我們相信，少一點也可以更好。</h2></div>
+        <p>不堆砌承諾，只說清楚原則。</p>
+      </div>
+      <div class="cards">
+        <article class="card"><div class="num">01 — ACCESS</div><h3>免費開始</h3><p>不必先購買高額月費方案。HB.AI 現階段提供免費體驗，依站內規則及積分額度使用分析功能。</p></article>
+        <article class="card featured"><div class="num">02 — DISCIPLINE</div><h3>低信心，不硬推</h3><p>資料條件不足、模型信號不夠明確時，保留「暫不推薦」。我們不要求每場、每個項目都給答案。</p></article>
+        <article class="card"><div class="num">03 — TRANSPARENCY</div><h3>結果公開驗證</h3><p>不只展示賽前觀點，也提供公開戰績頁面，讓使用者回頭檢視分析結果與實際賽果。</p></article>
+      </div>
+      <div class="statement">
+        <blockquote>給出建議很容易。<br><span>知道何時不建議，</span><br>同樣重要。</blockquote>
+        <p>市面上有服務著重提供更多賽事與市場的預測，也有進階分析採月費訂閱。HB.AI 選擇以審慎的推薦門檻與免費體驗，打造不同的使用方式。這不是保證更高命中率，而是更清楚地表達模型的判斷界線。</p>
+      </div>
+    </section>
+    <section class="process" aria-labelledby="process-title">
+      <span class="section-number">02 / HOW IT WORKS</span>
+      <h2 id="process-title">從資料，到值得參考的判斷。</h2>
+      <div class="flow">
+        <div class="flow-step"><b>STEP 01</b><h3>蒐集</h3><p>整理賽程、近期表現、主客場資訊與可取得的市場數據。</p></div>
+        <div class="flow-step"><b>STEP 02</b><h3>分析</h3><p>透過量化模型評估賽事方向與信號強度；不同運動採取相應方法。</p></div>
+        <div class="flow-step"><b>STEP 03</b><h3>篩選</h3><p>有足夠依據才呈現推薦；未達條件的項目，明確保留不推薦。</p></div>
+      </div>
+    </section>
+    <section class="closing" aria-labelledby="closing-title">
+      <span class="section-number">START WITH HABAO</span>
+      <h2 id="closing-title">今天的比賽，讓數據先說話。</h2>
+      <p>足球、NBA、MLB 賽事資訊與分析參考，從這裡開始。</p>
+      <a class="btn primary" href="../">前往 HABAO AI　↗</a>
+    </section>
+  </main>
+  <div class="wrap">
+    <footer>
+      <strong>HABAO SPORTS INTELLIGENCE</strong>
+      <p>本站為賽事數據分析資訊介紹；模型結果存在不確定性，不構成獲利保證或投注建議。免費體驗範圍以 HB.AI 站內最新規則為準。</p>
+    </footer>
+  </div>
+</body>
+</html>
