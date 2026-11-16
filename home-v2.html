@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+<script>/* 搬遷：舊 GitHub 網址自動轉到新網址（2026-11-17，見 PROJECT_NOTES §16） */(function(){if(/\.github\.io$/i.test(location.hostname)){var p=location.pathname.replace(/^\/habao-football-ai/,"")||"/";location.replace("https://hbai-tw.pages.dev"+p+location.search+location.hash);}})();</script>
 <script src="./habao-loading.js?v=3" defer></script>
   
   <meta charset="UTF-8">
@@ -10532,46 +10533,12 @@ loadV2TomorrowFocusMatches()
       tomorrowFixtures.length === 0
     ) {
 
-      container.innerHTML = `
-        <article class="match-card">
-
-          <div class="match-top">
-
-<div class="league">
-  ${
-    window.HabaoI18n?.t(
-      "tomorrowFocus",
-      "明日焦點"
-    ) || "明日焦點"
-  }
-</div>
-
-<div class="match-time">
-  ${
-    window.HabaoI18n?.t(
-      "noMatches",
-      "暫無賽事"
-    ) || "暫無賽事"
-  }
-</div>
-
-          </div>
-
-          <div class="teams">
-
-<div class="team">
-  ${
-    window.HabaoI18n?.t(
-      "noFocusMatches",
-      "尚無焦點賽事"
-    ) || "尚無焦點賽事"
-  }
-</div>
-
-          </div>
-
-        </article>
-      `;
+      // 明天也沒有足球：交給共用空狀態，會自動改顯示 NBA 備援
+      renderV2FocusMatchCards(
+        container,
+        [],
+        "tomorrow"
+      );
 
       return;
     }

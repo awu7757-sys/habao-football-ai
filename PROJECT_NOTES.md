@@ -713,7 +713,8 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - ✅ Supabase Auth → Redirect URLs 已加入 `https://hbai-tw.pages.dev/**`；Site URL 暫維持舊 GitHub 網址（正式切換時再改）。
 - ✅ 前台寫死網址已改為新網域：`index.html` og／twitter 3 處、`admin.html` 推播點擊網址 4 處、`links/`、`intro/` og 圖片。
 - ⏳ 待使用者：新網址實測登入；後端 `push-send` 預設網址待重新部署。
-- ⏳ 待辦：舊網址自動轉址、正式切換後改 Site URL、repo 改 Private。
+- ✅ 舊網址自動轉址（2026-11-17）：16 個頁面 `<head>` 最前面加一段 inline script，hostname 為 `*.github.io` 時以 `location.replace` 轉到 `https://hbai-tw.pages.dev` 同路徑（去掉 `/habao-football-ai` 前綴，保留 query 與 hash）；在新網域不動作。`sw.js` 對 HTML 採 network first，舊 PWA 會拿到含轉址的新版。**新增頁面時要一併加入這段**（repo 改 Private 後可整段移除）。
+- ⏳ 待使用者：Supabase Site URL 改新網址；`push-send` 線上程式改預設網址後重新部署；repo 改 Private（改後 GitHub Pages 停止，舊網址轉址也會失效）。
 
 步驟：
 1. 使用者建立 Cloudflare Pages 專案並連接 repo（建置指令留空、輸出目錄 `/`）。
@@ -728,4 +729,5 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 修正：`renderV2FocusMatchCards` 遇到空清單時呼叫 `renderV2NbaFocusFallback`，讀 `basketball-fixtures`（offset 0、1）的 NBA 正式賽（`competition_key==='nba'`），以 `HabaoStageCore.lifecycle` 判斷未開賽且開賽時間在未來，依時間取最近 2 場。卡片連到 `football.html?sport=basketball`，圖示改籃球。
 - 有足球焦點時會作廢尚未返回的 NBA 請求（序號 `v2NbaFocusSerial`），避免舊回應覆蓋。沒有 NBA 時保留原空狀態。唯讀，不呼叫 claim／扣點。
 - 去重：NBA 中文隊名對照表從 `football.html` 抽到共用檔 **`nba-team-names.js`**（`window.HABAO_NBA_TEAM_NAME_ZH`），賽事中心與首頁共用；改譯名只改這一檔。
+- 【2026-11-17 補修】`renderV2FocusMatches` 中「明天也沒有足球」的分支原本自己寫死空狀態 HTML，沒有經過 `renderV2FocusMatchCards`，所以 NBA 備援沒觸發；已改為呼叫共用空狀態。
 - 驗證：模擬資料測試通過（排除已完賽／非 NBA／重複、中文隊名、排序、舊請求不覆蓋）；兩頁 inline script 語法檢查通過；`tests/home-stats-retry.test.cjs` 通過。**尚未在正式資料實機驗收。** MLB 為休賽期，未納入備援。
