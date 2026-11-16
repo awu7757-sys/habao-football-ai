@@ -1,149 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080c12">
-  <meta name="description" content="HABAO AI 賽事預測分析｜免費探索足球、NBA、MLB 賽事資料。信號不足，不勉強推薦。">
-  <meta property="og:title" content="HABAO AI｜不是每場比賽，都值得推薦">
-  <meta property="og:description" content="免費探索賽事分析。比起給出更多答案，我們更重視每一個答案的依據。">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070a0f">
   <title>HABAO AI｜讓數據先說話</title>
+  <meta name="description" content="HABAO AI 賽事預測分析｜免費探索足球、NBA、MLB 賽事資料。信號不足，不勉強推薦。">
+  <meta property="og:title" content="HABAO AI｜讓數據先說話">
+  <meta property="og:description" content="不是每場比賽，都值得推薦。免費開始・低信心不硬推・結果公開驗證。">
+  <meta property="og:image" content="https://awu7757-sys.github.io/habao-football-ai/habao-og-20261013.png">
   <link rel="icon" href="../habao-icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=DM+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Cinzel:wght@900&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme:dark; --bg:#080c12; --paper:#111925; --edge:#293341; --gold:#e9b956; --white:#f7f5f0; --muted:#a9b1be; }
-    * {box-sizing:border-box}
-    html {scroll-behavior:smooth}
-    body {margin:0;background:var(--bg);color:var(--white);font-family:"DM Sans","Noto Sans TC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-    body:before {content:"";position:absolute;z-index:-1;top:0;left:0;right:0;height:720px;background:radial-gradient(ellipse 62% 45% at 78% 4%,rgba(42,65,86,.24),transparent 78%);pointer-events:none}
-    a {color:inherit;text-decoration:none}
-    a:focus-visible {outline:2px solid var(--gold);outline-offset:5px;border-radius:4px}
-    .wrap {max-width:1040px;margin:0 auto;padding:0 30px}
-    header {height:92px;border-bottom:1px solid rgba(255,255,255,.07)}
-    .header-inner {display:flex;align-items:center;justify-content:space-between;height:100%}
-    .identity {display:flex;align-items:center;gap:13px}
-    .identity img {height:44px;width:44px;object-fit:contain;border-radius:12px;background:#131313}
-    .identity strong {display:block;font-size:16px;font-weight:800;letter-spacing:.01em}
-    .identity small {display:block;font-size:10px;color:#8e9aab;margin-top:3px;letter-spacing:.16em}
-    .top-link {font-size:12px;border:1px solid #38404b;border-radius:999px;padding:10px 17px;color:#e6e8ed;transition:.2s}
-    .top-link:hover {border-color:var(--gold);color:var(--gold)}
-    .hero {position:relative;overflow:hidden;border:1px solid #4b4536;border-radius:25px;margin-top:38px;min-height:450px;background:linear-gradient(104deg,#101924 9%,#101823 55%,#1e1d1a 100%);display:flex;align-items:center}
-    .hero:before {content:"";position:absolute;right:-14%;top:-55%;height:170%;width:63%;border:1px solid rgba(237,188,88,.16);border-radius:50%;transform:rotate(-24deg)}
-    .hero:after {content:"";position:absolute;right:6%;top:8%;height:82%;width:32%;background:repeating-linear-gradient(125deg,transparent 0 32px,rgba(228,189,107,.075) 33px 34px,transparent 35px 70px);mask-image:linear-gradient(to left,#000,transparent)}
-    .hero-content {position:relative;z-index:1;width:76%;padding:72px 64px 74px}
-    .eyebrow {font-size:11px;letter-spacing:.17em;color:var(--gold);font-weight:800}
-    .eyebrow:before {content:"";display:inline-block;vertical-align:middle;width:21px;height:1px;background:var(--gold);margin-right:10px}
-    h1 {font-size:clamp(35px,5.1vw,65px);line-height:1.28;letter-spacing:-.05em;margin:25px 0 23px;font-weight:900}
-    h1 em {font-style:normal;color:var(--gold)}
-    .hero p {max-width:525px;color:#bbc3cd;font-size:15px;line-height:2;letter-spacing:.012em;margin:0}
-    .actions {display:flex;flex-wrap:wrap;gap:11px;margin-top:34px}
-    .btn {display:inline-flex;align-items:center;justify-content:center;gap:12px;border-radius:10px;font-size:13px;font-weight:800;min-height:49px;padding:0 24px;transition:transform .2s,background .2s}
-    .btn:hover {transform:translateY(-2px)}
-    .btn.primary {color:#18140c;background:linear-gradient(180deg,#f6d77b,#dca33e);box-shadow:0 5px 22px rgba(218,162,62,.14)}
-    .btn.secondary {background:rgba(16,25,37,.8);border:1px solid #52606b;color:#f7f7f8}
-    .hero-index {position:absolute;bottom:26px;right:34px;z-index:1;color:#d9b266;font-weight:800;font-size:11px;letter-spacing:.22em;opacity:.6}
-    .intro-line {margin:74px 0 25px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
-    .section-number {display:block;font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:800;margin-bottom:12px}
-    h2 {font-size:clamp(25px,3vw,37px);letter-spacing:-.035em;line-height:1.4;margin:0;font-weight:900}
-    .intro-line>p {margin:0 0 5px;color:#8e9bac;font-size:12px}
-    .cards {display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
-    .card {background:linear-gradient(140deg,#15202e,#0e151e);border:1px solid var(--edge);border-radius:17px;padding:29px 25px 31px;min-height:230px}
-    .card .num {color:#b08b42;font-size:12px;letter-spacing:.1em;font-weight:800}
-    .card h3 {font-size:21px;margin:31px 0 11px;letter-spacing:-.035em}
-    .card p {font-size:13px;line-height:1.95;color:var(--muted);margin:0}
-    .card.featured {border-color:#655233;background:linear-gradient(145deg,#27261f,#111923 73%)}
-    .statement {margin-top:17px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;background:#101822;border:1px solid #27303b;border-radius:17px;padding:40px 47px}
-    .statement blockquote {margin:0;font-size:clamp(23px,2.8vw,34px);font-weight:900;letter-spacing:-.04em;line-height:1.55}
-    .statement blockquote span {color:var(--gold)}
-    .statement p {font-size:13px;line-height:2;color:#b1bac6;margin:0}
-    .process {padding:80px 0 0}
-    .flow {display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:27px}
-    .flow-step {padding:24px 0;border-top:1px solid #4f4431}
-    .flow-step b {font-size:11px;letter-spacing:.1em;color:var(--gold)}
-    .flow-step h3 {font-size:18px;margin:17px 0 8px}
-    .flow-step p {font-size:13px;color:var(--muted);line-height:1.85;margin:0}
-    .closing {margin:82px 0 50px;text-align:center;padding:55px 24px 59px;border:1px solid #635039;border-radius:23px;background:radial-gradient(ellipse at 50% 0,rgba(116,89,42,.18),transparent 70%),#121821}
-    .closing h2 {font-size:clamp(25px,4vw,41px)}
-    .closing p {font-size:14px;color:var(--muted);margin:14px 0 26px}
-    .closing .btn {min-width:185px}
-    footer {border-top:1px solid rgba(255,255,255,.08);padding:24px 0 38px;display:flex;justify-content:space-between;gap:24px;align-items:flex-start;color:#7f8996;font-size:11px;line-height:1.8}
-    footer p {margin:0;max-width:610px}
-    footer strong {color:#c6ac70;letter-spacing:.08em}
-    @media(max-width:740px) {
-      .wrap {padding:0 18px} header{height:73px}.identity img{width:37px;height:37px}.identity strong{font-size:13px}.identity small{font-size:8px}.top-link{font-size:11px;padding:9px 11px}
-      .hero{margin-top:18px;min-height:unset;border-radius:17px}
-      .hero-content{width:100%;padding:50px 25px 66px}.hero:after{width:54%;right:-15%;opacity:.5}
-      h1{margin:19px 0 18px;font-size:clamp(35px,9.3vw,47px)}.hero p{font-size:13px}
-      .actions{margin-top:28px}.btn{width:100%}.hero-index{bottom:17px;right:21px}
-      .intro-line{margin:59px 0 23px;display:block}.intro-line>p{margin-top:10px}.cards,.flow{grid-template-columns:1fr}
-      .card{min-height:0;padding:23px}.card h3{margin:20px 0 9px}.statement{grid-template-columns:1fr;padding:28px 23px;gap:13px}
-      .process{padding-top:63px}.flow{gap:0}.flow-step{padding:22px 0}.closing{margin:62px 0 36px;padding:38px 22px}
-      footer{flex-direction:column;gap:11px}
+    :root{
+      --bg:#070a0f;--gold:#f2bd4b;--gold-light:#ffe7a8;--text:#f7f3e8;--muted:#aab2bf;
+      --gold-grad:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%);
+      --frame:linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12);
+      --u:min(1svh,1.9vw + .3svh); /* 依螢幕高度縮放的單位，確保一頁放得下 */
     }
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif;color:var(--text);
+      background:
+        radial-gradient(120% 55% at 50% -10%,rgba(242,189,75,.17),transparent 60%),
+        radial-gradient(90% 50% at 50% 60%,rgba(30,52,88,.35),transparent 70%),
+        repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 2px,transparent 2px 14px),var(--bg);
+      overflow:hidden;-webkit-tap-highlight-color:transparent;
+    }
+    a{color:inherit;text-decoration:none}
+    .page{
+      height:100svh;max-width:480px;margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + var(--u)*2.2) 16px calc(env(safe-area-inset-bottom) + var(--u)*1.6);
+      display:flex;flex-direction:column;justify-content:center;gap:calc(var(--u)*3.2);
+    }
+
+    /* 品牌列 */
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:calc(var(--u)*.6)}
+    .brand img{width:calc(var(--u)*6.4);height:calc(var(--u)*6.4);filter:drop-shadow(0 0 14px rgba(242,189,75,.4)) drop-shadow(0 6px 10px rgba(0,0,0,.7));animation:float 5s ease-in-out infinite}
+    @keyframes float{50%{transform:translateY(-3px)}}
+    .brand-name{font-family:"Cinzel",serif;font-weight:900;font-size:calc(var(--u)*3);letter-spacing:.06em;line-height:1;
+      background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #4a2e08)}
+    .brand-sub{font-size:calc(var(--u)*1.35);font-weight:700;letter-spacing:.2em;color:var(--gold-light);margin-top:3px}
+
+    /* 金框 */
+    .framed{position:relative;border-radius:20px;padding:2px;background:var(--frame);box-shadow:0 10px 24px rgba(0,0,0,.6),0 0 18px rgba(242,189,75,.16)}
+    .framed>.inner{position:relative;border-radius:18px;overflow:hidden;
+      background:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),repeating-linear-gradient(120deg,rgba(255,255,255,.022) 0 18px,transparent 18px 36px),linear-gradient(180deg,#151e2b,#0b1018 85%);
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.12),inset 0 -6px 14px rgba(0,0,0,.55)}
+
+    /* 主視覺 */
+    .hero .inner{padding:calc(var(--u)*3.4) 18px;text-align:center}
+    .hero .inner::before{content:"";position:absolute;inset:-60% -30% auto;height:220%;
+      background:conic-gradient(from 200deg,transparent 0 40%,rgba(255,231,168,.15) 48%,transparent 56%);animation:sweep 7s linear infinite;pointer-events:none}
+    @keyframes sweep{to{transform:rotate(360deg)}}
+    .kicker{position:relative;font-size:calc(var(--u)*1.3);font-weight:700;letter-spacing:.3em;color:var(--gold)}
+    h1{position:relative;margin:calc(var(--u)*1.2) 0;font-size:calc(var(--u)*4.4);font-weight:900;line-height:1.22;letter-spacing:.03em;
+      text-shadow:0 3px 8px rgba(0,0,0,.85)}
+    h1 em{font-style:normal;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 2px 0 #3d2506);text-shadow:none}
+    .lead{position:relative;font-size:calc(var(--u)*1.75);color:#e3e6ec;line-height:1.6}
+    .lead b{color:var(--gold-light)}
+
+    /* 三原則 */
+    .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .pillar{border-radius:16px;padding:2px;box-shadow:0 5px 0 rgba(0,0,0,.55),0 10px 18px rgba(0,0,0,.5)}
+    .pillar>div{height:100%;border-radius:14px;padding:calc(var(--u)*2.2) 8px calc(var(--u)*2);text-align:center;
+      box-shadow:inset 0 2px 0 rgba(255,255,255,.14),inset 0 -6px 12px rgba(0,0,0,.55)}
+    .pillar .ic{width:calc(var(--u)*5.8);height:calc(var(--u)*5.8);margin:0 auto calc(var(--u)*.9);border-radius:50%;display:grid;place-items:center;
+      box-shadow:inset -3px -5px 8px rgba(0,0,0,.45),0 5px 10px rgba(0,0,0,.7)}
+    .pillar .ic svg{width:52%;height:52%}
+    .pillar h3{font-size:calc(var(--u)*1.75);font-weight:900;letter-spacing:.04em;white-space:nowrap}
+    .pillar p{font-size:calc(var(--u)*1.25);color:var(--muted);line-height:1.45;margin-top:4px}
+    .p-gold{background:linear-gradient(145deg,#fff1b8,#c98a1f 35%,#6b4410 60%,#f2c35a)}
+    .p-gold>div{background:linear-gradient(180deg,#2a2414,#0f0d08)}
+    .p-gold .ic{background:radial-gradient(circle at 35% 30%,#fff7da,#f2bd4b 45%,#7a4c0e)}
+    .p-blue{background:linear-gradient(145deg,#cfe3ff,#3d6fb8 35%,#1a2f55 60%,#6f9be0)}
+    .p-blue>div{background:linear-gradient(180deg,#14233d,#0a111d)}
+    .p-blue .ic{background:radial-gradient(circle at 35% 30%,#e6f0ff,#5b8fd8 45%,#1c3560)}
+    .p-green{background:linear-gradient(145deg,#c9ffe0,#2f9c66 35%,#124a31 60%,#5fd496)}
+    .p-green>div{background:linear-gradient(180deg,#112a22,#09140f)}
+    .p-green .ic{background:radial-gradient(circle at 35% 30%,#e3fff0,#3cdd82 45%,#145a37)}
+
+    /* 流程 */
+    .flow{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+    .step{display:flex;align-items:center;gap:8px}
+    .medal{width:calc(var(--u)*4);height:calc(var(--u)*4);border-radius:50%;display:grid;place-items:center;
+      font-family:"Cinzel",serif;font-weight:900;font-size:calc(var(--u)*1.9);color:#2b1a03;
+      background:radial-gradient(circle at 35% 30%,#fff7da,#f2bd4b 50%,#8a5a12);box-shadow:inset 0 -3px 5px rgba(0,0,0,.35),0 3px 0 #5a3a0c,0 0 14px rgba(242,189,75,.35)}
+    .step b{display:block;font-size:calc(var(--u)*1.7);font-weight:900}
+    .step small{display:block;font-size:calc(var(--u)*1.15);color:var(--muted)}
+    .link{flex:1;height:2px;margin:0 8px;background:linear-gradient(90deg,rgba(242,189,75,.1),rgba(242,189,75,.9),rgba(242,189,75,.1));box-shadow:0 0 8px rgba(242,189,75,.6)}
+
+    .foot{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*1.2)}
+    .back{font-size:calc(var(--u)*1.45);font-weight:700;color:var(--gold-light);opacity:.85;letter-spacing:.06em;padding:6px 10px}
+    .back:active{opacity:.6}
+    .note{text-align:center;font-size:calc(var(--u)*1.05);color:#7d8593;line-height:1.5}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap header-inner">
-      <a class="identity" href="../" aria-label="前往 HABAO AI 主站">
-        <img src="../habao-hb-logo.png" alt="HB Logo" onerror="this.src='../habao-icon-192.png'">
-        <span><strong>HABAO 賽事預測 AI</strong><small>SPORTS INTELLIGENCE</small></span>
-      </a>
-      <a class="top-link" href="../">開啟 HB.AI　↗</a>
-    </div>
-  </header>
-  <main class="wrap">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-content">
-        <div class="eyebrow">HABAO AI ENGINE</div>
-        <h1 id="hero-title">不是每場比賽，<br>都<em>值得推薦。</em></h1>
-        <p>與其給出更多答案，我們更在意每個答案背後的依據。整合賽事資訊與多維數據，讓每一次分析都有所本。</p>
-        <div class="actions">
-          <a class="btn primary" href="../">免費探索 HB.AI　↗</a>
-          <a class="btn secondary" href="#difference">了解我們的不同　↓</a>
-        </div>
-      </div>
-      <div class="hero-index">DATA FIRST / 2026</div>
-    </section>
-    <section id="difference" aria-labelledby="difference-title">
-      <div class="intro-line">
-        <div><span class="section-number">01 / OUR APPROACH</span><h2 id="difference-title">我們相信，少一點也可以更好。</h2></div>
-        <p>不堆砌承諾，只說清楚原則。</p>
-      </div>
-      <div class="cards">
-        <article class="card"><div class="num">01 — ACCESS</div><h3>免費開始</h3><p>不必先購買高額月費方案。HB.AI 現階段提供免費體驗，依站內規則及積分額度使用分析功能。</p></article>
-        <article class="card featured"><div class="num">02 — DISCIPLINE</div><h3>低信心，不硬推</h3><p>資料條件不足、模型信號不夠明確時，保留「暫不推薦」。我們不要求每場、每個項目都給答案。</p></article>
-        <article class="card"><div class="num">03 — TRANSPARENCY</div><h3>結果公開驗證</h3><p>不只展示賽前觀點，也提供公開戰績頁面，讓使用者回頭檢視分析結果與實際賽果。</p></article>
-      </div>
-      <div class="statement">
-        <blockquote>給出建議很容易。<br><span>知道何時不建議，</span><br>同樣重要。</blockquote>
-        <p>市面上有服務著重提供更多賽事與市場的預測，也有進階分析採月費訂閱。HB.AI 選擇以審慎的推薦門檻與免費體驗，打造不同的使用方式。這不是保證更高命中率，而是更清楚地表達模型的判斷界線。</p>
+  <main class="page">
+
+    <header class="brand">
+      <img src="../habao-hb-logo.png" alt="HB 標誌">
+      <div><div class="brand-name">HABAO</div><div class="brand-sub">賽事預測 AI ・ 讓數據先說話</div></div>
+    </header>
+
+    <section class="framed hero">
+      <div class="inner">
+        <div class="kicker">HABAO AI ENGINE</div>
+        <h1>不是每場比賽，<br><em>都值得推薦。</em></h1>
+        <p class="lead">整合賽事資訊與多維數據，<br>讓每一次分析都有所本。<br><b>知道何時不建議，同樣重要。</b></p>
       </div>
     </section>
-    <section class="process" aria-labelledby="process-title">
-      <span class="section-number">02 / HOW IT WORKS</span>
-      <h2 id="process-title">從資料，到值得參考的判斷。</h2>
-      <div class="flow">
-        <div class="flow-step"><b>STEP 01</b><h3>蒐集</h3><p>整理賽程、近期表現、主客場資訊與可取得的市場數據。</p></div>
-        <div class="flow-step"><b>STEP 02</b><h3>分析</h3><p>透過量化模型評估賽事方向與信號強度；不同運動採取相應方法。</p></div>
-        <div class="flow-step"><b>STEP 03</b><h3>篩選</h3><p>有足夠依據才呈現推薦；未達條件的項目，明確保留不推薦。</p></div>
-      </div>
+
+    <section class="pillars" aria-label="我們的原則">
+      <div class="pillar p-gold"><div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#2b1a03" stroke-width="2.4" stroke-linecap="round"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 110-5C11 2 12 7 12 7zm0 0h4.5a2.5 2.5 0 100-5C13 2 12 7 12 7z"/></svg></div>
+        <h3>免費開始</h3><p>不必先買高額月費</p>
+      </div></div>
+      <div class="pillar p-blue"><div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#06142a" stroke-width="2.4" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></div>
+        <h3>低信心不硬推</h3><p>信號不足不推薦</p>
+      </div></div>
+      <div class="pillar p-green"><div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#04200f" stroke-width="2.4" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <h3>結果公開驗證</h3><p>賽後回頭檢視成績</p>
+      </div></div>
     </section>
-    <section class="closing" aria-labelledby="closing-title">
-      <span class="section-number">START WITH HABAO</span>
-      <h2 id="closing-title">今天的比賽，讓數據先說話。</h2>
-      <p>足球、NBA、MLB 賽事資訊與分析參考，從這裡開始。</p>
-      <a class="btn primary" href="../">前往 HABAO AI　↗</a>
+
+    <section class="flow" aria-label="運作方式">
+      <div class="step"><span class="medal">1</span><div><b>蒐集</b><small>賽程・表現・市場</small></div></div>
+      <span class="link"></span>
+      <div class="step"><span class="medal">2</span><div><b>分析</b><small>量化模型</small></div></div>
+      <span class="link"></span>
+      <div class="step"><span class="medal">3</span><div><b>篩選</b><small>有依據才推薦</small></div></div>
     </section>
-  </main>
-  <div class="wrap">
-    <footer>
-      <strong>HABAO SPORTS INTELLIGENCE</strong>
-      <p>本站為賽事數據分析資訊介紹；模型結果存在不確定性，不構成獲利保證或投注建議。免費體驗範圍以 HB.AI 站內最新規則為準。</p>
+
+    <footer class="foot">
+      <p class="note">本站為賽事數據分析資訊介紹；模型結果存在不確定性，不構成獲利保證或投注建議。</p>
+      <a class="back" href="../links/">← 返回 HABAO 官方連結</a>
     </footer>
-  </div>
+
+  </main>
 </body>
 </html>
