@@ -677,7 +677,7 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 
 - 新增 `links/index.html`，網址 `https://awu7757-sys.github.io/habao-football-ai/links/`，供 IG 個人簡介使用（取代 Linktree／Portaly）。
 - 純靜態獨立頁，不載入任何共用 JS、不呼叫 Supabase、不影響既有頁面；僅引用 `../habao-hb-logo.png`、`../habao-icon-192.png`。
-- 風格：使用者指定參考「深墨綠＋香檳金、金屬浮雕立體感」，沿用 HB 黑金品牌色。
+- 風格：金屬浮雕立體感；配色已改為與平台首頁一致（2026-11-16）：深藍黑底 `#070a0f`／卡片 `#10161f`＋金色；足球卡金、NBA 卡藍、MLB 卡綠，對應首頁三張統計卡。
 - 連結：開始分析／三球類／新會員 → `../index.html`；公開戰績 → `../performance.html`；平台介紹 → `../intro/`；LINE → `@804dlhod`。
 - 狀態：**試做版**，使用者要與 GPT 版比較；不喜歡就整個刪除 `links/` 資料夾即可。
 - 文案原則：不使用「保證」「穩賺」等字眼，頁尾保留「分析參考、不保證準確」說明。
