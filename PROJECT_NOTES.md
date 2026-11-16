@@ -732,7 +732,7 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 有足球焦點時會作廢尚未返回的 NBA 請求（序號 `v2NbaFocusSerial`），避免舊回應覆蓋。沒有 NBA 時保留原空狀態。唯讀，不呼叫 claim／扣點。
 - 去重：NBA 中文隊名對照表從 `football.html` 抽到共用檔 **`nba-team-names.js`**（`window.HABAO_NBA_TEAM_NAME_ZH`），賽事中心與首頁共用；改譯名只改這一檔。
 - 【2026-11-17 補修】`renderV2FocusMatches` 中「明天也沒有足球」的分支原本自己寫死空狀態 HTML，沒有經過 `renderV2FocusMatchCards`，所以 NBA 備援沒觸發；已改為呼叫共用空狀態。
-- 驗證：模擬資料測試通過（排除已完賽／非 NBA／重複、中文隊名、排序、舊請求不覆蓋）；兩頁 inline script 語法檢查通過；`tests/home-stats-retry.test.cjs` 通過。**尚未在正式資料實機驗收。** MLB 為休賽期，未納入備援。
+- 驗證：模擬資料測試通過（排除已完賽／非 NBA／重複、中文隊名、排序、舊請求不覆蓋）；兩頁 inline script 語法檢查通過；`tests/home-stats-retry.test.cjs` 通過。**2026-11-17 使用者實機確認正常顯示 NBA。** MLB 為休賽期，未納入備援。
 
 ## 18. iPhone 通知按鈕提示加入主畫面（2026-11-17）
 
