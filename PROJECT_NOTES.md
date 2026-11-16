@@ -708,6 +708,13 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 
 換網域的必然影響（瀏覽器資料按網域分開）：會員要重新登入一次；已安裝的 PWA 要刪掉重裝；推播訂閱要重新開啟。
 
+進度（2026-11-16）：
+- ✅ Cloudflare Pages 專案 `hbai-tw` 已建立（`habao`、`hbai` 已被他人使用），網址 **https://hbai-tw.pages.dev**，連 GitHub main 自動部署。
+- ✅ Supabase Auth → Redirect URLs 已加入 `https://hbai-tw.pages.dev/**`；Site URL 暫維持舊 GitHub 網址（正式切換時再改）。
+- ✅ 前台寫死網址已改為新網域：`index.html` og／twitter 3 處、`admin.html` 推播點擊網址 4 處、`links/`、`intro/` og 圖片。
+- ⏳ 待使用者：新網址實測登入；後端 `push-send` 預設網址待重新部署。
+- ⏳ 待辦：舊網址自動轉址、正式切換後改 Site URL、repo 改 Private。
+
 步驟：
 1. 使用者建立 Cloudflare Pages 專案並連接 repo（建置指令留空、輸出目錄 `/`）。
 2. 使用者在 Supabase 新增 Site URL／Redirect URLs。

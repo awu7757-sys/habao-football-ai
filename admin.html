@@ -1477,9 +1477,9 @@ tr:last-child td{border-bottom:0}
           <div class="field">
             <label class="label">點擊通知後前往</label>
             <select id="pushUrl" class="input">
-              <option value="https://awu7757-sys.github.io/habao-football-ai/home-v2.html">會員首頁</option>
-              <option value="https://awu7757-sys.github.io/habao-football-ai/football.html">賽事中心</option>
-              <option value="https://awu7757-sys.github.io/habao-football-ai/performance.html">AI 戰績</option>
+              <option value="https://hbai-tw.pages.dev/home-v2.html">會員首頁</option>
+              <option value="https://hbai-tw.pages.dev/football.html">賽事中心</option>
+              <option value="https://hbai-tw.pages.dev/performance.html">AI 戰績</option>
             </select>
           </div>
 
@@ -6957,7 +6957,7 @@ async function loadBasketballGamePushCount() {
     return null;
   }
 }
-async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://awu7757-sys.github.io/habao-football-ai/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
+async function sendTestPush(){const member=String(document.getElementById("pushMemberUsername")?.value||"").trim();if(!member){alert("請先輸入指定會員帳號");return;}const count=await loadPushDeviceCount();if(count<=0){alert("此會員目前沒有有效訂閱裝置，無法發送測試通知");return;}if(!confirm(`確定發送測試通知給 ${member}？`))return;try{const d=await pushAdminRequest({action:"send",audience:"member",member_username:member,title:"HABAO 測試通知",body:"推播測試成功，您的裝置已可正常接收通知。",url:"https://hbai-tw.pages.dev/home-v2.html"});setText("pushSendResult",`✅ 測試完成｜找到 ${d.found??d.total??0}｜服務接受 ${d.accepted??d.sent??0}｜失效 ${d.removed_expired??0}｜失敗 ${d.failed??0}`);await loadPushLogs();}catch(e){alert("測試通知失敗："+(e?.message||""));}}
 async function loadPushLogs(){const box=document.getElementById("pushLogs");try{const d=await pushAdminRequest({action:"logs"});const logs=d.logs||[];if(box)box.innerHTML=logs.length?logs.slice(0,10).map(x=>`<div class="mini-item"><span class="mini-key">${formatDate(x.created_at)}｜${escapeHtml(x.member_username||x.audience||"全部")}</span><span class="mini-val">找到 ${x.found_count||0} / 接受 ${x.accepted_count||0} / 失效 ${x.expired_count||0} / 失敗 ${x.failed_count||0}</span></div>`).join(""):"<div class=\"panel-desc\">尚無推播紀錄</div>";}catch(e){if(box)box.innerHTML="<div class=\"panel-desc\">推播紀錄讀取失敗</div>";}}
 
 async function confirmApiRenewal(button){
