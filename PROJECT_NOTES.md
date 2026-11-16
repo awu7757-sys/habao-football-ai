@@ -693,10 +693,24 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 保留：主標「不是每場比賽，都值得推薦。」、「知道何時不建議，同樣重要。」、三原則（免費開始／低信心不硬推／結果公開驗證，金藍綠）、三步驟（蒐集→分析→篩選）、免責聲明前半句。
 - 刪除：副標「少一點也可以更好」、與月費服務比較段落、各項長說明、免責後半句「免費體驗範圍以站內最新規則為準」。如需還原 GPT 版：`git show a0b9dfe:intro/index.html`。
 
-## 16. 待辦：程式碼保護（2026-11-16 記錄，使用者決定先不改）
+## 16. 進行中：搬遷到 Cloudflare Pages（2026-11-16 使用者決定）
 
-- 現況：GitHub repo **公開**（forks 0，2026-11-16 確認），PROJECT_NOTES 的模型參數、`supabase/` 後端程式與 SQL 匯出任何人都能讀取。
-- 使用者已選方案 **A**：升級 GitHub Pro（約 US$4／月）後把 repo 改為 Private；GitHub Pages 網站維持公開、網址不變。
-- **順序不可顛倒**：先升級 Pro，再改 Private；免費方案的 Pages 只支援公開 repo，先改私人會讓網站下線。
-- 升級入口：Settings → Billing and licensing → Licensing（新版介面沒有「Plans」）。
-- 執行後確認：Settings → Pages 仍顯示 live、來源 main；實測 `links/`、`intro/`、登入頁。
+**原因**：①網址太長且露出 GitHub 帳號 ②GitHub Pages 規定不得用於商業服務（HB 有點數／VIP，屬商業），有被停用風險 ③repo 公開，模型參數與後端程式外流。
+**取代原方案 A（升級 GitHub Pro）**：Cloudflare Pages 免費支援私人 repo 與商業網站，不必付 Pro。
+
+目標網址（名稱以實際建立為準）：前台 `https://habao.pages.dev/`、後台 `https://habao.pages.dev/admin.html`。
+
+盤點結果（2026-11-16，程式碼確認）：
+- OAuth `redirectTo` 用 `location.origin + location.pathname`，換網域不用改程式；但 **Supabase Auth → URL Configuration 必須加入新網址**，否則登入會被擋。
+- `manifest.json` 用相對路徑（`./`），不用改。
+- 寫死舊網址、需要改的：`index.html` 的 og／twitter 圖片與網址 3 處；`admin.html` 推播點擊網址選單 3 處；`links/`、`intro/` 的 og 圖片；後端 `push-send`（`deploy/push-send-device-id-v4.index.ts` 的預設點擊網址、icon、badge）要由使用者重新部署。
+- 沒有超過 Cloudflare 單檔 25MB 的檔案（共 282 檔，74MB）。
+
+換網域的必然影響（瀏覽器資料按網域分開）：會員要重新登入一次；已安裝的 PWA 要刪掉重裝；推播訂閱要重新開啟。
+
+步驟：
+1. 使用者建立 Cloudflare Pages 專案並連接 repo（建置指令留空、輸出目錄 `/`）。
+2. 使用者在 Supabase 新增 Site URL／Redirect URLs。
+3. Claude 修改前台寫死網址；舊 GitHub 網址加「自動轉址到新網址」（只在 hostname 為 github.io 時觸發）。
+4. 實測：Google／LINE 登入、會員首頁、賽事中心、後台、PWA 安裝、推播。
+5. 過渡期結束後，repo 改為 Private（免費方案 GitHub Pages 會隨之停止，舊網址失效）。
