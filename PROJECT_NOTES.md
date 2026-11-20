@@ -753,3 +753,15 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - `home-v2.html` 的 `.v2-announcement`：原本滿版金色底、深色字，與平台深色卡片不搭。改為**深藍底＋金色漸層細框**（`padding-box`／`border-box` 雙背景），左側金屬浮雕「公告」標籤加喇叭圖示，文字改淺米色，背景有緩慢金色光澤掃過。
 - 跑馬燈模式左右加淡出遮罩；`prefers-reduced-motion` 時停用跑馬燈與光澤。
 - 標籤圖示用 `::before` 的 CSS mask，因 i18n `setText(".v2-announcement-label")` 會覆寫標籤 textContent；HTML 結構、ID 與公告 JS 皆未改動。
+
+## 21. AI 工具箱改為 VIP 專屬（2026-11-21，使用者決定）
+
+- 規則：**只有 VIP 會員能進入 AI 工具箱**；非 VIP 點工具箱時，開啟與「我的 → 免費升級 VIP」同一個視窗（綁定合作平台），標題改為「AI 工具箱為 VIP 專屬」，升級成功後自動進入 `ai-tools.html`。
+- `home-v2.html`：
+  - 以 capture 階段攔截所有 `a[href="ai-tools.html"]`（首頁工具箱卡片、底部導覽）。快取顯示非 VIP 時先 `refreshV2MemberFromServer` 向伺服器確認一次，避免剛升級的會員被擋。
+  - `openV2VipUpgrade(mode)`：`mode==="toolbox"` 時改標題／副標並記住 `v2VipReturnTo`；一般「我的」入口呼叫時恢復原文案。三語新增 `toolboxVipTitle`、`toolboxVipHint`。
+  - 網址帶 `?vip=tools` 時（由 ai-tools.html 導回）自動開啟視窗，並清掉參數。
+- `ai-tools.html`：`<head>` 加檢查，未登入 → `index.html`；非 VIP → `home-v2.html?vip=tools`。**工具箱頁從此需要登入**（原本不需要）。
+- 限制：這是前端門檻（讀 sessionStorage 的 `member_level`），工具本身是外部網站，懂技術的人仍可繞過；若要嚴格限制需後端配合，屬後端工作。
+- 測試：模擬資料下，訪客→登入頁、一般會員→首頁並跳出工具箱 VIP 視窗、VIP→直接進工具箱；兩頁語法檢查通過。升級成功後自動跳轉未在正式環境實測。
+- 文案：工具箱副標由後台「公告管理 → AI 工具箱｜全新上線特效」控制。Claude 曾建議把「ATG 自動掃描預先得知結果」改成符合實際功能的說法（例如註明是免費遊戲），使用者表示稍後會改。

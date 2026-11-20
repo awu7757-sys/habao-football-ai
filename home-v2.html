@@ -8949,7 +8949,81 @@ async function loadV2PartnerPlatforms() {
   }
 }
 
-function openV2VipUpgrade() {
+/*
+ * AI 工具箱 VIP 門檻（2026-11-21）
+ * 非 VIP 點工具箱 → 開同一個升級 VIP 視窗（標題改為工具箱專屬）
+ * → 升級成功後自動進入 ai-tools.html。
+ * 注意：前端門檻，ai-tools.html 也會檢查；工具本身是外部網站，非伺服器端權限。
+ */
+let v2VipReturnTo = "";
+
+function isV2MemberVip(member) {
+  return String(
+    member?.member_level || "normal"
+  ).toLowerCase() === "vip";
+}
+
+function setV2VipModalCopy(mode) {
+  const t = (key, fallback) =>
+    window.HabaoI18n?.t(key, fallback) || fallback;
+  const titleEl =
+    document.querySelector(".v2-vip-title");
+  const subEl =
+    document.querySelector(".v2-vip-subtitle");
+  if (titleEl) {
+    titleEl.textContent =
+      mode === "toolbox"
+        ? t("toolboxVipTitle", "AI 工具箱為 VIP 專屬")
+        : t("upgradeVip", "免費升級 VIP 會員");
+  }
+  if (subEl) {
+    subEl.innerHTML =
+      (mode === "toolbox"
+        ? t("toolboxVipHint", "綁定任一合作平台帳號，免費升級 VIP 即可使用 AI 工具箱")
+        : t("vipHint1", "綁定任一合作平台帳號，即可免費升級 VIP")) +
+      "<br>" +
+      t("vipDailyBenefit", "每日登入免費補充 2 點分析積分");
+  }
+}
+
+async function openV2ToolboxGate() {
+  let member = readCachedV2Member();
+
+  // 快取顯示非 VIP 時，先向伺服器確認一次，避免剛升級的會員被擋
+  if (member && !isV2MemberVip(member)) {
+    try {
+      member =
+        (await refreshV2MemberFromServer(member, {
+          redirectOnInactive: false,
+          silent: true
+        })) || member;
+    } catch (error) {
+      console.error("V2 TOOLBOX GATE REFRESH ERROR:", error);
+    }
+  }
+
+  if (!member) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (isV2MemberVip(member)) {
+    window.location.href = "ai-tools.html";
+    return;
+  }
+
+  openV2VipUpgrade("toolbox");
+}
+
+function openV2VipUpgrade(mode) {
+
+  const gateMode =
+    mode === "toolbox" ? "toolbox" : "";
+
+  v2VipReturnTo =
+    gateMode === "toolbox" ? "ai-tools.html" : "";
+
+  setV2VipModalCopy(gateMode);
 
   /*
    * 每次打開都要求會員重新選平台，
@@ -9019,6 +9093,10 @@ function closeV2VipUpgrade(event) {
     overlay.classList.remove(
       "show"
     );
+  }
+
+  if (event) {
+    v2VipReturnTo = "";
   }
 
 }
@@ -9238,6 +9316,13 @@ message.textContent =
     setTimeout(() => {
 
       closeV2VipUpgrade();
+
+      // 從 AI 工具箱進來的，升級後直接進入工具箱
+      if (v2VipReturnTo) {
+        const target = v2VipReturnTo;
+        v2VipReturnTo = "";
+        window.location.href = target;
+      }
 
     }, 700);
 
@@ -11362,6 +11447,12 @@ showPhoneGuide("iphone");
       upgradeVip:
         "免費升級 VIP 會員",
 
+      toolboxVipTitle:
+        "AI 工具箱為 VIP 專屬",
+
+      toolboxVipHint:
+        "綁定任一合作平台帳號，免費升級 VIP 即可使用 AI 工具箱",
+
       vipHint1:
         "綁定任一合作平台帳號，即可免費升級 VIP",
 
@@ -11628,6 +11719,12 @@ toolsAvailable: "2 款工具可使用"
 
       upgradeVip:
         "免费升级 VIP 会员",
+
+      toolboxVipTitle:
+        "AI 工具箱为 VIP 专属",
+
+      toolboxVipHint:
+        "绑定任一合作平台账号，免费升级 VIP 即可使用 AI 工具箱",
 
       vipHint1:
         "绑定任一合作平台账号，即可免费升级 VIP",
@@ -11896,6 +11993,12 @@ toolsAvailable: "2 款工具可使用"
 
       upgradeVip:
         "Upgrade to VIP for Free",
+
+      toolboxVipTitle:
+        "AI Toolbox is VIP only",
+
+      toolboxVipHint:
+        "Link any partner platform account to upgrade to VIP for free and unlock the AI Toolbox",
 
       vipHint1:
         "Link an account from any partner platform to upgrade to VIP for free",
@@ -13999,5 +14102,31 @@ loadV2PartnerPlatforms();
 })();
 </script>
 
+
+<script>
+/* AI 工具箱 VIP 門檻：攔截首頁工具箱卡片與底部導覽（2026-11-21） */
+(() => {
+  document.addEventListener("click", (event) => {
+    const link =
+      event.target.closest?.('a[href="ai-tools.html"]');
+    if (!link) return;
+    const member = readCachedV2Member();
+    if (member && isV2MemberVip(member)) return;
+    event.preventDefault();
+    openV2ToolboxGate();
+  }, true);
+
+  // ai-tools.html 擋下非 VIP 時會帶 ?vip=tools 回來
+  const params = new URLSearchParams(location.search);
+  if (params.get("vip") === "tools") {
+    params.delete("vip");
+    const qs = params.toString();
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+    window.addEventListener("load", () => {
+      setTimeout(openV2ToolboxGate, 300);
+    });
+  }
+})();
+</script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <script>/* 搬遷：舊 GitHub 網址自動轉到新網址（2026-11-17，見 PROJECT_NOTES §16） */(function(){if(/\.github\.io$/i.test(location.hostname)){var p=location.pathname.replace(/^\/habao-football-ai/,"")||"/";location.replace("https://hbai-tw.pages.dev"+p+location.search+location.hash);}})();</script>
+<script>/* AI 工具箱 VIP 門檻（2026-11-21）：未登入回登入頁；非 VIP 回首頁並開啟升級 VIP 視窗。前端門檻，詳見 PROJECT_NOTES §21 */(function(){var m=null;try{m=JSON.parse(sessionStorage.getItem("habao_member")||"null");}catch(e){}if(!m||!m.account){location.replace("index.html");return;}if(String(m.member_level||"normal").toLowerCase()!=="vip"){location.replace("home-v2.html?vip=tools");}})();</script>
 <script src="./habao-loading.js?v=3" defer></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
