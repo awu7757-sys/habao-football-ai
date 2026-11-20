@@ -5409,46 +5409,81 @@ padding:
 }
 
 /* ===============================
-   HABAO｜一般公告｜滿版金色 + 跑馬燈
+   HABAO｜一般公告｜深藍金框 + 金屬標籤 + 跑馬燈
+   2026-11-21 改版：原滿版金色與平台深色卡片不搭，
+   改為與首頁卡片一致的深藍底、金色漸層細框。
+   標籤圖示用 ::before，因 i18n 會覆寫標籤 textContent。
 ================================ */
 
 .v2-announcement {
+  position: relative;
   display: none;
   align-items: center;
   gap: 12px;
   margin: 12px 0 18px;
-  padding: 12px 15px;
-  border: 1px solid rgba(255, 224, 139, 0.42);
-  border-radius: 12px;
+  padding: 9px 14px 9px 9px;
+  border: 1px solid transparent;
+  border-radius: 14px;
   background:
-    linear-gradient(
-      90deg,
-      #8f5f0d 0%,
-      #c58d1e 30%,
-      #e6b94c 52%,
-      #bd7f16 74%,
-      #754908 100%
-    );
+    linear-gradient(180deg, #172131 0%, #0b1018 100%) padding-box,
+    linear-gradient(120deg, #ffe7a8 0%, #c98a1f 32%, #6b4410 58%, #f2c35a 100%) border-box;
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
-  color: #211606;
-  font-size: 12px;
+    0 10px 24px rgba(0, 0, 0, 0.42),
+    0 0 18px rgba(242, 189, 75, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #f3ead2;
+  font-size: 12.5px;
   line-height: 1.65;
   overflow: hidden;
+}
+
+.v2-announcement::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -45%;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 231, 168, 0.10), transparent);
+  transform: skewX(-18deg);
+  animation: v2AnnouncementSheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes v2AnnouncementSheen {
+  0%, 60% { left: -45%; }
+  100% { left: 130%; }
 }
 
 .v2-announcement.show { display: flex; }
 
 .v2-announcement-label {
   flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: rgba(25, 17, 5, 0.82);
-  color: #ffd970;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #fff4c8 0%, #f7d272 24%, #e0a12c 54%, #c6851a 55%, #f0bd4e 100%);
+  color: #2b1a03;
+  font-size: 12px;
   font-weight: 950;
+  letter-spacing: 0.06em;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 2px 0 #6b4410,
+    0 5px 10px rgba(0, 0, 0, 0.35);
+}
+
+.v2-announcement-label::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: #2b1a03;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1zm13.5 2A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1zm13.5 2A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .v2-announcement-text-wrap {
@@ -5457,10 +5492,15 @@ padding:
   overflow: hidden;
 }
 
+.v2-announcement.marquee .v2-announcement-text-wrap {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
 .v2-announcement-text {
   min-width: 0;
-  color: #211606;
-  font-weight: 850;
+  color: #f3ead2;
+  font-weight: 800;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -5484,6 +5524,10 @@ padding:
   .v2-announcement.marquee .v2-announcement-text {
     padding-left: 0;
     animation: none;
+  }
+  .v2-announcement::after {
+    animation: none;
+    display: none;
   }
 }
 

@@ -747,3 +747,9 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 下方「AI 命中走勢」的 7D／30D（`lowerDays`）維持 30D，不動。
 - 【補修】`switchSport()` 原本只抓一次 30 天資料同時給頂部、走勢、紀錄使用，導致按鈕顯示「全部」但數字仍是 30 天。改為頂部用 `topDays`、走勢與紀錄用 `lowerDays` 分開抓（相同時只抓一次）。紀錄列表仍為 30 天資料，與原本一致。
 - 注意：選「全部」時若後端回傳 `backtest_kind` 為模擬，原本就會顯示「含模擬樣本」標籤，此行為不變。
+
+## 20. 首頁公告欄改版（2026-11-21）
+
+- `home-v2.html` 的 `.v2-announcement`：原本滿版金色底、深色字，與平台深色卡片不搭。改為**深藍底＋金色漸層細框**（`padding-box`／`border-box` 雙背景），左側金屬浮雕「公告」標籤加喇叭圖示，文字改淺米色，背景有緩慢金色光澤掃過。
+- 跑馬燈模式左右加淡出遮罩；`prefers-reduced-motion` 時停用跑馬燈與光澤。
+- 標籤圖示用 `::before` 的 CSS mask，因 i18n `setText(".v2-announcement-label")` 會覆寫標籤 textContent；HTML 結構、ID 與公告 JS 皆未改動。
