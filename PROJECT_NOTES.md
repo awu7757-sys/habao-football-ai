@@ -448,7 +448,7 @@ DRtg = 由對手得分效率建立
 | 10 | 11-13 疑似第 3 點扣點 | 匯出 `basketball-member-analysis` 檢查 T-10 重看是否重扣 | 使用者決定暫緩 |
 | 11 | 足球新規則（獨贏與熱門相反不推、讓分主盤、BTTS 58%）是否生效 | 11-16 起抽查足球 T-10／T-2／T-15 分析結果與原因文字 | 出現「模型方向與莊家看好的一方相反」「採用最多莊家開出的主讓分盤」「把握不足」 |
 | 12 | NBA T-10 獨贏門檻 70 是否生效 | 11-16 起抽查 NBA 分析 | 信心 60～69 的場次顯示「模型信心低於 70」 |
-| 13 | `public-prediction-runner` 只收 12 聯賽 | 聯賽恢復後看該函式 Logs 中 `mode:"normal"` 的 `skipped_non_public_league`、`unknown_league_id` | 有跳過數；unknown 接近 0 |
+| 13 | `public-prediction-runner` 只收 12 聯賽 | 聯賽恢復後看該函式 Logs 中 `mode:"normal"` 的 `skipped_non_public_league`、`unknown_league_id` | 有跳過數；unknown 接近 0；**11/21 確認**：11/16 起公開快照只有日職 10、巴甲 9、韓職 4、德甲／法甲／西甲各 1，無非 12 聯賽；07:00 normal 報告 `unknown_league_id:0`、`skipped_non_public_league:0`（當次無非 12 聯賽進入） |
 | 14 | 賠率隊名配對改良後 `fixture_not_matched` 是否下降 | 數天後重跑 `deploy/analysis-20261115/03_football_stage_export_readonly.sql`，看 market_context.status | 由約 20% 明顯下降 |
 | 15 | MLB 公開戰績排除／刪除 | MLB 有實場或需要時實測一筆排除再恢復 | 前台公開戰績同步消失／恢復；刪除後不會被 30 分鐘補驗證補回 |
 | 16 | 只領 T-2／T-15 的會員收得到 NBA／MLB 比分推播 | 下次手動開啟某場推播時實測 | 會收到 |
