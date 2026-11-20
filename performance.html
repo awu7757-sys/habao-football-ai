@@ -1042,11 +1042,17 @@ async function switchSport(sport){
     applySportLabels();
     const requestId=++performanceSportRequestId;
     history.replaceState(null,"",location.pathname+(sport==="football"?"":"?sport="+sport));
-    const loading=!perfCached("30");if(loading)setPerfLoading(true,sport);
+    // 頂部「已驗證賽事」用 topDays（預設全部），下方走勢與紀錄維持 30 天；兩者相同時只抓一次
+    const topKey=topDays, lowerKey=String(lowerDays);
+    const loading=!perfCached(topKey)||!perfCached(lowerKey);if(loading)setPerfLoading(true,sport);
     try{
-      const recent=await fetchDataCached("30");
+      const [topRes,recent]=await Promise.all([
+        fetchDataCached(topKey),
+        topKey===lowerKey?null:fetchDataCached(lowerKey)
+      ]);
       if(requestId!==performanceSportRequestId)return;
-      topData=lowerData=recordsData=recent;
+      topData=topRes;
+      lowerData=recordsData=recent||topRes;
     }catch(e){
       if(requestId!==performanceSportRequestId)return;
       console.error("SPORT PERFORMANCE ERROR",e);

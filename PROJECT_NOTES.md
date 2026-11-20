@@ -745,4 +745,5 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 
 - `performance.html`：頂部已驗證賽事的區間篩選（`topDays`）預設由「近 30 天」改為「全部」，切換足球／籃球／棒球時也重設為「全部」。
 - 下方「AI 命中走勢」的 7D／30D（`lowerDays`）維持 30D，不動。
+- 【補修】`switchSport()` 原本只抓一次 30 天資料同時給頂部、走勢、紀錄使用，導致按鈕顯示「全部」但數字仍是 30 天。改為頂部用 `topDays`、走勢與紀錄用 `lowerDays` 分開抓（相同時只抓一次）。紀錄列表仍為 30 天資料，與原本一致。
 - 注意：選「全部」時若後端回傳 `backtest_kind` 為模擬，原本就會顯示「含模擬樣本」標籤，此行為不變。
