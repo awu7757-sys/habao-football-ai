@@ -740,3 +740,9 @@ LINE 登入（`index.html`，Supabase provider `custom:line-oauth`）另加 `que
 - 問題：iPhone 在 Safari 或舊 App 內小瀏覽器開啟時，`Notification.permission` 為 denied，按鈕顯示「通知已被瀏覽器封鎖」，會員誤以為手機壞了。iPhone 只有加入主畫面的 App 能收推播。
 - 修正（`home-v2.html`）：新增 `habaoPushNeedsInstall()`（iOS 且非 standalone）。`setPushButtonState` 在 blocked／unsupported／idle 時若需安裝，改為 `needInstall` 狀態「請先「加入主畫面」再開啟通知」；`syncHabaoPush` 按下時以 alert 說明安裝步驟，不嘗試訂閱。三語文字 `notificationsNeedInstall`、`notificationsNeedInstallHelp`。
 - 已加入主畫面（standalone）或非 iPhone 的行為不變。測試：模擬 iPhone UA 兩種模式通過；語法檢查通過。
+
+## 19. 公開戰績「已驗證賽事」預設改為全部（2026-11-21）
+
+- `performance.html`：頂部已驗證賽事的區間篩選（`topDays`）預設由「近 30 天」改為「全部」，切換足球／籃球／棒球時也重設為「全部」。
+- 下方「AI 命中走勢」的 7D／30D（`lowerDays`）維持 30D，不動。
+- 注意：選「全部」時若後端回傳 `backtest_kind` 為模擬，原本就會顯示「含模擬樣本」標籤，此行為不變。

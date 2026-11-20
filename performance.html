@@ -354,9 +354,9 @@
         <div class="verified-line"><span id="verifiedMatches" class="verified-num">--</span><span class="verified-unit" data-i18n="matchUnit">場</span><span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
       </div>
       <div class="filters">
-        <button class="filter-btn" data-days="" data-i18n="all">全部</button>
+        <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
         <button class="filter-btn" data-days="7" data-i18n="last7">近 7 天</button>
-        <button class="filter-btn active" data-days="30" data-i18n="last30">近 30 天</button>
+        <button class="filter-btn" data-days="30" data-i18n="last30">近 30 天</button>
       </div>
       <div class="rangebox">
         <span class="range-icon">▣</span>
@@ -495,7 +495,7 @@ const BASEBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functio
 const BASEBALL_OFFICIAL_PICKS_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-picks";
 const NBA_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/National_Basketball_Association_logo_2017-present.svg";
 const MLB_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/Major_League_Baseball_logo.svg";
-let topDays="30", lowerDays=30, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
+let topDays="", lowerDays=30, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
 let topData=null, lowerData=null, allData=null, recordsData=null;
 let lowerViewRequestId=0, topViewRequestId=0;
 
@@ -1019,11 +1019,11 @@ let performanceSportRequestId=0;
 async function switchSport(sport){
   if(sport==="football"||sport==="basketball"||sport==="baseball"){
     currentSport=sport;
-    topDays="30";lowerDays=30;
+    topDays="";lowerDays=30; // 已驗證賽事預設「全部」（2026-11-21）
     ++lowerViewRequestId;++topViewRequestId;
     allData=topData=lowerData=recordsData=emptyPerformanceData();
     document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b.dataset.period==="30"));
-    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.days==="30"));
+    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.days===""));
     showAll=false;
     currentRecent="overall";
     currentTrend="overall";
