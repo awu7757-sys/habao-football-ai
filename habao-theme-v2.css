@@ -221,3 +221,74 @@ body[data-hb-page="tools"] .mini-card{border:1.5px solid transparent!important;b
 body[data-hb-page="tools"] .tool-button,body[data-hb-page="tools"] .use-button{box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 5px 0 rgba(0,0,0,.45),0 10px 18px rgba(0,0,0,.4)!important}
 body[data-hb-page="tools"] .tool-button:active,body[data-hb-page="tools"] .use-button:active{transform:translateY(4px)!important}
 body[data-hb-page="tools"] .back-link{border:1px solid rgba(242,189,75,.45)!important;color:var(--hb-gold-light)!important;background:var(--hb-btn-ghost)!important}
+
+/* =====================================================================
+   細節打磨（2026-11-21 第二輪）：次要元素統一質感
+   只改顏色、邊框、陰影，不改尺寸與排版，避免影響版面。
+===================================================================== */
+
+/* 1. 區塊標題：金色光條＋標題微光；英文小標改金色細字 */
+body[data-hb-page] .section-title{color:#fff!important;text-shadow:0 2px 10px rgba(0,0,0,.6)!important}
+body[data-hb-page] .section-line,
+body[data-hb-page="matches"] .v2-fixture-title::before{background:linear-gradient(180deg,#ffe7a8,#f2bd4b 60%,#a8701a)!important;box-shadow:0 0 10px rgba(242,189,75,.55)!important}
+body[data-hb-page] .v2-section-kicker,
+body[data-hb-page] .v2-match-kicker,
+body[data-hb-page] .v2-tool-kicker,
+body[data-hb-page] .hero-kicker{letter-spacing:.18em!important}
+body[data-hb-page="matches"] .v2-section-kicker{color:rgba(255,231,168,.7)!important}
+body[data-hb-page] .v2-section-engine,
+body[data-hb-page="home"] .tools-status{color:var(--hb-gold)!important}
+
+/* 2. 沒選中的分頁／篩選標籤：深藍底＋淡金細框＋內側高光，和選中的金屬按鈕成對 */
+body[data-hb-page="matches"] .v3-sport-tab:not(.active),
+body[data-hb-page="matches"] .v2-date-bar .date:not(.active),
+body[data-hb-page="matches"] .history-sport-tab:not(.active),
+body[data-hb-page="matches"] .league-filter-btn:not(.active),
+body[data-hb-page="matches"] .v3-league-group-btn:not(.active),
+body[data-hb-page="performance"] .sport-tab:not(.active),
+body[data-hb-page="performance"] .filter-btn:not(.active),
+body[data-hb-page="performance"] .trend-tab:not(.active),
+body[data-hb-page="performance"] .period-btn:not(.active){
+  background:linear-gradient(180deg,#182231,#0d131c)!important;color:#c3cad5!important;
+  border:1px solid rgba(242,189,75,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important}
+body[data-hb-page="matches"] .league-filter-btn:not(.active):hover,
+body[data-hb-page="matches"] .v3-league-group-btn:not(.active):hover,
+body[data-hb-page="performance"] .filter-btn:not(.active):hover{border-color:rgba(242,189,75,.45)!important;color:var(--hb-gold-light)!important}
+body[data-hb-page="performance"] .league-sort button.active,
+body[data-hb-page="performance"] .league-sort .active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 0 #6b4410!important}
+
+/* 3. 搜尋框：點選時金色光圈 */
+body[data-hb-page="matches"] #fixtureSearchInput{background:linear-gradient(180deg,#0e151f,#0a0f16)!important;border-color:rgba(242,189,75,.22)!important;color:#fff!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.45)!important;transition:border-color .15s,box-shadow .15s!important}
+body[data-hb-page="matches"] #fixtureSearchInput:focus{border-color:rgba(242,189,75,.7)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.45),0 0 0 3px rgba(242,189,75,.15),0 0 16px rgba(242,189,75,.18)!important;outline:none!important}
+body[data-hb-page="matches"] .fixture-search-icon{color:var(--hb-gold)!important}
+
+/* 4. 我的帳號面板：每列做成淡框列，積分數字金色 */
+body[data-hb-page="home"] .v2-account-row{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01))!important;border:1px solid rgba(242,189,75,.14)!important;border-radius:12px!important;margin-bottom:8px!important}
+body[data-hb-page="home"] .v2-account-label{color:var(--hb-muted)!important}
+body[data-hb-page="home"] .v2-account-value{color:#fff!important;font-weight:900!important}
+body[data-hb-page="home"] .v2-account-row:nth-last-child(-n+3) .v2-account-value{color:var(--hb-gold-light)!important}
+body[data-hb-page="home"] .v2-account-status{border:1px solid rgba(60,221,130,.35)!important;background:rgba(60,221,130,.08)!important}
+body[data-hb-page="home"] .v2-account-logout{border:1px solid rgba(255,99,99,.4)!important;background:linear-gradient(180deg,rgba(80,20,24,.55),rgba(40,10,12,.55))!important;color:#ffb3b3!important}
+
+/* 5. 載入中提示：金框膠囊＋金色轉圈 */
+body[data-hb-page="home"] .v2-data-loading-status,
+body[data-hb-page="home"] .v2-focus-loading,
+body[data-hb-page="matches"] .habao-history-loading,
+body[data-hb-page="matches"] .v3-sport-toast,
+body[data-hb-page="performance"] .sport-toast{border:1px solid rgba(242,189,75,.35)!important;background:linear-gradient(180deg,rgba(23,33,49,.96),rgba(11,16,24,.96))!important;color:var(--hb-gold-light)!important;box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)!important}
+body[data-hb-page="home"] .v2-data-loading-spinner{border-color:rgba(242,189,75,.25)!important;border-top-color:var(--hb-gold)!important}
+
+/* 6. AI 戰績：各聯賽卡、驗證紀錄卡 */
+body[data-hb-page="performance"] .league-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 5px 0 rgba(0,0,0,.4),0 10px 18px rgba(0,0,0,.4)!important}
+body[data-hb-page="performance"] .league-logo-wrap{border:1px solid rgba(242,189,75,.35)!important;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.18),rgba(255,255,255,.04))!important}
+body[data-hb-page="performance"] .league-rate{font-family:Georgia,"Times New Roman",serif!important;background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+body[data-hb-page="performance"] .record-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 6px 14px rgba(0,0,0,.35)!important}
+body[data-hb-page="performance"] .record-score{color:var(--hb-gold-light)!important;font-family:Georgia,"Times New Roman",serif!important}
+body[data-hb-page="performance"] .trend-body,
+body[data-hb-page="performance"] .chart-wrap{border-color:rgba(242,189,75,.16)!important}
+
+/* 7. 結果頁上一場／下一場、空白狀態 */
+body[data-hb-page="analysis"] .batch-result-nav{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 8px 18px rgba(0,0,0,.4)!important}
+body[data-hb-page="analysis"] .batch-nav-btn{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.45)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 0 #05070a!important}
+body[data-hb-page="matches"] .history-sport-empty{border:1px dashed rgba(242,189,75,.3)!important;background:rgba(255,255,255,.02)!important;border-radius:16px!important}
+body[data-hb-page="matches"] .history-sport-empty-icon{color:var(--hb-gold)!important}
