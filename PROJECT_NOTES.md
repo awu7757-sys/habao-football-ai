@@ -460,3 +460,16 @@ DRtg = 由對手得分效率建立
 NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NBA T-2 獨贏 37.5%（16）、讓分 53.3%（30）、大小 50.0%（30）；T-15 獨贏 37.5%（16）、讓分 51.6%（31）、大小 48.5%（33）。
 觀察：足球國際賽週後第一週偏低；NBA T-2／T-15 獨贏（模型機率 ≥55% 即推）明顯低於 T-10；大小／讓分各球類約 50%。11/30 以兩週資料重評。
 **11/21 初步討論（待 11/23 以 11/16～11/22 七天資料再議，使用者決定）**：候選方案 ① NBA T-2／T-15 獨贏改為「與 T-10 正式推薦同方向才推」；② 公開戰績頁突出 NBA 獨贏（只調整呈現順序）；③ 足球規則等五大聯賽恢復後再定。不建議為推廣切換公開戰績預設期間或排除差的場次。11/23 重跑 `deploy/analysis-20261121/02`（＋足球 `analysis-20261115/03` 匯出、`analysis-20261121/03_football_stage_grade.cjs` 重算）。
+
+## 22. 分析結果頁改版（2026-11-21，`analysis.html` ＝ `mlb-analysis.html`）
+
+- 版面（使用者確認示意圖 v3）：對戰卡（聯賽標籤／未開賽或已開賽／開賽時間、階段標籤 T-10 金・T-2 藍・T-15 紫、分析更新時間、依球類換球場背景）→ **AI 推薦**卡片 → 「查看詳細數據」展開區 → 立即投注／繼續分析 → 免責。
+- **只讀封存 JSON、不改推薦**。AI 首選＝有推薦的市場中 `confidence` 最高者，只是排序；「主隊／客隊」顯示成隊名、BTTS 補說明，僅為顯示。
+- 每張卡「近 30 天命中率」：讀公開戰績 API（`ai-performance`／`basketball-performance-api`／`baseball-performance-api` `?days=30`）的 `markets[key].hit_rate`，`decided>0` 才顯示；失敗則隱藏。是**該市場整體**成績，非單場機率。
+- 詳細數據（缺資料的區塊整塊隱藏）：
+  - 賽前勝率：足球 T-10 用 `analysis.probability_research.probabilities`；T-2／T-15 無機率欄位，用封存 `analysis.xg` 以與後端相同的 Poisson 比分分布（`football-v2-stage-member` 的 `scoreGrid`）計算，與獨贏卡機率一致。NBA 用 `model.win_probability`。MLB 目前封存資料無勝率，隱藏。
+  - 模型 vs 盤口：足球用推薦的讓分線／大小球線，模型公平線由比分分布找最接近 50% 的半球線（僅參考）；**足球沒有封存獨贏賠率，不顯示「市場看好 %」**。NBA 用 `market_data.market.consensus` 對 `model.fair_spread`／`fair_total`。MLB 用 `model.markets.totals`（有才顯示）。
+  - 大小球各線機率（足球 1.5～4.5，標示推薦盤口線，註明推薦只針對主流盤口線）。
+  - 關鍵傷停（足球／NBA，依 `v2_stage_evidence.availability.items` 或 `market_data.injuries`）；MLB 改為先發投手對決（`fixture.*.probable_pitcher` 名稱＋`data.*_starter.era`），名稱不全則不顯示。
+- 使用者決定**不顯示預估比分、不做近期戰績**（無資料）。
+- 測試：`qa/sports-release/cases.json` 足球／NBA／MLB 的 T-10、T-2 共 6 例模擬渲染，無錯誤，數字與推薦方向一致；inline script 語法通過。`tests/nba-frontend.test.cjs` 的 1 項失敗（`football.html` openBasketballMatch）在改版前即存在，與本次無關。MLB 休賽中，正式資料未實測。

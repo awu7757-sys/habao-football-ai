@@ -2795,6 +2795,104 @@ h1{
 .nba-stage-evidence p{margin-top:3px}
 .nba-stage-evidence details{margin-top:9px}.nba-stage-evidence summary{cursor:pointer;color:#b7d4e8}.nba-stage-evidence .nba-evidence-team{margin-top:8px}.nba-stage-evidence .nba-evidence-source{color:#8ba2b5;font-size:11px;margin-top:8px}
 
+/* ===== 2026-11-21 結果頁改版（rv2，PROJECT_NOTES §22） ===== */
+.rv2{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px;color:#f4f1e8}
+.rv2 *{box-sizing:border-box}
+.rv2-match{border-radius:22px;padding:1.5px;background:linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12);box-shadow:0 14px 30px rgba(0,0,0,.6)}
+.rv2-match-in{position:relative;border-radius:21px;overflow:hidden;background:linear-gradient(180deg,#0b1220 0%,#121a28 45%,#2a1a0c 100%)}
+.rv2-match-in::before{content:"";position:absolute;inset:auto -10% -28% -10%;height:60%;transform:perspective(320px) rotateX(55deg);pointer-events:none;z-index:0;
+ background:radial-gradient(closest-side,transparent 64%,rgba(255,231,168,.18) 65% 66%,transparent 67%) 50% 30%/46% 70% no-repeat,linear-gradient(90deg,transparent 49.6%,rgba(255,231,168,.16) 49.6% 50.4%,transparent 50.4%),repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 22px,rgba(0,0,0,.05) 22px 44px)}
+.rv2-match-in>*{position:relative;z-index:1}
+.rv2-bg-football{background:radial-gradient(40% 30% at 12% 0%,rgba(150,200,255,.35),transparent 70%),radial-gradient(40% 30% at 88% 0%,rgba(150,200,255,.30),transparent 70%),radial-gradient(80% 45% at 50% 100%,rgba(40,140,80,.55),transparent 70%),linear-gradient(180deg,#0b1220 0%,#0f1a24 45%,#0c2a18 100%)}
+.rv2-bg-basketball{background:radial-gradient(40% 30% at 12% 0%,rgba(120,170,255,.35),transparent 70%),radial-gradient(40% 30% at 88% 0%,rgba(255,200,120,.30),transparent 70%),radial-gradient(70% 40% at 50% 100%,rgba(196,120,40,.45),transparent 70%),linear-gradient(180deg,#0b1220 0%,#121a28 45%,#2a1a0c 100%)}
+.rv2-bg-baseball{background:radial-gradient(40% 30% at 12% 0%,rgba(150,200,255,.32),transparent 70%),radial-gradient(40% 30% at 88% 0%,rgba(150,200,255,.28),transparent 70%),radial-gradient(80% 45% at 50% 100%,rgba(150,95,50,.5),transparent 70%),linear-gradient(180deg,#0b1220 0%,#111a22 45%,#22180f 100%)}
+.rv2-strip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.2));border-bottom:1px solid rgba(242,189,75,.18);font-size:12.5px}
+.rv2-tag{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border-radius:8px;font-weight:900;color:#2b1a03;background:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%)}
+.rv2-status{display:flex;align-items:center;gap:6px;color:#cfd6e0;font-weight:700;white-space:nowrap}
+.rv2-status i{width:7px;height:7px;border-radius:50%;background:#7cc4ff;box-shadow:0 0 8px #7cc4ff}
+.rv2-time{color:#ffe7a8;font-weight:800;white-space:nowrap}
+.rv2-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:20px 10px 14px;text-align:center}
+.rv2-logo{width:76px;height:76px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),rgba(255,255,255,.04));border:1px solid rgba(242,189,75,.35);box-shadow:0 10px 22px rgba(0,0,0,.55)}
+.rv2-logo img{width:58px;height:58px;object-fit:contain}
+.rv2-tname{font-size:17px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.rv2-side{margin-top:4px;font-size:12px;color:#9aa4b2;font-weight:700}
+.rv2-vs{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#f2bd4b;border:1px solid rgba(242,189,75,.5);background:rgba(0,0,0,.45);box-shadow:0 0 16px rgba(242,189,75,.25)}
+.rv2-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;align-items:center;padding:0 10px 16px;font-size:11.5px;color:#c9d1dc}
+.rv2-stage{font-size:11px;font-weight:900;padding:4px 9px;border-radius:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.rv2-stage.t10{background:linear-gradient(180deg,#ffe08a,#c88a1c);color:#2a1a02}
+.rv2-stage.t2{background:linear-gradient(180deg,#7cc4ff,#1f6fc2);color:#04152a}
+.rv2-stage.t15{background:linear-gradient(180deg,#d6a8ff,#7a3fc8);color:#1c0636}
+.rv2-sec{font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;margin:2px 0 0;color:#fff}
+.rv2-sec::before,.rv2-h::before{content:"";width:4px;height:15px;border-radius:2px;background:#f2bd4b}
+.rv2-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rv2-card{border-radius:18px;padding:1.5px;background:linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12);box-shadow:0 6px 0 #3a2508,0 12px 20px rgba(0,0,0,.5);min-width:0}
+.rv2-card.full{grid-column:1/-1}
+.rv2-card-in{height:100%;border-radius:17px;padding:14px;background:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),linear-gradient(180deg,#172131,#0b1018);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.rv2-mk{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;color:#9aa4b2;font-weight:800}
+.rv2-code{font-size:10.5px;letter-spacing:.06em;padding:2px 6px;border-radius:6px;border:1px solid rgba(242,189,75,.45);color:#ffe7a8}
+.rv2-best{flex:none;font-size:11px;font-weight:900;color:#2b1a03;padding:3px 9px;border-radius:999px;background:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%)}
+.rv2-pick{margin:10px 0 2px;font-size:21px;font-weight:900;line-height:1.25;color:#fff;word-break:break-word}
+.rv2-card.full .rv2-pick{font-size:25px}
+.rv2-pick small{font-size:15px;color:#ffe7a8;margin-left:4px}
+.rv2-prob{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin-top:8px;font-size:12px;color:#9aa4b2;font-weight:700}
+.rv2-prob b{font-size:16px;color:#fff}
+.rv2-bar{margin-top:7px;height:7px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}
+.rv2-bar div{height:100%;border-radius:5px;background:linear-gradient(90deg,#c88a1c,#ffd66e)}
+.rv2-hit{margin-top:9px;font-size:11px;color:#9fe8bd;font-weight:800;display:flex;align-items:center;gap:5px}
+.rv2-hit::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:#3cdd82;box-shadow:0 0 6px #3cdd82}
+.rv2-hit[hidden]{display:none}
+.rv2-card.none{background:linear-gradient(145deg,#3a3f48,#20242b);box-shadow:0 6px 0 #11141a,0 12px 20px rgba(0,0,0,.5)}
+.rv2-card.none .rv2-card-in{background:linear-gradient(180deg,#121822,#0a0e14)}
+.rv2-card.none .rv2-pick{color:#7d8593;font-size:18px}
+.rv2-card.none .rv2-hit{color:#7d8593}.rv2-card.none .rv2-hit::before{background:#5d6675;box-shadow:none}
+.rv2-more{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 8px;min-height:48px;padding:8px 12px;border-radius:14px;font:inherit;font-size:14.5px;font-weight:900;letter-spacing:.04em;color:#ffe7a8;cursor:pointer;
+ border:1px solid rgba(242,189,75,.45);background:linear-gradient(180deg,#172131,#0b1018);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 4px 0 #05070a}
+.rv2-more i{font-style:normal;color:#f2bd4b}.rv2-more small{font-size:11.5px;color:#9aa4b2;font-weight:700;letter-spacing:0}
+.rv2-details{display:flex;flex-direction:column;gap:14px;padding:14px 12px;border-radius:18px;border:1px dashed rgba(242,189,75,.3);background:rgba(255,255,255,.015)}
+.rv2-details[hidden]{display:none}
+.rv2-panel{border-radius:20px;padding:1.5px;background:linear-gradient(145deg,rgba(255,231,168,.7),rgba(201,138,31,.35) 40%,rgba(107,68,16,.25) 60%,rgba(242,195,90,.6))}
+.rv2-panel-in{border-radius:19px;padding:16px;background:linear-gradient(180deg,#151e2b,#0b1018)}
+.rv2-h{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900;margin:0 0 12px;color:#fff}
+.rv2-note{margin:10px 0 0;font-size:11.5px;color:#9aa4b2;line-height:1.6}
+.rv2-wp{display:grid;grid-template-columns:1fr 1fr;margin-bottom:8px}
+.rv2-wp.three{grid-template-columns:1fr 1fr 1fr}
+.rv2-wp b{display:block;font-family:Georgia,serif;font-size:26px;font-weight:900;line-height:1.05}
+.rv2-wp span{display:block;margin-top:2px;font-size:11.5px;color:#9aa4b2;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv2-wp .h b{background:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rv2-wp .d{text-align:center}.rv2-wp .d b{color:#cfd6e0}
+.rv2-wp .a{text-align:right}.rv2-wp .a b{color:#8fc3ff}
+.rv2-wbar{display:flex;gap:4px;height:10px}.rv2-wbar div{border-radius:6px;min-width:4px}
+.rv2-wbar .h{background:linear-gradient(90deg,#c88a1c,#ffd66e);box-shadow:0 0 10px rgba(242,189,75,.45)}
+.rv2-wbar .d{background:linear-gradient(90deg,#5d6675,#9aa4b2)}
+.rv2-wbar .a{background:linear-gradient(90deg,#3d78d0,#8fc3ff)}
+.rv2-vm{display:flex;flex-direction:column;gap:10px}
+.rv2-vm-row{display:grid;grid-template-columns:58px 1fr 1fr;align-items:center;gap:8px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+.rv2-vm-row .k{font-size:12.5px;font-weight:900;color:#ffe7a8}
+.rv2-vm-row .c{font-size:11px;color:#9aa4b2;font-weight:700;min-width:0}
+.rv2-vm-row .c b{display:block;font-size:14.5px;color:#fff;margin-top:2px;word-break:break-word}
+.rv2-vm-row .c.m b{color:#ffd66e}
+.rv2-edge{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:#9fe8bd;font-weight:800;border-top:1px dashed rgba(255,255,255,.08);padding-top:7px;margin-top:2px}
+.rv2-edge.neutral{color:#9aa4b2}
+.rv2-lines{display:flex;flex-direction:column;gap:9px}
+.rv2-ln{display:grid;grid-template-columns:104px 1fr 44px;align-items:center;gap:10px;font-size:12.5px;font-weight:800;color:#cfd6e0}
+.rv2-ln .tr{height:8px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden}.rv2-ln .tr div{height:100%;border-radius:5px;background:linear-gradient(90deg,#2f9c66,#5fd496)}
+.rv2-ln b{text-align:right;color:#fff}
+.rv2-ln.main{color:#ffe7a8}.rv2-ln.main .tr div{background:linear-gradient(90deg,#c88a1c,#ffd66e)}
+.rv2-ln.main span::after{content:" 盤口";font-size:10px;color:#2b1a03;background:linear-gradient(180deg,#fff3c4,#f2bd4b);border-radius:5px;padding:1px 4px;margin-left:4px}
+.rv2-inj{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rv2-inj h4{font-size:12px;color:#9aa4b2;margin:0 0 7px}
+.rv2-chip{display:inline-flex;align-items:center;margin:0 6px 6px 0;padding:5px 9px;border-radius:9px;font-size:12px;font-weight:800;background:rgba(255,99,99,.10);border:1px solid rgba(255,99,99,.35);color:#ffb3b3}
+.rv2-chip.q{background:rgba(255,200,90,.10);border-color:rgba(255,200,90,.35);color:#ffd88a}
+.rv2-none{font-size:12px;color:#7d8593}
+.rv2-pitch{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;text-align:center;gap:8px}
+.rv2-pitch .nm{font-size:15px;font-weight:900;color:#fff}.rv2-pitch .tm{font-size:11.5px;color:#9aa4b2;margin-top:2px}
+.rv2-pitch .era{margin-top:8px;font-family:Georgia,serif;font-size:28px;font-weight:900;color:#8fc3ff}
+.rv2-pitch .era small{display:block;font-family:inherit;font-size:11px;color:#9aa4b2;font-weight:700}
+.rv2-pitch .era.good{background:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rv2-pv{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#f2bd4b;border:1px solid rgba(242,189,75,.5);background:rgba(0,0,0,.4)}
+.rv2-actions{margin-top:2px}
+.rv2-foot{text-align:center;font-size:11.5px;color:#6f7786;margin:4px 0 0}
+
 </style>
 </head>
 
@@ -4228,181 +4326,241 @@ const timeText = gameDate
         return "https://a.espncdn.com/i/teamlogos/nba/500/sac.png";
       return String(team?.logo||"");
     };
+
+    /* =========================================================
+       2026-11-21 結果頁改版（PROJECT_NOTES §22）
+       推薦放外面、細項收進「查看詳細數據」。只讀已封存的分析 JSON，
+       不重算推薦；機率、公平線、各線機率只在資料存在時顯示，缺資料整塊隱藏。
+    ========================================================= */
+    const rv2Sport=window.HabaoStageCore.sport(savedData);
+    const rv2Stage=["t2","t15"].includes(String(data?.v2_stage||""))?String(data.v2_stage):"t10";
+    const rv2StageLabel={t10:"T-10 賽前分析",t2:"T-2 深度分析",t15:"T-15 最終分析"}[rv2Stage];
+    const rv2Esc=v=>escapePartnerHtml(String(v??""));
+    const rv2Num=v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v));
+    const rv2Pct=p=>(Math.round(Number(p)*1000)/10).toFixed(1)+"%";
+    const rv2HomeName=getAnalysisLocalizedName(fixture.home,analysisT("homeTeam","主隊"));
+    const rv2AwayName=getAnalysisLocalizedName(fixture.away,analysisT("awayTeam","客隊"));
+    const rv2Kickoff=Date.parse(fixture.date||fixture.kickoff_at||"");
+    const rv2Status=Number.isFinite(rv2Kickoff)&&Date.now()>=rv2Kickoff?"已開賽":"未開賽";
+    const rv2CapturedRaw=data?.stage_capture?.captured_at||analysis?.v2_stage_evidence?.captured_at||data?.snapshot?.captured_at||data?.generated_at||data?.as_of||"";
+    const rv2Captured=Number.isFinite(Date.parse(rv2CapturedRaw))
+      ? new Date(rv2CapturedRaw).toLocaleString(analysisLocale,{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})
+      : "";
+    const rv2League=String(getAnalysisLeagueName(fixture.league||"",fixture.country||"")||"").replace(/<[^>]*>/g,"").trim()||({football:"足球",basketball:"NBA",baseball:"MLB"}[rv2Sport]||"");
+
+    /* 足球：用封存的 xG 還原與後端相同的 Poisson 比分分布（football-v2-stage-member scoreGrid） */
+    const rv2Research=analysis?.probability_research||{};
+    const rv2Xg={home:Number(analysis?.xg?.home??rv2Research?.home_xg),away:Number(analysis?.xg?.away??rv2Research?.away_xg)};
+    const rv2Grid=(rv2Sport==="football"&&[rv2Xg.home,rv2Xg.away].every(x=>Number.isFinite(x)&&x>0&&x<=8))?(()=>{
+      const pois=(l,k)=>{let p=Math.exp(-l);for(let i=1;i<=k;i++)p*=l/i;return p;};
+      const h=Array.from({length:19},(_,i)=>pois(rv2Xg.home,i)),a=Array.from({length:19},(_,i)=>pois(rv2Xg.away,i));
+      const mass=h.reduce((s,x)=>s+x,0)*a.reduce((s,x)=>s+x,0);
+      return h.flatMap((hp,hi)=>a.map((ap,ai)=>({h:hi,a:ai,p:hp*ap/mass})));
+    })():null;
+    const rv2Sum=f=>rv2Grid?rv2Grid.filter(f).reduce((s,x)=>s+x.p,0):null;
+
+    /* 勝率 */
+    let rv2Win=null;
+    if(rv2Sport==="football"){
+      const p=rv2Research?.probabilities||{};
+      if([p.home_win,p.draw,p.away_win].every(rv2Num)) rv2Win={home:+p.home_win,draw:+p.draw,away:+p.away_win};
+      else if(rv2Grid) rv2Win={home:rv2Sum(x=>x.h>x.a),draw:rv2Sum(x=>x.h===x.a),away:rv2Sum(x=>x.h<x.a)};
+    }else{
+      const w=basketballModel?.win_probability||data?.model?.win_probability||{};
+      if(rv2Num(w.home)&&rv2Num(w.away)) rv2Win={home:Number(w.home)/100,away:Number(w.away)/100};
+    }
+
+    /* 大小球各線機率（足球） */
+    const rv2OverAt=line=>{
+      if(!rv2Grid||!rv2Num(line))return null;const L=Number(line);
+      const half=x=>rv2Sum(g=>g.h+g.a>x);
+      if(Math.abs(L*2-Math.round(L*2))<1e-6) return Number.isInteger(L)?rv2Sum(g=>g.h+g.a>L)/(1-rv2Sum(g=>g.h+g.a===L)||1):half(L);
+      return (rv2OverAt(L-0.25)+rv2OverAt(L+0.25))/2;
+    };
+    const rv2Ladder=rv2Grid?[1.5,2.5,3.5,4.5].map(l=>({line:l,p:rv2OverAt(l)})):[];
+
+    /* 模型 vs 盤口 */
+    const rv2Rows=[];
+    const rv2Side=n=>n>0?"+"+n:String(n);
+    if(rv2Sport==="football"&&rv2Grid){
+      const hdpLine=Number(handicap.line);
+      if(!noMarketRecommendation(handicap)&&rv2Num(handicap.line)){
+        const homeLine=/客/.test(String(handicap.pick))?-hdpLine:hdpLine;
+        const fair=[...Array(17)].map((_,i)=>-4+i*0.5).filter(l=>!Number.isInteger(l)).map(l=>({l,d:Math.abs(rv2Sum(g=>g.h-g.a+l>0)-0.5)})).sort((a,b)=>a.d-b.d)[0].l;
+        const diff=homeLine-fair;
+        rv2Rows.push({k:"讓分",mL:"盤口",mV:rv2HomeName+" "+formatAsianMarketLine(homeLine,homeLine>0),oL:"模型公平線",oV:rv2HomeName+" "+formatAsianMarketLine(fair,fair>0),
+          edge:Math.abs(diff)<0.01?"模型與盤口一致":(diff>0?"模型比盤口更看好主隊":"模型比盤口更看好客隊"),edgeV:Math.abs(diff)<0.01?"":rv2Side(Math.round(Math.abs(diff)*100)/100),neutral:Math.abs(diff)<0.01});
+      }
+      if(rv2Num(overUnder.line)){
+        const po=rv2OverAt(overUnder.line);
+        if(po!==null) rv2Rows.push({k:"大小球",mL:"盤口",mV:formatAsianMarketLine(overUnder.line)+" 球",oL:"模型大球機率",oV:rv2Pct(po),
+          edge:po>=0.5?"模型偏向大球":"模型偏向小球",edgeV:po>=0.5?"大":"小",neutral:Math.abs(po-0.5)<0.03});
+      }
+    }else if(rv2Sport==="basketball"){
+      const c=basketballMarket?.consensus||{},fs=Number(basketballModel?.fair_spread?.display),ft=Number(basketballFairTotal);
+      if(rv2Num(c.home_spread)&&Number.isFinite(fs)){
+        const d=Number(c.home_spread)-fs;
+        rv2Rows.push({k:"讓分",mL:"盤口",mV:rv2HomeName+" "+rv2Side(Number(c.home_spread)),oL:"模型公平線",oV:rv2HomeName+" "+rv2Side(Math.round(fs*10)/10),
+          edge:Math.abs(d)<0.5?"模型與盤口接近":(d>0?"模型比盤口更看好主隊":"模型比盤口更看好客隊"),edgeV:Math.abs(d)<0.5?"":(Math.round(Math.abs(d)*10)/10)+" 分",neutral:Math.abs(d)<0.5});
+      }
+      if(rv2Num(c.total)&&Number.isFinite(ft)){
+        const d=ft-Number(c.total);
+        rv2Rows.push({k:"大小分",mL:"盤口",mV:c.total+" 分",oL:"模型公平線",oV:(Math.round(ft*10)/10)+" 分",
+          edge:Math.abs(d)<1?"模型與盤口接近":(d>0?"模型偏向大分":"模型偏向小分"),edgeV:Math.abs(d)<1?"":(Math.round(Math.abs(d)*10)/10)+" 分",neutral:Math.abs(d)<1});
+      }
+    }else if(rv2Sport==="baseball"){
+      const t=data?.model?.markets?.totals||{};
+      if(rv2Num(t.market_line)&&rv2Num(t.model_total)){
+        const d=Number(t.model_total)-Number(t.market_line);
+        rv2Rows.push({k:"大小分",mL:"盤口",mV:t.market_line+" 分",oL:"模型公平線",oV:(Math.round(Number(t.model_total)*10)/10)+" 分",
+          edge:Math.abs(d)<0.3?"模型與盤口接近":(d>0?"模型偏向大分":"模型偏向小分"),edgeV:Math.abs(d)<0.3?"":(Math.round(Math.abs(d)*10)/10)+" 分",neutral:Math.abs(d)<0.3});
+      }
+    }
+
+    /* 關鍵傷停（足球／NBA）與先發投手（MLB） */
+    const rv2InjSource=analysis?.v2_stage_evidence?.availability?.items||data?.player_evidence?.availability?.items||basketballInjuries?.items||
+      ["home","away"].flatMap(side=>(basketballInjuries?.[side]?.players||[]).map(p=>({...p,side})));
+    const rv2InjItems=(Array.isArray(rv2InjSource)?rv2InjSource:[]).map(p=>{
+      const name=p?.player_name||p?.name||p?.player?.name||p?.person?.fullName||"";
+      const status=String(p?.status||p?.type||p?.reason||"");
+      const homeIds=[fixture?.home?.id].filter(Boolean).map(String),teamId=String(p?.team?.id??p?.team_id??"");
+      const side=p?.side||(teamId&&homeIds.includes(teamId)?"home":teamId?"away":"");
+      const doubt=/question|doubt|probable|day.?to.?day|存疑|可能/i.test(status);
+      return name?{name,detail:String(p?.reason||p?.type||p?.status||""),side,doubt}:null;
+    }).filter(Boolean);
+    const rv2InjChips=list=>list.slice(0,6).map(p=>`<span class="rv2-chip${p.doubt?" q":""}">${rv2Esc(p.name)}${p.detail?"・"+rv2Esc(localizeAnalysisText(p.detail)):""}</span>`).join("");
+    const rv2HasSides=rv2InjItems.some(p=>p.side);
+    const rv2Pitchers=rv2Sport==="baseball"?["home","away"].map(side=>{
+      const ev=analysis?.v2_stage_evidence?.lineups?.probable_pitchers?.[side]||data?.player_evidence?.lineups?.probable_pitchers?.[side]||{};
+      const st=data?.data?.[side+"_starter"]||{};
+      return {name:fixture?.[side]?.probable_pitcher||ev?.name||st?.name||"",era:st?.era??ev?.era??null};
+    }):[];
+    const rv2ShowPitchers=rv2Pitchers.length===2&&rv2Pitchers.every(p=>p.name);
+
+    /* 市場卡片：AI 首選＝有推薦的市場中機率／信心最高者（只排序，不改推薦） */
+    /* 顯示用：「主隊／客隊」換成隊名，BTTS 補說明；不改封存的推薦內容 */
+    const rv2TeamPick=t=>String(t).replace(/^(主隊|主勝|主队|Home)(?=\s|$|<)/,rv2Esc(rv2HomeName)).replace(/^(客隊|客勝|客队|Away)(?=\s|$|<)/,rv2Esc(rv2AwayName));
+    const rv2BttsText=t=>/^(是|Yes)$/i.test(String(t).trim())?"是 <small>雙方都進球</small>":/^(否|No)$/i.test(String(t).trim())?"否 <small>至少一隊沒進球</small>":t;
+    const rv2Markets=[
+      {key:"moneyline",label:analysisT("moneyline","獨贏"),code:rv2Sport==="football"?"1X2":"ML",r:moneyline,
+        text:rv2TeamPick(localizeAnalysisText(moneyline.pick)||analysisT("noRecommendation","暫不推薦"))},
+      {key:"handicap",label:analysisT("handicap","讓分"),code:"HDP",r:handicap,
+        text:rv2TeamPick(localizeAnalysisText(handicap.pick)||analysisT("noRecommendation","暫不推薦"))+(!noMarketRecommendation(handicap)&&rv2Num(handicap.line)?` <small>${formatAsianMarketLine(handicap.line,Number(handicap.line)>0)}</small>`:"")},
+      {key:"over_under",label:rv2Sport==="football"?analysisT("overUnder","大小球"):"大小分",code:"O/U",r:overUnder,
+        text:formatOverUnderPick(overUnder.pick,overUnder.line)},
+      ...(rv2Sport==="football"?[{key:"btts",label:"BTTS",code:"BTTS",r:btts,text:rv2BttsText(localizeAnalysisText(btts.pick)||analysisT("noRecommendation","暫不推薦"))}]:[])
+    ];
+    const rv2Best=rv2Markets.filter(m=>!noMarketRecommendation(m.r)&&rv2Num(m.r.confidence)).sort((a,b)=>Number(b.r.confidence)-Number(a.r.confidence))[0]||null;
+    const rv2Card=(m,full)=>{
+      const none=noMarketRecommendation(m.r);
+      return `<div class="rv2-card${full?" full":""}${none?" none":""}"><div class="rv2-card-in">
+        <div class="rv2-mk"><span>${rv2Esc(m.label)} <span class="rv2-code">${m.code}</span></span>${m===rv2Best?`<span class="rv2-best">★ AI 首選</span>`:""}</div>
+        <div class="rv2-pick">${m.text}</div>
+        <div class="rv2-prob"><span>${none?rv2Esc(noPickReasonLabel(m.r)):confidenceLabel}</span><b>${none||m.r.confidence==null?"—":Number(m.r.confidence)+"%"}</b></div>
+        <div class="rv2-bar"><div style="width:${recommendationBar(m.r)}%"></div></div>
+        <div class="rv2-hit" data-hit="${m.key}" hidden></div>
+      </div></div>`;
+    };
+    /* 版面：AI 首選整排；其餘兩兩並排，剩單數時最後一張整排 */
+    const rv2Rest=[...rv2Markets.filter(m=>m!==rv2Best&&!noMarketRecommendation(m.r)),...rv2Markets.filter(m=>noMarketRecommendation(m.r))];
+    const rv2CardsHtml=[
+      ...(rv2Best?[rv2Card(rv2Best,true)]:[]),
+      ...rv2Rest.map((m,i)=>rv2Card(m,rv2Rest.length%2===1&&i===rv2Rest.length-1))
+    ].join("");
+
+    const rv2DetailBlocks=[];
+    if(rv2Win){
+      const three=rv2Win.draw!==undefined;
+      rv2DetailBlocks.push(`<section class="rv2-panel"><div class="rv2-panel-in">
+        <h3 class="rv2-h">賽前勝率</h3>
+        <div class="rv2-wp${three?" three":""}">
+          <div class="h"><b>${rv2Pct(rv2Win.home)}</b><span>主勝・${rv2Esc(rv2HomeName)}</span></div>
+          ${three?`<div class="d"><b>${rv2Pct(rv2Win.draw)}</b><span>和局</span></div>`:""}
+          <div class="a"><b>${rv2Pct(rv2Win.away)}</b><span>客勝・${rv2Esc(rv2AwayName)}</span></div>
+        </div>
+        <div class="rv2-wbar"><div class="h" style="flex:${rv2Win.home}"></div>${three?`<div class="d" style="flex:${rv2Win.draw}"></div>`:""}<div class="a" style="flex:${rv2Win.away}"></div></div>
+        <p class="rv2-note">由 HABAO 模型依雙方攻守數據${rv2Sport==="football"?"與本階段資料":"、傷停與先發資料"}推估，僅供參考。</p>
+      </div></section>`);
+    }
+    if(rv2Rows.length){
+      rv2DetailBlocks.push(`<section class="rv2-panel"><div class="rv2-panel-in">
+        <h3 class="rv2-h">模型 vs 盤口</h3>
+        <div class="rv2-vm">${rv2Rows.map(r=>`<div class="rv2-vm-row"><span class="k">${r.k}</span><span class="c">${r.mL}<b>${rv2Esc(r.mV)}</b></span><span class="c m">${r.oL}<b>${rv2Esc(r.oV)}</b></span><span class="rv2-edge${r.neutral?" neutral":""}"><span>${r.edge}</span><span>${rv2Esc(r.edgeV)}</span></span></div>`).join("")}</div>
+        <p class="rv2-note">盤口為本階段封存的主流盤線；模型公平線為模型認為兩邊機會相等的線，僅供參考。</p>
+      </div></section>`);
+    }
+    if(rv2Ladder.length&&rv2Ladder.every(x=>x.p!==null)){
+      const mainLine=Number(overUnder.line);
+      rv2DetailBlocks.push(`<section class="rv2-panel"><div class="rv2-panel-in">
+        <h3 class="rv2-h">大小球各線機率</h3>
+        <div class="rv2-lines">${rv2Ladder.map(x=>`<div class="rv2-ln${Math.abs(x.line-mainLine)<0.01?" main":""}"><span>${x.line} 球 大</span><div class="tr"><div style="width:${Math.round(x.p*100)}%"></div></div><b>${Math.round(x.p*100)}%</b></div>`).join("")}</div>
+        <p class="rv2-note">推薦只針對主流盤口線，其他線機率僅供參考。</p>
+      </div></section>`);
+    }
+    if(rv2ShowPitchers){
+      const era=v=>rv2Num(v)?Number(v).toFixed(2):"—";
+      const better=rv2Num(rv2Pitchers[0].era)&&rv2Num(rv2Pitchers[1].era)?(Number(rv2Pitchers[0].era)<=Number(rv2Pitchers[1].era)?0:1):-1;
+      rv2DetailBlocks.push(`<section class="rv2-panel"><div class="rv2-panel-in">
+        <h3 class="rv2-h">先發投手對決</h3>
+        <div class="rv2-pitch">${rv2Pitchers.map((p,i)=>`${i===1?`<span class="rv2-pv">VS</span>`:""}<div><div class="nm">${rv2Esc(p.name)}</div><div class="tm">${rv2Esc(i===0?rv2HomeName+"（主）":rv2AwayName+"（客）")}</div><div class="era${better===i?" good":""}">${era(p.era)}<small>本季防禦率 ERA</small></div></div>`).join("")}</div>
+        <p class="rv2-note">防禦率越低代表投手表現越好；先發若臨時更換，以最新階段分析為準。</p>
+      </div></section>`);
+    }else if(rv2InjItems.length){
+      const home=rv2InjItems.filter(p=>p.side==="home"),away=rv2InjItems.filter(p=>p.side==="away");
+      rv2DetailBlocks.push(`<section class="rv2-panel"><div class="rv2-panel-in">
+        <h3 class="rv2-h">關鍵傷停</h3>
+        ${rv2HasSides?`<div class="rv2-inj"><div><h4>${rv2Esc(rv2HomeName)}（主）</h4>${rv2InjChips(home)||'<span class="rv2-none">無</span>'}</div><div><h4>${rv2Esc(rv2AwayName)}（客）</h4>${rv2InjChips(away)||'<span class="rv2-none">無</span>'}</div></div>`:`<div>${rv2InjChips(rv2InjItems)}</div>`}
+        <p class="rv2-note">紅色：缺陣　黃色：出賽存疑。名單依本階段封存資料。</p>
+      </div></section>`);
+    }
+    const rv2DetailNames=[rv2Win&&"勝率",rv2Rows.length&&"盤口",rv2Ladder.length&&"各線機率",rv2ShowPitchers?"先發投手":(rv2InjItems.length&&"傷停")].filter(Boolean).join("・");
+
     app.innerHTML = `
-
-<div class="analysis-hero">
-
-  <div class="analysis-engine">
-    <span class="engine-dot"></span>
-    HABAO ENGINE
-  </div>
-
-  <div class="eyebrow">AI MATCH ANALYSIS</div>
-
-  <h1>${window.HabaoAnalysisContract.heading(savedData)}</h1>
-
-</div>
-
-     <div class="match-card">
-
-  <div class="team">
-    <div class="team-side">${analysisT("homeTeam", "主隊")}</div>
-
-    <div class="team-logo-box">
-      <img src="${resultTeamLogo(fixture.home)}" alt="" onerror="this.onerror=null;this.style.display='none'">
+<div class="rv2">
+  <section class="rv2-match"><div class="rv2-match-in rv2-bg-${rv2Sport}">
+    <div class="rv2-strip"><span class="rv2-tag">${rv2Esc(rv2League)}</span><span class="rv2-status"><i></i>${rv2Status}</span><span class="rv2-time">${rv2Esc(timeText)}</span></div>
+    <div class="rv2-teams">
+      <div class="rv2-team"><div class="rv2-logo"><img src="${resultTeamLogo(fixture.home)}" alt="" onerror="this.onerror=null;this.style.display='none'"></div><div class="rv2-tname">${rv2HomeName}</div><div class="rv2-side">${analysisT("homeTeam","主隊")}</div></div>
+      <div class="rv2-vs">VS</div>
+      <div class="rv2-team"><div class="rv2-logo"><img src="${resultTeamLogo(fixture.away)}" alt="" onerror="this.onerror=null;this.style.display='none'"></div><div class="rv2-tname">${rv2AwayName}</div><div class="rv2-side">${analysisT("awayTeam","客隊")}</div></div>
     </div>
+    <div class="rv2-meta"><span class="rv2-stage ${rv2Stage}">${rv2StageLabel}</span>${rv2Captured?`<span>分析更新 ${rv2Esc(rv2Captured)}</span>`:""}</div>
+  </div></section>
 
-    <div class="team-name">
-      ${getAnalysisLocalizedName(
-  fixture.home,
-  analysisT("homeTeam", "主隊")
-)}
-    </div>
-  </div>
+  <h2 class="rv2-sec">AI 推薦</h2>
+  <section class="rv2-grid">${rv2CardsHtml}</section>
 
-  <div class="match-vs">
-    <div class="vs-line"></div>
-    <div class="vs">VS</div>
-    <div class="vs-line"></div>
-  </div>
-
-  <div class="team">
-    <div class="team-side">${analysisT("awayTeam", "客隊")}</div>
-
-    <div class="team-logo-box">
-      <img src="${resultTeamLogo(fixture.away)}" alt="" onerror="this.onerror=null;this.style.display='none'">
-    </div>
-
-    <div class="team-name">
-      ${getAnalysisLocalizedName(
-  fixture.away,
-  analysisT("awayTeam", "客隊")
-)}
-    </div>
-  </div>
-
-</div>
-
-      <div class="meta">
-${getAnalysisLeagueName(
-  fixture.league || "",
-  fixture.country || ""
-)}
-<br>
-        ${timeText}${getAnalysisVenueText(fixture.venue) ? "<br>" + getAnalysisVenueText(fixture.venue) : ""}
-      </div>
-
-
-
-      <div class="grid">
-
-        <!-- 獨贏 -->
-        <div class="pick-card">
-          <div class="pick-label">${analysisT("moneyline", "獨贏")}</div>
-
-          <div class="pick-value">
-            ${localizeAnalysisText(moneyline.pick) || analysisT("noRecommendation", "暫不推薦")}
-          </div>
-
-          <div class="confidence">
-            ${recommendationConfidenceHtml(moneyline)}
-          </div>
-
-          <div class="bar">
-            <div style="width:${recommendationBar(moneyline)}%"></div>
-          </div>
-
-        </div>
-
-
-        <!-- 讓分 -->
-        <div class="pick-card">
-          <div class="pick-label">${analysisT("handicap", "讓分")}</div>
-
-          <div class="pick-value">
-            ${localizeAnalysisText(handicap.pick) || analysisT("noRecommendation", "暫不推薦")}${
-              handicap.line !== null &&
-              handicap.line !== undefined &&
-              String(handicap.line).trim() !== "" &&
-              handicap.pick !== "暫不推薦" &&
-              handicap.pick !== "暂不推荐" &&
-              handicap.pick !== "No Recommendation"
-                ? ` ${formatAsianMarketLine(
-                    handicap.line,
-                    Number(handicap.line) > 0
-                  )}`
-                : ""
-            }
-          </div>
-
-          <div class="confidence">
-            ${recommendationConfidenceHtml(handicap)}
-          </div>
-
-          <div class="bar">
-            <div style="width:${recommendationBar(handicap)}%"></div>
-          </div>
-
-        </div>
-
-
-        <!-- 大小球 -->
-        <div class="pick-card">
-          <div class="pick-label">${window.HabaoStageCore.sport(savedData)==="football"?analysisT("overUnder", "大小球"):"大小分"}</div>
-
-          <div class="pick-value">
-            ${formatOverUnderPick(overUnder.pick, overUnder.line)}
-          </div>
-
-          <div class="confidence">
-            ${recommendationConfidenceHtml(overUnder)}
-          </div>
-
-          <div class="bar">
-            <div style="width:${recommendationBar(overUnder)}%"></div>
-          </div>
-
-        </div>
-
-
-
-        ${window.HabaoStageCore.sport(savedData)==="football" ? `
-        <!-- 2026-11-15：恢復足球 BTTS（11-13 三球類統一時誤刪）；NBA／MLB 只有三個市場。預測比分仍不顯示。 -->
-        <div class="pick-card">
-          <div class="pick-label">BTTS</div>
-          <div class="pick-value">
-            ${localizeAnalysisText(btts.pick) || analysisT("noRecommendation", "暫不推薦")}
-          </div>
-          <div class="confidence">
-            ${recommendationConfidenceHtml(btts)}
-          </div>
-          <div class="bar">
-            <div style="width:${recommendationBar(btts)}%"></div>
-          </div>
-        </div>` : ""}
-</div>
-
-      </div>
-      </div>
-
-      <div class="bet-action">
-
-  <button
-    type="button"
-    class="bet-btn"
-    onclick="openBetPlatformModal()"
-  >
-    ${analysisT("betNow", "立即投注 →")}
+  ${rv2DetailBlocks.length?`
+  <button type="button" class="rv2-more" aria-expanded="false" onclick="const d=this.nextElementSibling,o=d.hidden;d.hidden=!o;this.setAttribute('aria-expanded',String(o));this.querySelector('.t').textContent=o?'收起詳細數據':'查看詳細數據';this.querySelector('i').textContent=o?'▲':'▼';">
+    <i>▼</i><span class="t">查看詳細數據</span><small>${rv2DetailNames}</small>
   </button>
+  <section class="rv2-details" hidden>${rv2DetailBlocks.join("")}</section>`:""}
 
-<a
-  href="football.html"
-  class="expert-btn"
->
-  ${analysisT("expertAnalysis", "繼續分析 →")}
-</a>
+  <div class="bet-action rv2-actions">
+    <button type="button" class="bet-btn" onclick="openBetPlatformModal()">${analysisT("betNow", "立即投注 →")}</button>
+    <a href="football.html" class="expert-btn">${analysisT("expertAnalysis", "繼續分析 →")}</a>
+  </div>
+  <p class="rv2-foot">預測結果並非 100% 勝率，請理性判斷。</p>
 </div>
     `;
+
+    /* 各市場近 30 天命中率：讀公開戰績 API（唯讀），失敗就不顯示 */
+    (async()=>{
+      try{
+        const api={football:"ai-performance",basketball:"basketball-performance-api",baseball:"baseball-performance-api"}[rv2Sport];
+        if(!api)return;
+        const res=await fetch(`https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/${api}?days=30`,{headers:{Accept:"application/json"},cache:"no-store"});
+        const j=res.ok?await res.json():null;
+        if(!j?.success||!j.markets)return;
+        document.querySelectorAll(".rv2-hit[data-hit]").forEach(el=>{
+          const m=j.markets[el.dataset.hit]||{};
+          const ok=Number(m.decided)>0&&rv2Num(m.hit_rate);
+          if(!ok)return;
+          el.textContent=el.closest(".rv2-card.full")?`此市場近 30 天命中率 ${Number(m.hit_rate).toFixed(1)}%`:`近 30 天命中 ${Number(m.hit_rate).toFixed(1)}%`;
+          el.hidden=false;
+        });
+      }catch(e){console.warn("RV2 HIT RATE UNAVAILABLE",e);}
+    })();
 
   } catch (error) {
 
