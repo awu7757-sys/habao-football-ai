@@ -3624,7 +3624,7 @@ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;ga
 }
 </style>
 
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121d">
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121e">
 </head>
 
 <body data-hb-page="matches">
@@ -3654,6 +3654,7 @@ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;ga
 <div class="member-account" id="userAccount">
   已登入
 </div>
+<script>/* 2026-11-21：一載入就顯示會員帳號（只改顯示） */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null"),b=document.getElementById("userAccount");if(m&&m.account&&b)b.textContent=String(m.account);}catch(e){}})();</script>
 
       <div
         class="member-expire"

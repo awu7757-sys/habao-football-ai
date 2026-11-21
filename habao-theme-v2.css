@@ -292,3 +292,51 @@ body[data-hb-page="analysis"] .batch-result-nav{border:1.5px solid transparent!i
 body[data-hb-page="analysis"] .batch-nav-btn{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.45)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 0 #05070a!important}
 body[data-hb-page="matches"] .history-sport-empty{border:1px dashed rgba(242,189,75,.3)!important;background:rgba(255,255,255,.02)!important;border-radius:16px!important}
 body[data-hb-page="matches"] .history-sport-empty-icon{color:var(--hb-gold)!important}
+
+/* =====================================================================
+   第三輪（2026-11-21）：檢查清單小改動
+===================================================================== */
+/* #3 小字放大：原本 7～9px 的標籤在手機上看不清 */
+body[data-hb-page="home"] .v2-tool-kicker,
+body[data-hb-page="matches"] .v2-section-kicker{font-size:10px!important}
+body[data-hb-page="home"] .v2-tool-desc{font-size:11.5px!important;line-height:1.55!important}
+body[data-hb-page="home"] .quick-label,
+body[data-hb-page="home"] .match-status{font-size:11px!important}
+body[data-hb-page="home"] .brand-sub{font-size:10px!important}
+body[data-hb-page="matches"] .v2-team-side,
+body[data-hb-page="matches"] .history-team-side{font-size:10.5px!important}
+body[data-hb-page="matches"] .v2-control-label{font-size:10px!important}
+body[data-hb-page="matches"] .v2-match-kicker{font-size:10.5px!important}
+body[data-hb-page="performance"] .record-pred,
+body[data-hb-page="performance"] .record-time,
+body[data-hb-page="performance"] .league-count{font-size:10.5px!important}
+body[data-hb-page="performance"] .record-league{font-size:11px!important}
+body[data-hb-page="performance"] .market-sample{font-size:11px!important}
+
+/* #7 「AI 工具」右側 HABAO ENGINE：改成和其他區塊一致的金色小字 */
+body[data-hb-page="home"] .tools-status{font-size:10.5px!important;font-weight:900!important;letter-spacing:.18em!important;color:var(--hb-gold)!important;opacity:.85}
+
+/* #8 工具卡：同一列等高，底部狀態列對齊 */
+body[data-hb-page="home"] .v2-tools-grid{align-items:stretch!important}
+body[data-hb-page="home"] .v2-tool-card{display:flex!important;flex-direction:column!important}
+body[data-hb-page="home"] .v2-tool-footer{margin-top:auto!important}
+
+/* #11 #20 橫向可滑動的篩選列／聯賽列：右側淡出，提示還能往右滑 */
+body[data-hb-page="matches"] .fixture-league-groups,
+body[data-hb-page="matches"] .fixture-league-filter,
+body[data-hb-page="performance"] .league-strip{
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 36px),transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 36px),transparent 100%);
+  padding-right:28px!important}
+
+/* #16 結果頁「第 1/2 場」切換列：與對戰卡拉開，沒得按的按鈕更淡 */
+body[data-hb-page="analysis"] .batch-result-nav{margin-bottom:16px!important}
+body[data-hb-page="analysis"] .batch-nav-btn:disabled{opacity:.35!important;box-shadow:none!important}
+
+/* #21 VIP 視窗「待開放」平台：縮小淡化，不搶可用平台的位置 */
+body[data-hb-page="home"] .v2-vip-platform-card:has([aria-disabled="true"]){opacity:.55;padding-top:8px!important;padding-bottom:8px!important;order:9;border-style:dashed!important}
+
+/* #22 登入頁「下載 APP」足球：縮小並往下，避免蓋到 LINE 客服卡 */
+body[data-hb-page="login"] #addHomeFloatBtn{width:62px!important;bottom:calc(6px + env(safe-area-inset-bottom))!important;right:10px!important}
+body[data-hb-page="login"] .app,
+body[data-hb-page="login"] .login-wrap{padding-bottom:84px!important}

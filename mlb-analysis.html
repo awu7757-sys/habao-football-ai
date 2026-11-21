@@ -2841,6 +2841,7 @@ h1{
 .rv2-hit{margin-top:9px;font-size:11px;color:#9fe8bd;font-weight:800;display:flex;align-items:center;gap:5px}
 .rv2-hit::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:#3cdd82;box-shadow:0 0 6px #3cdd82}
 .rv2-hit[hidden]{display:none}
+.rv2-hit.muted{color:#7d8593}.rv2-hit.muted::before{background:#5d6675;box-shadow:none}
 .rv2-card.none{background:linear-gradient(145deg,#3a3f48,#20242b);box-shadow:0 6px 0 #11141a,0 12px 20px rgba(0,0,0,.5)}
 .rv2-card.none .rv2-card-in{background:linear-gradient(180deg,#121822,#0a0e14)}
 .rv2-card.none .rv2-pick{color:#7d8593;font-size:18px}
@@ -2894,7 +2895,7 @@ h1{
 .rv2-foot{text-align:center;font-size:11.5px;color:#6f7786;margin:4px 0 0}
 
 </style>
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121d">
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121e">
 </head>
 
 <body data-hb-page="analysis">
@@ -4525,7 +4526,7 @@ const timeText = gameDate
       <div class="rv2-vs">VS</div>
       <div class="rv2-team"><div class="rv2-logo"><img src="${resultTeamLogo(fixture.away)}" alt="" onerror="this.onerror=null;this.style.display='none'"></div><div class="rv2-tname">${rv2AwayName}</div><div class="rv2-side">${analysisT("awayTeam","客隊")}</div></div>
     </div>
-    <div class="rv2-meta"><span class="rv2-stage ${rv2Stage}">${rv2StageLabel}</span>${rv2Captured?`<span>分析更新 ${rv2Esc(rv2Captured)}</span>`:""}</div>
+    <div class="rv2-meta"><span class="rv2-stage ${rv2Stage}">${rv2StageLabel}</span>${rv2Captured?`<span>分析更新 ${rv2Esc(rv2Captured)}</span>`:(rv2Stage==="t10"?`<span>開賽前約 10 小時封存</span>`:"")}</div>
   </div></section>
 
   <h2 class="rv2-sec">AI 推薦</h2>
@@ -4556,7 +4557,8 @@ const timeText = gameDate
         document.querySelectorAll(".rv2-hit[data-hit]").forEach(el=>{
           const m=j.markets[el.dataset.hit]||{};
           const ok=Number(m.decided)>0&&rv2Num(m.hit_rate);
-          if(!ok)return;
+          // 2026-11-21：公開戰績沒有統計的市場（例如足球讓分）顯示灰字，避免只有那張卡少一行
+          if(!ok){el.textContent="此市場尚無命中率統計";el.classList.add("muted");el.hidden=false;return;}
           el.textContent=el.closest(".rv2-card.full")?`此市場近 30 天命中率 ${Number(m.hit_rate).toFixed(1)}%`:`近 30 天命中 ${Number(m.hit_rate).toFixed(1)}%`;
           el.hidden=false;
         });

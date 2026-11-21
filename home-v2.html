@@ -6480,7 +6480,7 @@ padding:
 }
 </style>
 
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121d">
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121e">
 </head>    
 
 <body data-hb-page="home">
@@ -6518,6 +6518,7 @@ padding:
         已登入
 
       </div>
+      <script>/* 2026-11-21：一載入就顯示會員帳號（只改顯示，驗證流程不變） */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null"),b=document.querySelector(".topbar .account");if(m&&m.account&&b){b.innerHTML='<span class="account-dot"></span>';b.appendChild(document.createTextNode(String(m.account)));}}catch(e){}})();</script>
 
     </header>
     
