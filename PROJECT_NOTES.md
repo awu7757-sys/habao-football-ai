@@ -509,3 +509,4 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - #12 賽事卡底部手機版：左側「狀態＋加入批次」上下排、右側「開始分析」。#13 已完賽賽事卡縮小變淡。
   - #17 AI 戰績市場卡高度約減半、狀態移右下。#18 目前球類已驗證 0 場時顯示提示卡（MLB 休賽中／樣本累積中）並隱藏下方各區。#19 驗證紀錄字級放大。
   - 依賴 CSS `:has()`（iOS 15.4+／Chrome 105+）；不支援的舊瀏覽器只是少了這些視覺調整，功能不受影響。
+- 【2026-11-21 修正】#8「工具卡等高」的 `.v2-tool-card{display:flex!important}` 蓋掉了 `#habaoFundBetaCard` 的 `style="display:none"`，導致「AI 資金計畫」對所有會員顯示。已加 `.v2-tool-card[style*="none"]{display:none!important}`，恢復原本「只有測試帳號 `HABAO_FUND_BETA_ACCOUNT` 看得到」。**教訓：主題檔對元素加 `display:…!important` 時，要排除被程式用 inline style 隱藏的元素。**

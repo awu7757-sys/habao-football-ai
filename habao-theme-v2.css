@@ -319,6 +319,8 @@ body[data-hb-page="home"] .tools-status{font-size:10.5px!important;font-weight:9
 /* #8 工具卡：同一列等高，底部狀態列對齊 */
 body[data-hb-page="home"] .v2-tools-grid{align-items:stretch!important}
 body[data-hb-page="home"] .v2-tool-card{display:flex!important;flex-direction:column!important}
+/* 被程式隱藏的工具卡（例如只給測試帳號看的 AI 資金計畫）要維持隱藏，不能被上一行的 display:flex 蓋掉 */
+body[data-hb-page="home"] .v2-tool-card[style*="none"]{display:none!important}
 body[data-hb-page="home"] .v2-tool-footer{margin-top:auto!important}
 
 /* #11 #20 橫向可滑動的篩選列／聯賽列：右側淡出，提示還能往右滑 */
