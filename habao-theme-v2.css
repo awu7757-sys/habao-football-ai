@@ -2,7 +2,8 @@
    HABAO 全站風格 v2（2026-11-21，PROJECT_NOTES §23）
    黑金立體風：金色漸層外框、深藍卡片、金屬浮雕按鈕。
    規則：只覆蓋外觀，不改 HTML 結構、ID 與 JavaScript。
-   每頁最後載入本檔；頁面專屬區塊以註解分段。
+   每頁最後載入本檔，並在 <body> 加 data-hb-page（home／matches／performance…），
+   頁面專屬規則只作用在該頁，避免不同頁同名 class 互相影響。
 ===================================================================== */
 :root{
   --hb-gold:#f2bd4b;
@@ -30,75 +31,165 @@
    首頁 home-v2.html
 ===================================================================== */
 /* 主視覺：保留原本球員背景圖，只換外框與光暈 */
-html body .hero{border:1.5px solid rgba(242,189,75,.6)!important;box-shadow:0 16px 34px rgba(0,0,0,.6),0 0 22px rgba(242,189,75,.18),inset 0 1px 0 rgba(255,255,255,.08)!important}
-html body .hero-badge{border:1px solid rgba(242,189,75,.4)!important;background:rgba(0,0,0,.45)!important}
+body[data-hb-page="home"] .hero{border:1.5px solid rgba(242,189,75,.6)!important;box-shadow:0 16px 34px rgba(0,0,0,.6),0 0 22px rgba(242,189,75,.18),inset 0 1px 0 rgba(255,255,255,.08)!important}
+body[data-hb-page="home"] .hero-badge{border:1px solid rgba(242,189,75,.4)!important;background:rgba(0,0,0,.45)!important}
 
 /* 金屬主按鈕／次按鈕 */
-html body .primary-btn,
-html body .analyse,
-html body .v2-bonus-button,
-html body .v2-vip-submit,
-html body .v2-push-intro-enable{
+body[data-hb-page="home"] .primary-btn,
+body[data-hb-page="home"] .analyse,
+body[data-hb-page="home"] .v2-bonus-button,
+body[data-hb-page="home"] .v2-vip-submit,
+body[data-hb-page="home"] .v2-push-intro-enable{
   background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;
   box-shadow:var(--hb-btn-gold-shadow)!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important;
   transition:transform .08s ease,box-shadow .08s ease!important}
-html body .primary-btn:active,html body .analyse:active,html body .v2-bonus-button:active,html body .v2-vip-submit:active{
+body[data-hb-page="home"] .primary-btn:active,body[data-hb-page="home"] .analyse:active,body[data-hb-page="home"] .v2-bonus-button:active,body[data-hb-page="home"] .v2-vip-submit:active{
   transform:translateY(4px)!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.8),0 1px 0 #6b4410,0 4px 10px rgba(0,0,0,.5)!important}
-html body .secondary-btn{
+body[data-hb-page="home"] .secondary-btn{
   background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;
   border:1px solid rgba(242,189,75,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
 
 /* 三張統計卡：金／藍／綠漸層框 */
-html body .quick-card{border:1.5px solid transparent!important;box-shadow:0 5px 0 rgba(0,0,0,.55),0 12px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08)!important}
-html body .quick-card-match{background:var(--hb-card-gold) padding-box,var(--hb-frame) border-box!important}
-html body .quick-card-analysis{background:var(--hb-card-blue) padding-box,var(--hb-frame-blue) border-box!important}
-html body .quick-card-verified{background:var(--hb-card-green) padding-box,var(--hb-frame-green) border-box!important}
-html body .quick-value{font-family:Georgia,"Times New Roman",serif!important;letter-spacing:0!important}
-html body .quick-card-match .quick-value{background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent!important}
-html body .quick-card-analysis .quick-value{color:#8fc3ff!important}
-html body .quick-card-verified .quick-value{color:#7ff0b0!important}
+body[data-hb-page="home"] .quick-card{border:1.5px solid transparent!important;box-shadow:0 5px 0 rgba(0,0,0,.55),0 12px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08)!important}
+body[data-hb-page="home"] .quick-card-match{background:var(--hb-card-gold) padding-box,var(--hb-frame) border-box!important}
+body[data-hb-page="home"] .quick-card-analysis{background:var(--hb-card-blue) padding-box,var(--hb-frame-blue) border-box!important}
+body[data-hb-page="home"] .quick-card-verified{background:var(--hb-card-green) padding-box,var(--hb-frame-green) border-box!important}
+body[data-hb-page="home"] .quick-value{font-family:Georgia,"Times New Roman",serif!important;letter-spacing:0!important}
+body[data-hb-page="home"] .quick-card-match .quick-value{background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+body[data-hb-page="home"] .quick-card-analysis .quick-value{color:#8fc3ff!important}
+body[data-hb-page="home"] .quick-card-verified .quick-value{color:#7ff0b0!important}
 
 /* 區塊標題 */
-html body .section-line{background:var(--hb-gold)!important;box-shadow:0 0 8px rgba(242,189,75,.5)!important}
-html body .section-more{color:var(--hb-gold)!important}
+body[data-hb-page="home"] .section-line{background:var(--hb-gold)!important;box-shadow:0 0 8px rgba(242,189,75,.5)!important}
+body[data-hb-page="home"] .section-more{color:var(--hb-gold)!important}
 
 /* 焦點賽事卡：與分析結果頁同一款對戰卡 */
-html body .match-card{
+body[data-hb-page="home"] .match-card{
   padding:0 0 0!important;border:1.5px solid transparent!important;
   background:radial-gradient(40% 30% at 12% 0%,rgba(150,200,255,.22),transparent 70%) padding-box,radial-gradient(40% 30% at 88% 0%,rgba(150,200,255,.18),transparent 70%) padding-box,radial-gradient(80% 45% at 50% 100%,rgba(40,140,80,.38),transparent 70%) padding-box,linear-gradient(180deg,#0b1220 0%,#0f1a24 55%,#0c2418 100%) padding-box,var(--hb-frame) border-box!important;
   box-shadow:0 14px 30px rgba(0,0,0,.55)!important}
-html body .match-card .match-top{
+body[data-hb-page="home"] .match-card .match-top{
   display:flex!important;align-items:center!important;justify-content:space-between!important;
   margin:0!important;padding:12px 14px!important;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.2))!important;
   border-bottom:1px solid rgba(242,189,75,.18)!important}
-html body .match-card .league{
+body[data-hb-page="home"] .match-card .league{
   padding:4px 10px!important;border-radius:8px!important;background:var(--hb-gold-text)!important;color:var(--hb-ink)!important;
   font-weight:900!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)!important}
-html body .match-card .league *{color:var(--hb-ink)!important}
-html body .match-card .league-icon{background:transparent!important;border:0!important;box-shadow:none!important}
-html body .match-card .match-time{color:var(--hb-gold-light)!important;border-color:rgba(242,189,75,.3)!important;background:rgba(0,0,0,.35)!important;font-weight:800!important}
-html body .match-card .teams{padding:12px 12px 10px!important}
-html body .match-card .v2-team-logo{
+body[data-hb-page="home"] .match-card .league *{color:var(--hb-ink)!important}
+body[data-hb-page="home"] .match-card .league-icon{background:transparent!important;border:0!important;box-shadow:none!important}
+body[data-hb-page="home"] .match-card .match-time{color:var(--hb-gold-light)!important;border-color:rgba(242,189,75,.3)!important;background:rgba(0,0,0,.35)!important;font-weight:800!important}
+body[data-hb-page="home"] .match-card .teams{padding:12px 12px 10px!important}
+body[data-hb-page="home"] .match-card .v2-team-logo{
   border-radius:50%!important;border:1px solid rgba(242,189,75,.4)!important;
   background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),rgba(255,255,255,.04))!important;box-shadow:0 10px 22px rgba(0,0,0,.55)!important}
-html body .match-card .vs{border:1px solid rgba(242,189,75,.5)!important;background:rgba(0,0,0,.45)!important;color:var(--hb-gold)!important;box-shadow:0 0 16px rgba(242,189,75,.25)!important}
-html body .match-card .match-bottom{margin:0!important;padding:12px 14px!important;border-top:1px solid rgba(242,189,75,.15)!important;background:rgba(0,0,0,.28)!important}
+body[data-hb-page="home"] .match-card .vs{border:1px solid rgba(242,189,75,.5)!important;background:rgba(0,0,0,.45)!important;color:var(--hb-gold)!important;box-shadow:0 0 16px rgba(242,189,75,.25)!important}
+body[data-hb-page="home"] .match-card .match-bottom{margin:0!important;padding:12px 14px!important;border-top:1px solid rgba(242,189,75,.15)!important;background:rgba(0,0,0,.28)!important}
 
 /* AI 工具卡 */
-html body .v2-tool-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 6px 0 rgba(0,0,0,.45),0 14px 24px rgba(0,0,0,.45)!important}
-html body .v2-tool-arrow{border-color:rgba(242,189,75,.4)!important;color:var(--hb-gold)!important}
+body[data-hb-page="home"] .v2-tool-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 6px 0 rgba(0,0,0,.45),0 14px 24px rgba(0,0,0,.45)!important}
+body[data-hb-page="home"] .v2-tool-arrow{border-color:rgba(242,189,75,.4)!important;color:var(--hb-gold)!important}
 
 /* 底部導覽：金邊外框，所在分頁為金屬按鈕 */
-html body .bottom-nav{border:1px solid transparent!important;background:linear-gradient(180deg,#172131,#0b1018) padding-box,linear-gradient(120deg,rgba(255,231,168,.6),rgba(107,68,16,.3) 50%,rgba(242,195,90,.6)) border-box!important;box-shadow:0 -6px 22px rgba(0,0,0,.55)!important}
-html body .bottom-nav .nav-item.active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410!important}
-html body .bottom-nav .nav-item.active *{color:var(--hb-ink)!important;stroke:var(--hb-ink)}
-html body .bottom-nav .nav-item.active::before,html body .bottom-nav .nav-item.active::after{display:none!important}
+body[data-hb-page="home"] .bottom-nav{border:1px solid transparent!important;background:linear-gradient(180deg,#172131,#0b1018) padding-box,linear-gradient(120deg,rgba(255,231,168,.6),rgba(107,68,16,.3) 50%,rgba(242,195,90,.6)) border-box!important;box-shadow:0 -6px 22px rgba(0,0,0,.55)!important}
+body[data-hb-page="home"] .bottom-nav .nav-item.active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410!important}
+body[data-hb-page="home"] .bottom-nav .nav-item.active *{color:var(--hb-ink)!important;stroke:var(--hb-ink)}
+body[data-hb-page="home"] .bottom-nav .nav-item.active::before,body[data-hb-page="home"] .bottom-nav .nav-item.active::after{display:none!important}
 
 /* 「我的」帳號面板、升級 VIP 視窗、加碼視窗 */
-html body .v2-account-panel,
-html body .v2-vip-modal,
-html body .v2-bonus-card,
-html body .v2-push-intro-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 20px 40px rgba(0,0,0,.65)!important}
-html body .v2-vip-upgrade-button{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
-html body .v2-vip-platform-card{border:1px solid rgba(242,189,75,.28)!important;background:rgba(255,255,255,.03)!important}
-html body .v2-vip-platform-card.selected,html body .v2-vip-platform-card.active{border-color:var(--hb-gold)!important;box-shadow:0 0 0 1px rgba(242,189,75,.5),0 0 18px rgba(242,189,75,.2)!important}
+body[data-hb-page="home"] .v2-account-panel,
+body[data-hb-page="home"] .v2-vip-modal,
+body[data-hb-page="home"] .v2-bonus-card,
+body[data-hb-page="home"] .v2-push-intro-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 20px 40px rgba(0,0,0,.65)!important}
+body[data-hb-page="home"] .v2-vip-upgrade-button{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
+body[data-hb-page="home"] .v2-vip-platform-card{border:1px solid rgba(242,189,75,.28)!important;background:rgba(255,255,255,.03)!important}
+body[data-hb-page="home"] .v2-vip-platform-card.selected,body[data-hb-page="home"] .v2-vip-platform-card.active{border-color:var(--hb-gold)!important;box-shadow:0 0 0 1px rgba(242,189,75,.5),0 0 18px rgba(242,189,75,.2)!important}
+
+/* =====================================================================
+   共用：金屬按鈕狀態（各頁通用的分頁／篩選「選中」樣式）
+===================================================================== */
+body[data-hb-page] .hb-tab-on{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410,0 6px 12px rgba(0,0,0,.35)!important}
+
+/* =====================================================================
+   賽事中心／我的分析 football.html
+===================================================================== */
+body[data-hb-page="matches"] .v2-match-hero,
+body[data-hb-page="matches"] .v2-control-panel{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07)!important}
+body[data-hb-page="matches"] .v2-match-hero{background:radial-gradient(60% 50% at 85% 0%,rgba(242,189,75,.16),transparent 70%) padding-box,var(--hb-card) padding-box,var(--hb-frame) border-box!important}
+
+/* 球種、日期、聯賽、我的分析球種：選中＝金屬按鈕 */
+body[data-hb-page="matches"] .v3-sport-tab.active,
+body[data-hb-page="matches"] .v2-date-bar .date.active,
+body[data-hb-page="matches"] .date.active,
+body[data-hb-page="matches"] .history-sport-tab.active,
+body[data-hb-page="matches"] .league-filter-btn.active,
+body[data-hb-page="matches"] .v3-league-group-btn.active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410,0 6px 12px rgba(0,0,0,.35)!important}
+body[data-hb-page="matches"] .v3-sport-tab.active *,
+body[data-hb-page="matches"] .date.active *,
+body[data-hb-page="matches"] .history-sport-tab.active *{color:var(--hb-ink)!important}
+body[data-hb-page="matches"] .v2-date-bar .date.active::before{display:none!important}
+
+/* 賽事卡：金色漸層框＋草皮光暈，頂部聯賽列 */
+body[data-hb-page="matches"] #matchesContainer .v2-match-card,
+body[data-hb-page="matches"] .history-match-card{
+  border:1.5px solid transparent!important;
+  background:radial-gradient(40% 30% at 12% 0%,rgba(150,200,255,.16),transparent 70%) padding-box,radial-gradient(80% 45% at 50% 100%,rgba(40,140,80,.28),transparent 70%) padding-box,linear-gradient(180deg,#0f1724 0%,#0c141d 60%,#0b1a14 100%) padding-box,var(--hb-frame) border-box!important;
+  box-shadow:0 12px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)!important}
+body[data-hb-page="matches"] .v2-match-card-top,
+body[data-hb-page="matches"] .history-match-top{border-bottom:1px solid rgba(242,189,75,.16)!important}
+body[data-hb-page="matches"] .v2-match-league,
+body[data-hb-page="matches"] .history-league{color:var(--hb-gold-light)!important;font-weight:900!important}
+body[data-hb-page="matches"] .v2-league-dot{background:var(--hb-gold)!important;box-shadow:0 0 8px rgba(242,189,75,.6)!important}
+body[data-hb-page="matches"] .v2-match-time,
+body[data-hb-page="matches"] .history-time{color:var(--hb-gold-light)!important;border-color:rgba(242,189,75,.32)!important;background:rgba(0,0,0,.35)!important}
+body[data-hb-page="matches"] .v2-team-logo-box,
+body[data-hb-page="matches"] .nba-history-logo{border-radius:50%!important;border:1px solid rgba(242,189,75,.4)!important;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),rgba(255,255,255,.04))!important;box-shadow:0 8px 18px rgba(0,0,0,.5)!important}
+body[data-hb-page="matches"] .v2-vs-ring,
+body[data-hb-page="matches"] .history-vs{border-color:rgba(242,189,75,.5)!important;color:var(--hb-gold)!important;background:rgba(0,0,0,.45)!important;box-shadow:0 0 14px rgba(242,189,75,.22)!important}
+
+/* 分析按鈕：一般＝金屬金；T-2 藍、T-15 紫保留顏色但改為立體；已完賽／鎖定維持原樣 */
+body[data-hb-page="matches"] .v2-analysis-btn:not(.stage-t2):not(.stage-t15):not(.locked):not(.finished):not(:disabled),
+body[data-hb-page="matches"] .history-btn,
+body[data-hb-page="matches"] .v2-batch-start,
+body[data-hb-page="matches"] .quota-modal-confirm{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border-color:transparent!important;box-shadow:var(--hb-btn-gold-shadow)!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important}
+body[data-hb-page="matches"] .v2-analysis-btn.stage-t2,
+body[data-hb-page="matches"] .v2-analysis-btn.stage-t15{box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 4px 0 rgba(0,0,0,.45),0 8px 16px rgba(0,0,0,.4)!important}
+body[data-hb-page="matches"] .v2-analysis-btn.stage-t2{background:linear-gradient(180deg,#e2f4ff 0%,#8fd0f5 45%,#3e9ad6 52%,#6cc0ee 100%)!important}
+body[data-hb-page="matches"] .v2-analysis-btn.stage-t15{background:linear-gradient(180deg,#f0e8ff 0%,#c3a8ff 45%,#7f55d8 52%,#a888f0 100%)!important}
+body[data-hb-page="matches"] .v2-analysis-btn:active:not(:disabled),
+body[data-hb-page="matches"] .history-btn:active{transform:translateY(3px)!important}
+
+/* 批次分析列、彈窗 */
+body[data-hb-page="matches"] .v2-batch-bar,
+body[data-hb-page="matches"] .quota-modal-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 18px 36px rgba(0,0,0,.6)!important}
+
+/* =====================================================================
+   AI 戰績 performance.html
+===================================================================== */
+body[data-hb-page="performance"] .hero{border:1.5px solid rgba(242,189,75,.6)!important;box-shadow:0 16px 34px rgba(0,0,0,.6),0 0 22px rgba(242,189,75,.16),inset 0 1px 0 rgba(255,255,255,.08)!important}
+body[data-hb-page="performance"] .sport-tab.active,
+body[data-hb-page="performance"] .filter-btn.active,
+body[data-hb-page="performance"] .trend-tab.active,
+body[data-hb-page="performance"] .period-btn.active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border-color:transparent!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410,0 6px 12px rgba(0,0,0,.35)!important}
+body[data-hb-page="performance"] .sport-tab.active *{color:var(--hb-ink)!important}
+body[data-hb-page="performance"] .summarybar,
+body[data-hb-page="performance"] .records-box,
+body[data-hb-page="performance"] .table-wrap{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 12px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)!important}
+body[data-hb-page="performance"] .verified-num{background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent!important;font-family:Georgia,"Times New Roman",serif!important}
+body[data-hb-page="performance"] .market-card{box-shadow:0 6px 0 rgba(0,0,0,.45),0 14px 26px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08)!important}
+body[data-hb-page="performance"] .market-rate{font-family:Georgia,"Times New Roman",serif!important}
+body[data-hb-page="performance"] .record-card{border:1px solid rgba(242,189,75,.2)!important;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01))!important}
+body[data-hb-page="performance"] .section-title::before{background:var(--hb-gold)!important;box-shadow:0 0 8px rgba(242,189,75,.5)!important}
+body[data-hb-page="matches"] .history-view-btn{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
+
+/* 賽事中心：批次分析勾選框改金色 */
+body[data-hb-page="matches"] input[type="checkbox"]{accent-color:var(--hb-gold)}
+
+/* =====================================================================
+   分析結果頁 analysis.html／mlb-analysis.html（版面本身見 §22 的 rv2 樣式）
+===================================================================== */
+body[data-hb-page="analysis"] .bet-btn{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;box-shadow:var(--hb-btn-gold-shadow)!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important}
+body[data-hb-page="analysis"] .bet-btn:active{transform:translateY(4px)!important}
+body[data-hb-page="analysis"] .expert-btn{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
+body[data-hb-page="analysis"] .bet-platform-modal{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 20px 40px rgba(0,0,0,.65)!important}
+body[data-hb-page="analysis"] .bet-platform-card{border:1px solid rgba(242,189,75,.28)!important;background:rgba(255,255,255,.03)!important}
+body[data-hb-page="analysis"] .bet-platform-go{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410!important}
