@@ -511,3 +511,4 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - 依賴 CSS `:has()`（iOS 15.4+／Chrome 105+）；不支援的舊瀏覽器只是少了這些視覺調整，功能不受影響。
 - 【2026-11-21 修正】#8「工具卡等高」的 `.v2-tool-card{display:flex!important}` 蓋掉了 `#habaoFundBetaCard` 的 `style="display:none"`，導致「AI 資金計畫」對所有會員顯示。已加 `.v2-tool-card[style*="none"]{display:none!important}`，恢復原本「只有測試帳號 `HABAO_FUND_BETA_ACCOUNT` 看得到」。**教訓：主題檔對元素加 `display:…!important` 時，要排除被程式用 inline style 隱藏的元素。**
 - 【2026-11-21】LINE 史萊姆改得更不規則（主題檔 `?v=20261121h`）：貼邊那側較平、外形四角不對稱且以 4.6 秒不規則變形晃動，下方加一滴會慢慢垂下再縮回的黏液（`::after`）；彈出後恢復圓形並隱藏黏液。點擊行為不變。
+- 【2026-11-21】LINE 史萊姆收起時不顯示 LINE 圖示（只有綠色黏液），點一下彈出時圖示才淡入放大（主題檔 `?v=20261121i`）。

@@ -366,7 +366,9 @@ body[data-hb-page] .hb-slime .habao-support-float-button::before{
   top:-9px;right:24px;width:24px;height:16px;border-radius:70% 20% 40% 60% / 70% 30% 50% 40%;animation:hbBlobTop 3.8s ease-in-out infinite}
 body[data-hb-page] .hb-slime .habao-support-float-button::after{
   bottom:-18px;right:20px;width:15px;height:24px;border-radius:50% 50% 50% 50% / 30% 30% 70% 70%;animation:hbDrip 5.2s ease-in-out infinite;transform-origin:top center}
-body[data-hb-page] .hb-slime .habao-support-line-icon{width:30px!important;height:30px!important;margin-right:10px}
+/* 收起時只看到綠色史萊姆，不顯示 LINE 圖示；點開後圖示才淡入 */
+body[data-hb-page] .hb-slime .habao-support-line-icon{width:30px!important;height:30px!important;margin-right:10px;opacity:0;transform:scale(.6);transition:opacity .25s ease .12s,transform .3s cubic-bezier(.34,1.56,.64,1) .12s!important}
+body[data-hb-page] .hb-slime.is-open .habao-support-line-icon{opacity:1;transform:scale(1)}
 body[data-hb-page] .hb-slime .habao-support-float-label{opacity:0;max-width:0;overflow:hidden;transition:opacity .2s,max-width .3s!important}
 body[data-hb-page] .habao-support-float.hb-slime.is-open{transform:translateX(-12px)}
 body[data-hb-page] .hb-slime.is-open .habao-support-float-button{animation:none;border-radius:50%!important;width:56px!important;height:56px!important}
