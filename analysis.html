@@ -4313,8 +4313,9 @@ const timeText = gameDate
     // 2026-11-16：足球／NBA 的 T-2／T-15 顯示的數字是「模型機率」，T-10 是綜合「AI 信心」分數，兩者不可直接比較，標籤分開。
     const stageSport=String(data?.fixture?.sport||data?.sport||new URLSearchParams(window.HabaoPageRuntime.search()).get("sport")||"").toLowerCase();
     const confidenceLabel=(["t2","t15"].includes(String(data?.v2_stage||""))&&stageSport!=="baseball")?analysisT("stageProbability","模型機率"):analysisT("aiConfidence","AI 信心");
-    // 暫不推薦的原因標籤：依後端 reason 文字分類（2026-11-16 補上信心門檻、與莊家方向相反、缺盤口）。
-    const noPickReasonLabel=r=>{const x=String(r?.reason||"");
+    // 暫不推薦的原因標籤：2026-11-22 起優先依後端 decision_code（NBA 規則 V3）；舊快照沒有 decision_code 時才依 reason 文字分類（2026-11-16 補上信心門檻、與莊家方向相反、缺盤口）。
+    const NO_PICK_CODE_LABELS={underdog_pick:"冷門方向",favorite_unknown:"無法判斷熱門",conflict_with_t10:"與 T-10 方向相反",t10_not_qualified:"T-10 未推薦",edge_too_large:"差距過大",gap_unknown:"缺少總分資料",low_confidence:"模型優勢不足",insufficient_edge:"模型優勢不足",insufficient_win_probability:"模型優勢不足"};
+    const noPickReasonLabel=r=>{const code=String(r?.decision_code||"");if(NO_PICK_CODE_LABELS[code])return NO_PICK_CODE_LABELS[code];const x=String(r?.reason||"");
       if(/相反/.test(x))return "與莊家方向相反";
       if(/優勢|門檻|信心低於|把握不足/.test(x))return "模型優勢不足";
       if(/盤線|盤口|未取得|缺盤/.test(x))return "未取得盤口";

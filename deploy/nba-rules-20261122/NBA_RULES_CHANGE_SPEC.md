@@ -1,6 +1,6 @@
 # NBA 推薦規則修改說明 V2（2026-11-22，依 GPT 審查修正）
 
-> 狀態：**草案，尚未修改任何後端程式，也還不能部署**。
+> 狀態：**程式已寫好、離線測試通過，待 GPT 複審後部署**（後台比較頁另外做）。
 > 第一版（commit db101bb）的 GPT 審查：`HB_NBA_RULES_REVIEW_HANDOFF_20261122.md`（R1～R7）。這一版已逐條修正，修正對照見第 8 節。
 > 所有規則都只是「把既有推薦過濾成暫不推薦」，**不會產生新方向，原本暫不推薦的也不會變成推薦**。
 
@@ -75,7 +75,15 @@
 
 ## 4. 要改的程式（請以函式名稱定位，行號是以 db101bb 為準）
 
-### 4-1 新增 `supabase/functions/_shared/nba-rules.ts`
+### 4-0 實作狀態（2026-11-22）
+
+- 使用者是在 Supabase 網站貼上程式碼部署，函式之間不能互相 import。所以正本放在 `supabase/functions/_shared/nba-rules-v3.js`，再由 `scripts/sync-nba-rules-v3.cjs` 原封不動複製到各函式的 `// === NBA_RULES_V3 BEGIN/END ===` 區段，測試會檢查每一份都和正本相同。**修改時只改正本，改完再執行同步**。
+- 已完成：`basketball-analysis`（T-10）、`nba-v2-stage-runner`（T-2／T-15，`STAGE_REVISION` 已改成 `nba-stages-player-context-20261122-rules-v3`）、`analysis.html`／`mlb-analysis.html` 的原因標籤、`tests/nba-rules-v3.test.cjs`（12 項全部通過）。
+- 現有的 nba-batch（4 項失敗）、nba-frontend（1 項失敗）、nba-live-settlement（無法執行）在改版前就是這個狀態，和這次修改無關。
+- 尚未完成：`admin-nba-v2-compare`、`admin.html`、`admin-nba-v2.js` 的後台比較頁（第 5 節）。
+- 啟用時間暫定 `2026-11-24T00:00:00+08:00`。如果部署日期改變，要改正本、執行同步，再重跑測試。
+
+### 4-1 共用規則（原規劃為 `_shared/nba-rules.ts`，實作後改成上面 4-0 的做法）
 
 這裡放純函式：不讀資料庫、不呼叫 API、不讀賽果。
 
