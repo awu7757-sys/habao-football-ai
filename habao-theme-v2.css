@@ -1,0 +1,104 @@
+/* =====================================================================
+   HABAO 全站風格 v2（2026-11-21，PROJECT_NOTES §23）
+   黑金立體風：金色漸層外框、深藍卡片、金屬浮雕按鈕。
+   規則：只覆蓋外觀，不改 HTML 結構、ID 與 JavaScript。
+   每頁最後載入本檔；頁面專屬區塊以註解分段。
+===================================================================== */
+:root{
+  --hb-gold:#f2bd4b;
+  --hb-gold-light:#ffe7a8;
+  --hb-ink:#2b1a03;
+  --hb-muted:#9aa4b2;
+  --hb-frame:linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12);
+  --hb-frame-soft:linear-gradient(145deg,rgba(255,231,168,.75),rgba(201,138,31,.4) 40%,rgba(107,68,16,.3) 60%,rgba(242,195,90,.65));
+  --hb-frame-blue:linear-gradient(145deg,#cfe3ff,#3d6fb8 30%,#1a2f55 52%,#6f9be0 75%,#22406e);
+  --hb-frame-green:linear-gradient(145deg,#c9ffe0,#2f9c66 30%,#124a31 52%,#5fd496 75%,#1b5c3c);
+  --hb-card:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),linear-gradient(180deg,#172131,#0b1018);
+  --hb-card-blue:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),linear-gradient(180deg,#14233d,#0a111d);
+  --hb-card-green:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),linear-gradient(180deg,#112a22,#09140f);
+  --hb-card-gold:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%),linear-gradient(180deg,#2a2414,#0f0d08);
+  --hb-gold-text:linear-gradient(180deg,#fff3c4 0%,#f6cf6a 28%,#d99821 55%,#f2bd4b 72%,#8a5a12 100%);
+  --hb-btn-gold:linear-gradient(180deg,#fff4c8 0%,#f7d272 22%,#e0a12c 52%,#c6851a 53%,#f0bd4e 100%);
+  --hb-btn-gold-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -2px 0 rgba(107,68,16,.45),0 5px 0 #6b4410,0 10px 18px rgba(0,0,0,.5);
+  --hb-btn-ghost:linear-gradient(180deg,#1b2433,#0c1119);
+}
+
+/* ---------- 共用：金框卡片寫法（漸層邊框，用雙層背景） ---------- */
+.hb-framed{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 12px 26px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)!important}
+
+/* =====================================================================
+   首頁 home-v2.html
+===================================================================== */
+/* 主視覺：保留原本球員背景圖，只換外框與光暈 */
+html body .hero{border:1.5px solid rgba(242,189,75,.6)!important;box-shadow:0 16px 34px rgba(0,0,0,.6),0 0 22px rgba(242,189,75,.18),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html body .hero-badge{border:1px solid rgba(242,189,75,.4)!important;background:rgba(0,0,0,.45)!important}
+
+/* 金屬主按鈕／次按鈕 */
+html body .primary-btn,
+html body .analyse,
+html body .v2-bonus-button,
+html body .v2-vip-submit,
+html body .v2-push-intro-enable{
+  background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;
+  box-shadow:var(--hb-btn-gold-shadow)!important;text-shadow:0 1px 0 rgba(255,255,255,.5)!important;
+  transition:transform .08s ease,box-shadow .08s ease!important}
+html body .primary-btn:active,html body .analyse:active,html body .v2-bonus-button:active,html body .v2-vip-submit:active{
+  transform:translateY(4px)!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.8),0 1px 0 #6b4410,0 4px 10px rgba(0,0,0,.5)!important}
+html body .secondary-btn{
+  background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;
+  border:1px solid rgba(242,189,75,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
+
+/* 三張統計卡：金／藍／綠漸層框 */
+html body .quick-card{border:1.5px solid transparent!important;box-shadow:0 5px 0 rgba(0,0,0,.55),0 12px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html body .quick-card-match{background:var(--hb-card-gold) padding-box,var(--hb-frame) border-box!important}
+html body .quick-card-analysis{background:var(--hb-card-blue) padding-box,var(--hb-frame-blue) border-box!important}
+html body .quick-card-verified{background:var(--hb-card-green) padding-box,var(--hb-frame-green) border-box!important}
+html body .quick-value{font-family:Georgia,"Times New Roman",serif!important;letter-spacing:0!important}
+html body .quick-card-match .quick-value{background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+html body .quick-card-analysis .quick-value{color:#8fc3ff!important}
+html body .quick-card-verified .quick-value{color:#7ff0b0!important}
+
+/* 區塊標題 */
+html body .section-line{background:var(--hb-gold)!important;box-shadow:0 0 8px rgba(242,189,75,.5)!important}
+html body .section-more{color:var(--hb-gold)!important}
+
+/* 焦點賽事卡：與分析結果頁同一款對戰卡 */
+html body .match-card{
+  padding:0 0 0!important;border:1.5px solid transparent!important;
+  background:radial-gradient(40% 30% at 12% 0%,rgba(150,200,255,.22),transparent 70%) padding-box,radial-gradient(40% 30% at 88% 0%,rgba(150,200,255,.18),transparent 70%) padding-box,radial-gradient(80% 45% at 50% 100%,rgba(40,140,80,.38),transparent 70%) padding-box,linear-gradient(180deg,#0b1220 0%,#0f1a24 55%,#0c2418 100%) padding-box,var(--hb-frame) border-box!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.55)!important}
+html body .match-card .match-top{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  margin:0!important;padding:12px 14px!important;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.2))!important;
+  border-bottom:1px solid rgba(242,189,75,.18)!important}
+html body .match-card .league{
+  padding:4px 10px!important;border-radius:8px!important;background:var(--hb-gold-text)!important;color:var(--hb-ink)!important;
+  font-weight:900!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)!important}
+html body .match-card .league *{color:var(--hb-ink)!important}
+html body .match-card .league-icon{background:transparent!important;border:0!important;box-shadow:none!important}
+html body .match-card .match-time{color:var(--hb-gold-light)!important;border-color:rgba(242,189,75,.3)!important;background:rgba(0,0,0,.35)!important;font-weight:800!important}
+html body .match-card .teams{padding:12px 12px 10px!important}
+html body .match-card .v2-team-logo{
+  border-radius:50%!important;border:1px solid rgba(242,189,75,.4)!important;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.16),rgba(255,255,255,.04))!important;box-shadow:0 10px 22px rgba(0,0,0,.55)!important}
+html body .match-card .vs{border:1px solid rgba(242,189,75,.5)!important;background:rgba(0,0,0,.45)!important;color:var(--hb-gold)!important;box-shadow:0 0 16px rgba(242,189,75,.25)!important}
+html body .match-card .match-bottom{margin:0!important;padding:12px 14px!important;border-top:1px solid rgba(242,189,75,.15)!important;background:rgba(0,0,0,.28)!important}
+
+/* AI 工具卡 */
+html body .v2-tool-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box!important;box-shadow:0 6px 0 rgba(0,0,0,.45),0 14px 24px rgba(0,0,0,.45)!important}
+html body .v2-tool-arrow{border-color:rgba(242,189,75,.4)!important;color:var(--hb-gold)!important}
+
+/* 底部導覽：金邊外框，所在分頁為金屬按鈕 */
+html body .bottom-nav{border:1px solid transparent!important;background:linear-gradient(180deg,#172131,#0b1018) padding-box,linear-gradient(120deg,rgba(255,231,168,.6),rgba(107,68,16,.3) 50%,rgba(242,195,90,.6)) border-box!important;box-shadow:0 -6px 22px rgba(0,0,0,.55)!important}
+html body .bottom-nav .nav-item.active{background:var(--hb-btn-gold)!important;color:var(--hb-ink)!important;border:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410!important}
+html body .bottom-nav .nav-item.active *{color:var(--hb-ink)!important;stroke:var(--hb-ink)}
+html body .bottom-nav .nav-item.active::before,html body .bottom-nav .nav-item.active::after{display:none!important}
+
+/* 「我的」帳號面板、升級 VIP 視窗、加碼視窗 */
+html body .v2-account-panel,
+html body .v2-vip-modal,
+html body .v2-bonus-card,
+html body .v2-push-intro-card{border:1.5px solid transparent!important;background:var(--hb-card) padding-box,var(--hb-frame) border-box!important;box-shadow:0 20px 40px rgba(0,0,0,.65)!important}
+html body .v2-vip-upgrade-button{background:var(--hb-btn-ghost)!important;color:var(--hb-gold-light)!important;border:1px solid rgba(242,189,75,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #05070a!important}
+html body .v2-vip-platform-card{border:1px solid rgba(242,189,75,.28)!important;background:rgba(255,255,255,.03)!important}
+html body .v2-vip-platform-card.selected,html body .v2-vip-platform-card.active{border-color:var(--hb-gold)!important;box-shadow:0 0 0 1px rgba(242,189,75,.5),0 0 18px rgba(242,189,75,.2)!important}

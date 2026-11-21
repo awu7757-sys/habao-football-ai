@@ -473,3 +473,12 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - 關鍵傷停（足球／NBA，依 `v2_stage_evidence.availability.items` 或 `market_data.injuries`）；MLB 改為先發投手對決（`fixture.*.probable_pitcher` 名稱＋`data.*_starter.era`），名稱不全則不顯示。
 - 使用者決定**不顯示預估比分、不做近期戰績**（無資料）。
 - 測試：`qa/sports-release/cases.json` 足球／NBA／MLB 的 T-10、T-2 共 6 例模擬渲染，無錯誤，數字與推薦方向一致；inline script 語法通過。`tests/nba-frontend.test.cjs` 的 1 項失敗（`football.html` openBasketballMatch）在改版前即存在，與本次無關。MLB 休賽中，正式資料未實測。
+
+## 23. 全站風格 v2：黑金立體風（2026-11-21 起，逐頁套用）
+
+- 使用者確認以「分析結果頁改版（§22）」的風格為全站標準：金色漸層外框、深藍卡片、金屬浮雕按鈕。
+- 做法：共用 **`habao-theme-v2.css`**，每頁在 `</head>` 前最後載入；**只覆蓋 CSS 外觀，不改 HTML 結構、ID、JavaScript**，所以功能不受影響。因頁面內已有多層重複 CSS，主題檔用 `html body` 前綴＋`!important` 確保生效。以後調整風格只改這一檔。
+- 進度：
+  - ✅ 首頁 `home-v2.html`（2026-11-21）：主視覺金框（保留球員背景圖）、主按鈕／開始分析／加碼與 VIP 送出改金屬按鈕、三張統計卡金藍綠漸層框、焦點賽事卡改為與結果頁同款對戰卡（頂部資訊條＋草皮背景＋底部列）、AI 工具卡金框、底部導覽金邊且目前分頁為金屬按鈕、帳號面板／VIP／加碼／通知視窗金框。
+  - ⏳ 賽事中心／我的分析 `football.html` → AI 戰績 `performance.html` → 登入 `index.html` → AI 工具箱 `ai-tools.html`。管理後台不套用。
+- 使用者回報待查：分析過的賽事沒有出現在「我的分析」（2026-11-21，風格換完後處理）。
