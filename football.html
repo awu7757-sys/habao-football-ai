@@ -8564,10 +8564,22 @@ async function saveBatchAnalysisHistory(
       ) || "null"
     );
 
-    if (
-      !member?.account ||
-      !match
-    ) {
+    // 2026-11-21 修正：sports-stages.js 只傳 (id, result) 兩個參數，
+    // 原本沒有 match 就直接 return，導致足球 T-10 分析不會存進「我的分析」。
+    // 改為依序從賽事列表、分析結果本身補齊賽事資訊。
+    if (!match) {
+      const listed = window.habaoFixtureMap?.[String(fixtureId)];
+      const f = data?.fixture || {};
+      match = listed || {
+        time: f.date || f.kickoff_at || null,
+        home: f.home || {},
+        away: f.away || {},
+        league: f.league || {},
+        status: f.status?.short || f.status || ""
+      };
+    }
+
+    if (!member?.account) {
       return;
     }
 

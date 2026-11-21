@@ -491,3 +491,10 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
 - 細節打磨第二輪（2026-11-21，主題檔 `?v=20261121d`）：區塊標題光條、沒選中的分頁／篩選改深藍淡金框（與選中的金屬按鈕成對）、搜尋框金色聚焦光圈、我的帳號每列淡框且積分金色、載入中提示金框、AI 戰績聯賽卡／驗證紀錄卡金框與金色數字、結果頁上一場／下一場列金框、我的分析空白狀態金色虛線框。只改顏色邊框陰影，不改尺寸排版。
 - **新增頁面時**：`<body>` 加 `data-hb-page`、`</head>` 前載入主題檔，並在主題檔新增該頁區塊。
 - 使用者回報待查：分析過的賽事沒有出現在「我的分析」（2026-11-21，風格換完後處理）。
+
+## 24. 修正：足球 T-10 分析沒有存進「我的分析」（2026-11-21）
+
+- 原因：`sports-stages.js` 的 `claim()` 在足球 T-10 成功後呼叫 `saveBatchAnalysisHistory(id, r)` **只傳兩個參數**；`football.html` 的 `saveBatchAnalysisHistory(fixtureId, data, match)` 在 `match` 為空時直接 `return`，沒有報錯，所以紀錄從未寫入 `member_analysis_history`。
+- 修正（前台 `football.html`）：`match` 為空時依序用 `window.habaoFixtureMap[fixtureId]`（賽事列表）或分析結果的 `data.fixture`（date／home／away／league）補齊，再照原本流程 POST。後端未改。
+- 補充觀察：`sports-stages.js` 會等 `sports-release-verify` 回應（最多 8 秒）後才把 `renderAnalysisHistory` 換成新版，所以「我的分析」有時先出現舊版畫面（標題「我的分析紀錄」、分頁足球／籃球／棒球），有時是新版（「我的分析」、足球／NBA／MLB）。兩者讀同一份資料，只是畫面不同；待整併。
+- 影響：修正前分析過的足球 T-10 賽事不會補回紀錄。
