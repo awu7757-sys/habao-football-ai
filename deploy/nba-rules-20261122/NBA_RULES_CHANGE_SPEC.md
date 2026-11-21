@@ -33,7 +33,7 @@
 3. **差距**：`gap = |模型總分 − 盤口總分|`，用**未取整**的值。T-10 的模型總分是 `fair_total`（和正式程式算 edge 的口徑一樣）；T-2／T-15 是 `model.expected_total` 對 `model.market.total`。任一邊缺值就不推，不可以用 0 代替，也不可以因為和 null 比較而放行。
 4. **信心口徑不能混用**：T-10 用綜合信心分數。T-2／T-15 用已存的 `round(100×max(p,1−p))` 取整後的模型機率，「≥ 70」就是指這個取整後的整數。
 5. **原有門檻全部保留**：T-10 的 55%／70／58／4.5，以及 T-2／T-15 的 45～55%（45%、55% 本身可以推），都照舊，新規則只是多加的過濾。
-6. **保留套用新規則前的完整推薦（R5）**：每個玩法另外存一份 `pre_rule`，包含 `{pick, line, confidence, qualified, reason, decision_code}`，同時存 `rule_version: "nba-rules-v3-…"`，正式輸出照常寫在原欄位。這樣舊規則仍然可以用原本的盤線結算。T-10 的 `display_pick` 只是模型參考方向，不能拿來當舊規則的推薦。
+6. **保留套用新規則前的完整推薦（R5）**：每個玩法另外存一份 `pre_rule`，包含 `{pick, line, confidence, reason, official_pick_is_qualified, decision_code}`（欄位名稱和實作一致，後台也讀同名欄位），同時存 `rule_version: "nba-rules-v3-…"`，正式輸出照常寫在原欄位。這樣舊規則仍然可以用原本的盤線結算。T-10 的 `display_pick` 只是模型參考方向，不能拿來當舊規則的推薦。
 
 ---
 
@@ -78,8 +78,12 @@
 ### 4-0 實作狀態（2026-11-22）
 
 - 使用者是在 Supabase 網站貼上程式碼部署，函式之間不能互相 import。所以正本放在 `supabase/functions/_shared/nba-rules-v3.js`，再由 `scripts/sync-nba-rules-v3.cjs` 原封不動複製到各函式的 `// === NBA_RULES_V3 BEGIN/END ===` 區段，測試會檢查每一份都和正本相同。**修改時只改正本，改完再執行同步**。
-- 已完成：`basketball-analysis`（T-10）、`nba-v2-stage-runner`（T-2／T-15，`STAGE_REVISION` 已改成 `nba-stages-player-context-20261122-rules-v3`）、`analysis.html`／`mlb-analysis.html` 的原因標籤、`tests/nba-rules-v3.test.cjs`（12 項全部通過）。
+- 已完成：`basketball-analysis`（T-10）、`nba-v2-stage-runner`（T-2／T-15，`STAGE_REVISION` 已改成 `nba-stages-player-context-20261122-rules-v3`）、`analysis.html`／`mlb-analysis.html` 的原因標籤、`tests/nba-rules-v3.test.cjs`。
 - 現有的 nba-batch（4 項失敗）、nba-frontend（1 項失敗）、nba-live-settlement（無法執行）在改版前就是這個狀態，和這次修改無關。
+- GPT 實作複審（`GPT_REVIEW_R2_IMPL_20261122.md`）兩項必修已補正：
+  ① T-10 被 V3 擋下的推薦，`createNarrative()` 不再用 AI 文案覆蓋固定原因（`nbaRulesV3MergeNarrative`）；
+  ② 階段 `pick()` 現在只接受 0～1 的有效機率（`invalid_probability`），讓分／大小分必須有有效盤線（`market_unavailable`），0 讓分視為有效平手盤；45%／55% 和取整 70 的規則不變。這項防呆不論啟用日期都生效（屬於修 bug，不是規則變更）。
+- 測試增加為 18 項，直接執行 `stageResult()`、`buildFixedRecommendations()`、`createNarrative()`。`sync --check` 會把兩個已完成的入口列為必要項目。
 - 尚未完成：`admin-nba-v2-compare`、`admin.html`、`admin-nba-v2.js` 的後台比較頁（第 5 節）。
 - 啟用時間暫定 `2026-11-24T00:00:00+08:00`。如果部署日期改變，要改正本、執行同步，再重跑測試。
 

@@ -474,6 +474,16 @@ const NBA_RULES_V3_REASONS = {
   low_confidence: '本階段讓分模型機率低於 70%，暫不列入正式推薦。',
   challenger_gap: '挑戰規則：模型與盤口總分差距 3 分以上（僅後台比較用）。',
 };
+// 是否為被 V3 規則擋下的推薦（固定原因不得被 AI 文案覆蓋）。
+function nbaRulesV3Blocked(rec) {
+  return !!(rec && rec.rule_version && String(rec.pick || '').trim() === '暫不推薦' &&
+    Object.prototype.hasOwnProperty.call(NBA_RULES_V3_REASONS, String(rec.decision_code || '')));
+}
+// 合併 AI 解說：被 V3 擋下的保留固定規則原因（AI 文案不採用）；其餘維持原設計（AI 文案優先，空白時用原因）。
+function nbaRulesV3MergeNarrative(rec, aiReason) {
+  if (nbaRulesV3Blocked(rec)) return { ...rec };
+  return { ...rec, reason: String(aiReason || (rec && rec.reason) || '') };
+}
 function nbaRulesV3Num(v) {
   if (v === null || v === undefined || typeof v === 'boolean' || String(v).trim() === '') return null;
   const n = Number(v);
@@ -560,13 +570,22 @@ function stageResult(s,stage,model,meta){
  const evidence=player_evidence||{availability:{status:'not_available',items:[],teams:[]},lineups:{status:'not_available',teams:[]}};
  const adjustment=model.player_context_adjustment||{status:'not_applied',injury_adjustment_applied:false,lineup_adjustment_applied:false};
  const conf=x=>Math.round(100*Math.max(x,1-x));
- const pick=(p,home,away,line=null)=>p===null?{pick:'暫不推薦',line:null,confidence:0,reason:'本階段未取得有效實際盤線'}:(p>.45&&p<.55)?{pick:'暫不推薦',line:null,confidence:conf(p),reason:'模型優勢未達統合模型門檻'}:{pick:p>=.5?home:away,line,confidence:conf(p),reason:'依本階段統合模型與封存盤線'};
- const spread=pick(model.home_cover_probability,'主隊','客隊',model.home_cover_probability>=.5?m.home_spread:m.home_spread===null?null:-m.home_spread);
+ // 2026-11-22（GPT 複審 R2-2）：機率須為 0～1 的有效數字；讓分／大小分須有有效盤線（0 讓分是有效平手盤）。45%、55% 本身仍可推。
+ const pick=(p,home,away,line=null,needLine=false)=>{
+  if(p===null||p===undefined)return {pick:'暫不推薦',line:null,confidence:0,reason:'本階段未取得有效實際盤線',decision_code:'market_unavailable'};
+  const q=nbaRulesV3Num(p);
+  if(q===null||q<0||q>1)return {pick:'暫不推薦',line:null,confidence:0,reason:'模型機率資料異常，暫不推薦。',decision_code:'invalid_probability'};
+  const ln=needLine?nbaRulesV3Num(line):line;
+  if(needLine&&ln===null)return {pick:'暫不推薦',line:null,confidence:0,reason:'本階段未取得有效實際盤線',decision_code:'market_unavailable'};
+  if(q>.45&&q<.55)return {pick:'暫不推薦',line:null,confidence:conf(q),reason:'模型優勢未達統合模型門檻'};
+  return {pick:q>=.5?home:away,line:ln,confidence:conf(q),reason:'依本階段統合模型與封存盤線'};
+ };
+ const spreadLine=nbaRulesV3Num(m.home_spread),spread=pick(model.home_cover_probability,'主隊','客隊',spreadLine===null?null:nbaRulesV3Num(model.home_cover_probability)>=.5?spreadLine:-spreadLine,true);
  const label=stage==='t2'?'T-2 深度分析':'T-15 最終分析';
  const note=meta.capture_mode==='scheduled'?'本階段於目標時間附近自動封存。':'此為賽前補抓，依實際擷取時間標示，不列入準時階段比較。';
  return {success:true,sport:'basketball',game_id:Number(s.game_id),research_only:true,formal_recommendation:false,v2_stage:stage,v2_stage_label:label,
  fixture:{...f,id:Number(s.game_id),date:s.fixture_time,league:f.league||{name:'NBA'}},
- analysis:{model_version:STAGE_VERSION,recommendations:stageRecommendations(s,stage,model,{moneyline:pick(p,'主隊','客隊'),handicap:spread,over_under:pick(model.over_probability,'大','小',m.total)}),summary:label+'；'+note,
+ analysis:{model_version:STAGE_VERSION,recommendations:stageRecommendations(s,stage,model,{moneyline:pick(p,'主隊','客隊'),handicap:spread,over_under:pick(model.over_probability,'大','小',m.total,true)}),summary:label+'；'+note,
   market_analysis:'本階段重新擷取市場、歷史與球員出賽資料；球員修正依實際取得與驗證狀態套用。',
   v2_stage_evidence:{stage,captured_at:meta.captured_at,capture_mode:meta.capture_mode,...evidence,player_adjustment:adjustment,note}},
  model:{...model,predicted_score:{home:model.expected_home_points,away:model.expected_away_points},fair_total:model.expected_total,fair_spread:{display:String(-model.expected_margin)},win_probability:{home:round(p*100,1),away:round((1-p)*100,1)}},

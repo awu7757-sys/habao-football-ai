@@ -12,7 +12,7 @@ const tests = []; const test = (n, f) => tests.push({ n, f });
 const rec = (pick, extra = {}) => ({ pick, line: -4.5, confidence: 72, reason: '原因', ...extra });
 const D = (o) => R.nbaRulesV3Decide(o);
 
-test('三份嵌入程式與正本一致', () => {
+test('已完成的兩個入口（T-10、階段 runner）嵌入程式與正本一致', () => {
   cp.execFileSync('node', [path.join(root, 'scripts/sync-nba-rules-v3.cjs'), '--check'], { stdio: 'pipe' });
   for (const src of [runnerSrc, t10Src]) assert.ok(src.includes(canonical.trim()));
 });
@@ -110,6 +110,94 @@ test('前台：暫不推薦原因優先依 decision_code，舊快照用文字備
     assert.equal(c3.f({ reason: '與莊家方向相反' }), '與莊家方向相反');
     assert.equal(c3.f({ decision_code: 'market_unavailable', reason: '目前沒有可用的真實市場讓分盤口' }), '未取得盤口');
   }
+});
+
+// ---- 實際入口：直接執行 repo 裡的 stageResult()、buildFixedRecommendations()、createNarrative() ----
+const { stripTypeScriptTypes } = require('node:module');
+function runnerContext() {
+  const a = runnerSrc.indexOf('// === NBA_RULES_V3 BEGIN ==='), b = runnerSrc.indexOf('async function patchStage(');
+  const c = vm.createContext({ Date, Number, String, Math, Object, JSON, Array });
+  vm.runInContext("const STAGE_VERSION='test';const round=(x,n=3)=>Number(x.toFixed(n));\n" + runnerSrc.slice(a, b) + '\nthis.stageResult=stageResult;', c);
+  return c;
+}
+const RC = runnerContext();
+const stageRun = (model, fixture_time = '2026-11-25T08:00:00Z', t10 = '主隊') => JSON.parse(JSON.stringify(RC.stageResult(
+  { game_id: 1, fixture_time, prediction_data: { fixture: { home: {}, away: {} }, analysis: { recommendations: { moneyline: { pick: t10 } } } } },
+  't2', { home_win_probability: 0.6, home_cover_probability: 0.72, over_probability: 0.6, expected_total: 222, expected_home_points: 112, expected_away_points: 110, expected_margin: 2,
+    market: { available: true, home_spread: -3.5, total: 220, quotes: [] }, ...model }, { captured_at: 'x', capture_mode: 'scheduled' }))).analysis.recommendations;
+const assertNoPick = (r, code) => { assert.equal(r.pick, '暫不推薦'); assert.equal(r.line, null); assert.equal(r.confidence, 0); if (code) assert.equal(r.decision_code, code); };
+
+test('stageResult：null／undefined／NaN／Infinity／範圍外／字串異常的機率都不產生推薦', () => {
+  for (const v of [null, undefined]) assertNoPick(stageRun({ over_probability: v }).over_under, 'market_unavailable');
+  for (const v of [NaN, Infinity, -Infinity, -0.1, 1.2, '', 'abc', true]) assertNoPick(stageRun({ over_probability: v }).over_under, 'invalid_probability');
+  assertNoPick(stageRun({ home_cover_probability: NaN }).handicap, 'invalid_probability');
+  assertNoPick(stageRun({ home_win_probability: 2 }).moneyline, 'invalid_probability');
+  assert.equal(stageRun({ over_probability: '0.6' }).over_under.pick, '大');   // 數字字串明確正規化
+});
+test('stageResult：缺讓分盤（機率 70%）、缺大小分盤都不推；0 讓分是有效盤', () => {
+  for (const hs of [null, undefined, '', 'x']) assertNoPick(stageRun({ home_cover_probability: 0.70, market: { available: true, home_spread: hs, total: 220, quotes: [] } }).handicap, 'market_unavailable');
+  for (const t of [null, undefined, '']) assertNoPick(stageRun({ market: { available: true, home_spread: -3.5, total: t, quotes: [] } }).over_under);
+  const pk = stageRun({ home_cover_probability: 0.72, market: { available: true, home_spread: 0, total: 220, quotes: [] } });
+  assert.equal(pk.handicap.pick, '主隊'); assert.equal(pk.handicap.line, 0); assert.equal(pk.handicap.confidence, 72);
+  assert.equal(pk.moneyline.decision_code, 'favorite_unknown');                // 0 讓分不能判斷熱門
+});
+test('stageResult：45%／55% 邊界與取整 70 維持原行為；不輸出有方向但缺 confidence／line', () => {
+  assert.equal(stageRun({ over_probability: 0.45, expected_total: 218 }).over_under.pick, '小');
+  assert.equal(stageRun({ over_probability: 0.45001 }).over_under.pick, '暫不推薦');
+  assert.equal(stageRun({ over_probability: 0.55 }).over_under.pick, '大');
+  assert.equal(stageRun({ home_cover_probability: 0.6949 }).handicap.decision_code, 'low_confidence');
+  assert.equal(stageRun({ home_cover_probability: 0.695 }).handicap.pick, '主隊');
+  assert.equal(stageRun({ home_cover_probability: 0.305 }).handicap.pick, '客隊');
+  assert.equal(stageRun({ home_cover_probability: 0.305 }).handicap.line, 3.5);
+  assert.equal(stageRun({ home_cover_probability: 0.3051 }).handicap.decision_code, 'low_confidence');
+  for (const v of [undefined, NaN, 0.7, 0.3, 0.5]) for (const m of [{ home_spread: null, total: null }, { home_spread: -2, total: 210 }]) {
+    const r = stageRun({ home_cover_probability: v, over_probability: v, home_win_probability: v, market: { available: true, quotes: [], ...m } });
+    for (const k of ['moneyline', 'handicap', 'over_under']) if (r[k].pick !== '暫不推薦') {
+      assert.equal(typeof r[k].confidence, 'number', k);
+      if (k !== 'moneyline') assert.equal(typeof r[k].line, 'number', k);
+    }
+  }
+});
+test('stageResult：V3 完整路徑（啟用前不包裝、啟用後保留 pre_rule）', () => {
+  const after = stageRun({}), before = stageRun({}, '2026-11-20T08:00:00Z');
+  assert.equal(after.handicap.rule_version, 'nba-rules-v3-20261122'); assert.equal(after.handicap.pre_rule.pick, '主隊');
+  assert.equal(before.handicap.rule_version, undefined);
+  assert.equal(stageRun({}, undefined, '客隊').moneyline.decision_code, 'conflict_with_t10');
+});
+
+function t10Context(fetchImpl) {
+  const js = stripTypeScriptTypes(t10Src.replace(/^import .*$/m, ''), { mode: 'strip' });
+  const c = vm.createContext({ Date, Number, String, Math, Object, JSON, Array, console: { error() {}, log() {} }, fetch: fetchImpl,
+    Deno: { env: { get: () => '' }, serve: () => {} }, createClient: () => ({}) });
+  vm.runInContext(js + '\nthis.build=buildFixedRecommendations;this.narr=createNarrative;', c);
+  return c;
+}
+const t10Payload = (over = {}) => ({
+  fixture: { date: '2026-11-25T08:00:00Z', home: { name_zh: '主' }, away: { name_zh: '客' } },
+  model: { win_probability: { home: 70, away: 30 }, confidence: 75, fair_total: 226, fair_spread: { home_line: -8 }, predicted_score: { home: 116, away: 110 } },
+  market_data: { market: { available: true, primary: { home_spread: -5, away_spread: 5, total: 220 }, consensus: {} } }, ...over });
+test('T-10 buildFixedRecommendations：gap 4.49 不推、4.5／5.99 推、6 擋；primary 不一致退回 consensus；啟用前不動', () => {
+  const C = t10Context(async () => { throw Error('no'); });
+  const ou = ft => C.build(t10Payload({ model: { ...t10Payload().model, fair_total: ft } })).over_under;
+  assert.equal(ou(224.49).pick, '暫不推薦'); assert.equal(ou(224.5).pick, '大'); assert.equal(ou(225.99).pick, '大');
+  const blocked = ou(226); assert.equal(blocked.decision_code, 'edge_too_large'); assert.equal(blocked.pre_rule.pick, '大'); assert.equal(blocked.official_pick_is_qualified, false);
+  const inc = C.build(t10Payload({ market_data: { market: { available: true, primary: { home_spread: -5, away_spread: -5, total: 220 }, consensus: { home_spread: 4, away_spread: -4 } } } }));
+  assert.equal(inc.moneyline.decision_code, 'underdog_pick');               // consensus +4 → 客隊熱門，模型推主隊
+  const old = C.build(t10Payload({ fixture: { ...t10Payload().fixture, date: '2026-11-20T08:00:00Z' }, model: { ...t10Payload().model, fair_total: 226 } }));
+  assert.equal(old.over_under.pick, '大'); assert.equal(old.over_under.rule_version, undefined);
+});
+test('T-10 createNarrative：AI 文案不能覆蓋 V3 拒絕原因；未擋下的照原設計；AI 失敗／無金鑰 fallback 正確', async () => {
+  const ai = { summary: 's', recommendations: { moneyline: { reason: 'AI 獨贏' }, handicap: { reason: 'AI 讓分' }, over_under: { reason: '模型看好大分，值得推薦' } } };
+  const C = t10Context(async () => ({ ok: true, json: async () => ({ output_text: JSON.stringify(ai) }), text: async () => '' }));
+  const out = await C.narr('key', t10Payload());
+  const ou = out.recommendations.over_under;
+  assert.equal(ou.pick, '暫不推薦'); assert.equal(ou.line, null); assert.equal(ou.confidence, 0); assert.equal(ou.official_pick_is_qualified, false);
+  assert.equal(ou.decision_code, 'edge_too_large'); assert.equal(ou.reason, R.NBA_RULES_V3_REASONS.edge_too_large);
+  assert.equal(ou.pre_rule.pick, '大'); assert.equal(ou.rule_version, 'nba-rules-v3-20261122');
+  assert.equal(out.recommendations.moneyline.pick, '主隊'); assert.equal(out.recommendations.moneyline.reason, 'AI 獨贏');
+  const F = t10Context(async () => ({ ok: false, text: async () => 'err' }));
+  assert.equal((await F.narr('key', t10Payload())).recommendations.over_under.reason, R.NBA_RULES_V3_REASONS.edge_too_large);
+  assert.equal((await F.narr('', t10Payload())).recommendations.over_under.decision_code, 'edge_too_large');
 });
 
 (async () => { let failed = 0; for (const t of tests) { try { await t.f(); console.log('PASS ' + t.n); } catch (e) { failed++; console.error('FAIL ' + t.n + '\n' + e.stack); } }

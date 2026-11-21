@@ -485,6 +485,16 @@ const NBA_RULES_V3_REASONS = {
   low_confidence: '本階段讓分模型機率低於 70%，暫不列入正式推薦。',
   challenger_gap: '挑戰規則：模型與盤口總分差距 3 分以上（僅後台比較用）。',
 };
+// 是否為被 V3 規則擋下的推薦（固定原因不得被 AI 文案覆蓋）。
+function nbaRulesV3Blocked(rec) {
+  return !!(rec && rec.rule_version && String(rec.pick || '').trim() === '暫不推薦' &&
+    Object.prototype.hasOwnProperty.call(NBA_RULES_V3_REASONS, String(rec.decision_code || '')));
+}
+// 合併 AI 解說：被 V3 擋下的保留固定規則原因（AI 文案不採用）；其餘維持原設計（AI 文案優先，空白時用原因）。
+function nbaRulesV3MergeNarrative(rec, aiReason) {
+  if (nbaRulesV3Blocked(rec)) return { ...rec };
+  return { ...rec, reason: String(aiReason || (rec && rec.reason) || '') };
+}
 function nbaRulesV3Num(v) {
   if (v === null || v === undefined || typeof v === 'boolean' || String(v).trim() === '') return null;
   const n = Number(v);
@@ -1816,47 +1826,11 @@ async function createNarrative(
           parsed?.summary ||
           fallback.summary,
         ),
+      // 2026-11-22：被 NBA 規則 V3 擋下的推薦保留固定原因，AI 文案不得覆蓋（GPT 複審 R2-1）。
       recommendations: {
-        moneyline: {
-          ...fixed.moneyline,
-          reason:
-            String(
-              parsed
-                ?.recommendations
-                ?.moneyline
-                ?.reason ||
-              fixed
-                .moneyline
-                .reason,
-            ),
-        },
-        handicap: {
-          ...fixed.handicap,
-          reason:
-            String(
-              parsed
-                ?.recommendations
-                ?.handicap
-                ?.reason ||
-              fixed
-                .handicap
-                .reason,
-            ),
-        },
-        over_under: {
-          ...fixed
-            .over_under,
-          reason:
-            String(
-              parsed
-                ?.recommendations
-                ?.over_under
-                ?.reason ||
-              fixed
-                .over_under
-                .reason,
-            ),
-        },
+        moneyline: nbaRulesV3MergeNarrative(fixed.moneyline, parsed?.recommendations?.moneyline?.reason),
+        handicap: nbaRulesV3MergeNarrative(fixed.handicap, parsed?.recommendations?.handicap?.reason),
+        over_under: nbaRulesV3MergeNarrative(fixed.over_under, parsed?.recommendations?.over_under?.reason),
       },
     };
 

@@ -547,3 +547,4 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - 已改：`basketball-analysis`、`nba-v2-stage-runner`、`analysis.html`／`mlb-analysis.html`（原因標籤）。
   - 啟用時間暫定 11/24 00:00（台灣時間）。
   - 待辦：GPT 複審 → 部署兩個函式 → 後台比較頁。
+  - GPT 實作複審兩項必修已修正：AI 文案不再覆蓋 V3 的拒絕原因；階段 pick() 加上機率與盤線的有效性檢查。測試共 18 項。待 GPT 複審第二輪。
