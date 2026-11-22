@@ -98,11 +98,13 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .pick-top input[type=checkbox]:checked::after{content:"✓";color:var(--hb-ink);font-size:14px;font-weight:950}
 .mk{flex:1;display:flex;align-items:baseline;gap:8px}.mk b{font-size:13px;font-weight:950;color:#e9edf2}.mk small{color:#6f7b89;font-size:10px;font-weight:900;letter-spacing:.5px}
 .rec{display:inline-block;padding:2px 8px;border-radius:7px;color:var(--hb-ink);background:var(--hb-gold-text);font-size:12px;font-weight:950;white-space:nowrap}
-.pick-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.25)}
+.pick-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.25)}
 .pick-inputs label{display:block;margin:0 0 5px 2px;font-size:10px}
 .pick-inputs input{width:100%;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);color:#f1f4f8;padding:0 10px;outline:none;text-align:right;font-family:Georgia,serif;font-size:15px}
 .pick-inputs input:focus{border-color:rgba(242,189,75,.6)}
 .pick-inputs input[disabled]{opacity:.4;text-align:center}
+.pick-inputs .tip{margin:5px 2px 0;color:#6f7b89;font-size:10px;font-weight:800;line-height:1.4}
+.pick-inputs input::placeholder{color:#4a5563;font-family:-apple-system,"Noto Sans TC",sans-serif;font-size:12px}
 /* slip bar */
 .slip{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,16,24,.6),rgba(5,9,14,.97) 35%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid rgba(242,189,75,.25)}
 .slip-in{max-width:var(--max);margin:0 auto;display:flex;align-items:center;gap:12px}
@@ -142,7 +144,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .tag{display:inline-block;padding:2px 8px;border-radius:7px;font-size:11px;font-weight:950;background:rgba(255,255,255,.07);color:#cfd6de}
 .tag.win{background:rgba(95,227,154,.15);color:var(--green)}.tag.loss{background:rgba(255,122,122,.15);color:var(--red)}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-@media(max-width:640px){.console{grid-template-columns:1fr;justify-items:center}.budget-in{width:100%}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-inputs{grid-template-columns:1fr 1fr 1fr}.toplinks .back-link.hide-sm{display:none}}
+@media(max-width:640px){.console{grid-template-columns:1fr;justify-items:center}.budget-in{width:100%}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-inputs{grid-template-columns:1fr 1fr}.toplinks .back-link.hide-sm{display:none}}
 </style>
 </head>
 <body data-hb-page="bankroll">
@@ -185,13 +187,11 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       <div class="metric"><div class="l">今日已投入</div><div class="v" id="mDayUsed">—</div></div>
       <div class="metric"><div class="l">最低下注</div><div class="v">NT$ 100</div></div>
     </div>
-    <p class="hint">上限只是上限，不必用完；當天沒用完的不會累積到後面，贏的錢也不會加回本期額度。取消退款的注單會釋出額度。一期＝7 天，從第一次設定預算那天開始，期滿自動進入下一期（預算沿用，可修改），期中不能重新開始。</p>
   </section>
 
   <section class="frame soft card" id="allocCard">
     <div class="card-head"><h2>選擇場次</h2><small>PICKS</small></div>
     <div class="seg" id="modeSeg"><button class="btn" type="button" disabled>AI 分配<small>準備中</small></button><button class="btn on" data-mode="manual" type="button">手動<small>自己決定金額</small></button></div>
-    <p class="hint">每筆預設 1 單位（NT$ 100），可自行調整（10 元為單位）。盤口填平台實際盤口（-0.5/1 或 -0.75 都可）；賠率請選「歐洲盤」，例如 1.90。讓分以兩項亞洲讓分盤計算（調整後平手＝走盤）；若您的平台是三項「讓分勝／和／負」，請自行手動結算。</p>
     <div id="importBox" style="margin-top:10px"></div>
     <div id="picksBox"></div>
   </section>
@@ -205,12 +205,11 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <div class="grid" id="report"></div>
     <div class="sub-h">玩法表現</div>
     <div id="byMarket"></div>
-    <div class="autobar"><button class="btn main" id="autoBtn" type="button">自動對比分結算</button><span class="hint" id="autoMsg" style="margin:0">賽後依公開戰績比分自動結算；找不到比分的請手動標記。</span></div>
+    <div class="autobar"><button class="btn main" id="autoBtn" type="button">自動對比分結算</button><span class="hint" id="autoMsg" style="margin:0"></span></div>
     <div class="sub-h">注單明細</div>
     <div class="err" id="ledgerErr"></div>
     <div id="ledgerBox"></div>
     <div class="tools"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div>
-    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。投報率＝已結算淨損益 ÷ 已結算投入（走盤投入計入分母，取消退款與未結算不計）；損益依本工具結算規則計算（精確到 0.01 元），實際派彩以平台為準。本期上限是投入額度，不是帳戶餘額。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 </main>
 <div class="slip" role="region" aria-label="注單合計">
@@ -361,7 +360,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("weekBarFill").style.width=(s.W?Math.min(100,s.used/s.W*100):0)+"%";
     $("mDayCapLabel").textContent=s.pool?"今日上限（週池）":"今日上限（本期 ÷ 7）";
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(x){x.classList.toggle("on",(x.dataset.pool==="week")===s.pool);});
-    $("poolHint").textContent=s.pool?"週池模式：本期 7 天的額度可在任何一天用掉，注意可能前幾天就用完。":(s.W&&s.dayCap<MIN_BET?"每日上限不到最低下注 100 元，請提高本期預算（至少 700）或改用週池模式。":"每天最多用本期預算的 1/7。");
+    $("poolHint").textContent=(!s.pool&&s.W&&s.dayCap<MIN_BET)?"每日上限不到 100 元，請提高本期預算（至少 700）或改用週池模式。":"";
     $("poolHint").style.color=(!s.pool&&s.W&&s.dayCap<MIN_BET)?"#ff8f8f":"";
     return s;
   }
@@ -385,12 +384,10 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     var pickHtml=function(p){
       var on=!!state.sel[p.key],inp=state.inputs[p.key]||{};
       var stake=inp.stake!=null?inp.stake:String(MIN_BET);
-      var lineDefault=inp.line!=null?inp.line:(p.line==null?"":String(p.line));
       return '<div class="pick'+(on?' on':'')+'"><label class="pick-top"><input type="checkbox" data-k="'+esc(p.key)+'"'+(on?' checked':'')+' aria-label="選擇此筆"><span class="mk"><b>'+MARKET[p.market]+'</b><small>'+STAGE[p.stage]+'</small></span><span class="rec">'+esc(recText(p))+'</span></label>'+
         (on?'<div class="pick-inputs">'+
-          (p.market==="handicap"||p.market==="over_under"?'<div><label>平台盤口</label><input data-f="line" data-k="'+esc(p.key)+'" value="'+esc(lineDefault)+'" placeholder="-0.5/1"></div>':'<div><label>盤口</label><input disabled value="—"></div>')+
-          '<div><label>賠率（歐洲盤）</label><input data-f="odds" data-k="'+esc(p.key)+'" inputmode="decimal" value="'+esc(inp.odds||"")+'" placeholder="1.90"></div>'+
-          '<div><label>金額（NT$）</label><input data-f="stake" data-k="'+esc(p.key)+'" inputmode="numeric" value="'+esc(stake)+'"></div>'+
+          '<div><label>賠率（歐洲盤）</label><input data-f="odds" data-k="'+esc(p.key)+'" inputmode="decimal" value="'+esc(inp.odds||"")+'" placeholder="輸入賠率"><div class="tip">歐洲盤，例：1.90</div></div>'+
+          '<div><label>金額（NT$）</label><input data-f="stake" data-k="'+esc(p.key)+'" inputmode="numeric" value="'+esc(stake)+'"><div class="tip">最低 100 元</div></div>'+
           '</div><div class="err" data-err="'+esc(p.key)+'"></div>':'')+'</div>';
     };
     $("picksBox").innerHTML=groups.map(function(g){
@@ -420,9 +417,9 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       var inp=state.inputs[p.key]||{},err=document.querySelector('[data-err="'+p.key+'"]'),msg="";
       var stake=currentStake(p),odds=parseOdds(inp.odds),line=null;
       if(p.kickoff<=now)msg="已開賽，不能再記錄";
-      else if(!(stake>=MIN_BET)||stake%10!==0)msg="金額至少 100 元，且為 10 的倍數";
+      else if(!Number.isInteger(stake)||stake<MIN_BET)msg="金額至少 100 元（整數）";
       else if(isNaN(odds))msg=(Number(inp.odds)>0&&Number(inp.odds)<=1)?"賠率看起來是港盤，請改成歐洲盤（例如 0.90 → 1.90）":"請填賠率（歐洲盤，大於 1，例如 1.90）";
-      else if(p.market==="handicap"||p.market==="over_under"){line=parseLine(inp.line!=null?inp.line:p.line);if(line===null||isNaN(line))msg="盤口格式不正確，例如 -0.5/1 或 -0.75";}
+      else if(p.market==="handicap"||p.market==="over_under"){line=p.line!=null&&isFinite(p.line)?p.line:null;}
       if(msg){ok=false;if(err)err.textContent=msg;return;}
       total+=stake;
       bets.push({id:now.toString(36)+"-"+Math.random().toString(36).slice(2,8),placed_at:new Date(now).toISOString(),placed_date:s.today,week_start:s.ws,sport:p.sport,fixture_id:p.fixture_id,stage:p.stage,market:p.market,kickoff:new Date(p.kickoff).toISOString(),home:p.home,away:p.away,league:p.league,rec_pick:p.pick,rec_line:p.line,line:line,odds:odds,stake:stake,mode:state.mode,result:null,settled_at:null});
