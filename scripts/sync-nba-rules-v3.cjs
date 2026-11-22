@@ -5,8 +5,8 @@ const fs = require('node:fs'), path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const BEGIN = '// === NBA_RULES_V3 BEGIN ===', END = '// === NBA_RULES_V3 END ===';
 // REQUIRED：已完成的入口，缺檔或缺標記都算失敗。PENDING：尚未完成（後台比較頁），完成後移到 REQUIRED。
-const REQUIRED = ['supabase/functions/basketball-analysis/index.ts', 'supabase/functions/nba-v2-stage-runner/index.ts'];
-const PENDING = ['supabase/functions/admin-nba-v2-compare/index.ts'];
+const REQUIRED = ['supabase/functions/basketball-analysis/index.ts', 'supabase/functions/nba-v2-stage-runner/index.ts', 'supabase/functions/admin-nba-v2-compare/index.ts'];
+const PENDING = [];
 const canonical = fs.readFileSync(path.join(root, 'supabase/functions/_shared/nba-rules-v3.js'), 'utf8').trim();
 function block(text, file) {
   const a = text.indexOf(BEGIN), b = text.indexOf(END);

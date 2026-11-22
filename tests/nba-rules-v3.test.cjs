@@ -12,9 +12,9 @@ const tests = []; const test = (n, f) => tests.push({ n, f });
 const rec = (pick, extra = {}) => ({ pick, line: -4.5, confidence: 72, reason: '原因', ...extra });
 const D = (o) => R.nbaRulesV3Decide(o);
 
-test('已完成的兩個入口（T-10、階段 runner）嵌入程式與正本一致', () => {
+test('三個入口（T-10、階段 runner、後台比較）嵌入程式與正本一致', () => {
   cp.execFileSync('node', [path.join(root, 'scripts/sync-nba-rules-v3.cjs'), '--check'], { stdio: 'pipe' });
-  for (const src of [runnerSrc, t10Src]) assert.ok(src.includes(canonical.trim()));
+  for (const src of [runnerSrc, t10Src, read('supabase/functions/admin-nba-v2-compare/index.ts')]) assert.ok(src.includes(canonical.trim()));
 });
 test('啟用時間：之前不套、等於與之後套用、無法解析時套用', () => {
   assert.equal(R.nbaRulesV3Active('2026-11-23T23:59:59+08:00'), false);
@@ -198,6 +198,42 @@ test('T-10 createNarrative：AI 文案不能覆蓋 V3 拒絕原因；未擋下�
   const F = t10Context(async () => ({ ok: false, text: async () => 'err' }));
   assert.equal((await F.narr('key', t10Payload())).recommendations.over_under.reason, R.NBA_RULES_V3_REASONS.edge_too_large);
   assert.equal((await F.narr('', t10Payload())).recommendations.over_under.decision_code, 'edge_too_large');
+});
+
+test('後台比較 buildComparison：回測／上線後、三套規則、補抓與無法回算分開', () => {
+  const src = read('supabase/functions/admin-nba-v2-compare/index.ts');
+  const c = vm.createContext({ Date, Number, String, Math, Object, JSON, Array, Map, console, Deno: { env: { get: () => '' }, serve: () => {} } });
+  vm.runInContext(stripTypeScriptTypes(src, { mode: 'strip' }) + '\nthis.build=buildComparison;', c);
+  const T10 = (id, date, recs, extra = {}) => ({ game_id: id, fixture_time: date, home_team: 'H', away_team: 'A', status: 'verified', final_home: 120, final_away: 110,
+    prediction_data: { analysis: { recommendations: recs }, model: { fair_total: 227 }, market_data: { market: { primary: { home_spread: -5, away_spread: 5, total: 220 } } }, ...extra } });
+  const snaps = [
+    T10(1, '2026-11-20T08:00:00Z', { moneyline: { pick: '主隊' }, handicap: { pick: '主隊', line: -5 }, over_under: { pick: '大', line: 220 } }),
+    T10(2, '2026-11-20T09:00:00Z', { moneyline: { pick: '主隊' } }, { market_data: { market: {} } }),
+    T10(3, '2026-11-25T08:00:00Z', { moneyline: { pick: '主隊', rule_version: 'nba-rules-v3-20261122', pre_rule: { pick: '主隊' } },
+      over_under: { pick: '暫不推薦', line: null, confidence: 0, decision_code: 'edge_too_large', rule_version: 'nba-rules-v3-20261122', pre_rule: { pick: '大', line: 220 } } }),
+  ];
+  const stage = (id, st, recs, capture, extra = {}) => ({ game_id: id, stage: st, status: 'ready', source_meta: { capture_mode: capture },
+    result_data: { analysis: { recommendations: recs }, model: { expected_total: 222.5 }, market_data: { market: { consensus: { home_spread: -5, total: 221 } } }, ...extra } });
+  const stages = [
+    stage(1, 't2', { moneyline: { pick: '客隊' }, handicap: { pick: '主隊', line: -5, confidence: 72 }, over_under: { pick: '大', line: 221 } }, 'scheduled'),
+    stage(1, 't15', { handicap: { pick: '主隊', line: -5, confidence: 60 } }, 'late_pre_match_recovery'),
+  ];
+  const out = JSON.parse(JSON.stringify(c.build(snaps, stages)));
+  const b = out.stats.backtest, l = out.stats.live;
+  assert.equal(b.t10.moneyline.old.picks, 1); assert.equal(b.t10.moneyline.new.picks, 1); assert.equal(b.t10.moneyline.new.rate, 100);
+  assert.equal(b.t10.over_under.old.win, 1); assert.equal(b.t10.over_under.new.picks, 0); assert.equal(b.t10.over_under.new.blocked_win, 1);
+  assert.equal(b.t10.handicap.new.win, 1);                                       // 120-110 主隊 -5 → 贏
+  assert.equal(b.t2.moneyline.new.picks, 0); assert.equal(b.t2.moneyline.new.blocked_loss, 1); // 推客隊（冷門）原本輸
+  assert.equal(b.t2.handicap.new.picks, 1); assert.equal(b.t2.over_under.challenger.picks, 1); assert.equal(b.t2.over_under.challenger.win, 1);
+  assert.equal(b.t15.handicap.old.picks, 0);                                     // 補抓不列入
+  assert.equal(b.t10.handicap.challenger, null);
+  assert.equal(l.t10.over_under.old.picks, 1); assert.equal(l.t10.over_under.new.picks, 0); assert.equal(l.t10.over_under.new.blocked_win, 1);
+  assert.equal(l.t10.moneyline.new.picks, 1);
+  assert.deepEqual({ ...out.counts }, { t10_snapshots: 3, verified_games: 3, stage_scheduled: 1, stage_late: 1, not_comparable: 1 });
+  const g2 = out.rows.find(r => r.game_id === 2).items.find(i => i.market === 'moneyline');
+  assert.equal(g2.comparable, false);
+  const g3 = out.rows.find(r => r.game_id === 3).items.find(i => i.market === 'over_under');
+  assert.equal(g3.new.code, 'edge_too_large'); assert.equal(g3.old.pick, '大'); assert.equal(out.rows.find(r => r.game_id === 3).phase, 'live');
 });
 
 (async () => { let failed = 0; for (const t of tests) { try { await t.f(); console.log('PASS ' + t.n); } catch (e) { failed++; console.error('FAIL ' + t.n + '\n' + e.stack); } }

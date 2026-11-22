@@ -43,6 +43,7 @@ function backendMock(opts={}){
     for(const field of (u.searchParams.get('select')||'*').split(','))assert.ok(field==='*'||columns.has(field),'unknown live DB column '+field);
     return json(snapshots);
    }
+   if(table==='basketball_v2_stage_snapshots'){assert.equal(method,'GET','stage snapshots must remain read-only for compare');return json(stageRows);}
    assert.ok(['basketball_v2_unified_snapshots','basketball_v2_box_cache'].includes(table),'write allowlist');
    const db=table==='basketball_v2_box_cache'?cache:unified;
    if(method==='GET'){
@@ -69,6 +70,7 @@ function backendMock(opts={}){
  }
  return {fetchImpl,calls,unified,cache};
 }
+const stageRows=[];
 const tests=[];const test=(name,fn)=>tests.push({name,fn});
 const r=load('nba-v2-unified-runner'),c=load('admin-nba-v2-compare');
 const ready={status:'ready',model_output:{expected_home_points:114,expected_away_points:111,expected_total:225,home_win_probability:.6,market:{home_spread:-3.5,total:225.5},shadow_directions:{moneyline:'away',handicap:'away',over_under:'under'}}};
@@ -81,18 +83,11 @@ test('history deduplicates games',()=>{assert.equal(r.historicalGames([hg[0],hg[
 test('missing markets produce no spread or total selection',()=>{const model=r.researchModel(r.historicalGames(hg,[],1,2026,now),r.historicalGames(ag,[],2,2026,now),now,{home_spread:null,total:null},2026).model;assert.equal(model.shadow_directions.handicap,null);assert.equal(model.shadow_directions.over_under,null);assert.ok(model.home_win_probability>=0&&model.home_win_probability<=1)});
 test('insufficient history never fabricates model',()=>{assert.equal(r.researchModel([],[],now,{},2026).model,null)});
 test('strict box numbers reject booleans and blank data',()=>{assert.equal(r.boxNumber(true),null);assert.equal(r.boxNumber(' '),null);const b=statistics(hg[0]);assert.ok(r.completedBox(hg[0],b));b[0].statistics[0].fta=true;assert.equal(r.completedBox(hg[0],b),null)});
-test('opposite spread picks on same market are comparable',()=>{const x=c.compare(snap,ready);assert.equal(x.markets.handicap.same_line,true);assert.equal(x.markets.handicap.comparable,true);assert.equal(x.markets.handicap.v1_result,'loss');assert.equal(x.markets.handicap.v2_result,'win')});
-test('away V1 line converted back to underlying home line',()=>{const s=clone(snap);s.prediction_data.analysis.recommendations.handicap={pick:'away',line:3.5};const v=clone(ready);v.model_output.shadow_directions.handicap='home';assert.equal(c.compare(s,v).markets.handicap.comparable,true)});
-test('different spread lines do not enter paired sample',()=>{const x=clone(ready);x.model_output.market.home_spread=-4.5;assert.equal(c.compare(snap,x).markets.handicap.comparable,false)});
-test('unverified excluded missing negative and tied scores not graded',()=>{for(const patch of [{status:'pending'},{excluded_from_public:true},{final_home:null},{final_home:-1},{final_home:108},{final_home:true}]){const row=c.compare({...snap,...patch},ready);assert.equal(row.verified,false);assert.equal(row.markets.moneyline.v1_result,null)}});
-test('whole-line pushes and quarter-line split settlements',()=>{assert.equal(c.settleTotal('over',220,110,110),'push');assert.equal(c.settleTotal('over',219.75,110,110),'half_win');assert.equal(c.settleTotal('under',219.75,110,110),'half_loss');assert.equal(c.settleSpread('away',2,110,108),'push');assert.equal(c.settleSpread('home',-2.25,110,108),'half_loss')});
-test('source-error row never contributes V2 result',()=>{const v={...ready,status:'source_error'};assert.equal(c.compare(snap,v).markets.moneyline.v2_result,null)});
-test('live final_home/final_away map to existing dashboard score fields',()=>{
- const row=c.compare({...snap,home_score:999,away_score:998},ready);
- assert.equal(row.home_score,110);assert.equal(row.away_score,108);assert.equal(row.verified,true);
- assert.equal(c.compare({...snap,final_home:null,home_score:110},ready).verified,false);
-});
-test('paired stats retain differing picks with same market',()=>{const x=c.rate([c.compare(snap,ready)]).handicap;assert.equal(x.paired_count,1);assert.equal(x.paired_v1_rate,0);assert.equal(x.paired_v2_rate,100)});
+// 2026-11-22：後台改為 NBA 規則比較（舊／新 V3／挑戰），原 V1／unified V2 比較測試改為下列測試。
+test('rules compare settles whole-line pushes and quarter-line splits',()=>{const S=(m,pick,line,h,a)=>c.settle(m,{pick,line},h,a);assert.equal(S('over_under','大',220,110,110),'push');assert.equal(S('over_under','大',219.75,110,110),'half_win');assert.equal(S('over_under','小',219.75,110,110),'half_loss');assert.equal(S('handicap','主隊',-2,110,108),'push');assert.equal(S('handicap','客隊',2.25,108,110),'win');assert.equal(S('moneyline','客隊',null,108,110),'win');assert.equal(S('handicap','主隊',null,110,108),null);assert.equal(S('handicap','暫不推薦',-2,110,108),null)});
+test('rules compare grades only verified, non-excluded, valid, non-tied finals',()=>{const t10={...snap,fixture_time:iso(now-30*3600000),prediction_data:{...snap.prediction_data,model:{fair_total:228},analysis:{recommendations:{moneyline:{pick:'主隊'},handicap:{pick:'主隊',line:-3.5}}}}};
+ for(const patch of [{status:'pending'},{excluded_from_public:true},{final_home:null},{final_home:108},{final_home:true}]){const out=c.buildComparison([{...t10,...patch}],[]);const all=JSON.parse(JSON.stringify(out.stats));for(const ph of Object.values(all))for(const st of Object.values(ph))for(const m of Object.values(st))assert.equal(m.old.picks,0,JSON.stringify(patch));}
+ const ok=c.buildComparison([t10],[]);assert.equal(ok.stats.backtest.t10.handicap.old.loss,1);assert.equal(ok.rows[0].home_score,110);assert.equal(ok.rows[0].verified,true)});
 test('admin auth outage is 500 and not false expired-session 401',async()=>{const m=backendMock({authError:true}),x=load('admin-nba-v2-compare',m.fetchImpl);assert.equal((await x.handler(request({action:'compare'}))).status,500)});
 test('compare API is read-only and returns shape frontend expects',async()=>{const m=backendMock(),x=load('admin-nba-v2-compare',m.fetchImpl);const response=await x.handler(request({action:'compare',days:30}));const body=await response.json();assert.equal(response.status,200);assert.ok(Array.isArray(body.rows));assert.equal(body.read_only,true);assert.equal(m.calls.filter(v=>v.url.includes('/rest/')&&v.method!=='GET').length,0)});
 test('efficiency probe uses at most 10 provider calls with cache writes isolated',async()=>{const m=backendMock(),x=load('nba-v2-unified-runner',m.fetchImpl),z=await x.probeEfficiency(snap);assert.equal(z.status,'ready');assert.equal(z.model.model_family,'possession_efficiency_with_bayesian_shrinkage');assert.ok(z.api_requests<=10);assert.equal(m.unified.size,0);assert.ok(m.cache.size<=6);assert.equal(m.calls.filter(v=>v.url.includes('api-sports.io')).length,z.api_requests)});

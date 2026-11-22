@@ -942,6 +942,13 @@ tr:last-child td{border-bottom:0}
 @media(max-width:980px){.nr-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.nr-stats{grid-template-columns:1fr}.nr-market-grid{grid-template-columns:1fr}}
 @media(max-width:640px){.nr-score-grid{grid-template-columns:1fr}.nr-game-top{align-items:flex-start}.nr-verified{white-space:normal}.nr-summary{gap:7px}.nr-game{padding:12px}.nr-scorebox strong{font-size:20px}}
 
+.nr3-table,.nr3-rows{overflow-x:auto}
+.nr3-head,.nr3-row{display:grid;grid-template-columns:70px 70px repeat(3,minmax(120px,1fr)) minmax(110px,1fr);min-width:720px;gap:8px;padding:11px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.17);font-size:12px}
+.nr3-head{color:#9dafc3;font-weight:900}.nr3-row{color:#dce9f7}
+.nr3-cell strong{display:block;font-size:17px;color:#f2c270}.nr3-cell small{color:#9fb2c6;font-size:11px}.nr3-cell.nr3-na strong{color:#6f8396}
+.nr3-item{display:grid;grid-template-columns:96px minmax(150px,1.4fr) 54px 54px repeat(3,minmax(110px,1fr));min-width:860px;gap:8px;padding:9px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.12);font-size:12px;color:#dce9f7}
+.nr3-item.nr3-headrow{color:#9dafc3;font-weight:900}
+.nr3-win{color:#5fd39a}.nr3-loss{color:#ff7d7d}.nr3-push{color:#c9d3dd}.nr3-block{color:#f0b35a}.nr3-dim{color:#7f93a7}
 .nr-simple-table{overflow-x:auto}.nr-simple-head,.nr-simple-row{display:grid;grid-template-columns:minmax(105px,1.5fr) repeat(5,minmax(70px,1fr));min-width:620px;gap:8px;padding:13px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.17);font-size:12px}
 .nr-simple-head{color:#9dafc3;font-weight:900}.nr-simple-row{color:#dce9f7}.nr-simple-row strong:nth-child(2){color:#f2c270;font-size:17px}
 @media(max-width:720px){.nr-simple-head,.nr-simple-row{min-width:650px}}
@@ -1856,34 +1863,33 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
         </div>
         <div id="footballV2StageMount"></div>
       </section>
-      <!-- NBA V1 AND UNIFIED V2 READ-ONLY RESEARCH -->
+      <!-- NBA 推薦規則比較（舊規則／新規則 V3／挑戰規則，只讀）2026-11-22 -->
       <section id="nbaModelBacktestPage" class="page">
         <div class="page-head"><div>
-          <div class="page-kicker">NBA 模型分析研究</div>
-          <div class="page-title">NBA V1 正式版／V2 統合模型比較</div>
-          <div class="page-desc">同場比較獨贏、讓分、大小分與賽後驗證｜V2 效率＋貝氏收縮；傷停資料尚未納入｜不影響 V1 正式推薦</div>
-        </div><button class="ghost-btn" id="nrRefresh" onclick="loadNbaResearch()">↻ 更新研究資料</button></div>
+          <div class="page-kicker">NBA 模型研究</div>
+          <div class="page-title">NBA 推薦規則比較</div>
+          <div class="page-desc">舊規則／新規則（V3）／挑戰規則（T-2、T-15 大小分只推差距 3 分內，僅後台）｜不影響會員推薦</div>
+        </div><button class="ghost-btn" id="nrRefresh" onclick="loadNbaResearch()">↻ 更新</button></div>
         <div class="panel" style="margin-bottom:14px"><div class="toolbar"><div class="filters">
-          <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="0">今日</option><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option></select>
-          <select id="nrModel" class="input" onchange="renderNbaResearch()">
-            <option value="v2" selected>V1 正式版 vs V2 統合測試</option>
-          </select>
-          <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部賽事</option><option value="ready">V2 已建模</option><option value="missing">V2 尚未完成</option><option value="verified">已驗證賽果</option></select>
+          <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="7">近 7 天</option><option value="14">近 14 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option><option value="0">全部（11/13 起）</option></select>
+          <select id="nrStage" class="input" onchange="renderNbaResearch()"><option value="all">全部階段</option><option value="t10">T-10</option><option value="t2">T-2</option><option value="t15">T-15</option></select>
+          <select id="nrMarket" class="input" onchange="renderNbaResearch()"><option value="all">全部玩法</option><option value="handicap">讓分</option><option value="over_under">大小分</option><option value="moneyline">獨贏</option></select>
+          <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部明細</option><option value="blocked">只看被新規則擋下</option><option value="verified">只看已完賽</option></select>
           <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="renderNbaResearch()">
-        </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入 V1 正式版與 V2 統合測試</div></div>
-        <div class="panel" style="margin-bottom:16px">
-          <div class="panel-head"><div><div class="panel-title">近 2～3 天：V1 正式版 vs V2 統合測試</div><div class="panel-desc">只比較兩個模型的同場已結算結果</div></div>
-          <select id="nrSimpleWindow" class="input" onchange="nrSimpleScoreboard()"><option value="48">近 2 天</option><option value="72" selected>近 3 天</option></select></div>
-          <div id="nrSimpleMeta" class="page-desc" style="margin:0 0 12px">載入中…</div>
-          <div id="nrSimpleTable" class="nr-simple-table"><div class="nr-empty">尚未取得資料</div></div>
-          <div id="nrSimpleConclusion" class="page-desc" style="margin-top:12px">只計入實際有賽後結果的場次。</div>
-          <p class="page-desc" style="margin-top:8px">V2 為後台影子研究，不是正式推薦；樣本不足時不判定哪個模型較好。</p>
-        </div>
+        </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入</div></div>
         <div id="nrSummary" class="nr-summary"></div>
-        <div id="nrStats" class="nr-stats"></div>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><div><div class="panel-title">上線後（真正驗證）</div><div id="nrLiveMeta" class="panel-desc">新規則開始套用後的比賽</div></div></div>
+          <div id="nrLiveTable" class="nr3-table"><div class="nr-empty">尚未取得資料</div></div>
+        </div>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><div><div class="panel-title">回測（上線前的比賽）</div><div id="nrSimpleMeta" class="panel-desc">用同一套規則回算；規則是看這批資料定的，數字偏樂觀</div></div></div>
+          <div id="nrSimpleTable" class="nr3-table"><div class="nr-empty">尚未取得資料</div></div>
+          <div id="nrSimpleConclusion" class="page-desc" style="margin-top:12px">命中率：贏 1、贏半 0.5、走水不計。T-2／T-15 只算準時封存的快照；缺盤口或模型總分而無法回算的不列入。</div>
+        </div>
         <div class="panel"><div class="panel-head">
-          <div><div class="panel-title">同一場比賽：正式 V1 與研究模型</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
-        </div><div id="nrRows" class="nr-games"><div class="nr-empty">目前尚無研究資料</div></div></div>
+          <div><div class="panel-title">逐場明細</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
+        </div><div id="nrRows" class="nr3-rows"><div class="nr-empty">目前尚無資料</div></div></div>
       </section>
       <!-- MLB V1 FORMAL / V2 SHADOW COMPARISON (READ ONLY) -->
       <section id="baseballV2ComparePage" class="page">
@@ -7307,7 +7313,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=9" defer></script>
-<script src="./admin-nba-v2.js?v=8" defer></script>
+<script src="./admin-nba-v2.js?v=9" defer></script>
 <script src="./admin-baseball-v2.js?v=5" defer></script>
 
 

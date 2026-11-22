@@ -84,7 +84,7 @@
   ① T-10 被 V3 擋下的推薦，`createNarrative()` 不再用 AI 文案覆蓋固定原因（`nbaRulesV3MergeNarrative`）；
   ② 階段 `pick()` 現在只接受 0～1 的有效機率（`invalid_probability`），讓分／大小分必須有有效盤線（`market_unavailable`），0 讓分視為有效平手盤；45%／55% 和取整 70 的規則不變。這項防呆不論啟用日期都生效（屬於修 bug，不是規則變更）。
 - 測試增加為 18 項，直接執行 `stageResult()`、`buildFixedRecommendations()`、`createNarrative()`。`sync --check` 會把兩個已完成的入口列為必要項目。
-- 尚未完成：`admin-nba-v2-compare`、`admin.html`、`admin-nba-v2.js` 的後台比較頁（第 5 節）。
+- 後台比較頁（第 5 節）已實作（2026-11-22）：`admin-nba-v2-compare` 改寫為舊／新／挑戰三套規則比較，API_VERSION 為 `nba-rules-v3-compare-20261122`，嵌入同一份規則正本，sync 已改列為必要入口；`admin.html` 和 `admin-nba-v2.js` 也同步改版。原本的 V1／unified V2 比較已經退役，相關測試改成新規則比較的測試。
 - 啟用時間暫定 `2026-11-24T00:00:00+08:00`。如果部署日期改變，要改正本、執行同步，再重跑測試。
 
 ### 4-1 共用規則（原規劃為 `_shared/nba-rules.ts`，實作後改成上面 4-0 的做法）

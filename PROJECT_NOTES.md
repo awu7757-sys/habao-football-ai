@@ -551,3 +551,4 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - **GPT 第二輪複審通過（commit 03d67b4，`GPT_REVIEW_R3_PASS_20261122.md`）**，可以部署。部署內容以 03d67b4 的兩個 index.ts 為準。
   - **已部署（2026-11-22 約 10:30，使用者在 Supabase 網站貼上）**：`nba-v2-stage-runner`（部署前確認線上為 20261113-2）、`basketball-analysis`（部署前確認線上有 2026-11-15 規則註解）。部署前的程式碼已由使用者在本機備份。新規則從 11/24 00:00（台灣時間）之後開賽的比賽開始套用。
   - 待辦：今晚排程跑完後看兩個函式的 Logs 有沒有錯誤；11/24 之後用唯讀 SQL 檢查新快照的 decision_code、pre_rule、rule_version；接著做後台比較頁。
+  - **後台「NBA 推薦規則比較」頁已寫好（2026-11-22）**，取代原本的 V1／V2 影子比較：分成「上線後」和「回測」兩張表（階段 × 玩法 × 舊／新／挑戰），附逐場明細，可以只看被擋下的場次。T-2／T-15 只計 scheduled；無法回算的不列入。前台已隨 push 上線，後端 `admin-nba-v2-compare` 需要使用者在 Supabase 網站貼上部署（部署前線上版本 = `deploy/admin-nba-v2-compare.index.txt`，標記 `final-scores-v2`）。
