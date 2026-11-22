@@ -6,105 +6,181 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
-<title>HABAO 投注分配</title>
+<title>HABAO｜投注資金工具・本週分配</title>
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121i">
 <style>
-:root{--bg:#070a0f;--line:rgba(255,255,255,.08);--text:#f7f9fc;--muted:#94a0af;--gold:#f2bd4b;--gold2:#ffe39d;--green:#3cdd82;--red:#ff6868;--max:860px}
+/* 2026-11-22 改版：與 budget-calculator.html 同一套黑金「資金終端」風（habao-theme-v2.css 變數） */
+:root{--max:760px;--green:#5fe39a;--red:#ff7a7a;--blue:#8fc3ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
-body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#0d131b 0%,#080b10 48%,#06080c 100%)}
-input,button,select{font:inherit}
-a{color:inherit;text-decoration:none}
-.app{max-width:var(--max);margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))}
-.nav{display:flex;justify-content:space-between;gap:10px;margin:2px 0 14px;color:#aab4c0;font-size:13px;font-weight:800}
-h1{margin:0 0 6px;font-size:22px;font-weight:900}
-.privacy{margin:0 0 14px;color:#7fb3ff;font-size:13px;font-weight:700}
-.card{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,rgba(24,33,45,.96),rgba(10,15,22,.98))}
-.card h2{margin:0 0 12px;font-size:16px;font-weight:900}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.metric{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
-.metric .l{color:#8793a2;font-size:11px;font-weight:800}.metric .v{margin-top:5px;font-size:18px;font-weight:950}
-.v.good{color:#72e8a2}.v.bad{color:#ff8585}.v.gold{color:var(--gold2)}
-label{display:block;margin:0 0 6px 2px;color:#aab4c0;font-size:12px;font-weight:800}
-input,select{width:100%;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:0 10px;color:#edf1f5;background:#0b1118;outline:none;font-size:14px;font-weight:800}
-input:focus{border-color:rgba(242,189,75,.45)}
-.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
-.row>div{flex:1;min-width:140px}
-.btn{border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:#d6dde5;background:rgba(255,255,255,.055);font-size:13px;font-weight:850;cursor:pointer}
-.btn.main{border:0;color:#16120a;background:linear-gradient(135deg,#f7da80,#dca631)}
-.btn.sm{padding:6px 9px;font-size:12px;border-radius:9px}
-.seg{display:flex;gap:8px;margin:4px 0 12px}.seg .btn.on{border-color:rgba(242,189,75,.5);color:var(--gold2);background:rgba(242,189,75,.08)}
-.pick{padding:12px;border:1px solid var(--line);border-radius:14px;margin-top:10px;background:rgba(255,255,255,.02)}
-.pick.on{border-color:rgba(242,189,75,.38);background:rgba(242,189,75,.045)}
-.pick-top{display:flex;align-items:center;gap:10px}
-.pick-top input[type=checkbox]{width:20px;height:20px;flex:0 0 20px}
-.teams{font-size:14px;font-weight:900}.meta{margin-top:3px;color:#8793a2;font-size:12px;font-weight:700}
-.rec{color:var(--gold2);font-weight:900}
-.pick-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
-.pick-inputs label{font-size:11px}
-.err{color:var(--red);font-size:12px;font-weight:700;margin-top:6px;min-height:0}
-.hint{color:#7f8a98;font-size:12px;line-height:1.7;margin:8px 2px 0}
-.bet{padding:12px;border:1px solid var(--line);border-radius:14px;margin-top:10px}
-.bet .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:900;background:rgba(255,255,255,.07);color:#cfd6de}
-.tag.win{background:rgba(60,221,130,.14);color:#72e8a2}.tag.loss{background:rgba(255,104,104,.14);color:#ff8f8f}
-.empty{padding:18px;text-align:center;color:#8793a2;font-size:13px;font-weight:700}
-@media(max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-inputs{grid-template-columns:1fr 1fr}}
-.steps{display:flex;gap:6px;margin:0 0 14px;font-size:12px;font-weight:850}.steps a,.steps span{flex:1;text-align:center;padding:8px 4px;border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#8793a2;background:rgba(255,255,255,.02)}.steps .on{color:#16120a;border-color:transparent;background:linear-gradient(135deg,#f7da80,#dca631)}
+html{background:#071018}
+body{margin:0;min-height:100vh;color:#f7f9fc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:radial-gradient(60% 40% at 12% 0%,rgba(242,189,75,.10),transparent 70%),radial-gradient(50% 35% at 95% 10%,rgba(60,140,255,.10),transparent 70%),radial-gradient(70% 40% at 50% 100%,rgba(40,140,80,.16),transparent 70%),linear-gradient(180deg,#08131d 0%,#071018 60%,#050b11 100%)}
+a{color:inherit;text-decoration:none}input,button,select{font:inherit}
+.num,.v,.teams-odds{font-family:Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums}
+.app{max-width:var(--max);margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(110px + env(safe-area-inset-bottom))}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px}.brand-logo{width:40px;height:40px;background:url("habao-hb-logo.png") center/contain no-repeat;filter:drop-shadow(0 7px 13px rgba(0,0,0,.45))}
+.brand strong{display:block;font-size:14px;font-weight:950}.brand span{display:block;margin-top:2px;color:#7e8997;font-size:8px;font-weight:800;letter-spacing:1.1px}
+.toplinks{display:flex;gap:6px}
+.back-link{display:inline-flex;align-items:center;min-height:36px;padding:0 11px;border:1px solid rgba(242,189,75,.45);border-radius:12px;color:var(--hb-gold-light);background:var(--hb-btn-ghost);font-size:11px;font-weight:900;white-space:nowrap}
+.frame{border:1.5px solid transparent;border-radius:22px;background:var(--hb-card) padding-box,var(--hb-frame) border-box;box-shadow:0 6px 0 rgba(0,0,0,.45),0 14px 26px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08)}
+.frame.soft{background:var(--hb-card) padding-box,var(--hb-frame-soft) border-box}
+.frame.green{background:var(--hb-card-green) padding-box,var(--hb-frame-green) border-box}
+.frame.blue{background:var(--hb-card-blue) padding-box,var(--hb-frame-blue) border-box}
+.card{margin-top:16px;padding:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.card-head h2{margin:0;font-size:16px;font-weight:950}.card-head small{color:#6f7b89;font-size:9px;font-weight:900;letter-spacing:1.6px}
+.hero{position:relative;overflow:hidden;padding:20px 18px 16px;background:radial-gradient(60% 60% at 90% 0%,rgba(242,189,75,.16),transparent 70%) padding-box,var(--hb-card) padding-box,var(--hb-frame) border-box}
+.kicker{color:var(--hb-gold);font-size:9px;font-weight:950;letter-spacing:1.8px}
+.hero h1{margin:6px 0 4px;font-size:26px;font-weight:1000;letter-spacing:-.4px;background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.privacy{display:flex;align-items:center;gap:6px;margin:0;color:#8fc3ff;font-size:12px;font-weight:800}
+.stepper{display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;position:relative}
+.stepper::before{content:"";position:absolute;left:16.6%;right:16.6%;top:15px;height:2px;background:linear-gradient(90deg,var(--hb-gold) 50%,rgba(242,189,75,.15))}
+.step{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;color:#7e8997;font-size:11px;font-weight:900;text-align:center}
+.step i{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:Georgia,serif;font-size:14px;color:#8a95a3;background:#0c1119;border:1.5px solid rgba(242,189,75,.25)}
+.step.done i{color:var(--hb-gold-light);border-color:rgba(242,189,75,.7)}
+.step.on{color:var(--hb-gold-light)}.step.on i{color:var(--hb-ink);border:0;background:var(--hb-btn-gold);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 #6b4410,0 0 14px rgba(242,189,75,.35)}
+/* budget console */
+.console{display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:center}
+.gauge{position:relative;width:170px;height:170px}
+.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge .track{stroke:#0a0f16;stroke-width:14;fill:none}
+.gauge .used{stroke:url(#gGold);stroke-width:14;fill:none;stroke-linecap:round;transition:stroke-dasharray .4s ease}
+.gauge .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.gauge .center .l{color:#8a95a3;font-size:10px;font-weight:900}
+.gauge .center .v{margin-top:4px;font-size:26px;font-weight:700;background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gauge .center .s{margin-top:4px;max-width:110px;color:#6f7b89;font-size:9px;font-weight:800;line-height:1.4}
+.budget-in label{display:block;margin:0 0 6px 2px;color:#9aa4b2;font-size:11px;font-weight:900}
+.inline{display:flex;gap:8px}
+.amt{display:flex;align-items:center;gap:4px;flex:1;padding:0 10px;height:42px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08)}
+.amt:focus-within{border-color:rgba(242,189,75,.6);box-shadow:0 0 0 3px rgba(242,189,75,.1)}
+.amt span{color:#6f7b89;font-size:11px;font-weight:900}
+.amt input{flex:1;min-width:0;border:0;background:transparent;outline:none;color:#f1f4f8;text-align:right;font-family:Georgia,serif;font-size:17px}
+.weekbar{margin-top:12px}
+.weekbar .top{display:flex;justify-content:space-between;color:#8a95a3;font-size:11px;font-weight:800}
+.weekbar .top b{color:#e9edf2;font-family:Georgia,serif;font-weight:700}
+.bar{display:flex;height:10px;margin-top:6px;border-radius:99px;overflow:hidden;background:#0a0f16;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.bar span{display:block;height:100%;background:var(--hb-btn-gold);transition:width .35s ease}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.metric{padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.06)}
+.metric .l{color:#7e8997;font-size:10px;font-weight:900}.metric .v{margin-top:4px;font-size:16px;font-weight:700;color:#e9edf2}
+.v.good{color:var(--green)}.v.bad{color:var(--red)}.v.gold{color:var(--hb-gold-light)}
+.metrics-mini{margin-top:12px}
+/* segmented */
+.seg{display:flex;gap:6px;padding:4px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06)}
+.seg .btn{flex:1;border:0;border-radius:10px;padding:9px 6px;color:#9aa4b2;background:transparent;font-size:12px;font-weight:900;cursor:pointer}
+.seg .btn.on{color:var(--hb-ink);background:var(--hb-btn-gold);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 2px 0 #6b4410}
+.seg .btn[disabled]{opacity:.5;cursor:not-allowed}
+.seg .btn small{display:block;font-size:9px;font-weight:800;opacity:.8}
+/* generic */
+.btn{border:1px solid rgba(242,189,75,.3);border-radius:12px;padding:9px 13px;color:#d6dde5;background:var(--hb-btn-ghost);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 0 #05070a;font-size:12px;font-weight:900;cursor:pointer}
+.btn.main{border:0;color:var(--hb-ink);background:var(--hb-btn-gold);box-shadow:var(--hb-btn-gold-shadow);text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.btn.main:active{transform:translateY(4px)}
+.btn.sm{padding:6px 9px;font-size:11px;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 2px 0 #05070a}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>div{flex:1;min-width:140px}
+.err{color:var(--red);font-size:12px;font-weight:800;margin-top:6px}.err:empty{display:none}
+.hint{color:#6f7b89;font-size:11px;line-height:1.75;margin:8px 2px 0}
+.empty{padding:22px 10px;text-align:center;color:#8a95a3;font-size:13px;font-weight:800}.empty .btn{display:inline-block;margin-top:12px}
+label{color:#9aa4b2;font-size:11px;font-weight:900}
+/* match ticket cards */
+.match{position:relative;margin-top:12px;padding:12px;border-radius:18px;background:linear-gradient(180deg,#141d2b,#0b1018);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.match.on{border-color:rgba(242,189,75,.5)}
+.match-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px;border-bottom:1px dashed rgba(242,189,75,.22)}
+.match-head .teams em{color:var(--hb-gold);font-style:normal;font-size:11px;margin:0 3px}
+.cnt{flex:0 0 auto;padding:3px 8px;border-radius:8px;color:var(--hb-gold-light);background:rgba(242,189,75,.08);border:1px solid rgba(242,189,75,.25);font-size:10px;font-weight:900}
+.teams{font-size:14px;font-weight:950}
+.meta{margin-top:4px;color:#7e8997;font-size:11px;font-weight:800;line-height:1.6}
+.pick{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.05);transition:border-color .15s,background .15s}
+.pick.on{background:rgba(242,189,75,.06);border-color:rgba(242,189,75,.45)}
+.pick-top{display:flex;align-items:center;gap:12px;cursor:pointer}
+.pick-top input[type=checkbox]{appearance:none;-webkit-appearance:none;width:22px;height:22px;flex:0 0 22px;margin:0;border-radius:7px;border:1.5px solid rgba(242,189,75,.45);background:#0a0f16;cursor:pointer;display:grid;place-content:center}
+.pick-top input[type=checkbox]:checked{background:var(--hb-btn-gold);border:0}
+.pick-top input[type=checkbox]:checked::after{content:"✓";color:var(--hb-ink);font-size:14px;font-weight:950}
+.mk{flex:1;display:flex;align-items:baseline;gap:8px}.mk b{font-size:13px;font-weight:950;color:#e9edf2}.mk small{color:#6f7b89;font-size:10px;font-weight:900;letter-spacing:.5px}
+.rec{display:inline-block;padding:2px 8px;border-radius:7px;color:var(--hb-ink);background:var(--hb-gold-text);font-size:12px;font-weight:950;white-space:nowrap}
+.pick-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.25)}
+.pick-inputs label{display:block;margin:0 0 5px 2px;font-size:10px}
+.pick-inputs input{width:100%;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);color:#f1f4f8;padding:0 10px;outline:none;text-align:right;font-family:Georgia,serif;font-size:15px}
+.pick-inputs input:focus{border-color:rgba(242,189,75,.6)}
+.pick-inputs input[disabled]{opacity:.4;text-align:center}
+/* slip bar */
+.slip{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,16,24,.6),rgba(5,9,14,.97) 35%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid rgba(242,189,75,.25)}
+.slip-in{max-width:var(--max);margin:0 auto;display:flex;align-items:center;gap:12px}
+.slip-in .sum{flex:1;min-width:0;color:#c7cfd8;font-size:12px;font-weight:800;line-height:1.5}
+.slip-in .btn.main{min-height:46px;padding:0 18px;border-radius:14px;font-size:14px;white-space:nowrap}
+.slip .err{max-width:var(--max);margin:0 auto 6px}
+/* ledger */
+.bet{position:relative;margin-top:10px;padding:12px 14px;border-radius:16px;background:linear-gradient(180deg,#121a26,#0a0f16);border:1px solid rgba(255,255,255,.07)}
+.bet .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{display:inline-block;padding:2px 8px;border-radius:7px;font-size:11px;font-weight:950;background:rgba(255,255,255,.07);color:#cfd6de}
+.tag.win{background:rgba(95,227,154,.15);color:var(--green)}.tag.loss{background:rgba(255,122,122,.15);color:var(--red)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+@media(max-width:640px){.console{grid-template-columns:1fr;justify-items:center}.budget-in{width:100%}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-inputs{grid-template-columns:1fr 1fr 1fr}.toplinks .back-link.hide-sm{display:none}}
 </style>
 </head>
-<body>
-<!-- 2026-11-22：投注分配（VIP，第一版第 2 步）。分析場次讀自「我的分析」本機快取；預算、金額、紀錄只存本機 localStorage，本頁不發出任何網路請求。規格 docs/SPEC-BET-ALLOCATION-20261122.md、PROJECT_NOTES §27 -->
+<body data-hb-page="bankroll">
+<!-- 2026-11-22：投注資金工具 ② 本週分配＋③ 結算週報（VIP）。分析場次讀自「我的分析」本機快取；預算、金額、紀錄只存本機 localStorage，本頁不發出任何網路請求。規格 docs/SPEC-BET-ALLOCATION-20261122.md、PROJECT_NOTES §27 -->
 <main class="app">
-  <div class="nav"><a href="ai-tools.html">← 返回 AI 工具箱</a><a href="football.html?view=history">我的分析 →</a></div>
-  <nav class="steps" aria-label="投注資金工具步驟"><a href="budget-calculator.html">① 預算計算</a><span class="on">② 本週分配</span><a href="bet-plan.html#report">③ 結算週報</a></nav>
-  <h1>投注分配</h1>
-  <p class="privacy">您的資料是保密的，HB 無法查看。</p>
+  <header class="topbar">
+    <div class="brand"><div class="brand-logo" aria-label="HABAO"></div><div><strong>HABAO 賽事預測 AI</strong><span>SPORTS INTELLIGENCE</span></div></div>
+    <div class="toplinks"><a class="back-link hide-sm" href="ai-tools.html">← AI 工具箱</a><a class="back-link" href="football.html?view=history">我的分析 →</a></div>
+  </header>
 
-  <section class="card">
-    <h2>本週預算</h2>
-    <div class="row">
-      <div><label for="weekBudget">本週投入上限（NT$）</label><input id="weekBudget" inputmode="numeric" placeholder="例如 2500"></div>
-      <div style="flex:0 0 auto"><button class="btn" id="saveBudget" type="button">儲存</button></div>
+  <section class="frame hero">
+    <div class="kicker">HABAO BANKROLL TOOLS</div>
+    <h1>投注資金工具</h1>
+    <p class="privacy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>您的資料是保密的，HB 無法查看。</p>
+    <nav class="stepper" aria-label="步驟">
+      <a class="step done" href="budget-calculator.html"><i>1</i>預算計算</a>
+      <a class="step on" href="#allocCard"><i>2</i>本週分配</a>
+      <a class="step" href="#report-card"><i>3</i>結算週報</a>
+    </nav>
+  </section>
+
+  <section class="frame card">
+    <div class="card-head"><h2>本週預算</h2><small id="mWeekRange">—</small></div>
+    <div class="console">
+      <div class="gauge">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".45" stop-color="#e0a12c"/><stop offset="1" stop-color="#f2bd4b"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="50"/><circle class="used" id="gaugeArc" cx="60" cy="60" r="50" stroke-dasharray="0 315"/></svg>
+        <div class="center"><div class="l">今日可用</div><div class="v" id="mDayLeft">—</div><div class="s" id="gaugeSub">—</div></div>
+      </div>
+      <div class="budget-in">
+        <label for="weekBudget">本週投入上限</label>
+        <div class="inline"><div class="amt"><span>NT$</span><input id="weekBudget" inputmode="numeric" placeholder="例如 2500"></div><button class="btn main" id="saveBudget" type="button">儲存</button></div>
+        <div class="err" id="budgetErr"></div>
+        <div class="seg" id="poolSeg" style="margin-top:10px"><button class="btn on" data-pool="daily" type="button">每日上限<small>週 ÷ 7</small></button><button class="btn" data-pool="week" type="button">週池模式<small>不限每日</small></button></div>
+        <div class="hint" id="poolHint"></div>
+        <div class="weekbar"><div class="top"><span>本週已用 <b id="mWeekUsed">—</b></span><span>剩餘 <b id="mWeekLeft">—</b></span></div><div class="bar"><span id="weekBarFill" style="width:0"></span></div></div>
+      </div>
     </div>
-    <div class="err" id="budgetErr"></div>
-    <label style="margin-top:12px">額度模式</label>
-    <div class="seg" id="poolSeg"><button class="btn on" data-pool="daily" type="button">每日上限（週 ÷ 7）</button><button class="btn" data-pool="week" type="button">週池模式</button></div>
-    <div class="hint" id="poolHint" style="margin-top:0"></div>
-    <div class="grid" style="margin-top:12px">
-      <div class="metric"><div class="l">本週已投入</div><div class="v" id="mWeekUsed">—</div></div>
-      <div class="metric"><div class="l">本週剩餘</div><div class="v gold" id="mWeekLeft">—</div></div>
+    <div class="grid metrics-mini">
       <div class="metric"><div class="l" id="mDayCapLabel">今日上限（週上限 ÷ 7）</div><div class="v" id="mDayCap">—</div></div>
       <div class="metric"><div class="l">今日已投入</div><div class="v" id="mDayUsed">—</div></div>
-      <div class="metric"><div class="l">今日可用</div><div class="v gold" id="mDayLeft">—</div></div>
-      <div class="metric"><div class="l">本週週期</div><div class="v" id="mWeekRange" style="font-size:14px">—</div></div>
+      <div class="metric"><div class="l">最低下注</div><div class="v">NT$ 100</div></div>
     </div>
     <p class="hint">上限只是上限，不必用完；當天沒用完的不會累積到後面，贏的錢也不會加回本週額度。取消退款的注單會釋出額度。</p>
   </section>
 
-  <section class="card">
-    <h2>選擇場次</h2>
-    <div id="importBox"></div>
-  </section>
-
-  <section class="card" id="allocCard">
-    <h2>分配方式</h2>
-    <div class="seg" id="modeSeg"><button class="btn" type="button" disabled style="opacity:.55;cursor:not-allowed">AI 分配（準備中）</button><button class="btn on" data-mode="manual" type="button">手動</button></div>
-    <p class="hint" style="margin-top:0">最低下注金額 NT$ 100；每筆預設 1 單位（100 元），可自行調整（10 元為單位）。AI 分配完成審核後開放。</p>
+  <section class="frame soft card" id="allocCard">
+    <div class="card-head"><h2>選擇場次</h2><small>PICKS</small></div>
+    <div class="seg" id="modeSeg"><button class="btn" type="button" disabled>AI 分配<small>準備中</small></button><button class="btn on" data-mode="manual" type="button">手動<small>自己決定金額</small></button></div>
+    <p class="hint">每筆預設 1 單位（NT$ 100），可自行調整（10 元為單位）。盤口填平台實際盤口（-0.5/1 或 -0.75 都可）；賠率請選「歐洲盤」，例如 1.90。</p>
+    <div id="importBox" style="margin-top:10px"></div>
     <div id="picksBox"></div>
-    <div class="err" id="allocErr"></div>
-    <div class="row" style="margin-top:12px"><div><div class="hint" id="allocSum" style="margin:0">已選 0 筆，合計 NT$ 0</div></div><div style="flex:0 0 auto"><button class="btn main" id="confirmBtn" type="button">確認下注並記錄</button></div></div>
-    <p class="hint">盤口請填您投注平台實際的盤口，可輸入「-0.5/1」或「-0.75」；賠率請在平台選「歐洲盤」，填像 1.90 這樣的數字。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 
-  <section class="card" id="report-card">
-    <h2>本週紀錄與週報</h2>
+  <section class="frame green card" id="report-card">
+    <div class="card-head"><h2>本週結算週報</h2><small>WEEKLY REPORT</small></div>
     <div class="grid" id="report"></div>
     <div id="ledgerBox"></div>
-    <div class="row" style="margin-top:12px"><div style="flex:0 0 auto"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button></div><div style="flex:0 0 auto"><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div></div>
-    <p class="hint">資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。</p>
-    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。未結算的注單不計入投報率。</p>
+    <div class="tools"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div>
+    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。未結算的注單不計入投報率。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 </main>
+<div class="slip" role="region" aria-label="注單合計">
+  <div class="err" id="allocErr"></div>
+  <div class="slip-in"><div class="sum" id="allocSum">已選 0 筆，合計 NT$ 0</div><button class="btn main" id="confirmBtn" type="button">確認並記錄</button></div>
+</div>
 <script>
 (function(){
   "use strict";
@@ -184,7 +260,8 @@ input:focus{border-color:rgba(242,189,75,.45)}
         out.push({key:key,sport:sport,fixture_id:String(fid),stage:stage,market:mk,pick:String(x.pick),line:isFinite(line)?line:null,kickoff:kick,home:home,away:away,league:r.league_name||(rd.fixture&&rd.fixture.league&&rd.fixture.league.name)||""});
       });
     });
-    return out.sort(function(a,b){return a.kickoff-b.kickoff||a.key.localeCompare(b.key);});
+    var MO={moneyline:0,handicap:1,over_under:2,btts:3},SO={t10:0,t2:1,t15:2};
+    return out.sort(function(a,b){return a.kickoff-b.kickoff||(a.sport+a.fixture_id).localeCompare(b.sport+b.fixture_id)||(SO[a.stage]-SO[b.stage])||(MO[a.market]-MO[b.market]);});
   }
 
   /* ---------- 畫面 ---------- */
@@ -200,7 +277,11 @@ input:focus{border-color:rgba(242,189,75,.45)}
     $("mDayCap").textContent=s.W?money(s.dayCap):"—";$("mDayUsed").textContent=s.W?money(s.dayUsed):"—";$("mDayLeft").textContent=s.W?money(s.dayLeft):"—";
     var we=new Date(Date.parse(s.ws+"T00:00:00Z")+6*86400e3).toISOString().slice(5,10);
     $("mWeekRange").textContent=s.ws.slice(5)+"～"+we;
-    $("mDayCapLabel").textContent=s.pool?"今日上限（週池：不限每日）":"今日上限（週上限 ÷ 7）";
+    var cap=s.dayCap||0,usedPct=cap>0?Math.min(1,s.dayUsed/cap):0;
+    $("gaugeArc").setAttribute("stroke-dasharray",(usedPct*314.16).toFixed(1)+" 315");
+    $("gaugeSub").textContent=s.W?("已用 "+fmt.format(s.dayUsed)+" / "+fmt.format(cap)):"請先設定週上限";
+    $("weekBarFill").style.width=(s.W?Math.min(100,s.used/s.W*100):0)+"%";
+    $("mDayCapLabel").textContent=s.pool?"今日上限（週池）":"今日上限（週 ÷ 7）";
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(x){x.classList.toggle("on",(x.dataset.pool==="week")===s.pool);});
     $("poolHint").textContent=s.pool?"週池模式：整週額度可在任何一天用掉，注意可能前幾天就用完。":(s.W&&s.dayCap<MIN_BET?"每日上限不到最低下注 100 元，請提高週預算（至少 700）或改用週池模式。":"每天最多用週預算的 1/7。");
     $("poolHint").style.color=(!s.pool&&s.W&&s.dayCap<MIN_BET)?"#ff8f8f":"";
@@ -222,16 +303,22 @@ input:focus{border-color:rgba(242,189,75,.45)}
     var s=stats(load(),Date.now()),sel=selectedPicks();
     if(!state.picks.length){$("picksBox").innerHTML="";updateSum();return;}
     var gameSum=function(p){var k=p.sport+":"+p.fixture_id,t=0,n=0;sel.forEach(function(q){if(q.sport+":"+q.fixture_id===k){var v=currentStake(q);t+=isFinite(v)?v:0;n++;}});s.week.forEach(function(b){if(b.result!=="void"&&b.sport+":"+b.fixture_id===k){t+=b.stake;n++;}});return {t:t,n:n};};
-    $("picksBox").innerHTML=state.picks.map(function(p){
-      var on=!!state.sel[p.key],inp=state.inputs[p.key]||{},gs=on?gameSum(p):{n:0};
+    var groups=[],gi={};state.picks.forEach(function(p){var k=p.sport+":"+p.fixture_id;if(!(k in gi)){gi[k]=groups.length;groups.push({first:p,items:[]});}groups[gi[k]].items.push(p);});
+    var pickHtml=function(p){
+      var on=!!state.sel[p.key],inp=state.inputs[p.key]||{};
       var stake=inp.stake!=null?inp.stake:String(MIN_BET);
       var lineDefault=inp.line!=null?inp.line:(p.line==null?"":String(p.line));
-      return '<div class="pick'+(on?' on':'')+'"><div class="pick-top"><input type="checkbox" data-k="'+esc(p.key)+'"'+(on?' checked':'')+' aria-label="選擇此筆"><div><div class="teams">'+esc(p.home)+' vs '+esc(p.away)+'</div><div class="meta">'+esc(timeText(p.kickoff))+'｜'+esc(p.league||p.sport)+'｜'+STAGE[p.stage]+'｜'+MARKET[p.market]+'：<span class="rec">'+esc(recText(p))+'</span></div></div></div>'+
+      return '<div class="pick'+(on?' on':'')+'"><label class="pick-top"><input type="checkbox" data-k="'+esc(p.key)+'"'+(on?' checked':'')+' aria-label="選擇此筆"><span class="mk"><b>'+MARKET[p.market]+'</b><small>'+STAGE[p.stage]+'</small></span><span class="rec">'+esc(recText(p))+'</span></label>'+
         (on?'<div class="pick-inputs">'+
           (p.market==="handicap"||p.market==="over_under"?'<div><label>平台盤口</label><input data-f="line" data-k="'+esc(p.key)+'" value="'+esc(lineDefault)+'" placeholder="-0.5/1"></div>':'<div><label>盤口</label><input disabled value="—"></div>')+
           '<div><label>賠率（歐洲盤）</label><input data-f="odds" data-k="'+esc(p.key)+'" inputmode="decimal" value="'+esc(inp.odds||"")+'" placeholder="1.90"></div>'+
           '<div><label>金額（NT$）</label><input data-f="stake" data-k="'+esc(p.key)+'" inputmode="numeric" value="'+esc(stake)+'"></div>'+
-          '</div>'+(gs.n>1?'<div class="hint" style="color:#f2bd4b">同一場共 '+gs.n+' 筆（跨玩法／階段，含已記錄），合計 '+money(gs.t)+'</div>':'')+'<div class="err" data-err="'+esc(p.key)+'"></div>':'')+'</div>';
+          '</div><div class="err" data-err="'+esc(p.key)+'"></div>':'')+'</div>';
+    };
+    $("picksBox").innerHTML=groups.map(function(g){
+      var p=g.first,anyOn=g.items.some(function(x){return state.sel[x.key];}),gs=anyOn?gameSum(p):{n:0};
+      return '<div class="match'+(anyOn?' on':'')+'"><div class="match-head"><div><div class="teams">'+esc(p.home)+' <em>vs</em> '+esc(p.away)+'</div><div class="meta">'+esc(timeText(p.kickoff))+'｜'+esc(p.league||p.sport)+'</div></div><span class="cnt">'+g.items.length+' 項推薦</span></div>'+
+        g.items.map(pickHtml).join("")+(gs.n>1?'<div class="hint" style="color:#f2bd4b;margin:8px 4px 0">同一場共 '+gs.n+' 筆（跨玩法／階段，含已記錄），合計 '+money(gs.t)+'</div>':'')+'</div>';
     }).join("");
     [].forEach.call($("picksBox").querySelectorAll("input[type=checkbox]"),function(c){c.onchange=function(){if(c.checked)state.sel[c.dataset.k]=true;else delete state.sel[c.dataset.k];renderPicks();};});
     [].forEach.call($("picksBox").querySelectorAll("input[data-f]"),function(i){i.oninput=function(){var o=state.inputs[i.dataset.k]||(state.inputs[i.dataset.k]={});o[i.dataset.f]=i.value;var e=document.querySelector('[data-err="'+i.dataset.k+'"]');if(e)e.textContent="";updateSum();};});
