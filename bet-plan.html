@@ -154,6 +154,18 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .mtable .good{color:var(--green)}.mtable .bad{color:var(--red)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
 .score{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,.07);color:#e9edf2;font-family:Georgia,serif;font-size:12px}
+/* 本期資金 */
+.fund{margin-bottom:12px;padding:14px;border-radius:16px;border:1px solid rgba(242,189,75,.3);background:linear-gradient(180deg,rgba(42,36,20,.55),rgba(10,12,16,.6))}
+.fund-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;text-align:center}
+.fund-top .l{color:#8a95a3;font-size:10px;font-weight:900}.fund-top .v{margin-top:4px;font-family:Georgia,serif;font-size:21px;font-weight:700;color:#e9edf2}
+.fund-top .v.end{background:var(--hb-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:24px}
+.fund-top .arrow{color:var(--hb-gold);font-size:18px}
+.fund-top .chg{margin-top:2px;font-family:Georgia,serif;font-size:12px;font-weight:700}
+.fund-rows{margin-top:12px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.22);display:grid;gap:6px}
+.fund-rows div{display:flex;justify-content:space-between;color:#aab4c0;font-size:12px;font-weight:800}
+.fund-rows b{font-family:Georgia,serif;color:#e9edf2;font-weight:700}
+.fund-note{margin-top:8px;color:#6f7b89;font-size:10.5px;font-weight:700}
+.v.good,.fund .good{color:var(--green)}.fund .bad{color:var(--red)}
 /* ledger more menu */
 .bet .more{position:absolute;right:8px;top:8px;width:32px;height:28px;border:0;border-radius:8px;background:transparent;color:#8a95a3;font-size:18px;font-weight:900;line-height:1;cursor:pointer}
 .bet .more:hover,.bet .more:focus{background:rgba(255,255,255,.06);color:#e9edf2}
@@ -235,6 +247,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   <section class="frame green card" id="report-card" data-view="report" hidden>
     <div class="card-head"><h2>結算週報</h2><small>WEEKLY REPORT</small></div>
     <div class="weeknav"><button class="btn sm" id="wkPrev" type="button" aria-label="上一期">‹</button><div class="wk"><b id="wkLabel">本期</b><small id="wkRange"></small></div><button class="btn sm" id="wkNext" type="button" aria-label="下一期">›</button></div>
+    <div class="fund" id="fundBox"></div>
     <div class="pl-hero"><div><div class="l">已結算淨損益</div><div class="v" id="plBig">—</div></div><div class="roi"><div class="l">投報率</div><div class="v" id="roiBig">—</div></div></div>
     <div class="sub-h" style="margin-top:12px">每日損益（依下注日）</div>
     <div class="days" id="dayBars" style="margin-top:4px"></div>
@@ -535,6 +548,15 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("wkLabel").textContent=view.offset===0?"本期":view.offset===-1?"上一期":Math.abs(view.offset)+" 期前";
     $("wkRange").textContent=ws.slice(5)+"～"+new Date(Date.parse(ws+"T00:00:00Z")+6*86400e3).toISOString().slice(5,10);
     var S=summarize(week);
+    /* 本期資金：期初＝該期上限；期末（目前）＝未使用＋已結算拿回（本金＋贏的）；未結算注單另列 */
+    var pol=periodPolicy(d,ws),W0=pol.budget||0,act=week.filter(function(b){return b.result!=="void";});
+    var usedAll=act.reduce(function(t,b){return t+b.stake;},0),openStake=act.filter(function(b){return !b.result;}).reduce(function(t,b){return t+b.stake;},0);
+    var back=act.filter(function(b){return b.result;}).reduce(function(t,b){return t+b.stake+profit(b.stake,b.odds,b.result);},0);
+    var unused=Math.max(0,W0-usedAll),endNow=Math.round((unused+back)*100)/100,chg=Math.round((endNow+openStake-W0)*100)/100;
+    var ended=addDays(ws,7)<=twDate(Date.now());
+    $("fundBox").innerHTML=W0?('<div class="fund-top"><div><div class="l">本期可用總數</div><div class="v">'+money(W0)+'</div></div><div class="arrow">→</div><div><div class="l">'+(ended?'期末資金':'目前資金')+'</div><div class="v end">'+money(endNow)+'</div><div class="chg '+cls(S.pl)+'">'+(S.settled?(S.pl>0?'+':S.pl<0?'−':'±')+fmt.format(Math.abs(Math.round(S.pl)))+' 已結算損益':'尚未結算')+'</div></div></div>'+
+      '<div class="fund-rows"><div><span>未使用（含每天沒用完的）</span><b>'+money(unused)+'</b></div><div><span>已結算拿回（本金＋贏的）</span><b>'+money(back)+'</b></div>'+(openStake?'<div><span>還在未結算注單中</span><b>'+money(openStake)+'</b></div>':'')+'</div>'+
+      '<div class="fund-note">'+(openStake?'未結算的結算後會再加進來。':'')+'期末資金只是紀錄，不加進下一期額度。</div>'):'<div class="fund-note" style="margin:0">設定本期上限後，這裡會顯示本期可用總數與期末資金。</div>';
     $("plBig").textContent=S.settled?money(S.pl):"—";$("plBig").className="v "+cls(S.pl);
     $("roiBig").textContent=S.roi==null?"—":(S.roi>0?"+":"")+S.roi.toFixed(1)+"%";$("roiBig").className="v "+cls(S.roi||0);
     /* 每日損益（依下注日；本期第 1～7 天） */
@@ -654,12 +676,12 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
         if(!d.cycle_start)d.cycle_start=(old||d.bets.length)?weekStart(now):twDate(now);
         snapPeriod(d,periodStart(d,now));
         return save(d)?{ok:true}:{err:SAVE_FAIL};
-      }).then(function(r){btn.disabled=false;if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();});
+      }).then(function(r){btn.disabled=false;if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();renderLedger();});
     };
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){
       var mode=b.dataset.pool==="week"?"week":"daily";$("budgetErr").textContent="";
       withLock(function(){var d=load();d.pool_mode=mode;if(d.weekly_budget)snapPeriod(d,periodStart(d,Date.now()));return save(d)?{ok:true}:{err:SAVE_FAIL};})
-        .then(function(r){if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();});
+        .then(function(r){if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();renderLedger();});
     };});
     $("confirmBtn").onclick=confirm;
     document.addEventListener("click",function(e){if(view.menu&&!(e.target.closest&&e.target.closest(".bet-menu"))){view.menu=null;renderLedger();}});
