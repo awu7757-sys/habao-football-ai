@@ -33,7 +33,7 @@ const pool=B.stats({weekly_budget:2500,pool_mode:'week',bets:[]},now);eq(pool.da
 // B3 跨週：下注日決定歸日，不 clamp
 eq(B.dayIndex({placed_date:'2026-11-22'},'2026-11-16'),6);eq(B.dayIndex({placed_date:'2026-11-23'},'2026-11-16'),null);
 // B5 恢復取消退款
-const d={weekly_budget:700,bets:[{id:'a',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:'void'},{id:'b',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:null}]};
+const d={weekly_budget:700,bets:[{id:'a',sport:'f',fixture_id:'1',stage:'t10',market:'btts',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:'void'},{id:'b',sport:'f',fixture_id:'2',stage:'t10',market:'btts',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:null}]};
 ok(!B.canRestore(d,d.bets[0]).ok,'恢復後超過每日上限 100 要擋');
 d.pool_mode='week';ok(B.canRestore(d,d.bets[0]).ok,'週池內可恢復');
 d.weekly_budget=150;ok(!B.canRestore(d,d.bets[0]).ok,'超過週上限要擋');
@@ -45,4 +45,15 @@ eq(B.periodStart({cycle_start:'2026-11-22'},Date.parse('2026-12-10T04:00:00Z')),
 eq(B.periodStart({},Date.parse('2026-11-25T04:00:00Z')),'2026-11-25','未設定前以今天暫代');
 eq(B.periodStart({weekly_budget:2500,bets:[]},Date.parse('2026-11-25T04:00:00Z')),'2026-11-23','舊資料沿用週一');
 eq(B.stats({cycle_start:'2026-11-20',weekly_budget:700,bets:[{week_start:'2026-11-20',placed_date:'2026-11-22',stake:100,result:null}]},Date.parse('2026-11-22T04:00:00Z')).dayLeft,0);
+// M3 同鍵恢復
+const k={sport:'football',fixture_id:'9',stage:'t10',market:'handicap',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100};
+const dk={weekly_budget:7000,bets:[Object.assign({id:'A',result:'void'},k),Object.assign({id:'B',result:null},k)]};
+ok(!B.canRestore(dk,dk.bets[0]).ok,'同鍵已有有效紀錄時不可恢復');
+dk.bets[1].result='void';ok(B.canRestore(dk,dk.bets[0]).ok,'另一筆也取消時可恢復');
+// M4 歷史期別依該期設定
+const hist={weekly_budget:7000,pool_mode:'daily',periods:{'2026-11-09':{budget:700,pool_mode:'daily'}},bets:[{id:'h1',sport:'f',fixture_id:'1',stage:'t10',market:'btts',week_start:'2026-11-09',placed_date:'2026-11-10',stake:100,result:'void'},{id:'h2',sport:'f',fixture_id:'2',stage:'t10',market:'btts',week_start:'2026-11-09',placed_date:'2026-11-10',stake:100,result:null}]};
+ok(!B.canRestore(hist,hist.bets[0]).ok,'舊期依該期上限 700（每日 100）判斷，不受目前 7000 影響');
+eq(B.periodPolicy(hist,'2026-11-09').budget,700);eq(B.periodPolicy(hist,'2026-11-16').budget,7000);
+// 修改金額不做同鍵檢查但檢查上限
+ok(!B.canRestore(hist,hist.bets[1],200,'修改').ok,'舊期調高金額超過該期每日上限要擋');
 console.log('bet-plan regression: '+n+' checks passed');

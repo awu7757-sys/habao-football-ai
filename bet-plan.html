@@ -160,6 +160,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .bet-menu{position:absolute;right:8px;top:38px;z-index:5;display:flex;flex-direction:column;min-width:150px;padding:6px;border-radius:12px;border:1px solid rgba(242,189,75,.35);background:#0d131c;box-shadow:0 10px 24px rgba(0,0,0,.6)}
 .bet-menu button{border:0;background:none;text-align:left;padding:10px 10px;border-radius:8px;color:#e9edf2;font-size:13px;font-weight:850;cursor:pointer}
 .bet-menu button:hover{background:rgba(255,255,255,.06)}.bet-menu .danger{color:var(--red)}
+.bet-menu button small{display:block;margin-top:2px;color:#6f7b89;font-size:10px;font-weight:700}
 .bet .teams{padding-right:34px}
 .bet-edit{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.25)}
 .bet-edit label{display:block;margin:0 0 5px 2px;font-size:10px}
@@ -324,19 +325,31 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   /* ---------- 本機資料 ---------- */
   function load(){try{var d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");if(d&&typeof d==="object"&&Array.isArray(d.bets))return d;}catch(e){}return {weekly_budget:null,bets:[]};}
   function save(d){try{localStorage.setItem(STORE_KEY,JSON.stringify(d));return true;}catch(e){return false;}}
-  /* B2：所有寫入都在「重新讀取 → 檢查 → 寫入」內完成；支援 Web Locks 的瀏覽器跨分頁排隊 */
-  function withLock(fn){try{if(typeof navigator!=="undefined"&&navigator.locks&&navigator.locks.request)return navigator.locks.request(STORE_KEY,function(){return fn();});}catch(e){}return Promise.resolve().then(fn);}
+  /* B2／M2：本頁「所有」寫入與刪除都經過 withLock：鎖內重新讀取 → 檢查 → 寫入。
+     支援 Web Locks（https 的現代瀏覽器）時跨分頁排隊；不支援時只保證同一分頁依序執行，沒有跨分頁互斥（已知限制）。
+     鎖請求失敗會回傳 {err}，呼叫端顯示錯誤並復原按鈕。 */
+  function withLock(fn){
+    var run=function(){try{return fn();}catch(e){return {err:"操作失敗，資料沒有變更，請重新整理後再試。"};}};
+    try{if(typeof navigator!=="undefined"&&navigator.locks&&navigator.locks.request)return navigator.locks.request(STORE_KEY,run).catch(function(){return {err:"無法取得資料鎖，資料沒有變更，請重新整理後再試。"};});}catch(e){}
+    return Promise.resolve().then(run);
+  }
   function betKey(b){return b.sport+":"+b.fixture_id+":"+b.stage+":"+b.market;}
   var SAVE_FAIL="儲存失敗，資料沒有變更。請確認瀏覽器允許本機儲存（無痕模式或空間不足可能無法儲存）。";
-  /* B5：恢復一筆已取消退款的注單時，必須仍在當天與當期上限內 */
+  /* M4：每一期保存當時的上限與額度模式（d.periods[期起日]）；歷史更正依「該期」設定判斷，不受目前設定影響。
+     舊資料沒有該期快照時，才退回目前設定。 */
+  function periodPolicy(d,ws){var p=d&&d.periods&&d.periods[ws];return p&&p.budget?{budget:Number(p.budget),pool_mode:p.pool_mode==="week"?"week":"daily",snap:true}:{budget:Number(d&&d.weekly_budget)||0,pool_mode:d&&d.pool_mode==="week"?"week":"daily",snap:false};}
+  function snapPeriod(d,ws){d.periods=d.periods&&typeof d.periods==="object"?d.periods:{};d.periods[ws]={budget:Number(d.weekly_budget)||0,pool_mode:d.pool_mode==="week"?"week":"daily"};}
+  /* B5／M3／M4：取消退款恢復、調高金額前檢查：①同鍵不可已有其他有效紀錄 ②該期上限 ③（每日模式）當天上限 */
   function canRestore(d,b,stake,verb){
-    var W=Number(d.weekly_budget)||0;if(!W)return {ok:false,msg:"請先設定本期投入上限"};
     stake=stake==null?b.stake:stake;verb=verb||"恢復";
+    if(verb==="恢復"){var dupKey=d.bets.some(function(x){return x.id!==b.id&&x.result!=="void"&&betKey(x)===betKey(b);});
+      if(dupKey)return {ok:false,msg:"同一場、同階段、同玩法已經有另一筆有效紀錄，不能再恢復這筆。如要更正，請直接修改那一筆的賠率或金額。"};}
+    var pol=periodPolicy(d,b.week_start),W=pol.budget;if(!W)return {ok:false,msg:"請先設定本期投入上限"};
     var others=d.bets.filter(function(x){return x.id!==b.id&&x.result!=="void"&&x.week_start===b.week_start;});
     var wk=others.reduce(function(t,x){return t+x.stake;},0)+stake;
-    if(wk>W)return {ok:false,msg:verb+"後本期投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高本期上限。"};
-    if(d.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+stake;
-      if(dy>cap)return {ok:false,msg:verb+"後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"。若要更正紀錄，請先刪除當天之後新增的注單。"};}
+    if(wk>W)return {ok:false,msg:verb+"後該期投入 "+money(wk)+" 會超過該期上限 "+money(W)+"，沒有變更。"};
+    if(pol.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+stake;
+      if(dy>cap)return {ok:false,msg:verb+"後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"，沒有變更。"};}
     return {ok:true};
   }
 
@@ -472,17 +485,22 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       else if(p.market==="handicap"||p.market==="over_under"){line=p.line!=null&&isFinite(p.line)?p.line:null;}
       if(msg){ok=false;if(err)err.textContent=msg;return;}
       total+=stake;
-      bets.push({id:now.toString(36)+"-"+Math.random().toString(36).slice(2,8),placed_at:new Date(now).toISOString(),placed_date:s.today,week_start:s.ws,sport:p.sport,fixture_id:p.fixture_id,stage:p.stage,market:p.market,kickoff:new Date(p.kickoff).toISOString(),home:p.home,away:p.away,league:p.league,rec_pick:p.pick,rec_line:p.line,line:line,odds:odds,stake:stake,mode:state.mode,result:null,settled_at:null});
+      bets.push({id:now.toString(36)+"-"+Math.random().toString(36).slice(2,8),placed_at:new Date(now).toISOString(),placed_date:s.today,week_start:s.ws,sport:p.sport,fixture_id:p.fixture_id,stage:p.stage,market:p.market,kickoff:new Date(p.kickoff).toISOString(),home:p.home,away:p.away,league:p.league,rec_pick:p.pick,rec_line:p.line,line:line,odds:odds,stake:stake,mode:state.mode,settlement_mode:"auto",result:null,settled_at:null});
     });
     if(!ok||confirmBusy)return;
     confirmBusy=true;$("confirmBtn").disabled=true;
     withLock(function(){
-      var fresh=load(),fs=stats(fresh,now),have={};
+      /* M2：取得鎖後重新取時間，重新檢查開賽、歸期／歸日、唯一鍵與額度 */
+      var now2=Date.now(),fresh=load(),fs=stats(fresh,now2),have={};
+      if(!fs.W)return {err:"請先設定本期投入上限"};
+      if(bets.some(function(b){return Date.parse(b.kickoff)<=now2;}))return {err:"有比賽已經開賽，不能再記錄，已重新整理清單。",reload:true};
       fresh.bets.forEach(function(b){if(b.result!=="void")have[betKey(b)]=1;});
       var dup=bets.filter(function(b){return have[betKey(b)];});
       if(dup.length)return {err:"其中 "+dup.length+" 筆已經記錄過（可能在其他分頁），已重新整理清單，請再確認一次。",reload:true};
       if(bets.length>maxPicks(fs.dayLeft))return {err:"額度已變動：今日只夠 "+maxPicks(fs.dayLeft)+" 筆，請重新選擇。"};
       if(total>fs.dayLeft)return {err:"合計 "+money(total)+" 超過今日可用 "+money(fs.dayLeft)};
+      bets.forEach(function(b){b.placed_at=new Date(now2).toISOString();b.placed_date=fs.today;b.week_start=fs.ws;});
+      if(!fresh.periods||!fresh.periods[fs.ws])snapPeriod(fresh,fs.ws);
       fresh.bets=fresh.bets.concat(bets);
       if(!save(fresh))return {err:SAVE_FAIL};
       return {ok:true};
@@ -547,10 +565,10 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("ledgerBox").innerHTML=list.map(function(b){
       var p=b.result?profit(b.stake,b.odds,b.result):null;
       var c=b.result==="win"||b.result==="half_win"?"win":(b.result==="loss"||b.result==="half_loss"?"loss":"");
-      var menu=view.menu===b.id?'<div class="bet-menu"><button type="button" data-id="'+b.id+'" data-act="edit">修改賠率／金額</button><button type="button" class="danger" data-id="'+b.id+'" data-act="del">刪除這筆</button></div>':'';
+      var menu=view.menu===b.id?'<div class="bet-menu"><button type="button" data-id="'+b.id+'" data-act="edit">修改賠率／金額</button><button type="button" data-id="'+b.id+'" data-act="mode">'+(b.settlement_mode==="manual"?'恢復自動結算':'改為只手動結算<small>我的盤口或玩法跟推薦不同</small>')+'</button><button type="button" class="danger" data-id="'+b.id+'" data-act="del">刪除這筆</button></div>':'';
       var edit=view.edit===b.id?'<div class="bet-edit"><div><label>賠率（歐洲盤）</label><input id="edOdds" inputmode="decimal" value="'+esc(b.odds)+'"></div><div><label>金額（NT$）</label><input id="edStake" inputmode="numeric" value="'+esc(b.stake)+'"></div><div class="bet-edit-acts"><button class="btn sm" type="button" data-id="'+b.id+'" data-act="cancel">取消</button><button class="btn sm main" type="button" data-id="'+b.id+'" data-act="save">儲存</button></div></div>':'';
       return '<div class="bet"><button class="more" type="button" data-id="'+b.id+'" data-act="menu" aria-label="更多">⋯</button>'+menu+'<div class="teams">'+esc(b.home)+' vs '+esc(b.away)+(b.score?'<span class="score">'+esc(b.score)+'</span>':'')+'</div><div class="meta">'+esc(timeText(Date.parse(b.kickoff)))+'｜'+STAGE[b.stage]+'｜'+MARKET[b.market]+' <span class="rec">'+esc(b.rec_pick)+(b.line!=null?' '+esc(fmtLine(b.line,b.market==="handicap")):'')+'</span>｜賠率 '+b.odds+'｜'+money(b.stake)+'</div>'+
-        '<div class="meta">'+(b.result?'<span class="tag '+c+'">'+RESULT[b.result]+'</span> '+(b.result==="void"?'退回本金':'損益 '+money(p))+(b.auto?'（自動）':''):'<span class="tag">未結算</span>')+'</div>'+edit+
+        '<div class="meta">'+(b.result?'<span class="tag '+c+'">'+RESULT[b.result]+'</span> '+(b.result==="void"?'退回本金':'損益 '+money(p))+(b.auto?'（自動）':''):'<span class="tag">未結算</span>'+(b.settlement_mode==="manual"?' <span class="tag">只手動結算</span>':''))+'</div>'+edit+
         '<div class="acts">'+(b.result?'<button class="btn sm" type="button" data-id="'+b.id+'" data-r="">改回未結算</button>':Object.keys(RESULT).map(function(r){return '<button class="btn sm" type="button" data-id="'+b.id+'" data-r="'+r+'">'+RESULT[r]+'</button>';}).join(""))+'</div></div>';
     }).join("");
     var rerender=function(){renderBudget();renderImport();renderLedger();};
@@ -558,6 +576,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       e.stopPropagation();$("ledgerErr").textContent="";var id=btn.dataset.id,act=btn.dataset.act;
       if(act==="menu"){view.menu=view.menu===id?null:id;renderLedger();return;}
       if(act==="edit"){view.menu=null;view.edit=id;renderLedger();var o=$("edOdds");if(o)o.focus();return;}
+      if(act==="mode")view.menu=null;
       if(act==="cancel"){view.edit=null;renderLedger();return;}
       if(act==="del"&&btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="再按一次確認刪除";setTimeout(function(){if(btn.isConnected){btn.dataset.armed="";btn.textContent="刪除這筆";}},4000);return;}
       var newOdds,newStake;
@@ -569,11 +588,14 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       withLock(function(){
         var d2=load(),b=d2.bets.find(function(x){return x.id===id;});if(!b)return {ok:true};
         if(act==="del"){d2.bets=d2.bets.filter(function(x){return x.id!==b.id;});}
+        else if(act==="mode"){b.settlement_mode=b.settlement_mode==="manual"?"auto":"manual";}
         else if(act==="save"){
           if(b.result!=="void"&&newStake>b.stake){var c0=canRestore(d2,b,newStake,"修改");if(!c0.ok)return {err:c0.msg};}
           b.odds=newOdds;b.stake=newStake;b.edited_at=new Date().toISOString();
         }else{
           var next=btn.dataset.r||null;
+          /* M1：會員自己改回未結算或手動標記，就固定為「只手動結算」，自動對比分不會再覆寫 */
+          b.settlement_mode="manual";
           if(b.result==="void"&&next!=="void"){var c=canRestore(d2,b);if(!c.ok)return {err:c.msg};}
           b.result=next;b.settled_at=next?new Date().toISOString():null;b.auto=false;if(!next)b.score=null;
         }
@@ -599,7 +621,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function autoSettle(silent){
     if(autoBusy||typeof fetch!=="function")return;
     var d=load(),now=Date.now();
-    var open=d.bets.filter(function(b){return !b.result&&Date.parse(b.kickoff)+2.5*3600e3<now;});
+    var open=d.bets.filter(function(b){return !b.result&&b.settlement_mode!=="manual"&&Date.parse(b.kickoff)+2.5*3600e3<now;});
     var nba=open.filter(function(b){return !SCORE_API[b.sport];}).length;
     var due=open.filter(function(b){return SCORE_API[b.sport];});
     var nbaMsg=nba?"NBA 等其他球類 "+nba+" 筆目前請手動標記（比分來源確認中）。":"";
@@ -611,7 +633,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       return withLock(function(){
         var d2=load(),done=0,miss=0;
         d2.bets.forEach(function(b){
-          if(b.result||!(Date.parse(b.kickoff)+2.5*3600e3<now)||!SCORE_API[b.sport])return;
+          if(b.result||b.settlement_mode==="manual"||!(Date.parse(b.kickoff)+2.5*3600e3<now)||!SCORE_API[b.sport])return;
           var sc=map[b.sport+":"+b.fixture_id],r=sc?settleFromScore(b,sc[0],sc[1]):null;
           if(r){b.result=r;b.score=sc[0]+"-"+sc[1];b.auto=true;b.settled_at=new Date().toISOString();done++;}else miss++;
         });
@@ -630,13 +652,21 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("saveBudget").onclick=function(){
       var v=String($("weekBudget").value).replace(/[,\s]/g,"");$("budgetErr").textContent="";
       if(!/^\d+$/.test(v)||Number(v)<100||Number(v)>1e8){$("budgetErr").textContent="請輸入 100 以上的整數金額";return;}
-      var d=load(),s=stats(d,Date.now());
-      if(Number(v)<s.used){$("budgetErr").textContent="不能低於本期已投入 "+money(s.used);return;}
-      var old=d.weekly_budget,oldStart=d.cycle_start;d.weekly_budget=Number(v);
-      if(!d.cycle_start)d.cycle_start=(old||d.bets.length)?weekStart(Date.now()):twDate(Date.now());
-      if(!save(d)){d.weekly_budget=old;d.cycle_start=oldStart;$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();
+      var btn=$("saveBudget");btn.disabled=true;
+      withLock(function(){
+        var d=load(),now=Date.now(),s0=stats(d,now);
+        if(Number(v)<s0.used)return {err:"不能低於本期已投入 "+money(s0.used)};
+        var old=d.weekly_budget;d.weekly_budget=Number(v);
+        if(!d.cycle_start)d.cycle_start=(old||d.bets.length)?weekStart(now):twDate(now);
+        snapPeriod(d,periodStart(d,now));
+        return save(d)?{ok:true}:{err:SAVE_FAIL};
+      }).then(function(r){btn.disabled=false;if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();});
     };
-    [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){var d=load();d.pool_mode=b.dataset.pool==="week"?"week":"daily";if(!save(d)){$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();};});
+    [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){
+      var mode=b.dataset.pool==="week"?"week":"daily";$("budgetErr").textContent="";
+      withLock(function(){var d=load();d.pool_mode=mode;if(d.weekly_budget)snapPeriod(d,periodStart(d,Date.now()));return save(d)?{ok:true}:{err:SAVE_FAIL};})
+        .then(function(r){if(r&&r.err)$("budgetErr").textContent=r.err;renderBudget();renderPicks();});
+    };});
     $("confirmBtn").onclick=confirm;
     document.addEventListener("click",function(e){if(view.menu&&!(e.target.closest&&e.target.closest(".bet-menu"))){view.menu=null;renderLedger();}});
     (function(){var btn=$("ruleBtn"),pop=$("rulePop");var set=function(open){pop.hidden=!open;btn.setAttribute("aria-expanded",open?"true":"false");};
@@ -654,14 +684,19 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     };
     $("wipeBtn").onclick=function(){
       var b=$("wipeBtn");if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="再按一次確認刪除";setTimeout(function(){b.dataset.armed="";b.textContent="刪除本機全部資料";},4000);return;}
-      try{localStorage.removeItem(STORE_KEY);}catch(e){}$("weekBudget").value="";b.dataset.armed="";b.textContent="刪除本機全部資料";state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();
+      b.dataset.armed="";b.textContent="刪除本機全部資料";b.disabled=true;
+      withLock(function(){try{localStorage.removeItem(STORE_KEY);}catch(e){return {err:"刪除失敗，資料沒有變更。請確認瀏覽器允許本機儲存後再試。"};}
+        try{if(localStorage.getItem(STORE_KEY)!==null)return {err:"刪除失敗，資料沒有變更。"};}catch(e){}return {ok:true};})
+      .then(function(r){b.disabled=false;
+        if(!r||!r.ok){$("ledgerErr").textContent=(r&&r.err)||"刪除失敗，資料沒有變更。";return;}
+        $("weekBudget").value="";state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();});
     };
     window.addEventListener("storage",function(e){if(e.key===STORE_KEY){renderBudget();renderImport();renderLedger();}});
     renderBudget();renderImport();renderLedger();
     setView(viewFromHash());
     window.addEventListener("hashchange",function(){setView(viewFromHash());window.scrollTo(0,0);});
   }
-  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
+  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,periodPolicy:periodPolicy,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
 })();
 </script>
 <script src="./habao-theme-v2.js?v=20261122c" defer></script>
