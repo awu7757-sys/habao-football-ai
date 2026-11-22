@@ -947,6 +947,7 @@ tr:last-child td{border-bottom:0}
 .nr3-head{color:#9dafc3;font-weight:900}.nr3-row{color:#dce9f7}
 .nr3-cell strong{display:block;font-size:17px;color:#f2c270}.nr3-cell small{color:#9fb2c6;font-size:11px}.nr3-cell.nr3-na strong{color:#6f8396}
 .nr3-item{display:grid;grid-template-columns:96px minmax(150px,1.4fr) 54px 54px repeat(3,minmax(110px,1fr));min-width:860px;gap:8px;padding:9px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.12);font-size:12px;color:#dce9f7}
+.nr3-details>summary{list-style:none}.nr3-details>summary::-webkit-details-marker{display:none}.nr3-more{display:block;margin:14px auto 4px}
 .nr3-item.nr3-headrow{color:#9dafc3;font-weight:900}
 .nr3-win{color:#5fd39a}.nr3-loss{color:#ff7d7d}.nr3-push{color:#c9d3dd}.nr3-block{color:#f0b35a}.nr3-dim{color:#7f93a7}
 .nr-simple-table{overflow-x:auto}.nr-simple-head,.nr-simple-row{display:grid;grid-template-columns:minmax(105px,1.5fr) repeat(5,minmax(70px,1fr));min-width:620px;gap:8px;padding:13px 10px;align-items:center;border-bottom:1px solid rgba(132,168,198,.17);font-size:12px}
@@ -1874,8 +1875,8 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
           <select id="nrDays" class="input" onchange="loadNbaResearch()"><option value="7">近 7 天</option><option value="14">近 14 天</option><option value="30" selected>近 30 天</option><option value="90">近 90 天</option><option value="0">全部（11/13 起）</option></select>
           <select id="nrStage" class="input" onchange="renderNbaResearch()"><option value="all">全部階段</option><option value="t10">T-10</option><option value="t2">T-2</option><option value="t15">T-15</option></select>
           <select id="nrMarket" class="input" onchange="renderNbaResearch()"><option value="all">全部玩法</option><option value="handicap">讓分</option><option value="over_under">大小分</option><option value="moneyline">獨贏</option></select>
-          <select id="nrFilter" class="input" onchange="renderNbaResearch()"><option value="all">全部明細</option><option value="blocked">只看被新規則擋下</option><option value="verified">只看已完賽</option></select>
-          <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="renderNbaResearch()">
+          <select id="nrFilter" class="input" onchange="nrDetailLimit=30;renderNbaResearch()"><option value="blocked" selected>明細：只看被擋下</option><option value="all">明細：全部</option><option value="verified">明細：只看已完賽</option></select>
+          <input id="nrSearch" class="input search" placeholder="中文球隊、英文球隊、賽事編號..." oninput="nrDetailLimit=30;renderNbaResearch()">
         </div></div><div id="nrStatus" class="page-desc" aria-live="polite">切換到此頁自動載入</div></div>
         <div id="nrSummary" class="nr-summary"></div>
         <div class="panel" style="margin-bottom:16px">
@@ -1887,9 +1888,9 @@ Supabase 免費方案：資料庫與檔案儲存（每 6 小時自動快照）�
           <div id="nrSimpleTable" class="nr3-table"><div class="nr-empty">尚未取得資料</div></div>
           <div id="nrSimpleConclusion" class="page-desc" style="margin-top:12px">命中率：贏 1、贏半 0.5、走水不計。T-2／T-15 只算準時封存的快照；缺盤口或模型總分而無法回算的不列入。</div>
         </div>
-        <div class="panel"><div class="panel-head">
-          <div><div class="panel-title">逐場明細</div><div id="nrVisible" class="panel-desc">尚未載入</div></div>
-        </div><div id="nrRows" class="nr3-rows"><div class="nr-empty">目前尚無資料</div></div></div>
+        <details class="panel nr3-details"><summary class="panel-head" style="cursor:pointer">
+          <div><div class="panel-title">逐場明細 ▾</div><div id="nrVisible" class="panel-desc">點開查看</div></div>
+        </summary><div id="nrRows" class="nr3-rows"><div class="nr-empty">目前尚無資料</div></div></details>
       </section>
       <!-- MLB V1 FORMAL / V2 SHADOW COMPARISON (READ ONLY) -->
       <section id="baseballV2ComparePage" class="page">
@@ -7313,7 +7314,7 @@ function escapeHtml(value) {
 restoreAdminSession();
 </script>
 <script src="./admin-football-v2.js?v=9" defer></script>
-<script src="./admin-nba-v2.js?v=9" defer></script>
+<script src="./admin-nba-v2.js?v=10" defer></script>
 <script src="./admin-baseball-v2.js?v=5" defer></script>
 
 

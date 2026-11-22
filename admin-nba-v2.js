@@ -1,6 +1,6 @@
 /* HABAO NBA 推薦規則比較（舊規則／新規則 V3／挑戰規則）— 2026-11-22 取代 V1／V2 比較。只讀。 */
 const NR_COMPARE_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/admin-nba-v2-compare";
-let nrCompare=null,nrErrors={},nrLoading=false,nrRequestSerial=0,nrRequestController=null;
+let nrDetailLimit=30,nrCompare=null,nrErrors={},nrLoading=false,nrRequestSerial=0,nrRequestController=null;
 const nrMarkets={handicap:"讓分",over_under:"大小分",moneyline:"獨贏"};
 const nrStages={t10:"T-10",t2:"T-2",t15:"T-15"};
 const nrCodeLabels={underdog_pick:"冷門方向",favorite_unknown:"無法判斷熱門",conflict_with_t10:"與 T-10 相反",t10_not_qualified:"T-10 未推薦",edge_too_large:"差距過大",gap_unknown:"缺少總分",low_confidence:"信心不足",challenger_gap:"差距 ≥3"};
@@ -36,7 +36,7 @@ async function loadNbaResearch(){
  nrErrors={};nrCompare=result;nrLoading=false;if(refresh)refresh.disabled=false;
  renderNbaResearch();
 }
-function nrSel(id){return document.getElementById(id)?.value||"all";}
+function nrSel(id){return document.getElementById(id)?.value||(id==="nrFilter"?"blocked":"all");}
 function nrCell(s,na){
  if(na||!s)return '<div class="nr3-cell nr3-na"><strong>—</strong><small>不適用</small></div>';
  const rate=s.rate==null?"—":Number(s.rate).toFixed(1)+"%";
@@ -112,6 +112,8 @@ function renderNbaResearch(){
  if(live)live.innerHTML=nrTable("live");
  if(back)back.innerHTML=nrTable("backtest");
  const list=nrDetail(),rowsEl=document.getElementById("nrRows");
- const vis=document.getElementById("nrVisible");if(vis)vis.textContent="顯示 "+list.length+" 筆（只列舊規則有推薦的項目）";
- if(rowsEl)rowsEl.innerHTML=list.length?'<div class="nr3-item nr3-headrow"><span>開賽</span><span>對戰</span><span>階段</span><span>玩法</span><span>舊規則</span><span>新規則</span><span>挑戰規則</span></div>'+list.join(""):'<div class="nr-empty">目前沒有符合條件的資料</div>';
+ const vis=document.getElementById("nrVisible");if(vis)vis.textContent="共 "+list.length+" 筆，點開查看（只列舊規則有推薦的項目）";
+ // 2026-11-22：明細太長，預設收合、預設只看被擋下，一次顯示 30 筆。
+ const shown=list.slice(0,nrDetailLimit),more=list.length-shown.length;
+ if(rowsEl)rowsEl.innerHTML=list.length?'<div class="nr3-item nr3-headrow"><span>開賽</span><span>對戰</span><span>階段</span><span>玩法</span><span>舊規則</span><span>新規則</span><span>挑戰規則</span></div>'+shown.join("")+(more>0?'<button class="ghost-btn nr3-more" onclick="nrDetailLimit+=30;renderNbaResearch()">再顯示 30 筆（還有 '+more+' 筆）</button>':''):'<div class="nr-empty">目前沒有符合條件的資料</div>';
 }
