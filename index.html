@@ -3198,6 +3198,19 @@ body.login-ready .app {
 .habao-maintenance-title{font-size:24px;font-weight:950;color:#fff}
 .habao-maintenance-message{margin-top:14px;color:#d9c690;font-size:14px;line-height:1.8;white-space:pre-wrap}
 .habao-maintenance-note{margin-top:18px;color:#8f9aa8;font-size:12px}
+
+/* ===== 2026-11-22 登入頁工具列：LINE 客服＋下載APP ===== */
+.hb-util-bar{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;width:100%;margin:16px auto 0;border-radius:18px;overflow:hidden;
+  border:1px solid transparent;background:linear-gradient(180deg,rgba(18,26,38,.92),rgba(8,12,18,.94)) padding-box,linear-gradient(145deg,rgba(255,231,168,.55),rgba(201,138,31,.25) 45%,rgba(242,195,90,.5)) border-box;
+  box-shadow:0 12px 26px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.hb-util{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;padding:13px 12px;border:0;background:transparent;color:inherit;font-family:inherit;text-align:left;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.hb-util:active{background:rgba(242,189,75,.08)}
+.hb-util-ic{flex:0 0 34px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#f2c35a;border:1px solid rgba(242,189,75,.45);background:radial-gradient(circle at 30% 25%,rgba(255,231,168,.18),rgba(0,0,0,.2))}
+.hb-util-ic svg{width:18px;height:18px}
+.hb-util-tx{display:flex;flex-direction:column;min-width:0}
+.hb-util-tx b{color:#ffe7a8;font-size:14px;font-weight:900;letter-spacing:.3px;white-space:nowrap}
+.hb-util-tx small{margin-top:3px;color:#8a95a3;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-util-div{align-self:center;height:60%;background:linear-gradient(180deg,transparent,rgba(242,189,75,.45),transparent)}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3402,87 +3415,18 @@ body.login-ready .app {
 
       </section>
 
-<div class="login-shortcuts">
-
-  <a
-    class="shortcut-card line-card"
-    href="https://line.me/R/ti/p/@804dlhod"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-<div class="shortcut-icon" aria-hidden="true">
-  <svg
-    viewBox="0 0 48 48"
-    width="26"
-    height="26"
-  >
-    <path
-      d="M11 25v-3C11 14.82 16.82 9 24 9s13 5.82 13 13v3"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="3"
-      stroke-linecap="round"
-    />
-
-    <rect
-      x="8"
-      y="23"
-      width="7"
-      height="12"
-      rx="3.5"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="3"
-    />
-
-    <rect
-      x="33"
-      y="23"
-      width="7"
-      height="12"
-      rx="3.5"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="3"
-    />
-
-    <path
-      d="M37 35c0 3.3-2.7 6-6 6h-4"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="3"
-      stroke-linecap="round"
-    />
-
-    <circle
-      cx="25"
-      cy="41"
-      r="2"
-      fill="currentColor"
-    />
-  </svg>
-</div>
-
-    <div class="shortcut-content">
-      <div class="shortcut-title">LINE 客服</div>
-      <div class="shortcut-sub">有問題？立即聯絡我們</div>
-    </div>
-
-    <div class="shortcut-arrow">›</div>
+<!-- 2026-11-22 重新設計：LINE 客服＋下載APP 合併為一條工具列（與登入面板同寬）。LINE 連結未改 -->
+<nav class="hb-util-bar" aria-label="客服與下載">
+  <a class="hb-util" href="https://line.me/R/ti/p/@804dlhod" target="_blank" rel="noopener noreferrer">
+    <span class="hb-util-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.8"/><rect x="17" y="13" width="4" height="6" rx="1.8"/><path d="M19 19c0 1.7-1.3 3-3 3h-2.5"/></svg></span>
+    <span class="hb-util-tx"><b id="lineSupportTitle">LINE 客服</b><small id="lineSupportSub">有問題？立即聯絡我們</small></span>
   </a>
-
-  <button class="shortcut-card line-card app-card" id="installAppCard" type="button" style="text-align:left;font-family:inherit" aria-label="下載 APP（加入主畫面）">
-    <div class="shortcut-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18.5h4"/></svg>
-    </div>
-    <div class="shortcut-content">
-      <div class="shortcut-title" id="installAppTitle">下載APP</div>
-      <div class="shortcut-sub" id="installAppSub">加入主畫面，開啟更快</div>
-    </div>
-    <div class="shortcut-arrow">›</div>
+  <i class="hb-util-div" aria-hidden="true"></i>
+  <button class="hb-util" id="installAppCard" type="button" aria-label="下載 APP（加入主畫面）">
+    <span class="hb-util-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v6.5M9.3 11l2.7 2.7 2.7-2.7M10.5 18.5h3"/></svg></span>
+    <span class="hb-util-tx"><b id="installAppTitle">下載APP</b><small id="installAppSub">加入主畫面，開啟更快</small></span>
   </button>
-
-</div>
+</nav>
 
     </div>
     
@@ -6138,12 +6082,12 @@ setText(
 );
 
 setText(
-  ".shortcut-title",
+  "#lineSupportTitle",
   "lineSupport"
 );
 
 setText(
-  ".shortcut-sub",
+  "#lineSupportSub",
   "contactUs"
 ); 
 
