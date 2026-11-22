@@ -49,12 +49,14 @@ input:focus{border-color:rgba(242,189,75,.45)}
 .tag.win{background:rgba(60,221,130,.14);color:#72e8a2}.tag.loss{background:rgba(255,104,104,.14);color:#ff8f8f}
 .empty{padding:18px;text-align:center;color:#8793a2;font-size:13px;font-weight:700}
 @media(max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pick-inputs{grid-template-columns:1fr 1fr}}
+.steps{display:flex;gap:6px;margin:0 0 14px;font-size:12px;font-weight:850}.steps a,.steps span{flex:1;text-align:center;padding:8px 4px;border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#8793a2;background:rgba(255,255,255,.02)}.steps .on{color:#16120a;border-color:transparent;background:linear-gradient(135deg,#f7da80,#dca631)}
 </style>
 </head>
 <body>
 <!-- 2026-11-22：投注分配（VIP，第一版第 2 步）。分析場次讀自「我的分析」本機快取；預算、金額、紀錄只存本機 localStorage，本頁不發出任何網路請求。規格 docs/SPEC-BET-ALLOCATION-20261122.md、PROJECT_NOTES §27 -->
 <main class="app">
-  <div class="nav"><a href="football.html?view=history">← 返回我的分析</a><a href="budget-calculator.html">每月預算計算器 →</a></div>
+  <div class="nav"><a href="ai-tools.html">← 返回 AI 工具箱</a><a href="football.html?view=history">我的分析 →</a></div>
+  <nav class="steps" aria-label="投注資金工具步驟"><a href="budget-calculator.html">① 預算計算</a><span class="on">② 本週分配</span><a href="bet-plan.html#report">③ 結算週報</a></nav>
   <h1>投注分配</h1>
   <p class="privacy">您的資料是保密的，HB 無法查看。</p>
 
@@ -90,7 +92,7 @@ input:focus{border-color:rgba(242,189,75,.45)}
     <p class="hint">盤口請填您投注平台實際的盤口，可輸入「-0.5/1」或「-0.75」；賠率請在平台選「歐洲盤」，填像 1.90 這樣的數字。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 
-  <section class="card">
+  <section class="card" id="report-card">
     <h2>本週紀錄與週報</h2>
     <div class="grid" id="report"></div>
     <div id="ledgerBox"></div>
