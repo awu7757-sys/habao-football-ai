@@ -93,7 +93,7 @@ flowchart TD
 | `performance.html` | 三球類公開戰績、命中走勢、驗證紀錄 | 最新預設 30D；驗證紀錄獨立固定近 30 天 |
 | `mlb-performance.html` | MLB 戰績相關舊入口 | 和共用戰績頁的導航關係，重構前需核對 |
 | `ai-tools.html` | AI 工具箱 | 由相關開關／入口設定控制 |
-| `fund-plan-beta.html` | 資金計畫實驗頁 | 不應直接當作三階段核心功能 |
+| ~~`fund-plan-beta.html`~~ | 資金計畫實驗頁（2026-11-22 已刪除，由 VIP「智能投注配置」取代） | 後端 `fund-plan-beta` 函式待使用者在 Supabase 刪除 |
 | `admin.html` | 管理中心，會員、API、功能開關、分析與公開戰績管理等 | 實際可用模組須依當前後端核對；存在其他 admin 外掛 JS |
 | `admin-football-v2.js`、`admin-nba-v2.js`、`admin-baseball-v2.js`、`admin-nba-backtest.js` | 分球類研究／階段／回測管理畫面 | 研究資料與正式會員快照不可混用 |
 | `sports-stage-core.js` | 階段、狀態、ID、歷史分組、推薦欄位等共用純邏輯 | 前台、驗證頁、測試共用；更改會跨球類影響 |
@@ -594,5 +594,6 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
 - **11/22 改名「智能投注配置」**（使用者決定；英文小標 SMART BET ALLOCATION）：取代「投注資金工具」，頁面標題、AI 工具箱卡片、我的分析提示列同步。
 - **11/22 金色史萊姆**（使用者要求）：`habao-theme-v2.js` 在 VIP 會員的每個頁面（login 除外）加一顆金色史萊姆（`.hb-bet-slime`，在 LINE 史萊姆上方 228px），點開兩個選項：「開始配置」（已設定預算→`bet-plan.html#plan`，否則→`budget-calculator.html`）、「週報表」（→`bet-plan.html#report`）。點外面或捲動收起。非 VIP 不顯示。只讀本機資料。theme css/js 版本 `20261122b`。
 - **11/22 移除首頁「AI 資金計畫 Beta」卡片**（使用者要求測試帳號 `google_2d3cef6b6e2d` 首頁與一般會員相同）：刪除 home-v2.html 的 `#habaoFundBetaCard` 與 `syncHabaoFundBetaEntry`。`fund-plan-beta.html` 與後端 `fund-plan-beta` 函式未動（不再有入口）。該帳號其他特例未動：維護模式可進站（home-v2／index 的 `HABAO_MAINTENANCE_BYPASS_ACCOUNT`）、足球 V2 測試帳號（後台設定 `pilot_account`）。
+- **11/22 使用者確認不再使用資金計畫 Beta**：刪除 `fund-plan-beta.html`。後端 Edge Function `fund-plan-beta`（原始碼不在 repo）與其資料表由使用者在 Supabase 後台處理（Claude 不碰後端）。足球 V2 測試帳號也不再使用：待使用者確認後台「T-2／T-15 開放給所有會員」為開啟；`football-v2-stage-member` 與 `admin-center` 程式內仍寫死 `google_2d3cef6b6e2d` 為預設測試帳號，移除屬權限類後端修改（需交叉審核＋使用者部署），待決定。
 - 第 3 步之後：AI 分配（規格第 4 節 v2，待 GPT 審核＋11/23 命中率結論）。
 - 原：第 3 步自動結算（需要正式比分：歷史資料沒有比分，可評估讀公開戰績 API 只取比分、不送任何金額）＋週報強化（依聯賽／玩法分組）。原規劃（規格見 `docs/SPEC-BET-ALLOCATION-20261122.md`）：第 2 步「我的分析」投注分配（平均／自填，每週上限 W、每日上限 W÷7、同場合計）＋投注紀錄；第 3 步賽後結算（全贏／贏半／走盤／輸半／全輸／取消退款）＋週報。結算規則依投注平台規則確認（90 分鐘、十進位歐洲盤、混合盤拆半、整數盤走盤退款、中斷未滿 82 分鐘或延遲 12 小時取消退款）。
