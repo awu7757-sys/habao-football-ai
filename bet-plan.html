@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
-<title>HABAO｜投注資金工具・本週分配</title>
+<title>HABAO｜投注資金工具・本期分配</title>
 <link rel="stylesheet" href="./habao-theme-v2.css?v=20261121i">
 <style>
 /* 2026-11-22 改版：與 budget-calculator.html 同一套黑金「資金終端」風（habao-theme-v2.css 變數） */
@@ -146,7 +146,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 </style>
 </head>
 <body data-hb-page="bankroll">
-<!-- 2026-11-22：投注資金工具 ② 本週分配＋③ 結算週報（VIP）。分析場次讀自「我的分析」本機快取；預算、金額、紀錄只存本機 localStorage，絕不上傳；唯一的網路請求是「自動對比分」讀取公開戰績 API（ai-performance／basketball-performance-api，GET，不帶任何會員資料或金額）。規格 docs/SPEC-BET-ALLOCATION-20261122.md、PROJECT_NOTES §27 -->
+<!-- 2026-11-22：投注資金工具 ② 本期分配（7 天一期）＋③ 結算週報（VIP）。分析場次讀自「我的分析」本機快取；預算、金額、紀錄只存本機 localStorage，絕不上傳；唯一的網路請求是「自動對比分」讀取公開戰績 API（ai-performance／basketball-performance-api，GET，不帶任何會員資料或金額）。規格 docs/SPEC-BET-ALLOCATION-20261122.md、PROJECT_NOTES §27 -->
 <main class="app">
   <header class="topbar">
     <div class="brand"><div class="brand-logo" aria-label="HABAO"></div><div><strong>HABAO 賽事預測 AI</strong><span>SPORTS INTELLIGENCE</span></div></div>
@@ -159,33 +159,33 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <p class="privacy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>您的資料是保密的，HB 無法查看。</p>
     <nav class="stepper" aria-label="步驟">
       <a class="step done" href="budget-calculator.html"><i>1</i>預算計算</a>
-      <a class="step on" href="#allocCard"><i>2</i>本週分配</a>
+      <a class="step on" href="#allocCard"><i>2</i>本期分配</a>
       <a class="step" href="#report-card"><i>3</i>結算週報</a>
     </nav>
   </section>
 
   <section class="frame card">
-    <div class="card-head"><h2>本週預算</h2><small id="mWeekRange">—</small></div>
+    <div class="card-head"><h2>本期預算（7 天）</h2><small id="mWeekRange">—</small></div>
     <div class="console">
       <div class="gauge">
         <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".45" stop-color="#e0a12c"/><stop offset="1" stop-color="#f2bd4b"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="50"/><circle class="used" id="gaugeArc" cx="60" cy="60" r="50" stroke-dasharray="0 315"/></svg>
         <div class="center"><div class="l">今日可用</div><div class="v" id="mDayLeft">—</div><div class="s" id="gaugeSub">—</div></div>
       </div>
       <div class="budget-in">
-        <label for="weekBudget">本週投入上限</label>
+        <label for="weekBudget">本期投入上限（7 天）</label>
         <div class="inline"><div class="amt"><span>NT$</span><input id="weekBudget" inputmode="numeric" placeholder="例如 2500"></div><button class="btn main" id="saveBudget" type="button">儲存</button></div>
         <div class="err" id="budgetErr"></div>
-        <div class="seg" id="poolSeg" style="margin-top:10px"><button class="btn on" data-pool="daily" type="button">每日上限<small>週 ÷ 7</small></button><button class="btn" data-pool="week" type="button">週池模式<small>不限每日</small></button></div>
+        <div class="seg" id="poolSeg" style="margin-top:10px"><button class="btn on" data-pool="daily" type="button">每日上限<small>本期 ÷ 7</small></button><button class="btn" data-pool="week" type="button">週池模式<small>7 天不限每日</small></button></div>
         <div class="hint" id="poolHint"></div>
-        <div class="weekbar"><div class="top"><span>本週已用 <b id="mWeekUsed">—</b></span><span>剩餘 <b id="mWeekLeft">—</b></span></div><div class="bar"><span id="weekBarFill" style="width:0"></span></div></div>
+        <div class="weekbar"><div class="top"><span>本期已用 <b id="mWeekUsed">—</b></span><span>剩餘 <b id="mWeekLeft">—</b></span></div><div class="bar"><span id="weekBarFill" style="width:0"></span></div></div>
       </div>
     </div>
     <div class="grid metrics-mini">
-      <div class="metric"><div class="l" id="mDayCapLabel">今日上限（週上限 ÷ 7）</div><div class="v" id="mDayCap">—</div></div>
+      <div class="metric"><div class="l" id="mDayCapLabel">今日上限（本期 ÷ 7）</div><div class="v" id="mDayCap">—</div></div>
       <div class="metric"><div class="l">今日已投入</div><div class="v" id="mDayUsed">—</div></div>
       <div class="metric"><div class="l">最低下注</div><div class="v">NT$ 100</div></div>
     </div>
-    <p class="hint">上限只是上限，不必用完；當天沒用完的不會累積到後面，贏的錢也不會加回本週額度。取消退款的注單會釋出額度。</p>
+    <p class="hint">上限只是上限，不必用完；當天沒用完的不會累積到後面，贏的錢也不會加回本期額度。取消退款的注單會釋出額度。一期＝7 天，從第一次設定預算那天開始，期滿自動進入下一期（預算沿用，可修改），期中不能重新開始。</p>
   </section>
 
   <section class="frame soft card" id="allocCard">
@@ -198,7 +198,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 
   <section class="frame green card" id="report-card">
     <div class="card-head"><h2>結算週報</h2><small>WEEKLY REPORT</small></div>
-    <div class="weeknav"><button class="btn sm" id="wkPrev" type="button" aria-label="上一週">‹</button><div class="wk"><b id="wkLabel">本週</b><small id="wkRange"></small></div><button class="btn sm" id="wkNext" type="button" aria-label="下一週">›</button></div>
+    <div class="weeknav"><button class="btn sm" id="wkPrev" type="button" aria-label="上一期">‹</button><div class="wk"><b id="wkLabel">本期</b><small id="wkRange"></small></div><button class="btn sm" id="wkNext" type="button" aria-label="下一期">›</button></div>
     <div class="pl-hero"><div><div class="l">已結算淨損益</div><div class="v" id="plBig">—</div></div><div class="roi"><div class="l">投報率</div><div class="v" id="roiBig">—</div></div></div>
     <div class="sub-h" style="margin-top:12px">每日損益（依下注日）</div>
     <div class="days" id="dayBars" style="margin-top:4px"></div>
@@ -210,7 +210,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <div class="err" id="ledgerErr"></div>
     <div id="ledgerBox"></div>
     <div class="tools"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div>
-    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。投報率＝已結算淨損益 ÷ 已結算投入（走盤投入計入分母，取消退款與未結算不計）；損益依本工具結算規則計算（精確到 0.01 元），實際派彩以平台為準。週上限是投入額度，不是帳戶餘額。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
+    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。投報率＝已結算淨損益 ÷ 已結算投入（走盤投入計入分母，取消退款與未結算不計）；損益依本工具結算規則計算（精確到 0.01 元），實際派彩以平台為準。本期上限是投入額度，不是帳戶餘額。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 </main>
 <div class="slip" role="region" aria-label="注單合計">
@@ -232,6 +232,14 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 
   /* ---------- 共用計算（也供測試） ---------- */
   function twDate(ms){var d=new Date(ms+8*3600e3);return d.toISOString().slice(0,10);}
+  /* 2026-11-22 使用者決定：一期＝7 天，從第一次設定預算那天（台灣日期）起算，期滿自動接下一期，期中不能重開。
+     舊資料（沒有 cycle_start）沿用當週週一為起點，與既有紀錄的 week_start 對齊。 */
+  function addDays(ds,n){return new Date(Date.parse(ds+"T00:00:00Z")+n*86400e3).toISOString().slice(0,10);}
+  function periodStart(d,ms){
+    var start=d&&d.cycle_start;if(!start||!/^\d{4}-\d{2}-\d{2}$/.test(start))return d&&(d.weekly_budget||(d.bets&&d.bets.length))?weekStart(ms):twDate(ms);
+    var diff=Math.floor((Date.parse(twDate(ms)+"T00:00:00Z")-Date.parse(start+"T00:00:00Z"))/86400e3);
+    return diff<0?start:addDays(start,Math.floor(diff/7)*7);
+  }
   function weekStart(ms){var d=new Date(ms+8*3600e3);var wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
   function parseLine(v){
     var s=String(v==null?"":v).trim().replace(/[＋]/g,"+").replace(/[－—–]/g,"-").replace(/\s/g,"");
@@ -286,19 +294,19 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function withLock(fn){try{if(typeof navigator!=="undefined"&&navigator.locks&&navigator.locks.request)return navigator.locks.request(STORE_KEY,function(){return fn();});}catch(e){}return Promise.resolve().then(fn);}
   function betKey(b){return b.sport+":"+b.fixture_id+":"+b.stage+":"+b.market;}
   var SAVE_FAIL="儲存失敗，資料沒有變更。請確認瀏覽器允許本機儲存（無痕模式或空間不足可能無法儲存）。";
-  /* B5：恢復一筆已取消退款的注單時，必須仍在當天與當週上限內 */
+  /* B5：恢復一筆已取消退款的注單時，必須仍在當天與當期上限內 */
   function canRestore(d,b){
-    var W=Number(d.weekly_budget)||0;if(!W)return {ok:false,msg:"請先設定本週投入上限"};
+    var W=Number(d.weekly_budget)||0;if(!W)return {ok:false,msg:"請先設定本期投入上限"};
     var others=d.bets.filter(function(x){return x.id!==b.id&&x.result!=="void"&&x.week_start===b.week_start;});
     var wk=others.reduce(function(t,x){return t+x.stake;},0)+b.stake;
-    if(wk>W)return {ok:false,msg:"恢復後本週投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高週上限。"};
+    if(wk>W)return {ok:false,msg:"恢復後本期投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高本期上限。"};
     if(d.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+b.stake;
       if(dy>cap)return {ok:false,msg:"恢復後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"。若要更正紀錄，請先刪除當天之後新增的注單。"};}
     return {ok:true};
   }
 
   function stats(d,now){
-    var ws=weekStart(now),today=twDate(now),W=Number(d.weekly_budget)||0;
+    var ws=periodStart(d,now),today=twDate(now),W=Number(d.weekly_budget)||0;
     var week=d.bets.filter(function(b){return b.week_start===ws;});
     var active=week.filter(function(b){return b.result!=="void";});
     var used=active.reduce(function(s,b){return s+b.stake;},0);
@@ -346,15 +354,14 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     if(d.weekly_budget&&!$("weekBudget").matches(":focus"))$("weekBudget").value=d.weekly_budget;
     $("mWeekUsed").textContent=s.W?money(s.used):"—";$("mWeekLeft").textContent=s.W?money(s.weekLeft):"請先設定";
     $("mDayCap").textContent=s.W?money(s.dayCap):"—";$("mDayUsed").textContent=s.W?money(s.dayUsed):"—";$("mDayLeft").textContent=s.W?money(s.dayLeft):"—";
-    var we=new Date(Date.parse(s.ws+"T00:00:00Z")+6*86400e3).toISOString().slice(5,10);
-    $("mWeekRange").textContent=s.ws.slice(5)+"～"+we;
+    $("mWeekRange").textContent=d.cycle_start?("本期 "+s.ws.slice(5)+"～"+addDays(s.ws,6).slice(5)+"｜第 "+(Math.round((Date.parse(s.today+"T00:00:00Z")-Date.parse(s.ws+"T00:00:00Z"))/86400e3)+1)+" 天"):"設定預算後開始第一期";
     var cap=s.dayCap||0,usedPct=cap>0?Math.min(1,s.dayUsed/cap):0;
     $("gaugeArc").setAttribute("stroke-dasharray",(usedPct*314.16).toFixed(1)+" 315");
-    $("gaugeSub").textContent=s.W?("已用 "+fmt.format(s.dayUsed)+" / "+fmt.format(cap)):"請先設定週上限";
+    $("gaugeSub").textContent=s.W?("已用 "+fmt.format(s.dayUsed)+" / "+fmt.format(cap)):"請先設定本期上限";
     $("weekBarFill").style.width=(s.W?Math.min(100,s.used/s.W*100):0)+"%";
-    $("mDayCapLabel").textContent=s.pool?"今日上限（週池）":"今日上限（週 ÷ 7）";
+    $("mDayCapLabel").textContent=s.pool?"今日上限（週池）":"今日上限（本期 ÷ 7）";
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(x){x.classList.toggle("on",(x.dataset.pool==="week")===s.pool);});
-    $("poolHint").textContent=s.pool?"週池模式：整週額度可在任何一天用掉，注意可能前幾天就用完。":(s.W&&s.dayCap<MIN_BET?"每日上限不到最低下注 100 元，請提高週預算（至少 700）或改用週池模式。":"每天最多用週預算的 1/7。");
+    $("poolHint").textContent=s.pool?"週池模式：本期 7 天的額度可在任何一天用掉，注意可能前幾天就用完。":(s.W&&s.dayCap<MIN_BET?"每日上限不到最低下注 100 元，請提高本期預算（至少 700）或改用週池模式。":"每天最多用本期預算的 1/7。");
     $("poolHint").style.color=(!s.pool&&s.W&&s.dayCap<MIN_BET)?"#ff8f8f":"";
     return s;
   }
@@ -405,7 +412,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function confirm(){
     $("allocErr").textContent="";
     var d=load(),now=Date.now(),s=stats(d,now),sel=selectedPicks();
-    if(!s.W){$("allocErr").textContent="請先設定本週投入上限";return;}
+    if(!s.W){$("allocErr").textContent="請先設定本期投入上限";return;}
     if(!sel.length){$("allocErr").textContent="請先選擇場次";return;}
     var ok=true,bets=[],total=0;
     if(sel.length>maxPicks(s.dayLeft)){$("allocErr").textContent="預算只夠 "+maxPicks(s.dayLeft)+" 筆（每筆最低 100 元），請減少選擇。";return;}
@@ -441,7 +448,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   }
   var confirmBusy=false;
   var view={offset:0};
-  function weekOf(offset){var ws=weekStart(Date.now()),t=Date.parse(ws+"T00:00:00Z")+offset*7*86400e3;return new Date(t).toISOString().slice(0,10);}
+  function weekOf(offset){return addDays(periodStart(load(),Date.now()),offset*7);}
   function summarize(list){
     var settled=list.filter(function(b){return b.result&&b.result!=="void";});
     var pl=settled.reduce(function(t,b){return t+profit(b.stake,b.odds,b.result);},0),st=settled.reduce(function(t,b){return t+b.stake;},0);
@@ -452,17 +459,17 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function dayIndex(b,ws){var i=Math.round((Date.parse(String(b.placed_date)+"T00:00:00Z")-Date.parse(ws+"T00:00:00Z"))/86400e3);return isFinite(i)&&i>=0&&i<=6?i:null;}
   function cls(x){return x>0?"good":x<0?"bad":"";}
   function renderLedger(){
-    var d=load(),cur=weekStart(Date.now()),ws=weekOf(view.offset);
+    var d=load(),cur=periodStart(d,Date.now()),ws=weekOf(view.offset);
     var week=d.bets.filter(function(b){return b.week_start===ws;});
     var oldest=d.bets.reduce(function(m,b){return b.week_start<m?b.week_start:m;},cur);
     $("wkPrev").disabled=ws<=oldest;$("wkNext").disabled=view.offset>=0;
-    $("wkLabel").textContent=view.offset===0?"本週":view.offset===-1?"上週":Math.abs(view.offset)+" 週前";
+    $("wkLabel").textContent=view.offset===0?"本期":view.offset===-1?"上一期":Math.abs(view.offset)+" 期前";
     $("wkRange").textContent=ws.slice(5)+"～"+new Date(Date.parse(ws+"T00:00:00Z")+6*86400e3).toISOString().slice(5,10);
     var S=summarize(week);
     $("plBig").textContent=S.settled?money(S.pl):"—";$("plBig").className="v "+cls(S.pl);
     $("roiBig").textContent=S.roi==null?"—":(S.roi>0?"+":"")+S.roi.toFixed(1)+"%";$("roiBig").className="v "+cls(S.roi||0);
-    /* 每日損益（依開賽日，台灣時間） */
-    var names=["一","二","三","四","五","六","日"],daysPl=[0,0,0,0,0,0,0],has=[0,0,0,0,0,0,0],today=twDate(Date.now());
+    /* 每日損益（依下注日；本期第 1～7 天） */
+    var names=[0,1,2,3,4,5,6].map(function(i){return addDays(ws,i).slice(5).replace("-","/");}),daysPl=[0,0,0,0,0,0,0],has=[0,0,0,0,0,0,0],today=twDate(Date.now());
     week.forEach(function(b){if(!b.result||b.result==="void")return;var i=dayIndex(b,ws);if(i==null)return;daysPl[i]+=profit(b.stake,b.odds,b.result);has[i]=1;});
     var mx=Math.max.apply(null,daysPl.map(Math.abs).concat([1]));
     $("dayBars").innerHTML=daysPl.map(function(v,i){var hgt=Math.round(Math.abs(v)/mx*33);var date=new Date(Date.parse(ws+"T00:00:00Z")+i*86400e3).toISOString().slice(0,10);
@@ -479,7 +486,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     var rows=Object.keys(MARKET).map(function(mk){var l=week.filter(function(b){return b.market===mk;});return l.length?[MARKET[mk],summarize(l)]:null;}).filter(Boolean);
     $("byMarket").innerHTML=rows.length?'<table class="mtable"><thead><tr><th>玩法</th><th>注數</th><th>命中</th><th>投入</th><th>損益</th><th>投報</th></tr></thead><tbody>'+rows.map(function(r){var x=r[1];return '<tr><td>'+r[0]+'</td><td>'+x.n+'</td><td>'+(x.hit==null?"—":x.hit.toFixed(0)+"%")+'</td><td>'+fmt.format(x.stake)+'</td><td class="'+cls(x.pl)+'">'+(x.settled?(x.pl>0?"+":"")+fmt.format(Math.round(x.pl)):"—")+'</td><td class="'+cls(x.roi||0)+'">'+(x.roi==null?"—":x.roi.toFixed(0)+"%")+'</td></tr>';}).join("")+'</tbody></table>':'<div class="hint">還沒有資料。</div>';
     var list=week.slice().sort(function(a,b){return Date.parse(b.kickoff)-Date.parse(a.kickoff);});
-    if(!list.length){$("ledgerBox").innerHTML='<div class="empty">'+(view.offset===0?"本週":"這週")+'還沒有紀錄。</div>';return;}
+    if(!list.length){$("ledgerBox").innerHTML='<div class="empty">'+(view.offset===0?"本期":"這期")+'還沒有紀錄。</div>';return;}
     $("ledgerBox").innerHTML=list.map(function(b){
       var p=b.result?profit(b.stake,b.odds,b.result):null;
       var c=b.result==="win"||b.result==="half_win"?"win":(b.result==="loss"||b.result==="half_loss"?"loss":"");
@@ -552,8 +559,10 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       var v=String($("weekBudget").value).replace(/[,\s]/g,"");$("budgetErr").textContent="";
       if(!/^\d+$/.test(v)||Number(v)<100||Number(v)>1e8){$("budgetErr").textContent="請輸入 100 以上的整數金額";return;}
       var d=load(),s=stats(d,Date.now());
-      if(Number(v)<s.used){$("budgetErr").textContent="不能低於本週已投入 "+money(s.used);return;}
-      var old=d.weekly_budget;d.weekly_budget=Number(v);if(!save(d)){d.weekly_budget=old;$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();
+      if(Number(v)<s.used){$("budgetErr").textContent="不能低於本期已投入 "+money(s.used);return;}
+      var old=d.weekly_budget,oldStart=d.cycle_start;d.weekly_budget=Number(v);
+      if(!d.cycle_start)d.cycle_start=(old||d.bets.length)?weekStart(Date.now()):twDate(Date.now());
+      if(!save(d)){d.weekly_budget=old;d.cycle_start=oldStart;$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();
     };
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){var d=load();d.pool_mode=b.dataset.pool==="week"?"week":"daily";if(!save(d)){$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();};});
     $("confirmBtn").onclick=confirm;
@@ -574,7 +583,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     window.addEventListener("storage",function(e){if(e.key===STORE_KEY){renderBudget();renderImport();renderLedger();}});
     renderBudget();renderImport();renderLedger();
   }
-  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
+  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
 })();
 </script>
 </body>

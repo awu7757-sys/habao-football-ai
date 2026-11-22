@@ -37,4 +37,12 @@ const d={weekly_budget:700,bets:[{id:'a',week_start:'2026-11-16',placed_date:'20
 ok(!B.canRestore(d,d.bets[0]).ok,'恢復後超過每日上限 100 要擋');
 d.pool_mode='week';ok(B.canRestore(d,d.bets[0]).ok,'週池內可恢復');
 d.weekly_budget=150;ok(!B.canRestore(d,d.bets[0]).ok,'超過週上限要擋');
+// 7 天一期
+eq(B.periodStart({cycle_start:'2026-11-22'},Date.parse('2026-11-22T04:00:00Z')),'2026-11-22');
+eq(B.periodStart({cycle_start:'2026-11-22'},Date.parse('2026-11-28T15:59:00Z')),'2026-11-22','第 7 天 23:59 仍在第一期');
+eq(B.periodStart({cycle_start:'2026-11-22'},Date.parse('2026-11-28T16:00:00Z')),'2026-11-29','第 8 天進下一期');
+eq(B.periodStart({cycle_start:'2026-11-22'},Date.parse('2026-12-10T04:00:00Z')),'2026-12-06');
+eq(B.periodStart({},Date.parse('2026-11-25T04:00:00Z')),'2026-11-25','未設定前以今天暫代');
+eq(B.periodStart({weekly_budget:2500,bets:[]},Date.parse('2026-11-25T04:00:00Z')),'2026-11-23','舊資料沿用週一');
+eq(B.stats({cycle_start:'2026-11-20',weekly_budget:700,bets:[{week_start:'2026-11-20',placed_date:'2026-11-22',stake:100,result:null}]},Date.parse('2026-11-22T04:00:00Z')).dayLeft,0);
 console.log('bet-plan regression: '+n+' checks passed');
