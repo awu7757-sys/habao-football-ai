@@ -1,0 +1,40 @@
+/* 投注資金工具回歸測試（GPT 審核 2026-11-22 的重現案例）。執行：node tests/bet-plan-regression.cjs */
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const html=fs.readFileSync(path.join(__dirname,'..','bet-plan.html'),'utf8');
+const js=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].pop()[1];
+global.window={};global.sessionStorage={getItem:()=>JSON.stringify({account:'t'})};global.localStorage={getItem:()=>null,setItem:()=>{}};
+eval(js);const B=window.HabaoBetPlan;let n=0;const ok=(c,m)=>{assert.ok(c,m);n++;},eq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);n++;};
+// 損益
+eq(B.profit(100,1.9,'win'),90);eq(B.profit(100,1.9,'half_win'),45);eq(B.profit(100,1.9,'push'),0);eq(B.profit(100,1.9,'void'),0);eq(B.profit(100,1.9,'half_loss'),-50);eq(B.profit(100,1.9,'loss'),-100);
+// 盤口
+eq(B.parseLine('-0.5/1'),-0.75);eq(B.parseLine('2.5/3'),2.75);ok(isNaN(B.parseLine('0.5/1.5')));eq(B.parseLine(''),null);
+// 結算
+const t=(m,p,l,h,a,e)=>eq(B.settleFromScore({market:m,rec_pick:p,line:l},h,a),e,m+p+l+' '+h+'-'+a);
+t('moneyline','主勝',null,2,1,'win');t('moneyline','和局',null,1,1,'win');t('moneyline','客隊',null,1,1,'loss');
+t('btts','是',null,1,1,'win');t('btts','否',null,1,0,'win');
+t('over_under','大',2.75,2,1,'half_win');t('over_under','小',2.25,1,1,'half_win');t('over_under','大',3,2,1,'push');
+t('handicap','主隊',-0.75,1,0,'half_win');t('handicap','主隊',-0.25,1,1,'half_loss');t('handicap','客隊',0.25,1,1,'half_win');t('handicap','主隊',-1,1,0,'push');t('handicap','主隊',null,1,0,null);
+// B1 比分驗證
+eq(B.parseScore({home_score:null,away_score:null}),null,'null 不可變 0:0');
+eq(B.parseScore({home_score:'',away_score:''}),null,'空字串不可變 0:0');
+eq(B.parseScore({home_score:1.5,away_score:2}),null,'非整數拒絕');
+eq(B.parseScore({home_score:true,away_score:false}),null,'布林拒絕');
+eq(B.parseScore({final_score:null}),null);
+eq(B.parseScore({final_score:'1-1（點球 4-3）'}),null,'含點球文字拒絕');
+eq(B.parseScore({final_score:'2-1'}),[2,1]);eq(B.parseScore({home_score:3,away_score:0}),[3,0]);eq(B.parseScore({home_score:'3',away_score:'0'}),[3,0]);
+eq(B.parseScore({home_score:2,away_score:null,final_score:'2-1'}),null,'欄位不完整不改讀 final_score');
+// 週界
+eq(B.weekStart(Date.parse('2026-11-22T15:00:00Z')),'2026-11-16');eq(B.weekStart(Date.parse('2026-11-22T16:30:00Z')),'2026-11-23');
+// 額度
+const now=Date.parse('2026-11-22T04:00:00Z');
+const st=B.stats({weekly_budget:7000,bets:[{week_start:'2026-11-16',placed_date:'2026-11-22',stake:300,result:null},{week_start:'2026-11-16',placed_date:'2026-11-22',stake:200,result:'void'},{week_start:'2026-11-16',placed_date:'2026-11-20',stake:1000,result:'win'}]},now);
+eq([st.dayCap,st.dayUsed,st.dayLeft,st.used],[1000,300,700,1300]);
+const pool=B.stats({weekly_budget:2500,pool_mode:'week',bets:[]},now);eq(pool.dayLeft,2500);eq(B.maxPicks(357),3);
+// B3 跨週：下注日決定歸日，不 clamp
+eq(B.dayIndex({placed_date:'2026-11-22'},'2026-11-16'),6);eq(B.dayIndex({placed_date:'2026-11-23'},'2026-11-16'),null);
+// B5 恢復取消退款
+const d={weekly_budget:700,bets:[{id:'a',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:'void'},{id:'b',week_start:'2026-11-16',placed_date:'2026-11-22',stake:100,result:null}]};
+ok(!B.canRestore(d,d.bets[0]).ok,'恢復後超過每日上限 100 要擋');
+d.pool_mode='week';ok(B.canRestore(d,d.bets[0]).ok,'週池內可恢復');
+d.weekly_budget=150;ok(!B.canRestore(d,d.bets[0]).ok,'超過週上限要擋');
+console.log('bet-plan regression: '+n+' checks passed');

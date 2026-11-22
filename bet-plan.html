@@ -191,7 +191,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   <section class="frame soft card" id="allocCard">
     <div class="card-head"><h2>選擇場次</h2><small>PICKS</small></div>
     <div class="seg" id="modeSeg"><button class="btn" type="button" disabled>AI 分配<small>準備中</small></button><button class="btn on" data-mode="manual" type="button">手動<small>自己決定金額</small></button></div>
-    <p class="hint">每筆預設 1 單位（NT$ 100），可自行調整（10 元為單位）。盤口填平台實際盤口（-0.5/1 或 -0.75 都可）；賠率請選「歐洲盤」，例如 1.90。</p>
+    <p class="hint">每筆預設 1 單位（NT$ 100），可自行調整（10 元為單位）。盤口填平台實際盤口（-0.5/1 或 -0.75 都可）；賠率請選「歐洲盤」，例如 1.90。讓分以兩項亞洲讓分盤計算（調整後平手＝走盤）；若您的平台是三項「讓分勝／和／負」，請自行手動結算。</p>
     <div id="importBox" style="margin-top:10px"></div>
     <div id="picksBox"></div>
   </section>
@@ -200,15 +200,17 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <div class="card-head"><h2>結算週報</h2><small>WEEKLY REPORT</small></div>
     <div class="weeknav"><button class="btn sm" id="wkPrev" type="button" aria-label="上一週">‹</button><div class="wk"><b id="wkLabel">本週</b><small id="wkRange"></small></div><button class="btn sm" id="wkNext" type="button" aria-label="下一週">›</button></div>
     <div class="pl-hero"><div><div class="l">已結算淨損益</div><div class="v" id="plBig">—</div></div><div class="roi"><div class="l">投報率</div><div class="v" id="roiBig">—</div></div></div>
-    <div class="days" id="dayBars"></div>
+    <div class="sub-h" style="margin-top:12px">每日損益（依下注日）</div>
+    <div class="days" id="dayBars" style="margin-top:4px"></div>
     <div class="grid" id="report"></div>
     <div class="sub-h">玩法表現</div>
     <div id="byMarket"></div>
     <div class="autobar"><button class="btn main" id="autoBtn" type="button">自動對比分結算</button><span class="hint" id="autoMsg" style="margin:0">賽後依公開戰績比分自動結算；找不到比分的請手動標記。</span></div>
     <div class="sub-h">注單明細</div>
+    <div class="err" id="ledgerErr"></div>
     <div id="ledgerBox"></div>
     <div class="tools"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div>
-    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。未結算的注單不計入投報率。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
+    <p class="hint">賽後請依平台結果標記：全贏、贏半、走盤、輸半、全輸，或比賽取消時標「取消退款」。投報率＝已結算淨損益 ÷ 已結算投入（走盤投入計入分母，取消退款與未結算不計）；損益依本工具結算規則計算（精確到 0.01 元），實際派彩以平台為準。週上限是投入額度，不是帳戶餘額。資料只存在這台裝置的瀏覽器，換手機或清除瀏覽器資料就會不見，需要保存請先匯出。投注有賺有賠，分配結果僅供參考。</p>
   </section>
 </main>
 <div class="slip" role="region" aria-label="注單合計">
@@ -280,6 +282,20 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   /* ---------- 本機資料 ---------- */
   function load(){try{var d=JSON.parse(localStorage.getItem(STORE_KEY)||"null");if(d&&typeof d==="object"&&Array.isArray(d.bets))return d;}catch(e){}return {weekly_budget:null,bets:[]};}
   function save(d){try{localStorage.setItem(STORE_KEY,JSON.stringify(d));return true;}catch(e){return false;}}
+  /* B2：所有寫入都在「重新讀取 → 檢查 → 寫入」內完成；支援 Web Locks 的瀏覽器跨分頁排隊 */
+  function withLock(fn){try{if(typeof navigator!=="undefined"&&navigator.locks&&navigator.locks.request)return navigator.locks.request(STORE_KEY,function(){return fn();});}catch(e){}return Promise.resolve().then(fn);}
+  function betKey(b){return b.sport+":"+b.fixture_id+":"+b.stage+":"+b.market;}
+  var SAVE_FAIL="儲存失敗，資料沒有變更。請確認瀏覽器允許本機儲存（無痕模式或空間不足可能無法儲存）。";
+  /* B5：恢復一筆已取消退款的注單時，必須仍在當天與當週上限內 */
+  function canRestore(d,b){
+    var W=Number(d.weekly_budget)||0;if(!W)return {ok:false,msg:"請先設定本週投入上限"};
+    var others=d.bets.filter(function(x){return x.id!==b.id&&x.result!=="void"&&x.week_start===b.week_start;});
+    var wk=others.reduce(function(t,x){return t+x.stake;},0)+b.stake;
+    if(wk>W)return {ok:false,msg:"恢復後本週投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高週上限。"};
+    if(d.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+b.stake;
+      if(dy>cap)return {ok:false,msg:"恢復後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"。若要更正紀錄，請先刪除當天之後新增的注單。"};}
+    return {ok:true};
+  }
 
   function stats(d,now){
     var ws=weekStart(now),today=twDate(now),W=Number(d.weekly_budget)||0;
@@ -404,14 +420,26 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       total+=stake;
       bets.push({id:now.toString(36)+"-"+Math.random().toString(36).slice(2,8),placed_at:new Date(now).toISOString(),placed_date:s.today,week_start:s.ws,sport:p.sport,fixture_id:p.fixture_id,stage:p.stage,market:p.market,kickoff:new Date(p.kickoff).toISOString(),home:p.home,away:p.away,league:p.league,rec_pick:p.pick,rec_line:p.line,line:line,odds:odds,stake:stake,mode:state.mode,result:null,settled_at:null});
     });
-    if(!ok)return;
-    var fresh=load(),fs=stats(fresh,now);
-    if(total>fs.dayLeft){$("allocErr").textContent="合計 "+money(total)+" 超過今日可用 "+money(fs.dayLeft);return;}
-    fresh.bets=fresh.bets.concat(bets);
-    if(!save(fresh)){$("allocErr").textContent="儲存失敗，請確認瀏覽器允許本機儲存";return;}
-    state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();
-    $("allocErr").textContent="";$("allocSum").textContent="已記錄 "+bets.length+" 筆，合計 "+money(total);
+    if(!ok||confirmBusy)return;
+    confirmBusy=true;$("confirmBtn").disabled=true;
+    withLock(function(){
+      var fresh=load(),fs=stats(fresh,now),have={};
+      fresh.bets.forEach(function(b){if(b.result!=="void")have[betKey(b)]=1;});
+      var dup=bets.filter(function(b){return have[betKey(b)];});
+      if(dup.length)return {err:"其中 "+dup.length+" 筆已經記錄過（可能在其他分頁），已重新整理清單，請再確認一次。",reload:true};
+      if(bets.length>maxPicks(fs.dayLeft))return {err:"額度已變動：今日只夠 "+maxPicks(fs.dayLeft)+" 筆，請重新選擇。"};
+      if(total>fs.dayLeft)return {err:"合計 "+money(total)+" 超過今日可用 "+money(fs.dayLeft)};
+      fresh.bets=fresh.bets.concat(bets);
+      if(!save(fresh))return {err:SAVE_FAIL};
+      return {ok:true};
+    }).then(function(r){
+      confirmBusy=false;$("confirmBtn").disabled=false;
+      if(!r||!r.ok){if(r&&r.reload){renderImport();}$("allocErr").textContent=(r&&r.err)||SAVE_FAIL;renderBudget();return;}
+      state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();
+      $("allocErr").textContent="";$("allocSum").textContent="已記錄 "+bets.length+" 筆，合計 "+money(total);
+    });
   }
+  var confirmBusy=false;
   var view={offset:0};
   function weekOf(offset){var ws=weekStart(Date.now()),t=Date.parse(ws+"T00:00:00Z")+offset*7*86400e3;return new Date(t).toISOString().slice(0,10);}
   function summarize(list){
@@ -420,6 +448,8 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     var w=settled.reduce(function(t,b){return t+(b.result==="win"?1:b.result==="half_win"?0.5:0);},0),dec=settled.filter(function(b){return b.result!=="push";}).length;
     return {n:list.filter(function(b){return b.result!=="void";}).length,settled:settled.length,pl:Math.round(pl*100)/100,stake:st,roi:st>0?pl/st*100:null,hit:dec?w/dec*100:null};
   }
+  /* B3：週報與額度都以「下注日」歸週，每日損益也用下注日（placed_date），不硬塞日期 */
+  function dayIndex(b,ws){var i=Math.round((Date.parse(String(b.placed_date)+"T00:00:00Z")-Date.parse(ws+"T00:00:00Z"))/86400e3);return isFinite(i)&&i>=0&&i<=6?i:null;}
   function cls(x){return x>0?"good":x<0?"bad":"";}
   function renderLedger(){
     var d=load(),cur=weekStart(Date.now()),ws=weekOf(view.offset);
@@ -433,7 +463,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("roiBig").textContent=S.roi==null?"—":(S.roi>0?"+":"")+S.roi.toFixed(1)+"%";$("roiBig").className="v "+cls(S.roi||0);
     /* 每日損益（依開賽日，台灣時間） */
     var names=["一","二","三","四","五","六","日"],daysPl=[0,0,0,0,0,0,0],has=[0,0,0,0,0,0,0],today=twDate(Date.now());
-    week.forEach(function(b){if(!b.result||b.result==="void")return;var i=Math.round((Date.parse(twDate(Date.parse(b.kickoff))+"T00:00:00Z")-Date.parse(ws+"T00:00:00Z"))/86400e3);if(i<0||i>6)i=Math.max(0,Math.min(6,i));daysPl[i]+=profit(b.stake,b.odds,b.result);has[i]=1;});
+    week.forEach(function(b){if(!b.result||b.result==="void")return;var i=dayIndex(b,ws);if(i==null)return;daysPl[i]+=profit(b.stake,b.odds,b.result);has[i]=1;});
     var mx=Math.max.apply(null,daysPl.map(Math.abs).concat([1]));
     $("dayBars").innerHTML=daysPl.map(function(v,i){var hgt=Math.round(Math.abs(v)/mx*33);var date=new Date(Date.parse(ws+"T00:00:00Z")+i*86400e3).toISOString().slice(0,10);
       return '<div class="day'+(date===today?' today':'')+'"><div class="dv">'+(has[i]?(v>0?"+":v<0?"−":"")+fmt.format(Math.abs(Math.round(v))):"")+'</div><div class="col">'+(v>0?'<div class="up" style="height:'+hgt+'px;margin-bottom:35px"></div>':v<0?'<div class="dn" style="height:'+hgt+'px;margin-top:35px"></div>':'')+'</div><div class="d">'+names[i]+'</div></div>';}).join("");
@@ -442,7 +472,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("report").innerHTML=
       '<div class="metric"><div class="l">注數</div><div class="v">'+S.n+'</div></div>'+
       '<div class="metric"><div class="l">已結算投入</div><div class="v">'+money(S.stake)+'</div></div>'+
-      '<div class="metric"><div class="l">命中率（半贏算 0.5）</div><div class="v">'+(S.hit==null?"—":S.hit.toFixed(1)+"%")+'</div></div>'+
+      '<div class="metric"><div class="l">加權命中（半贏 0.5）</div><div class="v">'+(S.hit==null?"—":S.hit.toFixed(1)+"%")+'</div></div>'+
       '<div class="metric"><div class="l">未結算</div><div class="v">'+open.length+' 筆｜'+money(open.reduce(function(t,b){return t+b.stake;},0))+'</div></div>'+
       '<div class="metric"><div class="l">贏／半／走／半／輸</div><div class="v" style="font-size:14px">'+[cnt("win"),cnt("half_win"),cnt("push"),cnt("half_loss"),cnt("loss")].join(" / ")+'</div></div>'+
       '<div class="metric"><div class="l">取消退款</div><div class="v">'+voids.length+'</div></div>';
@@ -458,40 +488,63 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
         '<div class="acts">'+(b.result?'<button class="btn sm" type="button" data-id="'+b.id+'" data-r="">改回未結算</button>':Object.keys(RESULT).map(function(r){return '<button class="btn sm" type="button" data-id="'+b.id+'" data-r="'+r+'">'+RESULT[r]+'</button>';}).join("")+'<button class="btn sm" type="button" data-id="'+b.id+'" data-del="1">刪除</button>')+'</div></div>';
     }).join("");
     [].forEach.call($("ledgerBox").querySelectorAll("button[data-id]"),function(btn){btn.onclick=function(){
-      var d2=load(),b=d2.bets.find(function(x){return x.id===btn.dataset.id;});if(!b)return;
-      if(btn.dataset.del){d2.bets=d2.bets.filter(function(x){return x.id!==b.id;});}
-      else{b.result=btn.dataset.r||null;b.settled_at=b.result?new Date().toISOString():null;b.auto=false;}
-      save(d2);renderBudget();renderImport();renderLedger();
+      $("ledgerErr").textContent="";
+      if(btn.dataset.del&&btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="再按一次刪除";setTimeout(function(){if(btn.isConnected){btn.dataset.armed="";btn.textContent="刪除";}},4000);return;}
+      withLock(function(){
+        var d2=load(),b=d2.bets.find(function(x){return x.id===btn.dataset.id;});if(!b)return {ok:true};
+        if(btn.dataset.del){d2.bets=d2.bets.filter(function(x){return x.id!==b.id;});}
+        else{
+          var next=btn.dataset.r||null;
+          if(b.result==="void"&&next!=="void"){var c=canRestore(d2,b);if(!c.ok)return {err:c.msg};}
+          b.result=next;b.settled_at=next?new Date().toISOString():null;b.auto=false;if(!next)b.score=null;
+        }
+        return save(d2)?{ok:true}:{err:SAVE_FAIL};
+      }).then(function(r){if(r&&r.err)$("ledgerErr").textContent=r.err;renderBudget();renderImport();renderLedger();});
     };});
   }
-  /* 自動對比分：只「讀」公開戰績 API（與 AI 戰績頁相同的公開資料），請求內不帶任何會員資料或金額 */
-  var SCORE_API={football:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance?days=30",basketball:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-performance-api?days=30"};
+  /* 自動對比分：只「讀」公開戰績 API（與 AI 戰績頁相同的公開資料），請求內不帶任何會員資料或金額。
+     B1：只接受「已驗證」且比分為完整非負整數的資料；NBA 比分來源契約尚未確認，先不自動結算（手動標記）。 */
+  var SCORE_API={football:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance?days=30"};
+  function intScore(v){if(typeof v==="number")return Number.isInteger(v)&&v>=0&&v<1000?v:null;if(typeof v==="string"&&/^\d{1,3}$/.test(v.trim()))return Number(v.trim());return null;}
   function parseScore(x){
-    var h=x.home_score,a=x.away_score;
-    if((h==null||a==null)&&x.final_score){var m=String(x.final_score).match(/(\d+)\s*[-:：]\s*(\d+)/);if(m){h=m[1];a=m[2];}}
-    h=Number(h);a=Number(a);return isFinite(h)&&isFinite(a)&&h>=0&&a>=0?[h,a]:null;
+    if(!x||typeof x!=="object")return null;
+    var h=intScore(x.home_score),a=intScore(x.away_score);
+    if(h!=null&&a!=null)return [h,a];
+    if(x.home_score!=null||x.away_score!=null)return null;
+    if(typeof x.final_score!=="string")return null;
+    var m=x.final_score.trim().match(/^(\d{1,3})\s*-\s*(\d{1,3})$/);
+    return m?[Number(m[1]),Number(m[2])]:null;
   }
+  function scoreUsable(sport,m){return sport==="football"?!!m.verified_at:false;}
   var autoBusy=false;
   function autoSettle(silent){
     if(autoBusy||typeof fetch!=="function")return;
     var d=load(),now=Date.now();
-    var due=d.bets.filter(function(b){return !b.result&&Date.parse(b.kickoff)+2.5*3600e3<now&&SCORE_API[b.sport];});
-    if(!due.length){if(!silent)$("autoMsg").textContent="目前沒有已完賽、待結算的注單。";return;}
+    var open=d.bets.filter(function(b){return !b.result&&Date.parse(b.kickoff)+2.5*3600e3<now;});
+    var nba=open.filter(function(b){return !SCORE_API[b.sport];}).length;
+    var due=open.filter(function(b){return SCORE_API[b.sport];});
+    var nbaMsg=nba?"NBA 等其他球類 "+nba+" 筆目前請手動標記（比分來源確認中）。":"";
+    if(!due.length){if(!silent||nba)$("autoMsg").textContent=(nbaMsg||"目前沒有已完賽、待結算的注單。");return;}
     autoBusy=true;$("autoBtn").disabled=true;$("autoMsg").textContent="讀取公開比分中…";
     var sports=due.map(function(b){return b.sport;}).filter(function(v,i,a){return a.indexOf(v)===i;});
     Promise.all(sports.map(function(sp){return fetch(SCORE_API[sp],{headers:{Accept:"application/json"},cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){return [sp,j];});})).then(function(res){
-      var map={};res.forEach(function(x){var sp=x[0],j=x[1];(j&&Array.isArray(j.matches)?j.matches:[]).forEach(function(m){var id=m.fixture_id!=null?m.fixture_id:m.game_id;var sc=parseScore(m);if(id!=null&&sc)map[sp+":"+id]=sc;});});
-      var d2=load(),done=0,miss=0;
-      d2.bets.forEach(function(b){
-        if(b.result||!(Date.parse(b.kickoff)+2.5*3600e3<now)||!SCORE_API[b.sport])return;
-        var sc=map[b.sport+":"+b.fixture_id],r=sc?settleFromScore(b,sc[0],sc[1]):null;
-        if(r){b.result=r;b.score=sc[0]+"-"+sc[1];b.auto=true;b.settled_at=new Date().toISOString();done++;}else miss++;
+      var map={};res.forEach(function(x){var sp=x[0],j=x[1];if(!j||j.success===false)return;(Array.isArray(j.matches)?j.matches:[]).forEach(function(m){if(!m||m.fixture_id==null||!scoreUsable(sp,m))return;var sc=parseScore(m);if(sc)map[sp+":"+m.fixture_id]=sc;});});
+      return withLock(function(){
+        var d2=load(),done=0,miss=0;
+        d2.bets.forEach(function(b){
+          if(b.result||!(Date.parse(b.kickoff)+2.5*3600e3<now)||!SCORE_API[b.sport])return;
+          var sc=map[b.sport+":"+b.fixture_id],r=sc?settleFromScore(b,sc[0],sc[1]):null;
+          if(r){b.result=r;b.score=sc[0]+"-"+sc[1];b.auto=true;b.settled_at=new Date().toISOString();done++;}else miss++;
+        });
+        if(done&&!save(d2))return {err:SAVE_FAIL};
+        return {done:done,miss:miss};
       });
-      if(done)save(d2);
-      $("autoMsg").textContent=(done?"已自動結算 "+done+" 筆。":"沒有可自動結算的注單。")+(miss?"另有 "+miss+" 筆找不到公開比分（可能不在公開戰績聯賽、或比分尚未驗證），請稍後再試或手動標記。":"");
+    }).then(function(r){
+      $("autoMsg").textContent=r.err?r.err:((r.done?"已自動結算 "+r.done+" 筆。":"沒有可自動結算的注單。")+(r.miss?"另有 "+r.miss+" 筆找不到已驗證的公開比分（可能尚未完賽驗證，或不在公開戰績聯賽），請稍後再試或手動標記。":"")+nbaMsg);
       renderBudget();renderImport();renderLedger();
-    }).finally(function(){autoBusy=false;$("autoBtn").disabled=false;});
+    }).catch(function(){$("autoMsg").textContent="讀取比分失敗，請稍後再試或手動標記。";}).finally(function(){autoBusy=false;$("autoBtn").disabled=false;});
   }
+
 
 
   if(typeof document!=="undefined"&&document.getElementById("weekBudget")){
@@ -500,16 +553,16 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       if(!/^\d+$/.test(v)||Number(v)<100||Number(v)>1e8){$("budgetErr").textContent="請輸入 100 以上的整數金額";return;}
       var d=load(),s=stats(d,Date.now());
       if(Number(v)<s.used){$("budgetErr").textContent="不能低於本週已投入 "+money(s.used);return;}
-      d.weekly_budget=Number(v);save(d);renderBudget();renderPicks();
+      var old=d.weekly_budget;d.weekly_budget=Number(v);if(!save(d)){d.weekly_budget=old;$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();
     };
-    [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){var d=load();d.pool_mode=b.dataset.pool==="week"?"week":"daily";save(d);renderBudget();renderPicks();};});
+    [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){var d=load();d.pool_mode=b.dataset.pool==="week"?"week":"daily";if(!save(d)){$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();};});
     $("confirmBtn").onclick=confirm;
     $("wkPrev").onclick=function(){view.offset--;renderLedger();};
     $("wkNext").onclick=function(){if(view.offset<0){view.offset++;renderLedger();}};
     $("autoBtn").onclick=function(){autoSettle(false);};
     setTimeout(function(){autoSettle(true);},600);
     $("exportBtn").onclick=function(){
-      var d=load(),cols=["placed_at","week_start","sport","fixture_id","kickoff","home","away","league","stage","market","rec_pick","line","odds","stake","result","profit"];
+      var d=load(),cols=["placed_at","week_start","sport","fixture_id","kickoff","home","away","league","stage","market","rec_pick","line","odds","stake","score","result","profit"];
       var q=function(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
       var csv="\ufeff"+cols.join(",")+"\n"+d.bets.map(function(b){return cols.map(function(c){return q(c==="profit"?(b.result?profit(b.stake,b.odds,b.result):""):c==="stage"?STAGE[b.stage]:c==="market"?MARKET[b.market]:c==="result"?(RESULT[b.result]||"未結算"):b[c]);}).join(",");}).join("\n");
       var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="habao-bet-plan.csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
@@ -518,10 +571,10 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       var b=$("wipeBtn");if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="再按一次確認刪除";setTimeout(function(){b.dataset.armed="";b.textContent="刪除本機全部資料";},4000);return;}
       try{localStorage.removeItem(STORE_KEY);}catch(e){}$("weekBudget").value="";b.dataset.armed="";b.textContent="刪除本機全部資料";state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();
     };
-    window.addEventListener("storage",function(e){if(e.key===STORE_KEY){renderBudget();renderPicks();renderLedger();}});
+    window.addEventListener("storage",function(e){if(e.key===STORE_KEY){renderBudget();renderImport();renderLedger();}});
     renderBudget();renderImport();renderLedger();
   }
-  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,settleFromScore:settleFromScore,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
+  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
 })();
 </script>
 </body>

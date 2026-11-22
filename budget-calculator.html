@@ -109,7 +109,7 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
     <div class="kpis">
       <div class="kpi in"><div class="l">總收入</div><div class="v num" id="kIn">0</div></div>
       <div class="kpi ex"><div class="l">總支出</div><div class="v num" id="kEx">0</div></div>
-      <div class="kpi wk"><div class="l">每週換算 ÷4</div><div class="v num" id="weeklyRef">—</div><div class="s">僅換算，金額由您決定</div></div>
+      <div class="kpi wk"><div class="l">每週平均（×12÷52）</div><div class="v num" id="weeklyRef">—</div><div class="s">僅換算，金額由您決定</div></div>
     </div>
   </section>
 
@@ -155,13 +155,21 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
     return {ok:true,n:n};
   }
   function calc(){
-    var tin=0,tex=0,data={};
+    var tin=0,tex=0,data={},bad=0;
     inputs.forEach(function(el){
       var r=parse(el.value),err=document.querySelector('.err[data-for="'+el.id+'"]');
       if(err)err.textContent=r.ok?"":r.msg;
-      if(r.ok){if(el.dataset.group==="in")tin+=r.n;else tex+=r.n;}
+      if(r.ok){if(el.dataset.group==="in")tin+=r.n;else tex+=r.n;}else bad++;
       data[el.id]=el.value;
     });
+    try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}
+    /* GPT 審核 B6：任何欄位無效時不顯示總計，避免可支配所得偏高 */
+    if(bad){
+      ["inTotal","exTotal"].forEach(function(id){$(id).value="待修正";});
+      ["kIn","kEx","weeklyRef","exRatio"].forEach(function(id){$(id).textContent="—";});
+      $("disposable").textContent="待修正";$("disposableWrap").classList.add("neg");
+      $("barEx").style.width="0";$("barDis").style.width="0";return;
+    }
     tin=Math.round(tin);tex=Math.round(tex);var d=tin-tex;
     $("inTotal").value=fmt.format(tin);$("exTotal").value=fmt.format(tex);
     $("kIn").textContent=fmt.format(tin);$("kEx").textContent=fmt.format(tex);
@@ -170,8 +178,7 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
     var exPct=tin>0?Math.min(100,tex/tin*100):(tex>0?100:0);
     $("exRatio").textContent=tin>0?Math.round(tex/tin*100)+"%":"—";
     $("barEx").style.width=exPct+"%";$("barDis").style.width=(tin>0&&d>0?100-exPct:0)+"%";
-    $("weeklyRef").textContent=d>0?fmt.format(Math.floor(d/4)):"—";
-    try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}
+    $("weeklyRef").textContent=d>0?fmt.format(Math.floor(d*12/52)):"—";
   }
   try{var saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved)inputs.forEach(function(el){if(saved[el.id]!=null)el.value=saved[el.id];});}catch(e){}
   inputs.forEach(function(el){el.addEventListener("input",calc);});
