@@ -152,6 +152,18 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .mtable .good{color:var(--green)}.mtable .bad{color:var(--red)}
 .autobar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
 .score{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,.07);color:#e9edf2;font-family:Georgia,serif;font-size:12px}
+/* ledger more menu */
+.bet .more{position:absolute;right:8px;top:8px;width:32px;height:28px;border:0;border-radius:8px;background:transparent;color:#8a95a3;font-size:18px;font-weight:900;line-height:1;cursor:pointer}
+.bet .more:hover,.bet .more:focus{background:rgba(255,255,255,.06);color:#e9edf2}
+.bet-menu{position:absolute;right:8px;top:38px;z-index:5;display:flex;flex-direction:column;min-width:150px;padding:6px;border-radius:12px;border:1px solid rgba(242,189,75,.35);background:#0d131c;box-shadow:0 10px 24px rgba(0,0,0,.6)}
+.bet-menu button{border:0;background:none;text-align:left;padding:10px 10px;border-radius:8px;color:#e9edf2;font-size:13px;font-weight:850;cursor:pointer}
+.bet-menu button:hover{background:rgba(255,255,255,.06)}.bet-menu .danger{color:var(--red)}
+.bet .teams{padding-right:34px}
+.bet-edit{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(242,189,75,.25)}
+.bet-edit label{display:block;margin:0 0 5px 2px;font-size:10px}
+.bet-edit input{width:100%;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);color:#f1f4f8;padding:0 10px;outline:none;text-align:right;font-family:Georgia,serif;font-size:15px}
+.bet-edit input:focus{border-color:rgba(242,189,75,.6)}
+.bet-edit-acts{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
 /* ledger */
 .bet{position:relative;margin-top:10px;padding:12px 14px;border-radius:16px;background:linear-gradient(180deg,#121a26,#0a0f16);border:1px solid rgba(255,255,255,.07)}
 .bet .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -315,13 +327,14 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function betKey(b){return b.sport+":"+b.fixture_id+":"+b.stage+":"+b.market;}
   var SAVE_FAIL="儲存失敗，資料沒有變更。請確認瀏覽器允許本機儲存（無痕模式或空間不足可能無法儲存）。";
   /* B5：恢復一筆已取消退款的注單時，必須仍在當天與當期上限內 */
-  function canRestore(d,b){
+  function canRestore(d,b,stake,verb){
     var W=Number(d.weekly_budget)||0;if(!W)return {ok:false,msg:"請先設定本期投入上限"};
+    stake=stake==null?b.stake:stake;verb=verb||"恢復";
     var others=d.bets.filter(function(x){return x.id!==b.id&&x.result!=="void"&&x.week_start===b.week_start;});
-    var wk=others.reduce(function(t,x){return t+x.stake;},0)+b.stake;
-    if(wk>W)return {ok:false,msg:"恢復後本期投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高本期上限。"};
-    if(d.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+b.stake;
-      if(dy>cap)return {ok:false,msg:"恢復後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"。若要更正紀錄，請先刪除當天之後新增的注單。"};}
+    var wk=others.reduce(function(t,x){return t+x.stake;},0)+stake;
+    if(wk>W)return {ok:false,msg:verb+"後本期投入 "+money(wk)+" 會超過上限 "+money(W)+"。若要更正紀錄，請先刪除之後新增的注單或提高本期上限。"};
+    if(d.pool_mode!=="week"){var cap=Math.floor(W/7),dy=others.filter(function(x){return x.placed_date===b.placed_date;}).reduce(function(t,x){return t+x.stake;},0)+stake;
+      if(dy>cap)return {ok:false,msg:verb+"後 "+b.placed_date.slice(5)+" 當天投入 "+money(dy)+" 會超過每日上限 "+money(cap)+"。若要更正紀錄，請先刪除當天之後新增的注單。"};}
     return {ok:true};
   }
 
@@ -478,7 +491,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     });
   }
   var confirmBusy=false;
-  var view={offset:0};
+  var view={offset:0,menu:null,edit:null};
   function weekOf(offset){return addDays(periodStart(load(),Date.now()),offset*7);}
   function summarize(list){
     var settled=list.filter(function(b){return b.result&&b.result!=="void";});
@@ -521,23 +534,38 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("ledgerBox").innerHTML=list.map(function(b){
       var p=b.result?profit(b.stake,b.odds,b.result):null;
       var c=b.result==="win"||b.result==="half_win"?"win":(b.result==="loss"||b.result==="half_loss"?"loss":"");
-      return '<div class="bet"><div class="teams">'+esc(b.home)+' vs '+esc(b.away)+(b.score?'<span class="score">'+esc(b.score)+'</span>':'')+'</div><div class="meta">'+esc(timeText(Date.parse(b.kickoff)))+'｜'+STAGE[b.stage]+'｜'+MARKET[b.market]+' <span class="rec">'+esc(b.rec_pick)+(b.line!=null?' '+esc(fmtLine(b.line,b.market==="handicap")):'')+'</span>｜賠率 '+b.odds+'｜'+money(b.stake)+'</div>'+
-        '<div class="meta">'+(b.result?'<span class="tag '+c+'">'+RESULT[b.result]+'</span> '+(b.result==="void"?'退回本金':'損益 '+money(p))+(b.auto?'（自動）':''):'<span class="tag">未結算</span>')+'</div>'+
-        '<div class="acts">'+(b.result?'<button class="btn sm" type="button" data-id="'+b.id+'" data-r="">改回未結算</button>':Object.keys(RESULT).map(function(r){return '<button class="btn sm" type="button" data-id="'+b.id+'" data-r="'+r+'">'+RESULT[r]+'</button>';}).join("")+'<button class="btn sm" type="button" data-id="'+b.id+'" data-del="1">刪除</button>')+'</div></div>';
+      var menu=view.menu===b.id?'<div class="bet-menu"><button type="button" data-id="'+b.id+'" data-act="edit">修改賠率／金額</button><button type="button" class="danger" data-id="'+b.id+'" data-act="del">刪除這筆</button></div>':'';
+      var edit=view.edit===b.id?'<div class="bet-edit"><div><label>賠率（歐洲盤）</label><input id="edOdds" inputmode="decimal" value="'+esc(b.odds)+'"></div><div><label>金額（NT$）</label><input id="edStake" inputmode="numeric" value="'+esc(b.stake)+'"></div><div class="bet-edit-acts"><button class="btn sm" type="button" data-id="'+b.id+'" data-act="cancel">取消</button><button class="btn sm main" type="button" data-id="'+b.id+'" data-act="save">儲存</button></div></div>':'';
+      return '<div class="bet"><button class="more" type="button" data-id="'+b.id+'" data-act="menu" aria-label="更多">⋯</button>'+menu+'<div class="teams">'+esc(b.home)+' vs '+esc(b.away)+(b.score?'<span class="score">'+esc(b.score)+'</span>':'')+'</div><div class="meta">'+esc(timeText(Date.parse(b.kickoff)))+'｜'+STAGE[b.stage]+'｜'+MARKET[b.market]+' <span class="rec">'+esc(b.rec_pick)+(b.line!=null?' '+esc(fmtLine(b.line,b.market==="handicap")):'')+'</span>｜賠率 '+b.odds+'｜'+money(b.stake)+'</div>'+
+        '<div class="meta">'+(b.result?'<span class="tag '+c+'">'+RESULT[b.result]+'</span> '+(b.result==="void"?'退回本金':'損益 '+money(p))+(b.auto?'（自動）':''):'<span class="tag">未結算</span>')+'</div>'+edit+
+        '<div class="acts">'+(b.result?'<button class="btn sm" type="button" data-id="'+b.id+'" data-r="">改回未結算</button>':Object.keys(RESULT).map(function(r){return '<button class="btn sm" type="button" data-id="'+b.id+'" data-r="'+r+'">'+RESULT[r]+'</button>';}).join(""))+'</div></div>';
     }).join("");
-    [].forEach.call($("ledgerBox").querySelectorAll("button[data-id]"),function(btn){btn.onclick=function(){
-      $("ledgerErr").textContent="";
-      if(btn.dataset.del&&btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="再按一次刪除";setTimeout(function(){if(btn.isConnected){btn.dataset.armed="";btn.textContent="刪除";}},4000);return;}
+    var rerender=function(){renderBudget();renderImport();renderLedger();};
+    [].forEach.call($("ledgerBox").querySelectorAll("button[data-id]"),function(btn){btn.onclick=function(e){
+      e.stopPropagation();$("ledgerErr").textContent="";var id=btn.dataset.id,act=btn.dataset.act;
+      if(act==="menu"){view.menu=view.menu===id?null:id;renderLedger();return;}
+      if(act==="edit"){view.menu=null;view.edit=id;renderLedger();var o=$("edOdds");if(o)o.focus();return;}
+      if(act==="cancel"){view.edit=null;renderLedger();return;}
+      if(act==="del"&&btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="再按一次確認刪除";setTimeout(function(){if(btn.isConnected){btn.dataset.armed="";btn.textContent="刪除這筆";}},4000);return;}
+      var newOdds,newStake;
+      if(act==="save"){
+        newOdds=parseOdds($("edOdds").value);newStake=Number(String($("edStake").value).replace(/[,\s]/g,""));
+        if(isNaN(newOdds)){$("ledgerErr").textContent="請填賠率（歐洲盤，大於 1，例：1.90）";return;}
+        if(!Number.isInteger(newStake)||newStake<MIN_BET){$("ledgerErr").textContent="金額至少 100 元（整數）";return;}
+      }
       withLock(function(){
-        var d2=load(),b=d2.bets.find(function(x){return x.id===btn.dataset.id;});if(!b)return {ok:true};
-        if(btn.dataset.del){d2.bets=d2.bets.filter(function(x){return x.id!==b.id;});}
-        else{
+        var d2=load(),b=d2.bets.find(function(x){return x.id===id;});if(!b)return {ok:true};
+        if(act==="del"){d2.bets=d2.bets.filter(function(x){return x.id!==b.id;});}
+        else if(act==="save"){
+          if(b.result!=="void"&&newStake>b.stake){var c0=canRestore(d2,b,newStake,"修改");if(!c0.ok)return {err:c0.msg};}
+          b.odds=newOdds;b.stake=newStake;b.edited_at=new Date().toISOString();
+        }else{
           var next=btn.dataset.r||null;
           if(b.result==="void"&&next!=="void"){var c=canRestore(d2,b);if(!c.ok)return {err:c.msg};}
           b.result=next;b.settled_at=next?new Date().toISOString():null;b.auto=false;if(!next)b.score=null;
         }
         return save(d2)?{ok:true}:{err:SAVE_FAIL};
-      }).then(function(r){if(r&&r.err)$("ledgerErr").textContent=r.err;renderBudget();renderImport();renderLedger();});
+      }).then(function(r){if(r&&r.err){$("ledgerErr").textContent=r.err;return;}if(act==="save"||act==="del"){view.edit=null;view.menu=null;}rerender();});
     };});
   }
   /* 自動對比分：只「讀」公開戰績 API（與 AI 戰績頁相同的公開資料），請求內不帶任何會員資料或金額。
@@ -597,6 +625,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     };
     [].forEach.call(document.querySelectorAll("#poolSeg .btn"),function(b){b.onclick=function(){var d=load();d.pool_mode=b.dataset.pool==="week"?"week":"daily";if(!save(d)){$("budgetErr").textContent=SAVE_FAIL;return;}renderBudget();renderPicks();};});
     $("confirmBtn").onclick=confirm;
+    document.addEventListener("click",function(e){if(view.menu&&!(e.target.closest&&e.target.closest(".bet-menu"))){view.menu=null;renderLedger();}});
     (function(){var btn=$("ruleBtn"),pop=$("rulePop");var set=function(open){pop.hidden=!open;btn.setAttribute("aria-expanded",open?"true":"false");};
       btn.onclick=function(e){e.stopPropagation();set(pop.hidden);};$("ruleClose").onclick=function(){set(false);};
       document.addEventListener("click",function(e){if(!pop.hidden&&!pop.contains(e.target)&&e.target!==btn)set(false);});})();
@@ -605,7 +634,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     $("autoBtn").onclick=function(){autoSettle(false);};
     setTimeout(function(){autoSettle(true);},600);
     $("exportBtn").onclick=function(){
-      var d=load(),cols=["placed_at","week_start","sport","fixture_id","kickoff","home","away","league","stage","market","rec_pick","line","odds","stake","score","result","profit"];
+      var d=load(),cols=["placed_at","edited_at","week_start","sport","fixture_id","kickoff","home","away","league","stage","market","rec_pick","line","odds","stake","score","result","profit"];
       var q=function(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
       var csv="\ufeff"+cols.join(",")+"\n"+d.bets.map(function(b){return cols.map(function(c){return q(c==="profit"?(b.result?profit(b.stake,b.odds,b.result):""):c==="stage"?STAGE[b.stage]:c==="market"?MARKET[b.market]:c==="result"?(RESULT[b.result]||"未結算"):b[c]);}).join(",");}).join("\n");
       var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="habao-bet-plan.csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
