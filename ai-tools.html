@@ -696,7 +696,7 @@
     })();
   </script>
 <script src="./habao-theme-v2.js?v=20261122c" defer></script>
-<script src="./habao-bankroll-summary.js?v=20261122a"></script>
-<script>/* 2026-11-22：智能投注配置卡片依使用狀況決定入口（只讀本機資料）。PROJECT_NOTES §27 */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null");if(!m||!window.HabaoBankroll)return;var a=document.getElementById("bankrollEntry"),t=document.getElementById("bankrollEntryText");if(!a)return;var s=window.HabaoBankroll.summary(m.account);a.href=window.HabaoBankroll.entryHref(m.account);if(t)t.textContent=!s.hasBudget?"開始使用":s.due>0?"查看週報（"+s.due+" 筆待結算）":"繼續本期分配";}catch(e){}})();</script>
+<script src="./habao-bankroll-summary.js?v=20261123a"></script>
+<script>/* 2026-11-22：智能投注配置卡片依使用狀況決定入口（只讀本機資料）。PROJECT_NOTES §27 */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null");if(!m||!window.HabaoBankroll)return;var a=document.getElementById("bankrollEntry"),t=document.getElementById("bankrollEntryText");if(!a)return;var s=window.HabaoBankroll.summary(m.account);a.href=window.HabaoBankroll.entryHref(m.account);if(t)t.textContent=!s.hasBudget?"開始使用":s.due>0?"查看週報（"+s.due+" 筆待核對）":"繼續本期分配";}catch(e){}})();</script>
 </body>
 </html>

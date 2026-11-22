@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('assert');
 const html=fs.readFileSync(path.join(__dirname,'..','bet-plan.html'),'utf8');
 const js=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].pop()[1];
-global.window={};global.sessionStorage={getItem:()=>JSON.stringify({account:'t'})};global.localStorage={getItem:()=>null,setItem:()=>{}};
+global.window={};eval(fs.readFileSync(path.join(__dirname,'..','habao-bankroll-summary.js'),'utf8'));global.sessionStorage={getItem:()=>JSON.stringify({account:'t'})};global.localStorage={getItem:()=>null,setItem:()=>{}};
 eval(js);const B=window.HabaoBetPlan;let n=0;const ok=(c,m)=>{assert.ok(c,m);n++;},eq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);n++;};
 // 損益
 eq(B.profit(100,1.9,'win'),90);eq(B.profit(100,1.9,'half_win'),45);eq(B.profit(100,1.9,'push'),0);eq(B.profit(100,1.9,'void'),0);eq(B.profit(100,1.9,'half_loss'),-50);eq(B.profit(100,1.9,'loss'),-100);

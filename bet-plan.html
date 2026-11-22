@@ -252,6 +252,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   <div class="err" id="allocErr"></div>
   <div class="slip-in"><div class="sum" id="allocSum">已選 0 筆，合計 NT$ 0</div><button class="btn main" id="confirmBtn" type="button">確認並記錄</button></div>
 </div>
+<script src="./habao-bankroll-summary.js?v=20261123a"></script>
 <script>
 (function(){
   "use strict";
@@ -266,16 +267,11 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   var RESULT={win:"全贏",half_win:"贏半",push:"走盤",half_loss:"輸半",loss:"全輸",void:"取消退款"};
 
   /* ---------- 共用計算（也供測試） ---------- */
-  function twDate(ms){var d=new Date(ms+8*3600e3);return d.toISOString().slice(0,10);}
-  /* 2026-11-22 使用者決定：一期＝7 天，從第一次設定預算那天（台灣日期）起算，期滿自動接下一期，期中不能重開。
-     舊資料（沒有 cycle_start）沿用當週週一為起點，與既有紀錄的 week_start 對齊。 */
-  function addDays(ds,n){return new Date(Date.parse(ds+"T00:00:00Z")+n*86400e3).toISOString().slice(0,10);}
-  function periodStart(d,ms){
-    var start=d&&d.cycle_start;if(!start||!/^\d{4}-\d{2}-\d{2}$/.test(start))return d&&(d.weekly_budget||(d.bets&&d.bets.length))?weekStart(ms):twDate(ms);
-    var diff=Math.floor((Date.parse(twDate(ms)+"T00:00:00Z")-Date.parse(start+"T00:00:00Z"))/86400e3);
-    return diff<0?start:addDays(start,Math.floor(diff/7)*7);
-  }
-  function weekStart(ms){var d=new Date(ms+8*3600e3);var wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
+  /* 日期、期別（7 天一期，從第一次設定預算那天起算，期中不能重開；舊資料沿用週一）與損益，
+     一律使用 habao-bankroll-summary.js 的共用函式，與「我的分析」提示列、AI 工具箱入口同一套算法。 */
+  var CORE=window.HabaoBankroll&&window.HabaoBankroll.core;
+  if(!CORE)throw new Error("habao-bankroll-summary.js 未載入");
+  var twDate=CORE.twDate,addDays=CORE.addDays,periodStart=CORE.periodStart,weekStart=CORE.weekStart;
   function parseLine(v){
     var s=String(v==null?"":v).trim().replace(/[＋]/g,"+").replace(/[－—–]/g,"-").replace(/\s/g,"");
     if(s==="")return null;
@@ -294,10 +290,8 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     return sign+abs;
   }
   function parseOdds(v){var s=String(v==null?"":v).trim();if(!/^\d+(\.\d+)?$/.test(s))return NaN;var n=Number(s);return n>1&&n<=100?n:NaN;}
-  function profit(stake,odds,result){
-    stake=Number(stake)||0;odds=Number(odds)||0;var r2=function(x){return Math.round(x*100)/100;};
-    switch(result){case "win":return r2(stake*(odds-1));case "half_win":return r2(stake*(odds-1)/2);case "push":case "void":return 0;case "half_loss":return r2(-stake/2);case "loss":return -stake;default:return null;}
-  }
+  var profit=CORE.profit;
+
   var MIN_BET=100;
   /* 依比分結算（與 ai-performance 同一套：讓分盤線以「所選隊伍」角度、混合盤拆半） */
   function splitLine(l){var q=Math.round(Math.abs(l)*4)%4;if(q===1||q===3){var lo=Math.floor(l*2)/2;return [lo,lo+0.5];}return [l];}

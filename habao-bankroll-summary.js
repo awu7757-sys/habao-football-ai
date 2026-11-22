@@ -1,5 +1,6 @@
 /* =====================================================================
-   HABAO 智能投注配置：本期摘要（2026-11-22，PROJECT_NOTES §27）
+   HABAO 智能投注配置：共用日期／期別／損益函式＋本期摘要（2026-11-22，PROJECT_NOTES §27）
+   bet-plan.html 也使用這裡的 core（window.HabaoBankroll.core），避免兩邊算法分歧。
    只在本機讀 localStorage「habao_bet_plan_v1:<account>」，不呼叫任何 API、不上傳。
    給「我的分析」提示列與 AI 工具箱卡片使用；計算口徑與 bet-plan.html 相同
    （7 天一期、從 cycle_start 起算；舊資料沿用週一；損益五種結果）。
@@ -15,9 +16,17 @@
     var diff = Math.floor((Date.parse(twDate(ms) + "T00:00:00Z") - Date.parse(start + "T00:00:00Z")) / 86400e3);
     return diff < 0 ? start : addDays(start, Math.floor(diff / 7) * 7);
   }
-  function profit(stake, odds, r) {
+  function profit(stake, odds, result) {
     stake = Number(stake) || 0; odds = Number(odds) || 0;
-    return r === "win" ? stake * (odds - 1) : r === "half_win" ? stake * (odds - 1) / 2 : r === "half_loss" ? -stake / 2 : r === "loss" ? -stake : 0;
+    var r2 = function (x) { return Math.round(x * 100) / 100; };
+    switch (result) {
+      case "win": return r2(stake * (odds - 1));
+      case "half_win": return r2(stake * (odds - 1) / 2);
+      case "push": case "void": return 0;
+      case "half_loss": return r2(-stake / 2);
+      case "loss": return -stake;
+      default: return null;
+    }
   }
   function summary(account, now) {
     now = now || Date.now();
@@ -29,7 +38,7 @@
     return {
       hasBudget: !!d.weekly_budget, periodStart: ps, periodEnd: addDays(ps, 6), bets: list.length,
       open: open.length, due: open.filter(function (b) { return Date.parse(b.kickoff) + 2.5 * 3600e3 < now; }).length,
-      settled: settled.length, pl: Math.round(settled.reduce(function (t, b) { return t + profit(b.stake, b.odds, b.result); }, 0))
+      settled: settled.length, pl: Math.round(settled.reduce(function (t, b) { return t + (profit(b.stake, b.odds, b.result) || 0); }, 0))
     };
   }
   /* 依使用狀況決定入口：沒設定預算 → ① 預算計算；有已完賽未結算 → ③ 週報；其他 → ② 本期分配 */
@@ -39,5 +48,5 @@
     if (s.due > 0) return "bet-plan.html#report";
     return "bet-plan.html#plan";
   }
-  window.HabaoBankroll = { summary: summary, entryHref: entryHref };
+  window.HabaoBankroll = { summary: summary, entryHref: entryHref, core: { twDate: twDate, weekStart: weekStart, addDays: addDays, periodStart: periodStart, profit: profit } };
 })();
