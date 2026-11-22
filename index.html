@@ -3199,6 +3199,18 @@ body.login-ready .app {
 .habao-maintenance-message{margin-top:14px;color:#d9c690;font-size:14px;line-height:1.8;white-space:pre-wrap}
 .habao-maintenance-note{margin-top:18px;color:#8f9aa8;font-size:12px}
 
+
+/* 2026-11-22：小手機（≤400px）登入按鈕文字不換行 */
+@media (max-width:400px){
+  .oauth-login-btn{grid-template-columns:52px 1px 1fr 38px !important;column-gap:12px !important;padding-left:14px !important;padding-right:12px !important}
+  .line-login-btn .oauth-icon,.google-login-btn .oauth-icon{width:50px !important;height:50px !important}
+  .line-login-btn .oauth-icon svg{width:48px !important;height:48px !important}
+  .google-login-btn .oauth-icon svg{width:40px !important;height:40px !important}
+  .oauth-btn-text{min-width:0 !important}
+  .oauth-btn-text strong{font-size:19px !important;white-space:nowrap !important}
+  .oauth-btn-text small{font-size:9.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+  .oauth-arrow{width:38px !important;height:38px !important}
+}
 /* ===== 2026-11-22 登入頁工具列：LINE 客服＋下載APP ===== */
 .hb-util-bar{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;width:100%;margin:16px auto 0;border-radius:18px;overflow:hidden;
   border:1px solid transparent;background:linear-gradient(180deg,rgba(18,26,38,.92),rgba(8,12,18,.94)) padding-box,linear-gradient(145deg,rgba(255,231,168,.55),rgba(201,138,31,.25) 45%,rgba(242,195,90,.5)) border-box;
