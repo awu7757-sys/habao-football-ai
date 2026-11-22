@@ -8,7 +8,7 @@
   const page = document.body?.dataset?.hbPage || "";
 
   /* 0. LINE 客服：使用者要求每個畫面都顯示（2026-11-22）。頁面本身沒有時才補上；連結與首頁完全相同（未改 LINE 連結）。 */
-  if (page && !document.querySelector(".habao-support-float")) {
+  if (page && page !== "login" && !document.querySelector(".habao-support-float")) {
     const a = document.createElement("a");
     a.className = "habao-support-float";
     a.href = "https://line.me/R/ti/p/@804dlhod";

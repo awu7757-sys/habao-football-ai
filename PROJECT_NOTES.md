@@ -590,7 +590,7 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - 新共用檔 `habao-bankroll-summary.js`（`window.HabaoBankroll.summary/entryHref`）：只讀本機 `habao_bet_plan_v1:<account>`，算本期注數、未結算、待結算（開賽 2.5 小時後）、已結算損益。計算口徑與 bet-plan 相同；**改 bet-plan 的期別／損益規則時要同步改這支**。
   - 「我的分析」提示列（`sports-stages.js` `betPlanLink()`）：本期有注單時顯示「本期損益 ±NT$ X｜未結算 N 筆　週報 →」（連 `bet-plan.html#report`），否則維持「想把這些推薦排進本期預算？投注分配 →」。football.html 載入 `habao-bankroll-summary.js`。
   - AI 工具箱卡片入口依狀況：沒設定預算 → 預算計算器（開始使用）；有已完賽未結算 → 週報（查看週報（N 筆待結算））；其他 → 本期分配（繼續本期分配）。
-- **11/22 LINE 客服每頁顯示**（使用者要求）：`habao-theme-v2.js` 在頁面沒有 `.habao-support-float` 時自動補上（連結與首頁相同，**沒有改 LINE 連結**），樣式基本規則加到 `habao-theme-v2.css`；ai-tools、analysis、mlb-analysis、index、bet-plan、budget-calculator 新載入 theme js。theme css/js 版本號改 `20261122a`。
+- **11/22 LINE 客服每頁顯示**（使用者要求）：`habao-theme-v2.js` 在頁面沒有 `.habao-support-float` 時自動補上（**登入頁除外**，登入頁已有「LINE 客服」按鈕；連結與首頁相同，**沒有改 LINE 連結**），樣式基本規則加到 `habao-theme-v2.css`；ai-tools、analysis、mlb-analysis、index、bet-plan、budget-calculator 新載入 theme js。theme css/js 版本號改 `20261122a`。
 - **11/22 改名「智能投注配置」**（使用者決定；英文小標 SMART BET ALLOCATION）：取代「投注資金工具」，頁面標題、AI 工具箱卡片、我的分析提示列同步。
 - **11/22 金色史萊姆**（使用者要求）：`habao-theme-v2.js` 在 VIP 會員的每個頁面（login 除外）加一顆金色史萊姆（`.hb-bet-slime`，在 LINE 史萊姆上方 228px），點開兩個選項：「開始配置」（已設定預算→`bet-plan.html#plan`，否則→`budget-calculator.html`）、「週報表」（→`bet-plan.html#report`）。點外面或捲動收起。非 VIP 不顯示。只讀本機資料。theme css/js 版本 `20261122b`。
 - **11/22 移除首頁「AI 資金計畫 Beta」卡片**（使用者要求測試帳號 `google_2d3cef6b6e2d` 首頁與一般會員相同）：刪除 home-v2.html 的 `#habaoFundBetaCard` 與 `syncHabaoFundBetaEntry`。`fund-plan-beta.html` 與後端 `fund-plan-beta` 函式未動（不再有入口）。該帳號其他特例未動：維護模式可進站（home-v2／index 的 `HABAO_MAINTENANCE_BYPASS_ACCOUNT`）、足球 V2 測試帳號（後台設定 `pilot_account`）。
