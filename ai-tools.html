@@ -420,7 +420,7 @@
   </style>
   <script src="./opencc.js"></script>
   <script src="./habao-i18n.js"></script>
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261122a">
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261122b">
 </head>
 <body data-hb-page="tools">
   <main class="page">
@@ -472,15 +472,15 @@
             <a class="tool-button" href="ai-tools.html?tool=539"><span id="view539">查看工具</span> →</a>
           </article>
 
-          <!-- 2026-11-22：投注資金工具（預算計算器 → 投注分配 → 結算週報；只在本機，不上傳） -->
+          <!-- 2026-11-22：智能投注配置（預算計算器 → 投注分配 → 結算週報；只在本機，不上傳） -->
           <article class="tool-card" style="--theme:#3cdd82;--theme2:#9ff0bf;--theme-soft:rgba(60,221,130,.13);--theme-line:rgba(60,221,130,.32)">
             <div class="tool-card-top">
               <div class="tool-logo" aria-hidden="true" style="display:flex;align-items:center;justify-content:center;background:#0b1118;color:#3cdd82">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h4"/></svg>
               </div>
               <div class="tool-meta">
-                <div class="tool-kicker">BANKROLL TOOLS</div>
-                <div class="tool-name">投注資金工具</div>
+                <div class="tool-kicker">SMART BET ALLOCATION</div>
+                <div class="tool-name">智能投注配置</div>
                 <div class="tool-tags">預算計算｜本週分配｜結算週報｜資料只存在您的裝置</div>
               </div>
             </div>
@@ -1126,8 +1126,8 @@
       });
     })();
   </script>
-<script src="./habao-theme-v2.js?v=20261122a" defer></script>
+<script src="./habao-theme-v2.js?v=20261122b" defer></script>
 <script src="./habao-bankroll-summary.js?v=20261122a"></script>
-<script>/* 2026-11-22：投注資金工具卡片依使用狀況決定入口（只讀本機資料）。PROJECT_NOTES §27 */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null");if(!m||!window.HabaoBankroll)return;var a=document.getElementById("bankrollEntry"),t=document.getElementById("bankrollEntryText");if(!a)return;var s=window.HabaoBankroll.summary(m.account);a.href=window.HabaoBankroll.entryHref(m.account);if(t)t.textContent=!s.hasBudget?"開始使用":s.due>0?"查看週報（"+s.due+" 筆待結算）":"繼續本期分配";}catch(e){}})();</script>
+<script>/* 2026-11-22：智能投注配置卡片依使用狀況決定入口（只讀本機資料）。PROJECT_NOTES §27 */(function(){try{var m=JSON.parse(sessionStorage.getItem("habao_member")||"null");if(!m||!window.HabaoBankroll)return;var a=document.getElementById("bankrollEntry"),t=document.getElementById("bankrollEntryText");if(!a)return;var s=window.HabaoBankroll.summary(m.account);a.href=window.HabaoBankroll.entryHref(m.account);if(t)t.textContent=!s.hasBudget?"開始使用":s.due>0?"查看週報（"+s.due+" 筆待結算）":"繼續本期分配";}catch(e){}})();</script>
 </body>
 </html>

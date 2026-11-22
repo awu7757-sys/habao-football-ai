@@ -390,6 +390,30 @@ body[data-hb-page] .hb-slime.is-open .habao-support-float-label{opacity:1;max-wi
 @media (prefers-reduced-motion:reduce){body[data-hb-page] .hb-slime .habao-support-float-button::before,body[data-hb-page] .hb-slime .habao-support-float-button::after{animation:none}}
 @media (prefers-reduced-motion:reduce){body[data-hb-page] .hb-slime .habao-support-float-button{animation:none}}
 
+/* 智能投注配置：金色史萊姆（2026-11-22）。位置在 LINE 史萊姆上方，同樣黏右邊、半露出 */
+.hb-bet-slime{position:fixed;right:0;bottom:calc(228px + env(safe-area-inset-bottom));z-index:61;display:flex;align-items:center;flex-direction:row-reverse;gap:10px;transform:translateX(22px);transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
+.hb-bet-slime.is-open{transform:translateX(-12px)}
+.hb-bet-slime-ball{position:relative;width:60px;height:56px;padding:0;border:0;cursor:pointer;display:grid;place-items:center;color:#3a2504;
+  border-radius:58% 18% 22% 64% / 46% 30% 34% 70%;
+  background:radial-gradient(circle at 28% 26%,#fff6cc 0%,#ffd970 30%,#e0a12c 62%,#9a6412 100%);
+  box-shadow:inset -5px -7px 12px rgba(80,45,0,.35),inset 5px 5px 9px rgba(255,255,255,.55),-5px 7px 18px rgba(0,0,0,.45),0 0 20px rgba(242,189,75,.4);
+  animation:hbSlime 5.2s ease-in-out infinite;animation-delay:-1.3s;-webkit-tap-highlight-color:transparent}
+.hb-bet-slime-ball::before,.hb-bet-slime-ball::after{content:"";position:absolute;pointer-events:none;background:radial-gradient(circle at 35% 30%,#fff0b0,#f0bd4e 60%,#b57a17);box-shadow:inset -2px -3px 5px rgba(80,45,0,.3),inset 2px 2px 4px rgba(255,255,255,.45)}
+.hb-bet-slime-ball::before{top:-8px;right:26px;width:20px;height:14px;border-radius:70% 20% 40% 60% / 70% 30% 50% 40%;animation:hbBlobTop 4.2s ease-in-out infinite}
+.hb-bet-slime-ball::after{bottom:-15px;right:22px;width:13px;height:20px;border-radius:50% 50% 50% 50% / 30% 30% 70% 70%;transform-origin:top center;animation:hbDrip 6s ease-in-out infinite}
+.hb-bet-slime-ball svg{width:24px;height:24px;margin-right:12px;opacity:0;transform:scale(.6);transition:opacity .25s ease .12s,transform .3s cubic-bezier(.34,1.56,.64,1) .12s}
+.hb-bet-slime.is-open .hb-bet-slime-ball{animation:none;border-radius:50%;width:56px}
+.hb-bet-slime.is-open .hb-bet-slime-ball svg{opacity:1;transform:scale(1);margin-right:0}
+.hb-bet-slime.is-open .hb-bet-slime-ball::before,.hb-bet-slime.is-open .hb-bet-slime-ball::after{opacity:0;transition:opacity .15s}
+.hb-bet-slime-menu{display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transform:translateX(16px) scale(.96);transform-origin:right center;transition:opacity .2s ease,transform .28s cubic-bezier(.34,1.56,.64,1)}
+.hb-bet-slime.is-open .hb-bet-slime-menu{opacity:1;pointer-events:auto;transform:none}
+.hb-bet-slime-menu a{display:block;min-width:132px;padding:9px 14px;border-radius:14px;text-decoration:none;border:1.5px solid transparent;
+  background:linear-gradient(180deg,#1b2433,#0c1119) padding-box,linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12) border-box;box-shadow:0 8px 18px rgba(0,0,0,.5)}
+.hb-bet-slime-menu a b{display:block;color:#ffe7a8;font-size:14px;font-weight:950}
+.hb-bet-slime-menu a small{display:block;margin-top:2px;color:#8a95a3;font-size:10px;font-weight:800}
+.hb-bet-slime-menu a:active{transform:translateY(2px)}
+@media (prefers-reduced-motion:reduce){.hb-bet-slime-ball,.hb-bet-slime-ball::before,.hb-bet-slime-ball::after{animation:none}}
+
 /* #2 回到頂部：移到左下，避開右側「開始分析」與 LINE */
 body[data-hb-page] #habaoBackToTop{left:14px!important;right:auto!important}
 

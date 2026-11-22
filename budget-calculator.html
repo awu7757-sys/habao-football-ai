@@ -6,8 +6,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
-<title>HABAO｜投注資金工具・預算計算</title>
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261122a">
+<title>HABAO｜智能投注配置・預算計算</title>
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261122b">
 <style>
 /* 2026-11-22 改版：與主站黑金立體風一致（habao-theme-v2.css 變數），呈現改為「資金終端」式儀表 */
 :root{--max:760px;--green:#5fe39a;--red:#ff7a7a;--blue:#8fc3ff}
@@ -81,7 +81,7 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
 </style>
 </head>
 <body data-hb-page="bankroll">
-<!-- 2026-11-22：投注資金工具 ① 預算計算（VIP）。所有計算只在本機進行；本頁沒有任何網路請求，輸入值只存在本裝置的 localStorage（依帳號分開），不會上傳。見 PROJECT_NOTES §27 -->
+<!-- 2026-11-22：智能投注配置 ① 預算計算（VIP）。所有計算只在本機進行；本頁沒有任何網路請求，輸入值只存在本裝置的 localStorage（依帳號分開），不會上傳。見 PROJECT_NOTES §27 -->
 <main class="page">
   <header class="topbar">
     <div class="brand"><div class="brand-logo" aria-label="HABAO"></div><div><strong>HABAO 賽事預測 AI</strong><span>SPORTS INTELLIGENCE</span></div></div>
@@ -89,8 +89,8 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
   </header>
 
   <section class="frame hero">
-    <div class="kicker">HABAO BANKROLL TOOLS</div>
-    <h1>投注資金工具</h1>
+    <div class="kicker">HABAO SMART BET ALLOCATION</div>
+    <h1>智能投注配置</h1>
     <p class="privacy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>您的資料是保密的，HB 無法查看。</p>
     <nav class="stepper" aria-label="步驟">
       <span class="step on"><i>1</i>預算計算</span>
@@ -190,6 +190,6 @@ a{color:inherit;text-decoration:none}input,button{font:inherit}
   calc();
 })();
 </script>
-<script src="./habao-theme-v2.js?v=20261122a" defer></script>
+<script src="./habao-theme-v2.js?v=20261122b" defer></script>
 </body>
 </html>

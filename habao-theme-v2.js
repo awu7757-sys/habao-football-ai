@@ -19,6 +19,34 @@
     document.body.appendChild(a);
   }
 
+  /* 0b. 智能投注配置：金色史萊姆（VIP 才顯示，2026-11-22 使用者要求）。點一下彈出兩個選項：開始配置／週報表。
+         只讀 sessionStorage 會員等級與本機 localStorage 是否設定過預算，不呼叫 API。 */
+  (function () {
+    if (!page || page === "login" || document.querySelector(".hb-bet-slime")) return;
+    let m = null;
+    try { m = JSON.parse(sessionStorage.getItem("habao_member") || "null"); } catch (e) {}
+    if (!m || !m.account || String(m.member_level || "normal").toLowerCase() !== "vip") return;
+    let hasBudget = false;
+    try { const d = JSON.parse(localStorage.getItem("habao_bet_plan_v1:" + m.account) || "null"); hasBudget = !!(d && d.weekly_budget); } catch (e) {}
+    const wrap = document.createElement("div");
+    wrap.className = "hb-bet-slime";
+    wrap.innerHTML =
+      '<button type="button" class="hb-bet-slime-ball" aria-label="智能投注配置" aria-expanded="false">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V5M16 19v-6M21 19H3"/></svg>' +
+      '</button>' +
+      '<div class="hb-bet-slime-menu" role="menu">' +
+        '<a role="menuitem" href="' + (hasBudget ? "bet-plan.html#plan" : "budget-calculator.html") + '"><b>開始配置</b><small>' + (hasBudget ? "本期分配" : "從預算計算開始") + '</small></a>' +
+        '<a role="menuitem" href="bet-plan.html#report"><b>週報表</b><small>本期損益與結算</small></a>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    const ball = wrap.querySelector(".hb-bet-slime-ball");
+    const set = (open) => { wrap.classList.toggle("is-open", open); ball.setAttribute("aria-expanded", open ? "true" : "false"); };
+    ball.addEventListener("click", (e) => { e.stopPropagation(); set(!wrap.classList.contains("is-open")); });
+    wrap.querySelectorAll(".hb-bet-slime-menu a").forEach((a) => a.addEventListener("click", () => set(false)));
+    document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) set(false); }, true);
+    window.addEventListener("scroll", () => { if (wrap.classList.contains("is-open")) set(false); }, { passive: true });
+  })();
+
   /* 1. LINE 客服：平常黏在右邊像史萊姆，第一次點會彈出，再點才開 LINE */
   const slime = document.querySelector(".habao-support-float");
   if (slime) {

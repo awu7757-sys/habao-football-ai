@@ -62,7 +62,7 @@
   const s=window.HabaoBankroll?.summary?.(m.account);
   if(s&&s.hasBudget&&s.bets>0){const pl=s.pl,plTxt=s.settled?((pl>0?'+':pl<0?'−':'')+'NT$ '+Math.abs(pl).toLocaleString('zh-TW')):'尚未結算',col=!s.settled?'#cfd6de':pl>0?'#5fe39a':pl<0?'#ff7a7a':'#cfd6de';
     return '<a href="bet-plan.html#report" style="'+box+'"><span>本期損益 <b style="color:'+col+';font-family:Georgia,serif">'+plTxt+'</b>'+(s.open?'｜未結算 '+s.open+' 筆':'')+'</span><span style="'+go+'">週報 →</span></a>';}
-  return '<a href="'+(s&&s.hasBudget?'bet-plan.html#plan':'bet-plan.html')+'" style="'+box+'"><span>想把這些推薦排進本期預算？</span><span style="'+go+'">投注分配 →</span></a>';}
+  return '<a href="'+(s&&s.hasBudget?'bet-plan.html#plan':'bet-plan.html')+'" style="'+box+'"><span>想把這些推薦排進本期預算？</span><span style="'+go+'">智能投注配置 →</span></a>';}
  function renderHistory(rows,selectedSport=window.habaoHistorySport||'football'){
   const sp=configs[selectedSport]?selectedSport:'football';window.habaoHistorySport=sp;window.habaoHistoryAllMatches=rows||[];const groups=C.groupHistory(rows),container=document.getElementById('matchesContainer');if(!container)return;
   window.habaoAnalysisHistory={};for(const g of groups)for(const [s,row]of Object.entries(g.stages)){const key=g.sport+':'+g.game_id+':'+s;window.habaoAnalysisHistory[key]=row;}

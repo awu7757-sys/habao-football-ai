@@ -591,5 +591,7 @@ NBA T-10 獨贏 68.6%（35）、讓分 46.7%（15）、大小 50.0%（14）；NB
   - 「我的分析」提示列（`sports-stages.js` `betPlanLink()`）：本期有注單時顯示「本期損益 ±NT$ X｜未結算 N 筆　週報 →」（連 `bet-plan.html#report`），否則維持「想把這些推薦排進本期預算？投注分配 →」。football.html 載入 `habao-bankroll-summary.js`。
   - AI 工具箱卡片入口依狀況：沒設定預算 → 預算計算器（開始使用）；有已完賽未結算 → 週報（查看週報（N 筆待結算））；其他 → 本期分配（繼續本期分配）。
 - **11/22 LINE 客服每頁顯示**（使用者要求）：`habao-theme-v2.js` 在頁面沒有 `.habao-support-float` 時自動補上（連結與首頁相同，**沒有改 LINE 連結**），樣式基本規則加到 `habao-theme-v2.css`；ai-tools、analysis、mlb-analysis、index、bet-plan、budget-calculator 新載入 theme js。theme css/js 版本號改 `20261122a`。
+- **11/22 改名「智能投注配置」**（使用者決定；英文小標 SMART BET ALLOCATION）：取代「投注資金工具」，頁面標題、AI 工具箱卡片、我的分析提示列同步。
+- **11/22 金色史萊姆**（使用者要求）：`habao-theme-v2.js` 在 VIP 會員的每個頁面（login 除外）加一顆金色史萊姆（`.hb-bet-slime`，在 LINE 史萊姆上方 228px），點開兩個選項：「開始配置」（已設定預算→`bet-plan.html#plan`，否則→`budget-calculator.html`）、「週報表」（→`bet-plan.html#report`）。點外面或捲動收起。非 VIP 不顯示。只讀本機資料。theme css/js 版本 `20261122b`。
 - 第 3 步之後：AI 分配（規格第 4 節 v2，待 GPT 審核＋11/23 命中率結論）。
 - 原：第 3 步自動結算（需要正式比分：歷史資料沒有比分，可評估讀公開戰績 API 只取比分、不送任何金額）＋週報強化（依聯賽／玩法分組）。原規劃（規格見 `docs/SPEC-BET-ALLOCATION-20261122.md`）：第 2 步「我的分析」投注分配（平均／自填，每週上限 W、每日上限 W÷7、同場合計）＋投注紀錄；第 3 步賽後結算（全贏／贏半／走盤／輸半／全輸／取消退款）＋週報。結算規則依投注平台規則確認（90 分鐘、十進位歐洲盤、混合盤拆半、整數盤走盤退款、中斷未滿 82 分鐘或延遲 12 小時取消退款）。
