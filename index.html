@@ -3211,6 +3211,10 @@ body.login-ready .app {
   .oauth-btn-text small{font-size:9.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
   .oauth-arrow{width:38px !important;height:38px !important}
 }
+
+/* 2026-11-22：LINE 圖示改為官方樣式（綠底白對話框），取消霧狀光暈，只留淡淡綠光 */
+.line-login-btn .oauth-icon svg{filter:drop-shadow(0 4px 10px rgba(0,0,0,.35)) drop-shadow(0 0 10px rgba(6,199,85,.45)) !important;width:54px !important;height:54px !important}
+@media (max-width:400px){.line-login-btn .oauth-icon svg{width:46px !important;height:46px !important}}
 /* ===== 2026-11-22 登入頁工具列：LINE 客服＋下載APP ===== */
 .hb-util-bar{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;width:100%;margin:16px auto 0;border-radius:18px;overflow:hidden;
   border:1px solid transparent;background:linear-gradient(180deg,rgba(18,26,38,.92),rgba(8,12,18,.94)) padding-box,linear-gradient(145deg,rgba(255,231,168,.55),rgba(201,138,31,.25) 45%,rgba(242,195,90,.5)) border-box;
@@ -3294,7 +3298,7 @@ body.login-ready .app {
 
   <div class="brand-small">HABAO SPORTS AI</div>
 
-  <h1>HABAO 賽事預測 AI</h1>
+  <h1>賽事預測 AI</h1>
 
   <p>多維賽事數據・智能分析平台</p>
 </div>
@@ -3329,20 +3333,9 @@ body.login-ready .app {
 >
 <span class="oauth-icon line-icon" aria-hidden="true">
   <svg viewBox="0 0 48 48">
-    <path
-      fill="#06C755"
-      d="M24 7C14.06 7 6 13.62 6 21.78c0 7.31 6.46 13.43 15.18 14.58.59.13 1.39.39 1.59.9.18.46.12 1.18.06 1.65l-.25 1.56c-.08.46-.36 1.8 1.57.98 1.93-.81 10.4-6.13 14.19-10.49C40.96 28.08 42 25.1 42 21.78 42 13.62 33.94 7 24 7Z"
-    />
-    <text
-      x="24"
-      y="25.5"
-      text-anchor="middle"
-      dominant-baseline="middle"
-      fill="#ffffff"
-      font-size="8.2"
-      font-weight="800"
-      font-family="Arial, sans-serif"
-    >LINE</text>
+    <rect x="2" y="2" width="44" height="44" rx="12" fill="#06C755"/>
+    <path fill="#ffffff" d="M24 10.5c-8.6 0-15.5 5.6-15.5 12.6 0 6.2 5.5 11.4 13 12.4.5.1 1.2.3 1.4.8.2.4.1 1 0 1.4l-.2 1.3c-.1.4-.3 1.5 1.3.8 1.6-.7 8.9-5.2 12.2-9 2.2-2.4 3.3-4.9 3.3-7.7 0-7-6.9-12.6-15.5-12.6Z"/>
+    <text x="24" y="24.6" text-anchor="middle" dominant-baseline="middle" fill="#06C755" font-size="7.6" font-weight="900" font-family="Arial, Helvetica, sans-serif" letter-spacing="-.2">LINE</text>
   </svg>
 </span>
 
@@ -5760,7 +5753,7 @@ showPhoneGuide("iphone");
       splashSubtitle: "多維賽事數據・智能分析平台",
       splashSkip: "點擊畫面跳過",
 
-      loginTitle: "HABAO 賽事預測 AI",
+      loginTitle: "賽事預測 AI",
       loginSubtitle: "多維賽事數據・智能分析平台",
 
       onlinePrefix: "目前",
@@ -5844,7 +5837,7 @@ contactUs:
       splashSubtitle: "多维赛事数据・智能分析平台",
       splashSkip: "点击画面跳过",
 
-      loginTitle: "HABAO 赛事预测 AI",
+      loginTitle: "赛事预测 AI",
       loginSubtitle: "多维赛事数据・智能分析平台",
 
       onlinePrefix: "目前",
@@ -5928,7 +5921,7 @@ contactUs:
       splashSubtitle: "Multi-Dimensional Sports Data & Intelligent Analysis",
       splashSkip: "Tap anywhere to skip",
 
-      loginTitle: "HABAO Sports Prediction AI",
+      loginTitle: "Sports Prediction AI",
       loginSubtitle: "Multi-Dimensional Sports Data & Intelligent Analysis",
 
       onlinePrefix: "Currently",
