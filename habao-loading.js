@@ -1,5 +1,6 @@
 /* HABAO shared lightweight loading feedback - UI only
-   頁面在 <body data-habao-loading="bar"> 時只顯示頂部進度條，不顯示底部提示（該頁已有自己的載入文字）。 */
+   頁面在 <body data-habao-loading="bar"> 時只顯示頂部進度條，不顯示底部提示（該頁已有自己的載入文字）。
+   2026-11-22：畫面上已有自己的讀取提示（.habao-history-loading 或 [data-own-loading]）時，也只顯示頂部進度條，避免出現兩個「讀取中」。 */
 (function () {
   'use strict';
   if (window.HABAO_LOADING) return;
@@ -45,7 +46,7 @@
   }
   function show() {
     const id = ++seq;hide();
-    timer = setTimeout(() => { if(id!==seq)return;const n=node();const barOnly=document.body&&document.body.dataset.habaoLoading==='bar';if(n&&!barOnly)n.classList.add('visible');const b=document.getElementById(BAR);if(b)b.classList.add('visible'); },DELAY);
+    timer = setTimeout(() => { if(id!==seq)return;const n=node();const barOnly=document.body&&(document.body.dataset.habaoLoading==='bar'||!!document.querySelector('.habao-history-loading,[data-own-loading]'));if(n&&!barOnly)n.classList.add('visible');const b=document.getElementById(BAR);if(b)b.classList.add('visible'); },DELAY);
     timeout = setTimeout(() => { if(id===seq){++seq;pending=0;hide();} },30000);
     return id;
   }

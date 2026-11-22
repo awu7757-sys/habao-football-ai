@@ -354,7 +354,7 @@ body[data-hb-page] .habao-support-float-label{padding:3px 8px;border:1px solid r
 /* #1 LINE 客服史萊姆：黏在右邊、半露出、會呼吸晃動；點一下彈出，再點開 LINE */
 body[data-hb-page] .habao-support-float.hb-slime{
   right:0!important;bottom:calc(150px + env(safe-area-inset-bottom))!important;width:auto!important;
-  transform:translateX(22px);transition:transform .38s cubic-bezier(.34,1.56,.64,1)!important;z-index:60!important}
+  transform:translateX(30px);transition:transform .38s cubic-bezier(.34,1.56,.64,1)!important;z-index:60!important}
 body[data-hb-page] .hb-slime .habao-support-float-button{
   position:relative!important;overflow:visible!important;
   width:60px!important;height:56px!important;
@@ -391,9 +391,9 @@ body[data-hb-page] .hb-slime.is-open .habao-support-float-label{opacity:1;max-wi
 @media (prefers-reduced-motion:reduce){body[data-hb-page] .hb-slime .habao-support-float-button{animation:none}}
 
 /* 智能投注配置：金色史萊姆（2026-11-22）。位置在 LINE 史萊姆上方，同樣黏右邊、半露出 */
-.hb-bet-slime{position:fixed;right:0;bottom:calc(228px + env(safe-area-inset-bottom));z-index:61;display:flex;align-items:center;flex-direction:row-reverse;gap:10px;transform:translateX(22px);transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
+.hb-bet-slime{pointer-events:none;position:fixed;right:0;bottom:calc(228px + env(safe-area-inset-bottom));z-index:61;display:flex;align-items:center;flex-direction:row-reverse;gap:10px;transform:translateX(30px);transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
 .hb-bet-slime.is-open{transform:translateX(-12px)}
-.hb-bet-slime-ball{position:relative;width:60px;height:56px;padding:0;border:0;cursor:pointer;display:grid;place-items:center;color:#3a2504;
+.hb-bet-slime-ball{pointer-events:auto;position:relative;width:60px;height:56px;padding:0;border:0;cursor:pointer;display:grid;place-items:center;color:#3a2504;
   border-radius:58% 18% 22% 64% / 46% 30% 34% 70%;
   background:radial-gradient(circle at 28% 26%,#fff6cc 0%,#ffd970 30%,#e0a12c 62%,#9a6412 100%);
   box-shadow:inset -5px -7px 12px rgba(80,45,0,.35),inset 5px 5px 9px rgba(255,255,255,.55),-5px 7px 18px rgba(0,0,0,.45),0 0 20px rgba(242,189,75,.4);
@@ -483,3 +483,5 @@ body[data-hb-page="performance"] .hb-empty-sport p{margin:8px 0 0;font-size:12.5
 body[data-hb-page="performance"] .record-pred{font-size:11px!important;line-height:1.75!important;padding:9px 10px!important}
 body[data-hb-page="performance"] .record-result{font-size:10.5px!important;padding:7px 8px!important}
 body[data-hb-page="performance"] .record-result .result-chip{width:22px!important;height:22px!important;font-size:12px!important}
+/* 2026-11-22：收起時不占點擊範圍（避免擋到右側按鈕，例如我的分析的 MLB 分頁） */
+body[data-hb-page] .hb-slime:not(.is-open) .habao-support-float-label{display:none!important}
