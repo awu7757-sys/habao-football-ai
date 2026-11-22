@@ -121,6 +121,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 .pick-inputs input::placeholder{color:#4a5563;font-family:-apple-system,"Noto Sans TC",sans-serif;font-size:12px}
 /* slip bar */
 .slip{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,16,24,.6),rgba(5,9,14,.97) 35%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid rgba(242,189,75,.25)}
+.slip[hidden]{display:none}
 .slip-in{max-width:var(--max);margin:0 auto;display:flex;align-items:center;gap:12px}
 .slip-in .sum{flex:1;min-width:0;color:#c7cfd8;font-size:12px;font-weight:800;line-height:1.5}
 .slip-in .btn.main{min-height:46px;padding:0 18px;border-radius:14px;font-size:14px;white-space:nowrap}
@@ -245,7 +246,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <div class="tools"><button class="btn" id="exportBtn" type="button">匯出紀錄（CSV）</button><button class="btn" id="wipeBtn" type="button">刪除本機全部資料</button></div>
   </section>
 </main>
-<div class="slip" role="region" aria-label="注單合計">
+<div class="slip" id="slip" role="region" aria-label="注單合計" hidden>
   <div class="err" id="allocErr"></div>
   <div class="slip-in"><div class="sum" id="allocSum">已選 0 筆，合計 NT$ 0</div><button class="btn main" id="confirmBtn" type="button">確認並記錄</button></div>
 </div>
@@ -450,6 +451,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function updateSum(){
     var s=stats(load(),Date.now()),sel=selectedPicks(),mx=maxPicks(s.dayLeft);
     var total=sel.reduce(function(t,p){var v=currentStake(p);return t+(isFinite(v)?v:0);},0);
+    if(!slipFlash)$("slip").hidden=sel.length===0;
     $("allocSum").textContent="已選 "+sel.length+" 筆，合計 "+money(total)+"｜今日可用 "+money(s.dayLeft)+"（最多 "+mx+" 筆）";
     $("allocErr").textContent=sel.length>mx?"預算只夠 "+mx+" 筆（每筆最低 100 元），請減少選擇。":(total>s.dayLeft?"合計超過今日可用 "+money(s.dayLeft)+"，請調低金額。":"");
   }
@@ -488,9 +490,10 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       if(!r||!r.ok){if(r&&r.reload){renderImport();}$("allocErr").textContent=(r&&r.err)||SAVE_FAIL;renderBudget();return;}
       state.sel={};state.inputs={};renderBudget();renderImport();renderLedger();
       $("allocErr").textContent="";$("allocSum").textContent="已記錄 "+bets.length+" 筆，合計 "+money(total);
+      $("slip").hidden=false;slipFlash=true;setTimeout(function(){slipFlash=false;updateSum();},3000);
     });
   }
-  var confirmBusy=false;
+  var confirmBusy=false,slipFlash=false;
   var view={offset:0,menu:null,edit:null};
   function weekOf(offset){return addDays(periodStart(load(),Date.now()),offset*7);}
   function summarize(list){
