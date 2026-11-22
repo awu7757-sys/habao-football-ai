@@ -346,6 +346,11 @@ body[data-hb-page="login"] .login-wrap{padding-bottom:84px!important}
 /* =====================================================================
    第三輪（2026-11-21）：檢查清單排版調整
 ===================================================================== */
+/* LINE 客服基本樣式（2026-11-22）：首頁以外的頁面由 habao-theme-v2.js 補上按鈕時使用；首頁自身樣式相同 */
+body[data-hb-page] .habao-support-float{position:fixed;right:14px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:60;display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+body[data-hb-page] .habao-support-float-button{position:relative;width:56px;height:56px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:linear-gradient(145deg,#18d466,#06c755 58%,#049c43)}
+body[data-hb-page] .habao-support-line-icon{width:37px;height:37px;display:block}
+body[data-hb-page] .habao-support-float-label{padding:3px 8px;border:1px solid rgba(6,199,85,.22);border-radius:999px;color:#dffbea;background:rgba(5,12,9,.9);font-size:10px;font-weight:900;line-height:1.2;white-space:nowrap}
 /* #1 LINE 客服史萊姆：黏在右邊、半露出、會呼吸晃動；點一下彈出，再點開 LINE */
 body[data-hb-page] .habao-support-float.hb-slime{
   right:0!important;bottom:calc(150px + env(safe-area-inset-bottom))!important;width:auto!important;

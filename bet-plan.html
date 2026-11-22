@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
 <title>HABAO｜投注資金工具・本期分配</title>
-<link rel="stylesheet" href="./habao-theme-v2.css?v=20261121i">
+<link rel="stylesheet" href="./habao-theme-v2.css?v=20261122a">
 <style>
 /* 2026-11-22 改版：與 budget-calculator.html 同一套黑金「資金終端」風（habao-theme-v2.css 變數） */
 :root{--max:760px;--green:#5fe39a;--red:#ff7a7a;--blue:#8fc3ff}
@@ -68,6 +68,7 @@ a{color:inherit;text-decoration:none}input,button,select{font:inherit}
 .amt:focus-within{border-color:rgba(242,189,75,.6);box-shadow:0 0 0 3px rgba(242,189,75,.1)}
 .amt span{color:#6f7b89;font-size:11px;font-weight:900}
 .amt input{flex:1;min-width:0;border:0;background:transparent;outline:none;color:#f1f4f8;text-align:right;font-family:Georgia,serif;font-size:17px}
+[data-view][hidden]{display:none!important}
 .weekbar{margin-top:12px}
 .reftip{margin:6px 2px 0;color:#8a95a3;font-size:11px;font-weight:800}.reftip:empty{display:none}
 .linkbtn{border:0;background:none;padding:0 2px;color:var(--hb-gold-light);font:inherit;font-weight:950;text-decoration:underline;cursor:pointer}
@@ -188,12 +189,12 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     <p class="privacy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>您的資料是保密的，HB 無法查看。</p>
     <nav class="stepper" aria-label="步驟">
       <a class="step done" href="budget-calculator.html"><i>1</i>預算計算</a>
-      <a class="step on" href="#allocCard"><i>2</i>本期分配</a>
-      <a class="step" href="#report-card"><i>3</i>結算週報</a>
+      <a class="step on" id="stepPlan" href="#plan"><i>2</i>本期分配</a>
+      <a class="step" id="stepReport" href="#report"><i>3</i>結算週報</a>
     </nav>
   </section>
 
-  <section class="frame card">
+  <section class="frame card" data-view="plan">
     <div class="card-head"><h2>本期預算（7 天）<button class="qmark" id="ruleBtn" type="button" aria-label="為什麼這樣設計" aria-expanded="false" aria-controls="rulePop">?</button></h2><small id="mWeekRange">—</small></div>
     <div class="pop" id="rulePop" hidden>
       <button class="pop-x" id="ruleClose" type="button" aria-label="關閉">×</button>
@@ -223,14 +224,14 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     </div>
   </section>
 
-  <section class="frame soft card" id="allocCard">
+  <section class="frame soft card" id="allocCard" data-view="plan">
     <div class="card-head"><h2>選擇場次</h2><small>PICKS</small></div>
     <div class="seg" id="modeSeg"><button class="btn" type="button" disabled>AI 分配<small>準備中</small></button><button class="btn on" data-mode="manual" type="button">手動<small>自己決定金額</small></button></div>
     <div id="importBox" style="margin-top:10px"></div>
     <div id="picksBox"></div>
   </section>
 
-  <section class="frame green card" id="report-card">
+  <section class="frame green card" id="report-card" data-view="report" hidden>
     <div class="card-head"><h2>結算週報</h2><small>WEEKLY REPORT</small></div>
     <div class="weeknav"><button class="btn sm" id="wkPrev" type="button" aria-label="上一期">‹</button><div class="wk"><b id="wkLabel">本期</b><small id="wkRange"></small></div><button class="btn sm" id="wkNext" type="button" aria-label="下一期">›</button></div>
     <div class="pl-hero"><div><div class="l">已結算淨損益</div><div class="v" id="plBig">—</div></div><div class="roi"><div class="l">投報率</div><div class="v" id="roiBig">—</div></div></div>
@@ -451,7 +452,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
   function updateSum(){
     var s=stats(load(),Date.now()),sel=selectedPicks(),mx=maxPicks(s.dayLeft);
     var total=sel.reduce(function(t,p){var v=currentStake(p);return t+(isFinite(v)?v:0);},0);
-    if(!slipFlash)$("slip").hidden=sel.length===0;
+    if(!slipFlash)$("slip").hidden=sel.length===0||currentView!=="plan";
     $("allocSum").textContent="已選 "+sel.length+" 筆，合計 "+money(total)+"｜今日可用 "+money(s.dayLeft)+"（最多 "+mx+" 筆）";
     $("allocErr").textContent=sel.length>mx?"預算只夠 "+mx+" 筆（每筆最低 100 元），請減少選擇。":(total>s.dayLeft?"合計超過今日可用 "+money(s.dayLeft)+"，請調低金額。":"");
   }
@@ -493,7 +494,16 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       $("slip").hidden=false;slipFlash=true;setTimeout(function(){slipFlash=false;updateSum();},3000);
     });
   }
-  var confirmBusy=false,slipFlash=false;
+  var confirmBusy=false,slipFlash=false,currentView="plan";
+  /* ② 本期分配／③ 結算週報：同一頁切換顯示（#plan／#report），不必往下捲 */
+  function setView(v){
+    currentView=v==="report"?"report":"plan";
+    [].forEach.call(document.querySelectorAll("[data-view]"),function(el){el.hidden=el.getAttribute("data-view")!==currentView;});
+    $("stepPlan").className="step "+(currentView==="plan"?"on":"done");$("stepReport").className="step"+(currentView==="report"?" on":"");
+    document.title="HABAO｜投注資金工具・"+(currentView==="report"?"結算週報":"本期分配");
+    updateSum();
+  }
+  function viewFromHash(){var h=String(location.hash||"").replace("#","");return /^report/.test(h)?"report":"plan";}
   var view={offset:0,menu:null,edit:null};
   function weekOf(offset){return addDays(periodStart(load(),Date.now()),offset*7);}
   function summarize(list){
@@ -648,9 +658,12 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     };
     window.addEventListener("storage",function(e){if(e.key===STORE_KEY){renderBudget();renderImport();renderLedger();}});
     renderBudget();renderImport();renderLedger();
+    setView(viewFromHash());
+    window.addEventListener("hashchange",function(){setView(viewFromHash());window.scrollTo(0,0);});
   }
   window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
 })();
 </script>
+<script src="./habao-theme-v2.js?v=20261122a" defer></script>
 </body>
 </html>

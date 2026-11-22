@@ -57,7 +57,12 @@
   if(owner()!==account)return alert('會員帳號已變更，請重新登入後查看分析紀錄');if(!results.length)return error({message:'本次分析未完成：'+(failures[0]?.error||'沒有成功結果')});sessionStorage.removeItem('habao_analysis_return');sessionStorage.setItem('matchAnalysisBatch',JSON.stringify({sport:sp,results,failures,created_at:new Date().toISOString()}));sessionStorage.setItem('matchAnalysis',JSON.stringify(results[0]));navigate('analysis.html?sport='+sp+'&batch=1&item=0');
  }
  /* 2026-11-22：VIP「投注分配」入口（bet-plan.html，金額只存本機）。PROJECT_NOTES §27 */
- function betPlanLink(){try{const m=JSON.parse(sessionStorage.getItem('habao_member')||'null');if(!m||String(m.member_level||'normal').toLowerCase()!=='vip')return '';}catch(e){return '';}return '<a href="bet-plan.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 12px;padding:11px 14px;border:1px solid rgba(242,189,75,.35);border-radius:14px;background:rgba(242,189,75,.06);color:#e9edf2;font-size:13px;font-weight:800;text-decoration:none"><span>想把這些推薦排進本週預算？</span><span style="color:#ffe39d;white-space:nowrap">投注分配 →</span></a>';}
+ function betPlanLink(){let m=null;try{m=JSON.parse(sessionStorage.getItem('habao_member')||'null');}catch(e){return '';}if(!m||String(m.member_level||'normal').toLowerCase()!=='vip')return '';
+  const box='display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 12px;padding:11px 14px;border:1px solid rgba(242,189,75,.35);border-radius:14px;background:rgba(242,189,75,.06);color:#e9edf2;font-size:13px;font-weight:800;text-decoration:none',go='color:#ffe39d;white-space:nowrap';
+  const s=window.HabaoBankroll?.summary?.(m.account);
+  if(s&&s.hasBudget&&s.bets>0){const pl=s.pl,plTxt=s.settled?((pl>0?'+':pl<0?'−':'')+'NT$ '+Math.abs(pl).toLocaleString('zh-TW')):'尚未結算',col=!s.settled?'#cfd6de':pl>0?'#5fe39a':pl<0?'#ff7a7a':'#cfd6de';
+    return '<a href="bet-plan.html#report" style="'+box+'"><span>本期損益 <b style="color:'+col+';font-family:Georgia,serif">'+plTxt+'</b>'+(s.open?'｜未結算 '+s.open+' 筆':'')+'</span><span style="'+go+'">週報 →</span></a>';}
+  return '<a href="'+(s&&s.hasBudget?'bet-plan.html#plan':'bet-plan.html')+'" style="'+box+'"><span>想把這些推薦排進本期預算？</span><span style="'+go+'">投注分配 →</span></a>';}
  function renderHistory(rows,selectedSport=window.habaoHistorySport||'football'){
   const sp=configs[selectedSport]?selectedSport:'football';window.habaoHistorySport=sp;window.habaoHistoryAllMatches=rows||[];const groups=C.groupHistory(rows),container=document.getElementById('matchesContainer');if(!container)return;
   window.habaoAnalysisHistory={};for(const g of groups)for(const [s,row]of Object.entries(g.stages)){const key=g.sport+':'+g.game_id+':'+s;window.habaoAnalysisHistory[key]=row;}

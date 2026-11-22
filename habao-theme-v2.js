@@ -7,6 +7,18 @@
   "use strict";
   const page = document.body?.dataset?.hbPage || "";
 
+  /* 0. LINE 客服：使用者要求每個畫面都顯示（2026-11-22）。頁面本身沒有時才補上；連結與首頁完全相同（未改 LINE 連結）。 */
+  if (page && !document.querySelector(".habao-support-float")) {
+    const a = document.createElement("a");
+    a.className = "habao-support-float";
+    a.href = "https://line.me/R/ti/p/@804dlhod";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.setAttribute("aria-label", "LINE 客服");
+    a.innerHTML = '<span class="habao-support-float-button"><svg class="habao-support-line-icon" viewBox="0 0 64 64" aria-hidden="true"><path fill="#ffffff" d="M32 11C19.3 11 9 19.3 9 29.5c0 9.2 8.2 16.9 19.3 18.3.8.2 1.9.6 2.2 1.3.3.6.2 1.6.1 2.2l-.4 2.1c-.1.6-.5 2.4 2.1 1.3 2.6-1.1 14.1-8.3 19.2-14.2 3.5-3.9 5.5-7.9 5.5-11C57 19.3 46.7 11 32 11Z"/><text x="32" y="34.5" text-anchor="middle" fill="#06C755" font-size="12.5" font-family="Arial, Helvetica, sans-serif" font-weight="900" letter-spacing="-.5">LINE</text></svg></span><span class="habao-support-float-label">客服</span>';
+    document.body.appendChild(a);
+  }
+
   /* 1. LINE 客服：平常黏在右邊像史萊姆，第一次點會彈出，再點才開 LINE */
   const slime = document.querySelector(".habao-support-float");
   if (slime) {
