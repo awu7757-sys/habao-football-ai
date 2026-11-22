@@ -57,6 +57,8 @@ a{color:inherit;text-decoration:none}input,button,select{font:inherit}
 .amt span{color:#6f7b89;font-size:11px;font-weight:900}
 .amt input{flex:1;min-width:0;border:0;background:transparent;outline:none;color:#f1f4f8;text-align:right;font-family:Georgia,serif;font-size:17px}
 .weekbar{margin-top:12px}
+.reftip{margin:6px 2px 0;color:#8a95a3;font-size:11px;font-weight:800}.reftip:empty{display:none}
+.linkbtn{border:0;background:none;padding:0 2px;color:var(--hb-gold-light);font:inherit;font-weight:950;text-decoration:underline;cursor:pointer}
 .weekbar .top{display:flex;justify-content:space-between;color:#8a95a3;font-size:11px;font-weight:800}
 .weekbar .top b{color:#e9edf2;font-family:Georgia,serif;font-weight:700}
 .bar{display:flex;height:10px;margin-top:6px;border-radius:99px;overflow:hidden;background:#0a0f16;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
@@ -176,6 +178,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
       <div class="budget-in">
         <label for="weekBudget">本期投入上限（7 天）</label>
         <div class="inline"><div class="amt"><span>NT$</span><input id="weekBudget" inputmode="numeric" placeholder="例如 2500"></div><button class="btn main" id="saveBudget" type="button">儲存</button></div>
+        <div class="reftip" id="budgetRef"></div>
         <div class="err" id="budgetErr"></div>
         <div class="seg" id="poolSeg" style="margin-top:10px"><button class="btn on" data-pool="daily" type="button">每日上限<small>本期 ÷ 7</small></button><button class="btn" data-pool="week" type="button">週池模式<small>7 天不限每日</small></button></div>
         <div class="hint" id="poolHint"></div>
@@ -304,6 +307,17 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     return {ok:true};
   }
 
+  /* 讀上一步「預算計算器」的每週平均（同帳號、同算法：可支配 ×12÷52），只在本機讀取 */
+  function budgetWeekly(){
+    var raw=null;try{raw=JSON.parse(localStorage.getItem("habao_budget_calc_v1:"+ACCOUNT)||"null");}catch(e){}
+    if(!raw||typeof raw!=="object")return null;
+    var tin=0,tex=0,bad=false;
+    ["inWage","inPension","inBenefit","inOther","exRent","exUtil","exLoan","exOther"].forEach(function(k){
+      var v=String(raw[k]==null?"":raw[k]).replace(/[,，\s]/g,"");if(v==="")return;
+      if(!/^\d+(\.\d+)?$/.test(v)){bad=true;return;}if(k.charAt(0)==="i")tin+=Number(v);else tex+=Number(v);});
+    if(bad)return null;var d=Math.round(tin)-Math.round(tex);var w=Math.floor(d*12/52);
+    return w>=100?w:null;
+  }
   function stats(d,now){
     var ws=periodStart(d,now),today=twDate(now),W=Number(d.weekly_budget)||0;
     var week=d.bets.filter(function(b){return b.week_start===ws;});
@@ -350,7 +364,9 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
 
   function renderBudget(){
     var d=load(),s=stats(d,Date.now());
-    if(d.weekly_budget&&!$("weekBudget").matches(":focus"))$("weekBudget").value=d.weekly_budget;
+    var ref=budgetWeekly();
+    if(!$("weekBudget").matches(":focus")){if(d.weekly_budget)$("weekBudget").value=d.weekly_budget;else if(ref&&!$("weekBudget").value)$("weekBudget").value=ref;}
+    var tip=$("budgetRef");if(tip){if(ref&&Number(d.weekly_budget)!==ref){tip.innerHTML='上一步每週平均 '+money(ref)+(d.weekly_budget?' <button type="button" class="linkbtn" id="useRef">套用</button>':'，按儲存開始本期');var u=$("useRef");if(u)u.onclick=function(){$("weekBudget").value=ref;$("weekBudget").focus();};}else tip.textContent="";}
     $("mWeekUsed").textContent=s.W?money(s.used):"—";$("mWeekLeft").textContent=s.W?money(s.weekLeft):"請先設定";
     $("mDayCap").textContent=s.W?money(s.dayCap):"—";$("mDayUsed").textContent=s.W?money(s.dayUsed):"—";$("mDayLeft").textContent=s.W?money(s.dayLeft):"—";
     $("mWeekRange").textContent=d.cycle_start?("本期 "+s.ws.slice(5)+"～"+addDays(s.ws,6).slice(5)+"｜第 "+(Math.round((Date.parse(s.today+"T00:00:00Z")-Date.parse(s.ws+"T00:00:00Z"))/86400e3)+1)+" 天"):"設定預算後開始第一期";
