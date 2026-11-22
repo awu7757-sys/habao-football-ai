@@ -3471,6 +3471,17 @@ body.login-ready .app {
     <div class="shortcut-arrow">›</div>
   </a>
 
+  <button class="shortcut-card line-card app-card" id="installAppCard" type="button" style="text-align:left;font-family:inherit" aria-label="下載 APP（加入主畫面）">
+    <div class="shortcut-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18.5h4"/></svg>
+    </div>
+    <div class="shortcut-content">
+      <div class="shortcut-title" id="installAppTitle">下載APP</div>
+      <div class="shortcut-sub" id="installAppSub">加入主畫面，開啟更快</div>
+    </div>
+    <div class="shortcut-arrow">›</div>
+  </button>
+
 </div>
 
     </div>
@@ -5683,122 +5694,19 @@ window.habaoCloseSplash = () => {
 
   </div>
   
-<!-- 加入主畫面｜浮動按鈕 -->
-<div id="addHomeFloatBtn" role="button" tabindex="0" aria-label="加入主畫面">
-  <img src="./habao-football-spin.png" alt="HABAO Football">
-  <span>下載APP</span>
-</div>
+<!-- 2026-11-22：「下載APP」浮動足球已移除，改為登入面板下方的「下載 APP」卡片（#installAppCard），點擊開啟同一個加入主畫面教學視窗 -->
 <script>
 (() => {
-  const btn = document.getElementById("addHomeFloatBtn");
-  if (!btn) return;
-
-  let dragging = false;
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
-
-  btn.addEventListener("pointerdown", (e) => {
-    dragging = true;
-    moved = false;
-
-    const rect = btn.getBoundingClientRect();
-
-    startX = e.clientX;
-    startY = e.clientY;
-    startLeft = rect.left;
-    startTop = rect.top;
-
-    btn.style.left = rect.left + "px";
-    btn.style.top = rect.top + "px";
-    btn.style.right = "auto";
-    btn.style.bottom = "auto";
-
-    btn.setPointerCapture(e.pointerId);
-  });
-
-  btn.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-      moved = true;
-    }
-
-    const rect = btn.getBoundingClientRect();
-
-    let newLeft = startLeft + dx;
-    let newTop = startTop + dy;
-
-    const maxLeft = window.innerWidth - rect.width - 6;
-    const maxTop = window.innerHeight - rect.height - 6;
-
-    newLeft = Math.max(6, Math.min(newLeft, maxLeft));
-    newTop = Math.max(6, Math.min(newTop, maxTop));
-
-    btn.style.left = newLeft + "px";
-    btn.style.top = newTop + "px";
-  });
-
-btn.addEventListener("pointerup", (e) => {
-  dragging = false;
-
-  if (btn.hasPointerCapture(e.pointerId)) {
-    btn.releasePointerCapture(e.pointerId);
+  const btn = document.getElementById("installAppCard");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const m = document.getElementById("addHomeModal");
+      if (m) {
+        m.classList.add("show");
+        m.setAttribute("aria-hidden", "false");
+      }
+    });
   }
-
-  if (!moved) {
-    const modal = document.getElementById("addHomeModal");
-
-    if (modal) {
-      modal.classList.add("show");
-      modal.setAttribute("aria-hidden", "false");
-    }
-
-    return;
-  }
-
-  /*
-   * 拖曳結束後自動吸附左右兩側
-   */
-  const rect = btn.getBoundingClientRect();
-
-  const btnCenter =
-    rect.left + rect.width / 2;
-
-  const screenCenter =
-    window.innerWidth / 2;
-
-  const edgeGap = 10;
-
-  btn.style.transition =
-    "left 0.22s ease, top 0.22s ease";
-
-  if (btnCenter < screenCenter) {
-    btn.style.left =
-      edgeGap + "px";
-  } else {
-    btn.style.left =
-      Math.max(
-        edgeGap,
-        window.innerWidth -
-          rect.width -
-          edgeGap
-      ) + "px";
-  }
-
-  setTimeout(() => {
-    btn.style.transition = "";
-  }, 230);
-});
-
-  btn.addEventListener("pointercancel", () => {
-    dragging = false;
-  });
   const modal = document.getElementById("addHomeModal");
 const closeBtn = document.getElementById("closeAddHomeModal");
 
@@ -5909,6 +5817,7 @@ showPhoneGuide("iphone");
       googleLogin: "Google 登入",
       googleLoginSub: "使用 Google 帳號快速登入",
       installApp: "下載APP",
+      installSub: "加入主畫面，開啟更快",
       installTitle: "加入主畫面",
       close: "關閉",
 
@@ -5992,6 +5901,7 @@ lineLoginSub: "快速登录・立即开始分析",
 googleLogin: "Google 登录",
 googleLoginSub: "使用 Google 账号快速登录",
       installApp: "下载APP",
+      installSub: "添加到主屏幕，打开更快",
       installTitle: "添加到主屏幕",
       close: "关闭",
 
@@ -6075,6 +5985,7 @@ lineLoginSub: "Quick sign-in・Start analyzing",
 googleLogin: "Sign in with Google",
 googleLoginSub: "Use your Google account to sign in",
       installApp: "Download APP",
+      installSub: "Add to Home Screen",
       installTitle: "Add to Home Screen",
       close: "Close",
 
@@ -6394,8 +6305,11 @@ setText(
 
     const floatText =
       document.querySelector(
-        "#addHomeFloatBtn span"
+        "#installAppTitle"
       );
+
+    const installSub = document.getElementById("installAppSub");
+    if (installSub) installSub.textContent = I18N.t("installSub", installSub.textContent);
 
     if (floatText) {
       floatText.textContent =
