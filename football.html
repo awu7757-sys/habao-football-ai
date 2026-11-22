@@ -9560,6 +9560,8 @@ function renderAnalysisHistory(
       </button>
     </div>
   `;
+  // 2026-11-22：VIP「投注分配」入口（bet-plan.html，金額只存本機）。見 PROJECT_NOTES §27
+  const betPlanLinkHtml=(function(){try{const m=JSON.parse(sessionStorage.getItem("habao_member")||"null");return m&&String(m.member_level||"normal").toLowerCase()==="vip"?'<div style="margin:8px 0 4px;text-align:right"><a href="bet-plan.html" style="display:inline-block;padding:8px 14px;border-radius:12px;border:1px solid rgba(242,189,75,.4);color:#ffe39d;font-size:13px;font-weight:850;text-decoration:none">投注分配 →</a></div>':"";}catch(e){return "";}})();
 
   const nbaStageHistoryWarning=normalizedSport==="basketball"&&window.habaoNbaStageHistoryError
     ? '<div class="ai-note">NBA 階段分析紀錄暫時讀取失敗，請稍後重新整理；下方仍顯示已讀取的 T-10 紀錄。</div>' : '';
@@ -9594,7 +9596,7 @@ function renderAnalysisHistory(
       : "";
 
     container.innerHTML =
-      historyTabsHtml + nbaStageHistoryWarning +
+      historyTabsHtml + betPlanLinkHtml + nbaStageHistoryWarning +
       `
         <div class="history-sport-empty">
           <div class="history-sport-empty-icon">${emptyIcon}</div>
@@ -9926,7 +9928,7 @@ function renderAnalysisHistory(
         : "zh-TW";
 
   container.innerHTML =
-    historyTabsHtml + nbaStageHistoryWarning +
+    historyTabsHtml + betPlanLinkHtml + nbaStageHistoryWarning +
     displayMatches
       .map(match => {
 
