@@ -69,5 +69,9 @@ eq(B.sportScore('basketball',{final_score:'88-87',settlement:{}}),[88,87],'沒�
 eq(B.settleFromScore({market:'handicap',rec_pick:'主隊',line:8.5},88,87),'win');
 eq(B.settleFromScore({market:'over_under',rec_pick:'大',line:210.5},88,87),'loss');
 eq(B.settleFromScore({market:'moneyline',rec_pick:'客隊',line:null},116,96),'loss');
-ok(!B.scoreUsable('baseball',{final_score:'3-2'}),'棒球仍不自動結算');
+ok(B.scoreUsable('baseball',{game_id:776001,final_score:'5-3'}),'MLB 有 game_id＋final_score 採用');
+eq(B.sportScore('baseball',{game_id:1,final_score:'5-3'}),[5,3]);
+eq(B.sportScore('baseball',{game_id:1,final_score:'4-4'}),null,'MLB 平手拒絕');
+eq(B.sportScore('baseball',{game_id:1,final_score:'null-null'}),null,'MLB 缺比分（後端字串化 null）拒絕');
+eq(B.settleFromScore({market:'handicap',rec_pick:'客隊',line:1.5},5,4),'win');
 console.log('bet-plan regression: '+n+' checks passed');
