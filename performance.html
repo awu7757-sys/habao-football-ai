@@ -147,6 +147,7 @@
     .recent-hint{margin-top:6px;color:#708b99;font-size:7px;text-align:right}
 
     .trend-controls{padding:8px 10px 0;display:flex;gap:6px;align-items:center;justify-content:space-between}
+    .stage-pill{display:inline-flex;align-items:center;margin-left:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:950;color:#201605;background:linear-gradient(180deg,#ffd34d,#eda825);box-shadow:0 2px 0 #6b4410;white-space:nowrap}
     .perf-highlight{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:1.5px solid transparent;border-radius:16px;cursor:pointer;text-align:left;color:#fff;font-family:inherit;
       background:linear-gradient(180deg,rgba(42,34,14,.95),rgba(12,14,18,.96)) padding-box,linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12) border-box;box-shadow:0 8px 20px rgba(0,0,0,.4)}
     .perf-highlight[hidden]{display:none}
@@ -361,7 +362,7 @@
     <section class="summarybar">
       <div>
         <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
-        <div class="verified-line"><span id="verifiedMatches" class="verified-num">--</span><span class="verified-unit" data-i18n="matchUnit">場</span><span class="live-pill" data-i18n="dailyUpdate">每日更新</span></div>
+        <div class="verified-line"><span id="verifiedMatches" class="verified-num">--</span><span class="verified-unit" data-i18n="matchUnit">場</span><span class="live-pill" data-i18n="dailyUpdate">每日更新</span><span class="stage-pill" id="publicStagePill" title="公開戰績只採用賽前 T-10 正式分析">T-10 賽前分析</span></div>
       </div>
       <div class="filters">
         <button class="filter-btn active" data-days="" data-i18n="all">全部</button>
@@ -1065,6 +1066,7 @@ async function switchSport(sport){
     if(coming)coming.classList.remove("active");
 
     applySportLabels();
+    {const pill=document.getElementById("publicStagePill");if(pill)pill.textContent="T-10"+(getLang()==="en"?" pre-match":getLang()==="zh-Hans"?" 赛前分析":" 賽前分析");}
     const requestId=++performanceSportRequestId;
     history.replaceState(null,"",location.pathname+(sport==="football"?"":"?sport="+sport));
     // 頂部「已驗證賽事」用 topDays（預設全部），下方走勢與紀錄維持 30 天；兩者相同時只抓一次
@@ -1206,7 +1208,7 @@ async function fetchData(days=""){
   if(!res.ok)throw new Error(`API ${res.status}`);
   const j=await res.json();
   if(!j?.success)throw new Error(j?.error||"API failed");
-  if(base===AI_PERFORMANCE_API){const note=document.getElementById("publicStageMethodNote"),stage=String(j.public_stage||"t10"),label=stage==="t2"?"T-2 小時":stage==="t15"?"T-15 分鐘":"T-10 小時";if(note)note.textContent=`公開戰績採用 ${label} 階段。切換僅影響設定時間後開賽且有該階段快照的賽事，舊賽事不回寫；賽後依正式比分驗證。`;}
+  if(base===AI_PERFORMANCE_API){const note=document.getElementById("publicStageMethodNote"),stage=String(j.public_stage||"t10"),label=stage==="t2"?"T-2 小時":stage==="t15"?"T-15 分鐘":"T-10 小時";const pill=document.getElementById("publicStagePill");if(pill)pill.textContent=(stage==="t2"?"T-2":stage==="t15"?"T-15":"T-10")+(getLang()==="en"?" pre-match":getLang()==="zh-Hans"?" 赛前分析":" 賽前分析");if(note)note.textContent=`公開戰績採用 ${label} 階段。切換僅影響設定時間後開賽且有該階段快照的賽事，舊賽事不回寫；賽後依正式比分驗證。`;}
   if(base!==BASEBALL_PERFORMANCE_API)return j;
   const display=normalizeMlbPerformance(j,days);
   try{
@@ -1259,7 +1261,7 @@ function renderHighlight(best){
   if(!best){el.hidden=true;return;}
   const sportName=best.sport==="basketball"?"NBA":best.sport==="baseball"?"MLB":tr("football");
   const prev=currentSport;currentSport=best.sport;const mk=marketLabel(best.key);currentSport=prev;
-  el.innerHTML=`<span class="ph-tag">${getLang()==="en"?"HIGHLIGHT":"本期亮點"}</span><span class="ph-txt">${esc(sportName)} ${esc(mk)}<small>${getLang()==="en"?"Last 30 days":"近 30 天"} ${best.wins.toFixed(best.wins%1?1:0)} / ${best.decided.toFixed(best.decided%1?1:0)} ${tr("samples")}</small></span><span class="ph-rate">${best.rate.toFixed(1)}%</span>`;
+  el.innerHTML=`<span class="ph-tag">${getLang()==="en"?"HIGHLIGHT":"本期亮點"}</span><span class="ph-txt">${esc(sportName)} ${esc(mk)}<small>T-10｜${getLang()==="en"?"Last 30 days":"近 30 天"} ${best.wins.toFixed(best.wins%1?1:0)} / ${best.decided.toFixed(best.decided%1?1:0)} ${tr("samples")}</small></span><span class="ph-rate">${best.rate.toFixed(1)}%</span>`;
   el.hidden=false;el.onclick=()=>{if(currentSport!==best.sport)switchSport(best.sport);};
 }
 async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");
