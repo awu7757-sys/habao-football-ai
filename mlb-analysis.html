@@ -4547,8 +4547,10 @@ const timeText = gameDate
 </div>
     `;
 
-    /* 各市場近 30 天命中率：讀公開戰績 API（唯讀），失敗就不顯示 */
-    (async()=>{
+    /* 各市場近 30 天命中率：讀公開戰績 API（唯讀），失敗就不顯示。
+       2026-11-23 使用者決定先關閉（SHOW_MARKET_HIT_RATE=false）：等各玩法命中率都達 65% 以上再打開，打開時改這個常數即可。 */
+    const SHOW_MARKET_HIT_RATE=false;
+    if(SHOW_MARKET_HIT_RATE)(async()=>{
       try{
         const api={football:"ai-performance",basketball:"basketball-performance-api",baseball:"baseball-performance-api"}[rv2Sport];
         if(!api)return;
