@@ -56,4 +56,18 @@ ok(!B.canRestore(hist,hist.bets[0]).ok,'舊期依該期上限 700（每日 100�
 eq(B.periodPolicy(hist,'2026-11-09').budget,700);eq(B.periodPolicy(hist,'2026-11-16').budget,7000);
 // 修改金額不做同鍵檢查但檢查上限
 ok(!B.canRestore(hist,hist.bets[1],200,'修改').ok,'舊期調高金額超過該期每日上限要擋');
+// NBA 比分契約（basketball-performance-api v1.3 實際回應格式）
+const nba=(fs,h,a)=>({game_id:17188,final_score:fs,settlement:{score_projection:{final_home:h,final_away:a}}});
+ok(B.scoreUsable('basketball',nba('88-87',88,87)),'NBA 有 final_score＋settlement 才採用');
+ok(!B.scoreUsable('basketball',{game_id:1,final_score:'88-87'}),'NBA 沒有 settlement 不採用');
+eq(B.sportScore('basketball',nba('88-87',88,87)),[88,87]);
+eq(B.sportScore('basketball',nba('145-151',145,151)),[145,151]);
+eq(B.sportScore('basketball',nba('88-87',87,88)),null,'final_score 與 score_projection 不一致要拒絕');
+eq(B.sportScore('basketball',nba('100-100',100,100)),null,'NBA 平手要拒絕');
+eq(B.sportScore('basketball',{final_score:'88-87',settlement:{}}),[88,87],'沒有 score_projection 時只用 final_score');
+// 依實際資料結算：主隊 +8.5，88-87 → 全贏；大 210.5、總分 175 → 全輸；客隊獨贏、主勝 → 全輸
+eq(B.settleFromScore({market:'handicap',rec_pick:'主隊',line:8.5},88,87),'win');
+eq(B.settleFromScore({market:'over_under',rec_pick:'大',line:210.5},88,87),'loss');
+eq(B.settleFromScore({market:'moneyline',rec_pick:'客隊',line:null},116,96),'loss');
+ok(!B.scoreUsable('baseball',{final_score:'3-2'}),'棒球仍不自動結算');
 console.log('bet-plan regression: '+n+' checks passed');

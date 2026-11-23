@@ -620,8 +620,11 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     };});
   }
   /* 自動對比分：只「讀」公開戰績 API（與 AI 戰績頁相同的公開資料），請求內不帶任何會員資料或金額。
-     B1：只接受「已驗證」且比分為完整非負整數的資料；NBA 比分來源契約尚未確認，先不自動結算（手動標記）。 */
-  var SCORE_API={football:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance?days=30"};
+     B1：只接受「已驗證」且比分為完整非負整數的資料。
+     2026-11-23 NBA 契約確認（basketball-performance-api v1.3 實際回應）：只回傳已驗證場次（summary.verified_matches），
+     每場 game_id（＝會員 NBA 分析紀錄的 fixture_id／game_id）、final_score「主-客」（含延長賽），
+     settlement.score_projection.final_home／final_away 為整數；兩者都有時必須一致，NBA 不可能平手 → 平手拒絕。 */
+  var SCORE_API={football:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/ai-performance?days=30",basketball:"https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/basketball-performance-api?days=14"};
   function intScore(v){if(typeof v==="number")return Number.isInteger(v)&&v>=0&&v<1000?v:null;if(typeof v==="string"&&/^\d{1,3}$/.test(v.trim()))return Number(v.trim());return null;}
   function parseScore(x){
     if(!x||typeof x!=="object")return null;
@@ -632,7 +635,20 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     var m=x.final_score.trim().match(/^(\d{1,3})\s*-\s*(\d{1,3})$/);
     return m?[Number(m[1]),Number(m[2])]:null;
   }
-  function scoreUsable(sport,m){return sport==="football"?!!m.verified_at:false;}
+  function scoreUsable(sport,m){
+    if(sport==="football")return !!m.verified_at;
+    if(sport==="basketball")return typeof m.final_score==="string"&&!!m.settlement&&typeof m.settlement==="object";
+    return false;
+  }
+  function sportScore(sport,m){
+    var sc=parseScore(m);if(!sc)return null;
+    if(sport==="basketball"){
+      if(sc[0]===sc[1])return null;
+      var pj=m.settlement&&m.settlement.score_projection;
+      if(pj&&(pj.final_home!=null||pj.final_away!=null)){var h=intScore(pj.final_home),a=intScore(pj.final_away);if(h==null||a==null||h!==sc[0]||a!==sc[1])return null;}
+    }
+    return sc;
+  }
   var autoBusy=false;
   function autoSettle(silent){
     if(autoBusy||typeof fetch!=="function")return;
@@ -640,12 +656,12 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     var open=d.bets.filter(function(b){return !b.result&&b.settlement_mode!=="manual"&&Date.parse(b.kickoff)+2.5*3600e3<now;});
     var nba=open.filter(function(b){return !SCORE_API[b.sport];}).length;
     var due=open.filter(function(b){return SCORE_API[b.sport];});
-    var nbaMsg=nba?"NBA 等其他球類 "+nba+" 筆目前請手動標記（比分來源確認中）。":"";
+    var nbaMsg=nba?"棒球等其他球類 "+nba+" 筆請手動標記。":"";
     if(!due.length){if(!silent||nba)$("autoMsg").textContent=(nbaMsg||"目前沒有已完賽、待結算的注單。");return;}
     autoBusy=true;$("autoBtn").disabled=true;$("autoMsg").textContent="讀取公開比分中…";
     var sports=due.map(function(b){return b.sport;}).filter(function(v,i,a){return a.indexOf(v)===i;});
     Promise.all(sports.map(function(sp){return fetch(SCORE_API[sp],{headers:{Accept:"application/json"},cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){return [sp,j];});})).then(function(res){
-      var map={};res.forEach(function(x){var sp=x[0],j=x[1];if(!j||j.success===false)return;(Array.isArray(j.matches)?j.matches:[]).forEach(function(m){if(!m||m.fixture_id==null||!scoreUsable(sp,m))return;var sc=parseScore(m);if(sc)map[sp+":"+m.fixture_id]=sc;});});
+      var map={};res.forEach(function(x){var sp=x[0],j=x[1];if(!j||j.success===false)return;(Array.isArray(j.matches)?j.matches:[]).forEach(function(m){var id=m&&(m.fixture_id!=null?m.fixture_id:m.game_id);if(id==null||!scoreUsable(sp,m))return;var sc=sportScore(sp,m);if(sc)map[sp+":"+id]=sc;});});
       return withLock(function(){
         var d2=load(),done=0,miss=0;
         d2.bets.forEach(function(b){
@@ -712,7 +728,7 @@ label{color:#9aa4b2;font-size:11px;font-weight:900}
     setView(viewFromHash());
     window.addEventListener("hashchange",function(){setView(viewFromHash());window.scrollTo(0,0);});
   }
-  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,periodPolicy:periodPolicy,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
+  window.HabaoBetPlan={parseLine:parseLine,fmtLine:fmtLine,parseOdds:parseOdds,profit:profit,maxPicks:maxPicks,periodStart:periodStart,periodPolicy:periodPolicy,sportScore:sportScore,scoreUsable:scoreUsable,settleFromScore:settleFromScore,parseScore:parseScore,canRestore:canRestore,dayIndex:dayIndex,settleLine:settleLine,weekStart:weekStart,twDate:twDate,stats:stats};
 })();
 </script>
 <script src="./habao-theme-v2.js?v=20261122c" defer></script>
