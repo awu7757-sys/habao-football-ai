@@ -147,6 +147,13 @@
     .recent-hint{margin-top:6px;color:#708b99;font-size:7px;text-align:right}
 
     .trend-controls{padding:8px 10px 0;display:flex;gap:6px;align-items:center;justify-content:space-between}
+    .perf-highlight{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:1.5px solid transparent;border-radius:16px;cursor:pointer;text-align:left;color:#fff;font-family:inherit;
+      background:linear-gradient(180deg,rgba(42,34,14,.95),rgba(12,14,18,.96)) padding-box,linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12) border-box;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+    .perf-highlight[hidden]{display:none}
+    .perf-highlight .ph-tag{flex:none;padding:3px 8px;border-radius:8px;background:linear-gradient(180deg,#ffd34d,#eda825);color:#201605;font-size:10px;font-weight:950}
+    .perf-highlight .ph-txt{flex:1;min-width:0;font-size:13px;font-weight:900;line-height:1.4}
+    .perf-highlight .ph-txt small{display:block;color:#a9b4bf;font-size:10.5px;font-weight:800}
+    .perf-highlight .ph-rate{flex:none;font-family:Georgia,serif;font-size:24px;font-weight:700;background:linear-gradient(180deg,#fff3c4,#f2bd4b 55%,#b9781b);-webkit-background-clip:text;background-clip:text;color:transparent}
     .trend-tabs{display:grid;grid-template-columns:repeat(4,1fr);flex:1;border:1px solid rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
     .trend-tab{border:0;background:#061a26;color:#b9c8d0;padding:5px 2px;font-size:8px;font-weight:900;cursor:pointer}.trend-tab.active{background:linear-gradient(180deg,#ffd34d,#eda825);color:#201605}
     .trend-period{display:flex;gap:3px}.period-btn{border:1px solid rgba(255,255,255,.07);border-radius:7px;background:#061924;color:#91a7b4;padding:5px 6px;font-size:8px;font-weight:900;cursor:pointer}.period-btn.active{border-color:rgba(244,189,67,.42);color:#ffd35a;background:rgba(244,189,67,.10)}
@@ -349,6 +356,8 @@
 
     <div id="perfLoadingNotice" role="status" aria-live="polite"><span class="ring" aria-hidden="true"></span><span id="perfLoadingText">戰績讀取中…</span></div>
     <div id="footballPerformance">
+    <!-- 2026-11-23：亮點橫幅（自動挑近 30 天、至少 30 場的最佳玩法；不隱藏其他數字） -->
+    <button type="button" id="perfHighlight" class="perf-highlight" hidden></button>
     <section class="summarybar">
       <div>
         <div class="verified-label" data-i18n="verifiedMatches">已驗證賽事</div>
@@ -716,7 +725,12 @@ function localizedPick(value){
 
 
 function classifyStatus(key){const trend=(topData?.trend||[]).slice(-14).filter(d=>num(d?.[key]?.decided)>0);if(trend.length<3)return{label:tr("insufficient"),cls:"warn"};const vals=trend.slice(-7).map(d=>num(d[key].hit_rate));const prev=trend.slice(-14,-7).map(d=>num(d[key].hit_rate));const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;const spread=Math.max(...vals)-Math.min(...vals);const delta=prev.length?avg(vals)-avg(prev):0;if(spread>18)return{label:tr("volatile"),cls:"warn"};if(delta>4)return{label:tr("rising"),cls:""};if(delta<-4)return{label:tr("falling"),cls:"down"};return{label:tr("stable"),cls:""}}
-function renderMarkets(){const thirdKey=currentSport==="football"?"btts":"handicap";const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],[thirdKey,"bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=m?.sample_unavailable?tr("insufficient"):`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()})}
+function renderMarkets(){const thirdKey=currentSport==="football"?"btts":"handicap";const defs=[["moneyline","moneylineRate","moneylineSample","moneylineStatus"],["over_under","overRate","overSample","overStatus"],[thirdKey,"bttsRate","bttsSample","bttsStatus"]];defs.forEach(([k,rid,sid,stid])=>{const m=topData?.markets?.[k]||{};document.getElementById(rid).textContent=pct(m);document.getElementById(sid).textContent=m?.sample_unavailable?tr("insufficient"):`${num(m.effective_wins).toFixed(num(m.effective_wins)%1?1:0)} / ${num(m.decided).toFixed(num(m.decided)%1?1:0)} ${tr("samples")}`;const st=classifyStatus(k);const el=document.getElementById(stid);el.textContent=st.label;el.className=`market-status ${st.cls}`.trim()});
+  /* 2026-11-23：市場卡依命中率由高到低排列（沒有樣本的排最後），只調整順序 */
+  try{const grid=document.querySelector(".market-grid");if(grid){const map={moneyline:".market-card.moneyline",over_under:".market-card.overunder"};map[thirdKey]=".market-card.btts";
+    const rate=k=>{const m=topData?.markets?.[k]||{};return num(m.decided)>0&&!m.sample_unavailable?num(m.hit_rate):-1;};
+    defs.map(d=>d[0]).sort((a,b)=>rate(b)-rate(a)).forEach(k=>{const c=grid.querySelector(map[k]);if(c)grid.appendChild(c);});}}catch(e){}
+}
 
 function renderRange(){const start=topData?.summary?.range_start,end=topData?.summary?.range_end;if(start&&end){document.getElementById("rangeText").textContent=`${ymd(start)} - ${ymd(end)}`;return}const rows=topData?.matches||[];if(!rows.length){document.getElementById("rangeText").textContent="--";return}const ds=rows.map(x=>new Date(x.kickoff_at)).filter(d=>!Number.isNaN(d.getTime())).sort((a,b)=>a-b);document.getElementById("rangeText").textContent=`${ymd(ds[0])} - ${ymd(ds.at(-1))}`}
 
@@ -804,6 +818,7 @@ function shortDate(s){
   if(Number.isNaN(d.getTime()))return s;
   return `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
 }
+const TREND_MIN_SAMPLE=20;
 function renderTrend(){
   const arr=trendRows(),box=document.getElementById("trendChart");
   box.innerHTML="";
@@ -816,13 +831,15 @@ function renderTrend(){
     return;
   }
 
-  const cumulative=[];let wins=0,losses=0;
+  const allCum=[];let wins=0,losses=0;
   for(const x of arr){
     wins+=num(x.m?.effective_wins);losses+=num(x.m?.effective_losses);
     const den=wins+losses;
     // 2026-11-15：尚未有任何已驗證場次的日子不畫 0%，避免走勢從 0 起跳、顯示「+65%」的假上升
-    if(den>0)cumulative.push({date:x.date,rate:wins/den*100,total:den});
+    if(den>0)allCum.push({date:x.date,rate:wins/den*100,total:den});
   }
+  // 2026-11-23：累積滿 20 場才開始畫，前面幾場樣本太少（例如 2 場全中＝100%）會讓走勢看起來大跌；不足 20 場時照舊全畫
+  const cumulative=allCum.some(x=>x.total>=TREND_MIN_SAMPLE)?allCum.filter(x=>x.total>=TREND_MIN_SAMPLE):allCum;
   if(!cumulative.length){
     box.innerHTML=`<div class="empty">${esc(tr("insufficient"))}</div>`;
     document.getElementById("trendCurrent").textContent="--";
@@ -856,12 +873,16 @@ function renderTrend(){
     ${xIdx.map(i=>`<text x="${xs[i]}" y="${H-8}" text-anchor="${i===0?"start":i===cumulative.length-1?"end":"middle"}" fill="#7f98a6" font-size="9">${shortDate(cumulative[i].date)}</text>`).join("")}
   </svg>`;
 
-  const first=cumulative[0].rate,last=cumulative.at(-1).rate,diff=last-first;
+  /* 2026-11-23：漲跌改為與「7 天前」的累積命中率比較；7 天前樣本不足 20 場時不顯示漲跌（避免從少數場次的 100% 算出假回落） */
+  const last=cumulative.at(-1).rate,lastD=Date.parse(cumulative.at(-1).date+"T00:00:00+08:00");
+  const ref=[...cumulative].reverse().find(x=>Date.parse(x.date+"T00:00:00+08:00")<=lastD-7*86400e3&&x.total>=TREND_MIN_SAMPLE);
   document.getElementById("trendCurrent").textContent=`${last.toFixed(1)}%`;
   const ch=document.getElementById("trendChange");
-  ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
-  ch.style.color=diff>0?"#21d9a0":diff<0?"#ff696f":"#9eb3bf";
-  document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
+  if(ref){const diff=last-ref.rate;
+    ch.textContent=`${diff>=0?"+":""}${diff.toFixed(1)}%${diff>0?"▲":diff<0?"▼":""}`;
+    ch.style.color=Math.abs(diff)<2?"#9eb3bf":diff>0?"#21d9a0":"#ff696f";
+    document.getElementById("trendState").textContent=Math.abs(diff)<2?tr("trendStable"):diff>0?tr("trendUp"):tr("trendDown");
+  }else{ch.textContent="--";ch.style.color="#9eb3bf";document.getElementById("trendState").textContent=tr("insufficient");}
   document.getElementById("trendSample").innerHTML=`${marketLabel(currentTrend)}<br>${lowerDays}D · ${num(cumulative.at(-1).total).toFixed(num(cumulative.at(-1).total)%1?1:0)} ${tr("verificationUnit")}`;
 }
 
@@ -1028,6 +1049,9 @@ async function switchSport(sport){
     showAll=false;
     currentRecent="overall";
     currentTrend="overall";
+    /* 2026-11-23：換球類時分頁的選中狀態也要回到「綜合」，避免畫面選著讓分、資料卻是綜合 */
+    document.querySelectorAll(".mini-tab").forEach(b=>b.classList.toggle("active",b.dataset.recent==="overall"));
+    document.querySelectorAll(".trend-tab").forEach(b=>b.classList.toggle("active",b.dataset.trend==="overall"));
     const thirdTrend=document.querySelector('.trend-tab[data-third-market="true"], .trend-tab[data-trend="btts"], .trend-tab[data-trend="handicap"]');
     if(thirdTrend){thirdTrend.dataset.trend=sport==="football"?"btts":"handicap";thirdTrend.dataset.thirdMarket="true";}
 
@@ -1214,7 +1238,36 @@ async function loadLowerView(){
   catch(e){if(token!==lowerViewRequestId||sport!==currentSport)return;console.error("AI PERFORMANCE LOWER ERROR",e);lowerData=emptyPerformanceData();renderLower();}
   finally{if(loading)setPerfLoading(false);}
 }
-async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");await switchSport(["football","basketball","baseball"].includes(sport)?sport:"football")}
+/* 2026-11-23（使用者決定）：沒有指定 ?sport 時，預設進入「近 30 天綜合命中率最高、且至少 30 場」的球類；
+   亮點橫幅顯示近 30 天至少 30 場的最佳玩法。其他球類與玩法照常可切換、照常顯示，不隱藏任何數字。 */
+const PERF_APIS={football:AI_PERFORMANCE_API,basketball:BASKETBALL_PERFORMANCE_API,baseball:BASEBALL_PERFORMANCE_API};
+const PERF_MARKETS={football:["moneyline","over_under","btts"],basketball:["moneyline","over_under","handicap"],baseball:["moneyline","over_under","handicap"]};
+async function perfBestPick(){
+  const res=await Promise.all(Object.keys(PERF_APIS).map(sp=>fetch(PERF_APIS[sp]+"?days=30",{headers:{Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(5000)}).then(r=>r.ok?r.json():null).catch(()=>null).then(j=>[sp,j])));
+  let bestSport=null,bestSportRate=-1,best=null;
+  for(const [sp,j] of res){
+    if(!j?.success||!j.markets)continue;
+    let w=0,l=0;
+    for(const k of PERF_MARKETS[sp]){const m=j.markets[k]||{};w+=num(m.effective_wins);l+=num(m.effective_losses);
+      if(num(m.decided)>=30&&Number.isFinite(Number(m.hit_rate))&&(!best||num(m.hit_rate)>best.rate))best={sport:sp,key:k,rate:num(m.hit_rate),wins:num(m.effective_wins),decided:num(m.decided)};}
+    if(w+l>=30&&w/(w+l)>bestSportRate){bestSportRate=w/(w+l);bestSport=sp;}
+  }
+  return {bestSport,best};
+}
+function renderHighlight(best){
+  const el=document.getElementById("perfHighlight");if(!el)return;
+  if(!best){el.hidden=true;return;}
+  const sportName=best.sport==="basketball"?"NBA":best.sport==="baseball"?"MLB":tr("football");
+  const prev=currentSport;currentSport=best.sport;const mk=marketLabel(best.key);currentSport=prev;
+  el.innerHTML=`<span class="ph-tag">${getLang()==="en"?"HIGHLIGHT":"本期亮點"}</span><span class="ph-txt">${esc(sportName)} ${esc(mk)}<small>${getLang()==="en"?"Last 30 days":"近 30 天"} ${best.wins.toFixed(best.wins%1?1:0)} / ${best.decided.toFixed(best.decided%1?1:0)} ${tr("samples")}</small></span><span class="ph-rate">${best.rate.toFixed(1)}%</span>`;
+  el.hidden=false;el.onclick=()=>{if(currentSport!==best.sport)switchSport(best.sport);};
+}
+async function init(){applyLang();const sport=new URLSearchParams(location.search).get("sport");
+  let pick={bestSport:null,best:null};try{pick=await perfBestPick();}catch(e){}
+  renderHighlight(pick.best);
+  const start=["football","basketball","baseball"].includes(sport)?sport:(pick.bestSport||"football");
+  await switchSport(start);
+}
 
 document.querySelectorAll(".sport-tab").forEach(btn=>btn.addEventListener("click",()=>window.HABAO_LOADING ? window.HABAO_LOADING.track(switchSport(btn.dataset.sport||"football")) : switchSport(btn.dataset.sport||"football")));
 document.querySelectorAll(".filter-btn").forEach(btn=>btn.addEventListener("click",async()=>{topDays=btn.dataset.days||"";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadTopView()) : loadTopView())}));
