@@ -147,6 +147,10 @@
     .recent-hint{margin-top:6px;color:#708b99;font-size:7px;text-align:right}
 
     .trend-controls{padding:8px 10px 0;display:flex;gap:6px;align-items:center;justify-content:space-between}
+    .day-nav{display:flex;align-items:center;gap:6px}
+    .day-nav button{width:32px;height:30px;border-radius:9px;border:1px solid rgba(242,189,75,.4);background:#0c1622;color:#ffe39d;font-size:16px;font-weight:900;cursor:pointer}
+    .day-nav button[disabled]{opacity:.35;cursor:default}
+    .day-nav span{min-width:86px;text-align:center;color:#ffe39d;font-size:12px;font-weight:950;white-space:nowrap}
     .stage-pill{display:inline-flex;align-items:center;margin-left:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:950;color:#201605;background:linear-gradient(180deg,#ffd34d,#eda825);box-shadow:0 2px 0 #6b4410;white-space:nowrap}
     .perf-highlight{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:1.5px solid transparent;border-radius:16px;cursor:pointer;text-align:left;color:#fff;font-family:inherit;
       background:linear-gradient(180deg,rgba(42,34,14,.95),rgba(12,14,18,.96)) padding-box,linear-gradient(145deg,#fff1b8,#c98a1f 30%,#6b4410 52%,#f2c35a 75%,#8a5a12) border-box;box-shadow:0 8px 20px rgba(0,0,0,.4)}
@@ -448,7 +452,7 @@
     </section>
 
     <section class="section">
-      <div class="section-head"><h2 class="section-title"><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2><button id="moreBtn" class="more-btn" data-i18n="viewMore">查看更多 ›</button></div>
+      <div class="section-head"><h2 class="section-title"><span data-i18n="latestRecords">最新公開驗證紀錄</span><span class="help">?</span></h2><div class="day-nav" id="recordsDayNav"><button type="button" id="dayPrev" aria-label="前一天">‹</button><span id="dayLabel">昨日</span><button type="button" id="dayNext" aria-label="後一天">›</button></div></div>
       <div class="records-box">
         <div class="table-wrap"><table>
           <thead><tr><th data-i18n="dateTime">日期時間</th><th data-i18n="league">聯賽</th><th data-i18n="homeAway">主隊 vs 客隊</th><th data-i18n="score">比分</th><th data-i18n="aiPrediction">AI 預測</th><th data-i18n="verification">驗證結果</th><th data-i18n="moneyline">獨贏</th><th data-i18n="overUnder">大小分</th><th>BTTS</th><th></th></tr></thead>
@@ -506,6 +510,7 @@ const BASEBALL_PERFORMANCE_API="https://oqtbsbohcfeghgnykwxy.supabase.co/functio
 const BASEBALL_OFFICIAL_PICKS_URL="https://oqtbsbohcfeghgnykwxy.supabase.co/functions/v1/baseball-public-picks";
 const NBA_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/National_Basketball_Association_logo_2017-present.svg";
 const MLB_LEAGUE_LOGO="https://commons.wikimedia.org/wiki/Special:FilePath/Major_League_Baseball_logo.svg";
+let recordsDay=null; /* 2026-11-23：驗證紀錄改為依日顯示，預設「昨日」（台灣日期） */
 let topDays="", lowerDays=30, currentRecent="overall", currentTrend="overall", leagueSort="rate", showAll=false, currentSport="football";
 let topData=null, lowerData=null, allData=null, recordsData=null;
 let lowerViewRequestId=0, topViewRequestId=0;
@@ -927,14 +932,19 @@ function habaoRecordMarketMark(row,key){
 }
 function overallResult(settlement){const keys=currentSport==="football"?["moneyline","over_under","btts"]:["moneyline","over_under","handicap"];const vals=keys.map(k=>normalizeResult(marketResult(settlement,k))).filter(Boolean);if(!vals.length)return"";let score=0;for(const v of vals)score+=v==="win"?1:v==="half_win"?0.5:v==="loss"?-1:v==="half_loss"?-0.5:0;return score>0?"win":score<0?"loss":"push"}
 function renderRecords(){
-  const cutoff=Date.now()-30*86400000;
-  const rows=(Array.isArray(recordsData?.matches)?recordsData.matches:[]).filter(x=>{const at=Date.parse(x.kickoff_at??x.fixture_time??x.game_date);return Number.isFinite(at)&&at>=cutoff&&at<=Date.now();}).sort((a,b)=>Date.parse(b.kickoff_at??b.fixture_time??b.game_date)-Date.parse(a.kickoff_at??a.fixture_time??a.game_date)),
-        shown=showAll?rows:rows.slice(0,5),
+  const twDay=ms=>new Date(ms+8*3600e3).toISOString().slice(0,10);
+  const today=twDay(Date.now()),yday=twDay(Date.now()-86400e3),minDay=twDay(Date.now()-29*86400e3);
+  const day=recordsDay||yday;
+  const rows=(Array.isArray(recordsData?.matches)?recordsData.matches:[]).filter(x=>{const at=Date.parse(x.kickoff_at??x.fixture_time??x.game_date);return Number.isFinite(at)&&at<=Date.now()&&twDay(at)===day;}).sort((a,b)=>Date.parse(b.kickoff_at??b.fixture_time??b.game_date)-Date.parse(a.kickoff_at??a.fixture_time??a.game_date)),
+        shown=rows,
         body=document.getElementById("recordsBody"),
         mobile=document.getElementById("mobileRecords");
 
+  {const md=day.slice(5).replace("-","/"),en=getLang()==="en";
+   document.getElementById("dayLabel").textContent=day===yday?(en?"Yesterday ":"昨日 ")+md:day===today?(en?"Today ":"今日 ")+md:md;
+   document.getElementById("dayPrev").disabled=day<=minDay;document.getElementById("dayNext").disabled=day>=today;}
   if(!shown.length){
-    body.innerHTML=`<tr><td colspan="10"><div class="empty">${esc(tr("noData"))}</div></td></tr>`;
+    body.innerHTML=`<tr><td colspan="10"><div class="empty">${esc(getLang()==="en"?"No verified matches on this day":"這一天沒有已驗證賽事")}</div></td></tr>`;
     mobile.innerHTML=`<div class="empty">${esc(tr("noData"))}</div>`;
     return;
   }
@@ -975,7 +985,6 @@ function renderRecords(){
       </article>`;
     }).join("");
 
-    document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
     return;
   }
 
@@ -1017,7 +1026,6 @@ function renderRecords(){
     </article>`;
   }).join("");
 
-  document.getElementById("moreBtn").textContent=showAll?tr("viewLess"):tr("viewMore");
 }
 
 
@@ -1047,7 +1055,7 @@ async function switchSport(sport){
     allData=topData=lowerData=recordsData=emptyPerformanceData();
     document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b.dataset.period==="30"));
     document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.days===""));
-    showAll=false;
+    showAll=false;recordsDay=null;
     currentRecent="overall";
     currentTrend="overall";
     /* 2026-11-23：換球類時分頁的選中狀態也要回到「綜合」，避免畫面選著讓分、資料卻是綜合 */
@@ -1283,7 +1291,8 @@ document.querySelectorAll(".mini-tab").forEach(btn=>btn.addEventListener("click"
 document.querySelectorAll(".trend-tab").forEach(btn=>btn.addEventListener("click",()=>syncMarketTabs(btn.dataset.trend)));
 document.querySelectorAll(".period-btn").forEach(btn=>btn.addEventListener("click",async()=>{lowerDays=Number(btn.dataset.period)||30;showAll=false;document.querySelectorAll(".period-btn").forEach(b=>b.classList.toggle("active",b===btn));await (window.HABAO_LOADING ? window.HABAO_LOADING.track(loadLowerView()) : loadLowerView())}));
 document.querySelectorAll(".league-sort button").forEach(btn=>btn.addEventListener("click",()=>{leagueSort=btn.dataset.sort;document.querySelectorAll(".league-sort button").forEach(b=>b.classList.toggle("active",b===btn));renderLeagues()}));
-document.getElementById("moreBtn").addEventListener("click",()=>{showAll=!showAll;renderRecords()});
+{const shift=n=>{const twDay=ms=>new Date(ms+8*3600e3).toISOString().slice(0,10);const cur=recordsDay||twDay(Date.now()-86400e3);recordsDay=new Date(Date.parse(cur+"T00:00:00Z")+n*86400e3).toISOString().slice(0,10);renderRecords();};
+ document.getElementById("dayPrev").addEventListener("click",()=>shift(-1));document.getElementById("dayNext").addEventListener("click",()=>shift(1));}
 window.addEventListener("habao:languagechange",()=>{applyLang();renderAll();applySportLabels()});
 window.addEventListener("habao:translationsapplied",()=>{applyLang();renderAll();applySportLabels()});
 init();
